@@ -1913,7 +1913,7 @@ class Paks(viewsets.ModelViewSet):
            else:
                 print("Esta entrando a listar Paquetes fil")
                 paquetes =  Paquetes.objects.all().filter(user_id = user_session)
-                print(paquetes)
+                print("soy paquetes",paquetes)
                 # Filtrar los paquetes basados en algún valor dentro de datos_arrendamiento
                 paquetes_filtrado =  paquetes.filter(datos_arrendamiento__deposito_rendimiento = "Si")
                 print(paquetes_filtrado)
