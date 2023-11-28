@@ -1,0 +1,52 @@
+from rest_framework.routers import DefaultRouter
+from ..api.views import *
+from .Views.arrendador.arrendadorView import ArrendadorViewSet, Arrendador_inmuebles
+
+
+# router = routers.SimpleRouter()
+# router.register(r'users', ListarLibrosSet, basename='user')
+# urlpatterns += router.urls
+
+router = DefaultRouter()
+#inquilinos
+router.register(r'inquilino_fiador_obligado', InquilinoFiadorObligadoViewSet, basename='inquilino_fiador_obligado')
+router.register(r'inquilinos_fiadores', Inquilinos_fiadores, basename='inquilino_fiadores')
+router.register(r'documentos_reg', DocumentosInquilino, basename='documentos_reg')
+router.register(r'fiadores_obligados', Fiador_obligadoViewSet, basename='fiadores_obligados')
+router.register(r'documentos_foo', DocumentosFoo, basename='documentos_foo')
+#arrendador
+router.register(r'arrendadores', ArrendadorViewSet, basename='arrendadores')
+router.register(r'Arrendador_Cotizador', Arrendador_Cotizador, basename='Arrendador_Cotizacion')
+router.register(r'HistorialDocumentosArrendadorViewSet', HistorialDocumentosArrendadorViewSet, basename='HistorialDocumentosArrendadorViewSet'),
+#extras
+router.register(r'investigacion', investigaciones, basename='investigaciones')
+router.register(r'cotizaciones', Cotizacion_ap, basename='Cotizaciones_ap')
+
+# Inmuebles
+router.register(r'inmuebles', inmueblesViewSet, basename='inmuebles')
+router.register(r'arrendador_inmuebles', Arrendador_inmuebles, basename='arrendador_inmuebles')
+# Mobiliario
+router.register(r'MobiliarioCantidad', MobiliarioCantidad, basename='MobiliarioCantidad'),
+# Recordar password
+router.register(r'contrasena', RecuperarPassword, basename='contrasena')
+# Contacto
+router.register(r'ContactoDatos', ContactoDatos, basename='ContactoDatos'),
+# Datos de arrendamiento
+router.register(r'DatosArrendamiento', DatosArrendamiento, basename='DatosArrendamiento'),
+# Comentarios
+router.register(r'comentarios', Comentario, basename='comentarios'),
+# paquetes
+router.register(r'paquetes', Paks, basename='paquetes'),
+
+
+# router.register(r'i_a', Inmuebles_a, basename='a_a')
+
+
+# router.register(r'ListarInmuieblesImagenesArrendador', ListarInmuieblesImagenesArrendador, basename='ListarInmuieblesImagenesArrendador')
+
+# Cambiar a v1/
+
+# myobjects_list = ArrendadorViewSet.as_view({
+#     'get': 'list',
+#     'get': 'retrieve'
+# })

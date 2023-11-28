@@ -1,0 +1,130 @@
+{% extends "layouts/base-fullscreen.html" %}
+
+{% block title %} Arrendify - Registro {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <section class="vh-lg-100 mt-5 mt-lg-0 bg-soft d-flex align-items-center">
+        <div class="container">
+            <p class="text-center">
+                Arrendify - Registro
+            </p>
+            <div class="row justify-content-center form-bg-image" data-background-lg="/static/assets/img/illustrations/signin.svg">
+                <div class="col-12 d-flex align-items-center justify-content-center">
+                    <div class="bg-white shadow border-0 rounded border-light p-4 p-lg-5 w-100 fmxw-500">
+                        <div class="text-center text-md-center mb-4 mt-md-0">
+                            <h1 class="mb-0 h3">
+                                Registro de usuario
+                            </h1>
+                            <br />
+                            <span class="mb-0 text-muted">
+                                {% if msg %}
+                                    {{ msg | safe }}
+                                {% else %}
+                                    {% comment %} Add your credentials {% endcomment %}
+                                {% endif %} 
+                            </span>
+                        </div>
+{% if success %}
+
+<div class="d-grid">
+    <a href="{% url 'login' %}" class="btn btn-gray-800">Registrarse</a>
+</div>
+
+{% else %}
+
+<form method="post" action="" class="mt-4">
+    
+    {% csrf_token %}
+
+    <div class="form-group mb-4">
+        <label for="email">Nombre de usuario</label>
+        <div class="input-group">
+            <span class="input-group-text" id="basic-addon1">
+                <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path></svg>
+            </span>
+            {{ form.username }}
+        </div>  
+        <span class="text-danger">{{ form.username.errors }}</span>
+    </div>
+
+    <!-- Form -->
+    <div class="form-group mb-4">
+        <label for="email">Email</label>
+        <div class="input-group">
+            <span class="input-group-text" id="basic-addon1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-xs text-gray-600" fill="currentColor" class="bi bi-envelope-at-fill" viewBox="0 0 16 16">
+                    <path d="M2 2A2 2 0 0 0 .05 3.555L8 8.414l7.95-4.859A2 2 0 0 0 14 2H2Zm-2 9.8V4.698l5.803 3.546L0 11.801Zm6.761-2.97-6.57 4.026A2 2 0 0 0 2 14h6.256A4.493 4.493 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586l-1.239-.757ZM16 9.671V4.697l-5.803 3.546.338.208A4.482 4.482 0 0 1 12.5 8c1.414 0 2.675.652 3.5 1.671Z"/>
+                    <path d="M15.834 12.244c0 1.168-.577 2.025-1.587 2.025-.503 0-1.002-.228-1.12-.648h-.043c-.118.416-.543.643-1.015.643-.77 0-1.259-.542-1.259-1.434v-.529c0-.844.481-1.4 1.26-1.4.585 0 .87.333.953.63h.03v-.568h.905v2.19c0 .272.18.42.411.42.315 0 .639-.415.639-1.39v-.118c0-1.277-.95-2.326-2.484-2.326h-.04c-1.582 0-2.64 1.067-2.64 2.724v.157c0 1.867 1.237 2.654 2.57 2.654h.045c.507 0 .935-.07 1.18-.18v.731c-.219.1-.643.175-1.237.175h-.044C10.438 16 9 14.82 9 12.646v-.214C9 10.36 10.421 9 12.485 9h.035c2.12 0 3.314 1.43 3.314 3.034v.21Zm-4.04.21v.227c0 .586.227.8.581.8.31 0 .564-.17.564-.743v-.367c0-.516-.275-.708-.572-.708-.346 0-.573.245-.573.791Z"/>
+                  </svg>
+            </span>
+            {{ form.email }}
+        </div>  
+        <span class="text-danger">{{ form.email.errors }}</span>
+    </div>
+    <!-- End of Form -->
+    <div class="form-group">
+        
+        <!-- Form -->
+        <div class="form-group mb-4">
+            <label for="password">Contraseña</label>
+            <div class="input-group">
+                <span class="input-group-text" id="basic-addon2">
+                    <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+                </span>
+                {{ form.password1 }}
+            </div>  
+            <span class="text-danger">{{ form.password1.errors }}</span>
+        </div>
+        <div class="form-group mb-4">
+            <label for="password">Confirma contraseña</label>
+            <div class="input-group">
+                <span class="input-group-text" id="basic-addon2">
+                    <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+                </span>
+                {{ form.password2 }}
+            </div>  
+            <span class="text-danger">{{ form.password2.errors }}</span>
+        </div>
+        
+        <div class="form-group mb-4">
+            <label for="email">Nombre</label>
+            <div class="input-group">
+                <span class="input-group-text" id="basic-addon1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-xs text-gray-600" fill="currentColor" class="bi bi-person-lines-fill" viewBox="0 0 16 16">
+                        <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1h-4zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z"/>
+                      </svg>
+                </span>
+                {{ form.first_name }}
+            </div>  
+            <span class="text-danger">{{ form.first_name.errors }}</span>
+        </div>
+
+
+    </div>
+    <div class="d-grid">
+        <button type="submit" name="register" class="btn btn-gray-800">Registrarse</button>
+    </div>
+</form>
+<br />
+<div class="d-flex justify-content-center align-items-center mt-4">
+    <span class="fw-normal">
+        ¿Ya tienes una cuenta? 
+        <a href="{% url 'login' %}" class="fw-bold">Inicia Sesión</a>
+    </span>
+</div>
+
+{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

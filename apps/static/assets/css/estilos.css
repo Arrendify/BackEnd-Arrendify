@@ -1,0 +1,11 @@
+.titulo {
+    font-size: 72px;
+    background: -webkit-linear-gradient(180deg, #231942ff, #5e548eff, #9f86c0ff, #be95c4ff, #e0b1cbff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: aqua;
+  }
+.fondo
+{
+ background-color: #e0b1cbff;
+}
