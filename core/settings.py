@@ -8,28 +8,22 @@ from decouple import config
 from unipath import Path
 import boto3
 from botocore.client import Config
-from dotenv import dotenv_values
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-ENVIRON = dotenv_values(".env")
 BASE_DIR = Path(__file__).parent
 CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ENVIRON.get('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = ENVIRON.get('DEBUG')
-servidor = "django-volt-pro.appseed-srv1.com"
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # load production server from .env
-ALLOWED_HOSTS = []
-if DEBUG == False:
-    ALLOWED_HOSTS.append(ENVIRON.get('SERVER'))
-else:
-    ALLOWED_HOSTS.append(servidor)
-    
+ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1')]
+
 # Application definition
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -58,6 +52,8 @@ REST_FRAMEWORK = {
         #'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        
+
     ),
 }
 
@@ -83,11 +79,14 @@ MIDDLEWARE = [
 ]
 
 CORS_ORIGIN_WHITELIST = (
-    'http://front-env.eba-v5z2ddkn.us-east-2.elasticbeanstalk.com',
+    'http://192.168.2.14:8080',
     'http://192.168.2.24:8081',
     'http://192.168.2.24:8000',
+    'http://192.168.2.24:8080',
     'http://192.168.2.13:8080',
     'http://192.168.2.13:8081',
+    'http://192.168.1.67:8001',
+    'http://192.168.1.67:8000',
     'http://192.168.3.2:8001',
     'http://192.168.3.2:8000',
     'http://localhost',
@@ -111,9 +110,9 @@ TEMPLATE_DIR = os.path.join(CORE_DIR, "apps/templates")  # ROOT dir for template
 
 
 #configuracion Aws
-AWS_ACCESS_KEY_ID = ENVIRON.get('lola')
-AWS_SECRET_ACCESS_KEY = ENVIRON.get('lols')
-AWS_STORAGE_BUCKET_NAME = ENVIRON.get('asbn')
+AWS_ACCESS_KEY_ID = config('lola', default='AWSSecret')
+AWS_SECRET_ACCESS_KEY = config('lols', default='AWSSecret')
+AWS_STORAGE_BUCKET_NAME = config('asbn', default='AWSSecret')
 AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 AWS_S3_REGION_NAME = 'us-east-2'
 AWS_S3_OBJECT_PARAMETERS = {
@@ -131,6 +130,11 @@ MEDIA_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION_MEDIA )
 # STATICFILES_DIRS = [
 #     os.path.join(CORE_DIR, 'apps/static'),
 #     ]
+
+
+
+
+
 
 #############################################################
 # SRC: https://devcenter.heroku.com/articles/django-assets
