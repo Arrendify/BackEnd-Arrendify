@@ -79,6 +79,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ORIGIN_WHITELIST = (
+    'http://front-env.eba-v5z2ddkn.us-east-2.elasticbeanstalk.com'
     'http://192.168.2.14:8080',
     'http://192.168.2.24:8081',
     'http://192.168.2.24:8000',
