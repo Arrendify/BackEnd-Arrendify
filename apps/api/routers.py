@@ -37,6 +37,10 @@ router.register(r'DatosArrendamiento', DatosArrendamiento, basename='DatosArrend
 router.register(r'comentarios', Comentario, basename='comentarios'),
 # paquetes
 router.register(r'paquetes', Paks, basename='paquetes'),
+# encuesta
+router.register(r'encuesta', Encuestas, basename='encuesta'),# encuesta
+# invetario fotografico
+router.register(r'inventario_fotografico', Inventario_fotografico, basename='inventario_fotografico'),
 
 
 # router.register(r'i_a', Inmuebles_a, basename='a_a')

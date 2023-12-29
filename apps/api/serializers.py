@@ -176,3 +176,13 @@ class PaquetesSerializer(serializers.ModelSerializer):
     
     def get_is_staff(self, obj):
         return obj.user.is_staff
+
+class EncuestaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Encuesta
+        fields = '__all__'
+
+class Inventario_fotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inventario_foto
+        fields = '__all__'

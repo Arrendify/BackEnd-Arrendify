@@ -944,3 +944,31 @@ class Paquetes(models.Model):
 
     class Meta:
         db_table = 'paquetes'
+
+class Encuesta(models.Model):
+    id = models.AutoField(primary_key=True)
+    pregunta1 = models.CharField(max_length=100, null=True, blank=True)
+    pregunta2 = models.CharField(max_length=100, null=True, blank=True)
+    pregunta3 = models.CharField(max_length=100, null=True, blank=True)
+    pregunta4 = models.CharField(max_length=100, null=True, blank=True)
+    class Meta:
+        db_table = 'encuesta'
+
+class Inventario_foto(models.Model):
+    def get_inv_upload_path(self, filename):
+        inq_split = str(self.paquete_asociado)
+        print("direccion a guardar",inq_split.__dict__)
+        print(inq_split.codigo_paquete)
+        print(inq_split["codigo_paquete"])
+        #ip = inq_split.replace(" ", "_")
+        #print(ip)
+        return f'Contrato/documentos/{inq_split}/inventario_fotografico/{filename}'
+    
+    id = models.AutoField(primary_key=True)
+    user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    paquete_asociado = models.ForeignKey(Paquetes, null=True, blank=True, on_delete=models.CASCADE,related_name="paq_asociado")
+    inv_fotografico = models.FileField(upload_to=get_inv_upload_path)
+    dateTimeOfUpload = models.DateTimeField(auto_now = True)
+    class Meta:
+        db_table = 'inventario_fotografico'
+

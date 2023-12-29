@@ -2197,8 +2197,8 @@ class Paks(viewsets.ModelViewSet):
         response.write(pdf_file)
 
         return HttpResponse(response, content_type='application/pdf')
-            
-            
+    
+    
 class Pagares(viewsets.ModelViewSet):
     queryset = Cotizacion.objects.all()
     serializer_class = CotizacionSerializerPagares
@@ -2250,3 +2250,107 @@ class Amigos(viewsets.ModelViewSet):
        
         except ValidationError as e:
                 return Response({'errors': e.detail}, status=status.HTTP_401_UNAUTHORIZED)
+
+class Encuestas(viewsets.ModelViewSet):      
+    queryset = Encuesta.objects.all()
+    serializer_class = EncuestaSerializer
+    
+    def list(self, request, *args, **kwargs):
+        user_session = request.user       
+        try:
+           if user_session.is_staff:
+                print("Esta entrando a listar cotizacion")
+                encuestas =  self.get_queryset()
+                serializer = self.get_serializer(encuestas, many=True)
+                
+           else:
+                print("Esta entrando a encuestas")
+                # Contar las respuestas "Muy Fácil" y "Muy Difícil" para cada pregunta
+                encuestas =  Encuesta.objects.all()
+               
+                p1r1 =  Encuesta.objects.all().filter(pregunta1 = "Muy Buena")
+                print(p1r1)
+                p1r2 =  Encuesta.objects.all().filter(pregunta1 = "Buena")
+                p1r3 =  Encuesta.objects.all().filter(pregunta1 = "Regular")
+                p1r4 =  Encuesta.objects.all().filter(pregunta1 = "Mala")
+                p1r5 =  Encuesta.objects.all().filter(pregunta1 = "Muy Mala")
+                # Crear un diccionario con la cuenta de respuestas
+                pregunta1 = {
+                    'muy_facil': p1r1,
+                    'facil': p1r2,
+                    'regular': p1r3,
+                    'dificil': p1r4,
+                    'muy_dificil': p1r5,
+                }
+
+                p2r1 =  Encuesta.objects.all().filter(pregunta2 = "Muy Buena").count()
+                p2r2 =  Encuesta.objects.all().filter(pregunta2 = "Buena")
+                p2r3 =  Encuesta.objects.all().filter(pregunta2 = "Regular")
+                p2r4 =  Encuesta.objects.all().filter(pregunta2 = "Mala")
+                p2r5 =  Encuesta.objects.all().filter(pregunta2 = "Muy Mala")
+                pregunta2 = {
+                    'muy_facil': p2r1,
+                    'facil': p2r2,
+                    'regular': p2r3,
+                    'dificil': p2r4,
+                    'muy_dificil': p2r5,
+                }
+                
+                serializer = self.get_serializer(encuestas, many=True)
+            
+        
+           
+           return Response(serializer.data, status= status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def create(self, request, *args, **kwargs):
+        try:
+            print(request)
+            encuesta_serializer = self.serializer_class(data=request.data)
+            if encuesta_serializer.is_valid(raise_exception=True):
+                encuesta_serializer.save()
+                return Response({'comentario': encuesta_serializer.data}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'serializer no valido': encuesta_serializer.errors})
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class Inventario_fotografico(viewsets.ModelViewSet):      
+    queryset = Inventario_foto.objects.all()
+    serializer_class = Inventario_fotoSerializer
+    
+    def list(self, request, *args, **kwargs):
+        user_session = request.user       
+        try:
+           if user_session.is_staff:
+                print("Esta entrando a listar cotizacion")
+                inventario_fotografico =  self.get_queryset()
+                serializer = self.get_serializer(inventario_fotografico, many=True)
+                
+           else:
+                print("Esta entrando a listar cotizacion")
+                inventario_fotografico =  self.get_queryset()
+                serializer = self.get_serializer(inventario_fotografico, many=True)
+     
+           
+           return Response(serializer.data, status= status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def create(self, request, *args, **kwargs):
+        try:
+            print(request)
+            inventario_serializer = self.serializer_class(data=request.data)
+            print("request.data", request.data)
+            buscar_el_paquete = Paquetes.objects.all().filter(codigo_paquete= "xd")
+            if inventario_serializer.is_valid():
+                print("soy valido")
+                #inventario_serializer["paquete_asociado"] = request.data.id
+                #inventario_serializer.save()
+                
+                return Response({'comentario': inventario_serializer.data}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'serializer no valido': inventario_serializer.errors})
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
