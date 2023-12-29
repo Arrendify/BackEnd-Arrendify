@@ -17,7 +17,7 @@ CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # load production server from .env
 ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1')]
@@ -79,7 +79,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ORIGIN_WHITELIST = (
-    'http://front-env.eba-v5z2ddkn.us-east-2.elasticbeanstalk.com',
+    'https://arrendify.app',
     'http://192.168.2.14:8080',
     'http://192.168.2.24:8081',
     'http://192.168.2.24:8000',
