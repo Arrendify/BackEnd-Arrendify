@@ -22,7 +22,7 @@ def index(request):
     remote_ip = request.META.get('REMOTE_ADDR')
     print("IP VISITANTE INDEX: ",remote_ip)
     context = {'segment': 'index'}
-    html_template = loader.get_template('home/index.html')
+    html_template = loader.get_template('home/page-404.html')
     return HttpResponse(html_template.render(context, request))
 
 #================INQUILINOS=================

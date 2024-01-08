@@ -142,12 +142,6 @@ class Cotizacion_genSerializer(serializers.ModelSerializer):
         model = Cotizacion_gen
         fields = '__all__' 
 
-class DatosArrendamientoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DatosArrendamiento
-        fields = '__all__'
-
-
 class ComentarioSerializer(serializers.ModelSerializer):
     user = UserSerializer2(read_only=True)  # Campo solo de lectura para mostrar los datos del usuario
     # user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True, source='user')  # Campo de escritura para insertar el ID del usuario

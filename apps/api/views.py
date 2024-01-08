@@ -46,6 +46,8 @@ from email import encoders
 from django.core.mail import send_mail
 from smtplib import SMTPException
 from django.core.files.base import ContentFile
+from decouple import config
+
 # Para autenticacion
 import os
 import json
@@ -82,6 +84,9 @@ def eliminar_archivo_s3(file_name):
         print("El archivo se eliminó correctamente de S3.")
     except NoCredentialsError:
         print("No se encontraron las credenciales de AWS.")
+# ----------------------------------pagina 404----------------------------------------------- #
+def pagina_404(request):
+    return render(request, 'home/page-404.html')
 # ----------------------------------Inquilino----------------------------------------------- #
 class inquilino_registro(APIView):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
@@ -132,7 +137,6 @@ def editar_inquilino(request):
 
 
 class inquilinos_delete(APIView):
-    
     def post(self, request, format=None):
         print("Si llega a eliminar", request.data)
         id = request.data.get('id')
@@ -147,6 +151,7 @@ class inquilinos_delete(APIView):
 class InquilinoFiadorObligadoViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
+    
     queryset = Inquilino.objects.all()
     serializer_class = InquilinoSerializersFiador
     http_method_names = ['get']
@@ -167,6 +172,7 @@ class InquilinoFiadorObligadoViewSet(viewsets.ModelViewSet):
 class Inquilinos_fiadores(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
+    
     queryset = Inquilino.objects.all()
     serializer_class = InquilinoSerializersFiador
     http_method_names = ['get']
@@ -187,6 +193,7 @@ class Inquilinos_fiadores(viewsets.ModelViewSet):
 class DocumentosInquilino(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
+    
     queryset = DocumentosInquilino.objects.all()
     serializer_class = DISerializer
    
@@ -332,6 +339,7 @@ class DocumentosInquilino(viewsets.ModelViewSet):
 class Fiador_obligadoViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
+    
     queryset = Fiador_obligado.objects.all()
     serializer_class = Fiador_obligadoSerializer
     lookup_field = 'slug'
@@ -419,6 +427,7 @@ class Fiador_obligadoViewSet(viewsets.ModelViewSet):
 class DocumentosFoo(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
+    
     queryset = DocumentosFiador.objects.all()
     serializer_class = DFSerializer
    
@@ -591,6 +600,7 @@ class HistorialDocumentosArrendadorViewSet(viewsets.ModelViewSet):
 class inmueblesViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
+    
     lookup_field = 'slug'
     queryset = Inmuebles.objects.all()
     serializer_class = InmueblesSerializer
@@ -848,8 +858,9 @@ class MobiliarioCantidad(viewsets.ModelViewSet):
 # ---------------------------------- Investigacion ---------------------------------- #
   
 class investigaciones(viewsets.ModelViewSet):
-    #authentication_classes = [TokenAuthentication, SessionAuthentication]
-    #permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = Investigacion.objects.all()
     serializer_class = InvestigacionSerializers
    
@@ -1140,9 +1151,8 @@ class investigaciones(viewsets.ModelViewSet):
             # Establece la conexión SMTP y envía el correo electrónico
             smtp_server = 'smtp.office365.com'
             smtp_port = 587
-            smtp_username = 'notificaciones_arrendify@outlook.com'
-            #utilizar una variable de entorno para el deploy
-            smtp_password = '7d}nw6*f,a34&GD#s2'
+            smtp_username = config('smtp_u')
+            smtp_password = config('smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
@@ -1197,9 +1207,15 @@ class Cotizacion_ap(viewsets.ModelViewSet):
                 serializer = self.get_serializer(cotizaciones, many=True)
                 return Response(serializer.data)
            else:
-                print("Esta entrando a listar cotizacion")
-                cotizaciones =  Cotizacion.objects.all().filter(user_id = user_session.id)
-                serializer = self.get_serializer(cotizaciones, many=True)
+                # Obtener las consultas de cotizacion y paquetes
+                cotizaciones = Cotizacion.objects.filter(user_id = user_session.id)
+                paquetes =  Paquetes.objects.all().filter(user_id = user_session.id)
+                # Obtener las cotizaciones del usuario que no tienen un paquete asociado
+                cotizaciones_sin_paquete = cotizaciones.exclude(id__in = paquetes.values_list('cotizacion_id', flat=True))
+                print("soy cotizaciones_sin_paquete",cotizaciones_sin_paquete)
+                 
+                                                
+                serializer = self.get_serializer(cotizaciones_sin_paquete, many=True)
            
            return Response(serializer.data, status= status.HTTP_200_OK)
         except Exception as e:
@@ -1370,7 +1386,7 @@ class Cotizacion_ap(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-
+    # probando con variables de entorno
     def enviar_pdf(self, pdf_content, info):
         print("soy pdf content",pdf_content)
         print("soy info de enviar_pdf",info)
@@ -1691,7 +1707,6 @@ class Cotizacion_ap(viewsets.ModelViewSet):
                  """)
             
             print("pasamos variables contido_html")
-
             # Adjuntar el contenido HTML al mensaje
             msg.attach(MIMEText(contenido_html, 'html'))
             # msg.attach(MIMEText(mensaje, 'plain'))
@@ -1707,9 +1722,8 @@ class Cotizacion_ap(viewsets.ModelViewSet):
             # Establece la conexión SMTP y envía el correo electrónico
             smtp_server = 'smtp.office365.com'
             smtp_port = 587
-            smtp_username = 'notificaciones_arrendify@outlook.com'
-            #utilizar una variable de entorno para el deploy
-            smtp_password = '7d}nw6*f,a34&GD#s2'
+            smtp_username = config('smtp_u')
+            smtp_password = config('smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
@@ -1754,8 +1768,8 @@ class RecuperarPassword(viewsets.ViewSet):
             msg.attach(MIMEText(message, 'plain'))
             smtp_server = 'smtp.office365.com'
             smtp_port = 587
-            smtp_username = 'notificaciones_arrendify@outlook.com'
-            smtp_password = '7d}nw6*f,a34&GD#s2'  
+            smtp_username = config('smtp_u')
+            smtp_password = config('smtp_pw') 
 
             with smtplib.SMTP(smtp_server, smtp_port) as server:
                 server.starttls()
@@ -1813,9 +1827,8 @@ class ContactoDatos(viewsets.ViewSet):
             # Establece la conexión SMTP y envía el correo electrónico
             smtp_server = 'smtp.office365.com'
             smtp_port = 587
-            smtp_username = 'notificaciones_arrendify@outlook.com'
-            #utilizar una variable de entorno para el deploy
-            smtp_password = '7d}nw6*f,a34&GD#s2'
+            smtp_username = config('smtp_u')
+            smtp_password = config('smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server: #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
@@ -1825,39 +1838,12 @@ class ContactoDatos(viewsets.ViewSet):
             print("Error al enviar el correo electrónico:", str(e))
             return Response({'message': 'Error al enviar el correo electrónico.'})
 
-class DatosArrendamiento(viewsets.ModelViewSet):
-    queryset = DatosArrendamiento.objects.all()
-    serializer_class = DatosArrendamientoSerializer
-
-    def get_queryset(self):
-        user_session = self.request.user
-        if user_session.is_staff:
-            data_serializer = self.serializer_class(self.queryset, many=True)
-            return Response(data_serializer.data)
-        else:            
-            user_id = self.request.user.id
-            return self.queryset.filter(user_id=user_id)
-
-    def create(self, request, *args, **kwargs):
-        try:
-            datos_arrendamiento = self.serializer_class(data=request.data) #Usa el serializer_class
-            datos_arrendamiento.initial_data['user'] = request.user.id
-            print("Soy user id", request.user.id)
-            if datos_arrendamiento.is_valid(raise_exception=True):
-                datos_arrendamiento.save()
-                print("Guardado datos arrendamiento")
-                return Response({'fiador_obligado': datos_arrendamiento.data}, status=status.HTTP_201_CREATED)
-            else:
-                print("Error en validacion")
-                return Response({'errors': datos_arrendamiento.errors})
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 
 # ----------------------------------Comentarios-------------------------------
 class Comentario(viewsets.ModelViewSet):      
-    # authentication_classes = [TokenAuthentication, SessionAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = Comentario.objects.all()
     serializer_class = ComentarioSerializer
     
@@ -1889,8 +1875,9 @@ class Comentario(viewsets.ModelViewSet):
         
 # ----------------------------------Paquetes---------------------------------- #
 class Paks(viewsets.ModelViewSet):
-    # authentication_classes = [TokenAuthentication, SessionAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = Paquetes.objects.all()
     serializer_class = PaquetesSerializer
     
@@ -2316,7 +2303,10 @@ class Encuestas(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-class Inventario_fotografico(viewsets.ModelViewSet):      
+class Inventario_fotografico(viewsets.ModelViewSet):     
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated] 
+    
     queryset = Inventario_foto.objects.all()
     serializer_class = Inventario_fotoSerializer
     

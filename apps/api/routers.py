@@ -31,8 +31,7 @@ router.register(r'MobiliarioCantidad', MobiliarioCantidad, basename='MobiliarioC
 router.register(r'contrasena', RecuperarPassword, basename='contrasena')
 # Contacto
 router.register(r'ContactoDatos', ContactoDatos, basename='ContactoDatos'),
-# Datos de arrendamiento
-router.register(r'DatosArrendamiento', DatosArrendamiento, basename='DatosArrendamiento'),
+
 # Comentarios
 router.register(r'comentarios', Comentario, basename='comentarios'),
 # paquetes

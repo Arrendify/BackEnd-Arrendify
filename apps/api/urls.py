@@ -27,7 +27,8 @@ urlpatterns = [
     path('paquetes/generar_pagare/', Paks.as_view({'post': 'generar_pagare'}), name='generar_pagare'),
     path('paquetes/generar_poliza/', Paks.as_view({'post': 'generar_poliza'}), name='generar_poliza'),
     path('paquetes/generar_contrato/', Paks.as_view({'post': 'generar_contrato'}), name='generar_contrato'),
-    
+    #manejamos el index con la pag404
+    path('', pagina_404, name='error'),   
     path('', include(router.urls)),
 ]
 # urlpatterns += router.urls

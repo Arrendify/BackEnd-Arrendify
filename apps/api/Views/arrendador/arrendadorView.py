@@ -28,7 +28,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from smtplib import SMTPException
-
+from decouple import config
 
 from rest_framework.authentication import TokenAuthentication
 
@@ -278,9 +278,8 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
             # Establece la conexión SMTP y envía el correo electrónico
             smtp_server = 'smtp.office365.com'
             smtp_port = 587
-            smtp_username = 'notificaciones_arrendify@outlook.com'
-            #utilizar una variable de entorno para el deploy
-            smtp_password = '7d}nw6*f,a34&GD#s2'
+            smtp_username = config('smtp_u')
+            smtp_password = config('smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 

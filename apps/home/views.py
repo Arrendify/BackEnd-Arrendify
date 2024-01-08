@@ -544,7 +544,7 @@ def pdf_descarga(request):
 
 def index(request):
     context = {'segment': 'index'}
-    html_template = loader.get_template('home/index.html')
+    html_template = loader.get_template('home/page-404.html')
     return HttpResponse(html_template.render(context, request))
 
 

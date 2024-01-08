@@ -857,31 +857,6 @@ class HistorialDocumentosInquilinos(models.Model):
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     class Meta:
         db_table = 'historial_documentos_inquilinos'
-
-# Datos de arrendamiento
-class DatosArrendamiento(models.Model):
-    id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-
-    # Datos del arrendamiento
-    fecha_de_solicitud = models.CharField(max_length=100, null=True, blank=True)    
-    deposito_garantia = models.CharField(max_length=100, null=True, blank=True)
-    
-    # datos vigencia
-    fecha_inicio_contrato = models.DateField(null=True, blank=True)
-    fecha_fin_contrato = models.DateField(null=True, blank=True)
-    duracion = models.CharField(max_length=100, null=True, blank=True)
-    
-    #Lugar de firma
-    lugar_firma = models.CharField(max_length=100, null=True, blank=True)
-    fecha_firma = models.DateField(null=True, blank=True)
-    hora_firma = models.TimeField(null=True, blank=True)
-    arrendatario_firma_como = models.CharField(max_length=100, null=True, blank=True)
-    
-    observaciones = models.CharField(max_length=100, null=True, blank=True)
-    
-    class Meta:
-        db_table = 'datos_arrendamiento'
         
 class Accion(models.Model):
     usuario = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
