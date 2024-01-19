@@ -25,6 +25,7 @@ from rest_framework.authtoken.models import Token
 
 class CustomToken(Token):
     expires_at = models.DateTimeField(null=True, blank=True)
+    
 
     class Meta:
         db_table = 'custom_token'
@@ -827,7 +828,7 @@ class Cotizacion_gen(models.Model):
     # objects = ArchivoCotizacionManager()
 
     class Meta:
-        db_table = 'contizacion_gen'
+        db_table = 'cotizacion_gen'
 #Historiales
 class HistorialDocumentosArrendador(models.Model):
     def get_dom_upload_path_pasado(self, filename):

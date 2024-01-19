@@ -47,6 +47,12 @@ from django.core.mail import send_mail
 from smtplib import SMTPException
 from django.core.files.base import ContentFile
 from decouple import config
+#pdf reduccion
+from pypdf import PdfReader, PdfWriter
+from io import BytesIO
+from PIL import Image
+
+from django.core.files.storage import default_storage
 
 # Para autenticacion
 import os
@@ -1256,9 +1262,10 @@ class Cotizacion_ap(viewsets.ModelViewSet):
             if cotizador_serializer.is_valid(raise_exception=True):
                 print("entro al IF")
                 info = cotizador_serializer.save(user = user_session)
-                print(info.__dict__)
+                print("soy INFO",info.__dict__)
                 print(info.nombre_cotizacion)
-                print(info.tipo_poliza)
+                print("soy poliza",info.tipo_poliza)
+                print("sou arrendador",info.arrendador.__dict__)
                 context = {"info": info}  # Ejemplo de contexto de datos
                 
                 if info.tipo_poliza == "Plata":
@@ -1741,13 +1748,20 @@ class RecuperarPassword(viewsets.ViewSet):
         try: 
             print("Llego a recuperar password")
             email = request.data.get('email')
+            print(email)
             try:
                 user = User.objects.get(email=email)
+                
             except User.DoesNotExist:
                 return Response({'message': 'El correo electrónico no está registrado.'}, status=400)
 
             # Verificar si ya se ha generado un token para el usuario
+            print("antes de token")
+            print("soy user",user)
+            
             token, _ = CustomToken.objects.get_or_create(user=user)
+            print("llego hasta token",_)
+            print("llego hasta token",token)
             
             # Verificar también que el token no haya expirado
             if token.expires_at and token.expires_at >= timezone.now():
@@ -1758,14 +1772,21 @@ class RecuperarPassword(viewsets.ViewSet):
             expiration = timezone.now() + timedelta(minutes=30)
             token.expires_at = expiration
             token.save()
-
+            
+            # // switch front
+            server = "http://192.168.2.24:8000"
+            #server = "http://192.168.3.2:8000"
+            #server = "https://arrendify.app"
+            
+            #variable
+            html = correo_pas(server, token)
             # Envío de la notificación por correo electrónico
             msg = MIMEMultipart()
             msg['From'] = 'notificaciones_arrendify@outlook.com'
             msg['To'] = email
             msg['Subject'] = 'Recuperación de contraseña'
-            message = f'Haz clic en el siguiente enlace para recuperar tu contraseña: http://192.168.2.24:8000/guardar_password?token={token.key}'
-            msg.attach(MIMEText(message, 'plain'))
+            message = f'Haz clic en el siguiente enlace para recuperar tu contraseña: {server}/guardar_password?token={token.key}'
+            msg.attach(MIMEText(html, 'html'))
             smtp_server = 'smtp.office365.com'
             smtp_port = 587
             smtp_username = config('smtp_u')
@@ -1777,12 +1798,13 @@ class RecuperarPassword(viewsets.ViewSet):
                 server.sendmail(smtp_username, email, msg.as_string())
                 print("Si envio")
 
-            return Response({'message': 'Recuperación de contraseña enviada correctamente.'})
+            return Response({'message': 'Recuperación de contraseña enviada correctamente.',"correo":email})
         except Exception as e:
-            return Response({'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message:Error': e}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'], url_path='reset_password')
     def reset_password(self, request):
+        print("Vamos a generar tu nuevo password")
         print("request", request.data)
         token = request.data.get('token')
         password = request.data.get('password')
@@ -1802,6 +1824,7 @@ class RecuperarPassword(viewsets.ViewSet):
 
         # Eliminar el token utilizado
         token_obj.delete()
+        print("borre el token")
 
         return Response({'message': 'La contraseña se ha actualizado correctamente.'})
     
@@ -2314,12 +2337,12 @@ class Inventario_fotografico(viewsets.ModelViewSet):
         user_session = request.user       
         try:
            if user_session.is_staff:
-                print("Esta entrando a listar cotizacion")
+                print("Esta entrando a listar inventario foto")
                 inventario_fotografico =  self.get_queryset()
                 serializer = self.get_serializer(inventario_fotografico, many=True)
                 
            else:
-                print("Esta entrando a listar cotizacion")
+                print("Esta entrando a listar inventario foto")
                 inventario_fotografico =  self.get_queryset()
                 serializer = self.get_serializer(inventario_fotografico, many=True)
      
@@ -2328,18 +2351,39 @@ class Inventario_fotografico(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
+
+
     def create(self, request, *args, **kwargs):
         try:
-            print(request)
             inventario_serializer = self.serializer_class(data=request.data)
-            print("request.data", request.data)
-            buscar_el_paquete = Paquetes.objects.all().filter(codigo_paquete= "xd")
+            archivo = request.FILES['inv_fotografico']  # 'archivo' es el nombre del campo de archivo en tu formulario
+            tamaño = archivo.size
+            print(f"El archivo que entre es{archivo} y su peso es {tamaño} bytes")
+            reader = PdfReader(archivo)
+
+            page = reader.pages[0]
+            count = 0
+
+            # for image_file_object in page.images:
+            #     with open(str(count) + image_file_object.name, "wb") as fp:
+            #         fp.write(image_file_object.data)
+            #         count += 1
+                    
+            writer = PdfWriter()
+            for page in reader.pages:
+                writer.add_page(page)
+            for page in writer.pages:
+                for img in page.images:
+                    img.replace(img.image, quality=15)
+            with open("out.pdf", "wb") as f:
+                writer.write(f)            
+                                
             if inventario_serializer.is_valid():
                 print("soy valido")
                 #inventario_serializer["paquete_asociado"] = request.data.id
                 #inventario_serializer.save()
                 
-                return Response({'comentario': inventario_serializer.data}, status=status.HTTP_201_CREATED)
+                return Response( {"writer":inventario_serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'serializer no valido': inventario_serializer.errors})
         except Exception as e:

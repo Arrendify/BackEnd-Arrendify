@@ -28,6 +28,8 @@ staticfiles/*
 apps/static/assets/node_modules
 apps/static/assets/yarn.lock
 apps/static/assets/.temp
-core/settings.py
+#migraciones
+apps/home/migrations/*
+
 #los archivos env
 .env

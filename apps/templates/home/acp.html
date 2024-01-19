@@ -132,13 +132,22 @@
 	</tr>
 	<tr>
 		<td style="border-top: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" colspan=2 height="17" align="left" valign=bottom><font color="#000000">Nombre:</font></td>
+		
+		{% if info.arrendador.pmoi != "Inmobiliaria"  %}
 		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom>{{info.cliente}}</td>
 		</tr>
 	<tr>
 		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" align="left" colspan=2 valign=bottom><font color="#000000">Empresa:</font></td>
-		{% if info.inquilino != Null or info.arrendador.nombre != Null  %}
+		
 		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom>No Aplica</td>
+		
 		{% else %}
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom>{{info.arrendador.n_propietario}}</td>
+		</tr>
+	<tr>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" align="left" colspan=2 valign=bottom><font color="#000000">Empresa:</font></td>
+		
+
 		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom>{{info.arrendador.n_inmobiliaria}}</td>
 		{% endif %}
 	</tr>
@@ -149,26 +158,43 @@
 	</tr>
 	<tr>
 		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" align="left" colspan=2 valign=bottom><font color="#000000">Ciudad, Estado, C.P.</font></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4 valign=bottom>{{info.inquilino.estado}}, {{info.inquilino.codigopostal}}</td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4 valign=bottom>{{info.inquilino.municipio_alcaldia}}, {{info.inquilino.estado}}, {{info.inquilino.codigopostal}}</td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" colspan=2 height="17" align="left" valign=bottom><font color="#000000">Teléfono</font></td>
 		<td style="border-top: 1px solid #000000; border-left: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom >{{info.inquilino.numeroTel1}}</td>
 	</tr>
 	{% elif info.arrendador != Null %}  
-	<tr>
-		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" align="left" valign=bottom colspan=2><font color="#000000">Dirección</font></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom><font color="#000000">{{info.arrendador.calle}} {{info.arrendador.num_int}} {{info.arrendador.num_ext}}</font></td>
-	</tr>
-	<tr>
-		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" align="left" valign=bottom colspan=2><font color="#000000">Ciudad, Estado, C.P.</font></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom><font color="#000000">{{info.arrendador.estado}}, {{info.arrendador.codigopostal}}</font></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" colspan=2 height="17" align="left" valign=bottom><font color="#000000">Teléfono</font></td>
-		<td style="border-top: 1px solid #000000; border-left: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom ><font color="#000000">{{info.arrendador.numeroTel1}}</font></td>
-	</tr>
+		{% if info.arrendador.pmoi != "Inmobiliaria" %}
+		<tr>
+			<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" align="left" valign=bottom colspan=2><font color="#000000">Dirección</font></td>
+			<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom><font color="#000000">{{info.arrendador.calle}} {{info.arrendador.num_int}} {{info.arrendador.num_ext}}</font></td>
+		</tr>
+		<tr>
+			<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" align="left" valign=bottom colspan=2><font color="#000000">Ciudad, Estado, C.P.</font></td>
+			<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom><font color="#000000">{{info.arrendador.municipio_alcaldia}}, {{info.arrendador.estado}}, {{info.arrendador.codigopostal}}</font></td>
+		</tr>
+		<tr>
+			<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" colspan=2 height="17" align="left" valign=bottom><font color="#000000">Teléfono</font></td>
+			<td style="border-top: 1px solid #000000; border-left: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom ><font color="#000000">{{info.arrendador.numeroTel1}}</font></td>
+		</tr>
+		{% else %}
+		<tr>
+			<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" align="left" valign=bottom colspan=2><font color="#000000">Dirección</font></td>
+			<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom><font color="#000000">{{info.arrendador.calle_prop}} {{info.arrendador.num_int_prop}} {{info.arrendador.num_ext_prop}}</font></td>
+		</tr>
+		<tr>
+			<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" align="left" valign=bottom colspan=2><font color="#000000">Ciudad, Estado, C.P.</font></td>
+			<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom><font color="#000000">{{info.arrendador.municipio_prop}}, {{info.arrendador.estado_prop}}, {{info.arrendador.codigo_postal_prop}}</font></td>
+		</tr>
+		<tr>
+			<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" colspan=2 height="17" align="left" valign=bottom><font color="#000000">Teléfono</font></td>
+			<td style="border-top: 1px solid #000000; border-left: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=4  valign=bottom ><font color="#000000">{{info.arrendador.tel_arr}}</font></td>
+		</tr>
+		{% endif %}
+	
 	{% endif %}
+	
 
 	<tr>
 		<td  height="17" align="left" valign=bottom><font color="#000000"><br></font></td>
