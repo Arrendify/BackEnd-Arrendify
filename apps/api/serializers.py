@@ -169,6 +169,14 @@ class PaquetesSerializer(serializers.ModelSerializer):
         fields = '__all__' 
     
     def get_is_staff(self, obj):
+        current_user = self.context['request'].user
+        
+        is_staff_value = current_user.is_staff
+        
+        if is_staff_value == True:
+            #"quiero valida er usuario tambien, queda pendiente para el lunes"
+            return is_staff_value
+         
         return obj.user.is_staff
 
 class EncuestaSerializer(serializers.ModelSerializer):

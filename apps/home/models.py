@@ -511,12 +511,12 @@ class DocumentosInquilino(models.Model):
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     inquilino = models.ForeignKey(Inquilino, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
-    Ine = models.FileField(upload_to=get_ine_upload_path)
-    Comp_dom = models.FileField(upload_to =get_dom_upload_path)
-    Rfc = models.FileField(upload_to = get_rfc_upload_path)
-    Ingresos = models.FileField(null=True, blank=True,upload_to = get_ingresos_upload_path)
-    Extras = models.FileField(null=True, blank=True,upload_to = get_extras_upload_path)
-    Recomendacion_laboral = models.FileField(null=True, blank=True,upload_to = get_rl_upload_path)
+    Ine = models.FileField(upload_to=get_ine_upload_path, max_length=255)
+    Comp_dom = models.FileField(upload_to =get_dom_upload_path, max_length=255)
+    Rfc = models.FileField(upload_to = get_rfc_upload_path, max_length=255)
+    Ingresos = models.FileField(null=True, blank=True,upload_to = get_ingresos_upload_path, max_length=255)
+    Extras = models.FileField(null=True, blank=True,upload_to = get_extras_upload_path, max_length=255)
+    Recomendacion_laboral = models.FileField(null=True, blank=True,upload_to = get_rl_upload_path, max_length=255)
     Acta_constitutiva = models.CharField(max_length=200, null=True, blank=True)
     #comentarios
     comentarios_ine = models.CharField(max_length=200, null=True, blank=True)
@@ -535,7 +535,7 @@ class DocumentosFiador(models.Model):
         ip = inq_split.replace(" ", "_")
         inq_split2 = str(self.Fiador)
         ip2 = inq_split2.replace(" ", "_")
-        print(ip2)
+        print(f'inquilino/documentos/{ip}/{ip2}/INE/{filename}')
         return f'inquilino/documentos/{ip}/{ip2}/INE/{filename}'
     
     def get_dom_upload_path(self, filename):
@@ -543,13 +543,16 @@ class DocumentosFiador(models.Model):
         ip = inq_split.replace(" ", "_")
         inq_split2 = str(self.Fiador)
         ip2 = inq_split2.replace(" ", "_")
+        print(f'inquilino/documentos/{ip}/{ip2}/Comprobante_de_domicilio/{filename}')
         return f'inquilino/documentos/{ip}/{ip2}/Comprobante_de_domicilio/{filename}'
     
     def get_estado_upload_path(self, filename):
+        print("entro aqui")
         inq_split = str(self.Fiador.inquilino)
         ip = inq_split.replace(" ", "_")
         inq_split2 = str(self.Fiador)
         ip2 = inq_split2.replace(" ", "_")
+        print(f'inquilino/documentos/{ip}/{ip2}/Estado_cuenta/{filename}')
         return f'inquilino/documentos/{ip}/{ip2}/Estado_cuenta/{filename}'
     
     def get_esc_upload_path(self, filename):
@@ -557,18 +560,19 @@ class DocumentosFiador(models.Model):
         ip = inq_split.replace(" ", "_")
         inq_split2 = str(self.Fiador)
         ip2 = inq_split2.replace(" ", "_")
+        print(f'inquilino/documentos/{ip}/{ip2}/Escrituras/{filename}')
         return f'inquilino/documentos/{ip}/{ip2}/Escrituras/{filename}'
     
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     Fiador = models.ForeignKey(Fiador_obligado, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
     #Obligado y fiador
-    Ine = models.FileField(upload_to=get_ine_upload_path)
-    Comp_dom = models.FileField(upload_to =get_dom_upload_path)
+    Ine = models.FileField(upload_to=get_ine_upload_path, max_length=255)
+    Comp_dom = models.FileField(upload_to =get_dom_upload_path, max_length=255)
     #obligado
-    Estado_cuenta = models.FileField(null=True, blank=True,upload_to = get_estado_upload_path)
+    Estado_cuenta = models.FileField(null=True, blank=True, upload_to = get_estado_upload_path, max_length=255)
     #fiador
-    Escrituras = models.FileField(null=True, blank=True,upload_to = get_esc_upload_path)
+    Escrituras = models.FileField(null=True, blank=True, upload_to = get_esc_upload_path, max_length=255)
     
     #comentarios
     comentarios_ine = models.CharField(max_length=200, null=True, blank=True)
@@ -614,12 +618,12 @@ class DocumentosArrendador(models.Model):
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     arrendador=models.ForeignKey(Arrendador, on_delete=models.SET_NULL, null=True, related_name='archivos')
-    ine = models.FileField(upload_to=get_ine_upload_path, null=True)
-    comp_dom = models.FileField(upload_to =get_dom_upload_path, null=True)
-    predial = models.FileField(upload_to = get_rfc_upload_path,null=True, blank=True)
-    escrituras_titulo = models.FileField(upload_to = get_escrituras_upload_path, null=True)
-    reglamento_interno = models.FileField(upload_to = get_reg_upload_path,null=True, blank=True) #Se deben eliminar al pasar a produccion
-    mobiliario = models.FileField(upload_to = get_mob_upload_path,null=True, blank=True) #Se deben eliminar al pasar a produccion
+    ine = models.FileField(upload_to=get_ine_upload_path, null=True,  max_length=255)
+    comp_dom = models.FileField(upload_to =get_dom_upload_path, null=True,  max_length=255)
+    predial = models.FileField(upload_to = get_rfc_upload_path,null=True, blank=True,  max_length=255)
+    escrituras_titulo = models.FileField(upload_to = get_escrituras_upload_path, null=True,  max_length=255)
+    reglamento_interno = models.FileField(upload_to = get_reg_upload_path,null=True, blank=True,  max_length=255) #Se deben eliminar al pasar a produccion
+    mobiliario = models.FileField(upload_to = get_mob_upload_path,null=True, blank=True,  max_length=255) #Se deben eliminar al pasar a produccion
     
     #comentarios
     comentarios_comp = models.CharField(max_length=200, null=True, blank=True)
@@ -823,7 +827,7 @@ class Cotizacion_gen(models.Model):
 
     id = models.AutoField(primary_key=True)
     cotizacion_archivo = models.ForeignKey(Cotizacion, on_delete=models.CASCADE, null=True, blank=True, related_name='cotizacion')
-    documento_cotizacion = models.FileField(upload_to=get_dom_upload_path_documentos)
+    documento_cotizacion = models.FileField(upload_to=get_dom_upload_path_documentos,  max_length=255)
     fecha_vigencia = models.DateField(null=True)
     # objects = ArchivoCotizacionManager()
 
@@ -840,10 +844,10 @@ class HistorialDocumentosArrendador(models.Model):
     id = models.AutoField(primary_key=True)
     historial_documentos = models.ForeignKey(DocumentosArrendador, on_delete=models.CASCADE, related_name='historial_documentos_arrendador')
     user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    previo_ine = models.FileField(upload_to=get_dom_upload_path_pasado,null=True) #Comentarlas al pasar a produccion
-    previo_comp_dom = models.FileField(upload_to=get_dom_upload_path_pasado, null=True) #Comentarlas al pasar a produccion
-    previo_predial = models.FileField(upload_to=get_dom_upload_path_pasado, null=True)
-    previo_escrituras_titulo = models.FileField(upload_to=get_dom_upload_path_pasado, null=True)  #Comentarlas al pasar a produccion
+    previo_ine = models.FileField(upload_to=get_dom_upload_path_pasado,null=True,  max_length=255) #Comentarlas al pasar a produccion
+    previo_comp_dom = models.FileField(upload_to=get_dom_upload_path_pasado, null=True,  max_length=255) #Comentarlas al pasar a produccion
+    previo_predial = models.FileField(upload_to=get_dom_upload_path_pasado, null=True,  max_length=255)
+    previo_escrituras_titulo = models.FileField(upload_to=get_dom_upload_path_pasado, null=True,  max_length=255)  #Comentarlas al pasar a produccion
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     class Meta:
         db_table = 'historial_documentos_arrendador'
@@ -854,7 +858,7 @@ class HistorialDocumentosInquilinos(models.Model):
     id = models.AutoField(primary_key=True)
     historial_documentos = models.ForeignKey(DocumentosInquilino, on_delete=models.CASCADE, related_name='historial_d_inquilinos')
     user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    previo_Ingresos = models.FileField(upload_to=get_dom_upload_path_pasado_inquilinos,null=True)
+    previo_Ingresos = models.FileField(upload_to=get_dom_upload_path_pasado_inquilinos,null=True,  max_length=255)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     class Meta:
         db_table = 'historial_documentos_inquilinos'
@@ -943,7 +947,7 @@ class Inventario_foto(models.Model):
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     paquete_asociado = models.ForeignKey(Paquetes, null=True, blank=True, on_delete=models.CASCADE,related_name="paq_asociado")
-    inv_fotografico = models.FileField(upload_to=get_inv_upload_path)
+    inv_fotografico = models.FileField(upload_to=get_inv_upload_path,  max_length=255)
     dateTimeOfUpload = models.DateTimeField(auto_now = True)
     class Meta:
         db_table = 'inventario_fotografico'

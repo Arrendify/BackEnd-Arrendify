@@ -85,6 +85,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://192.168.2.24:8080',
     'http://192.168.3.2:8001',
     'http://192.168.3.2:8000',
+    'http://192.168.1.188:8000',
     'http://localhost',
 )
 # CORS_ORIGIN_ALLOW_ALL = True
@@ -96,7 +97,6 @@ CORS_ORIGIN_WHITELIST = (
 #     'DELETE',
 #     'OPTIONS'
 # )
-
 
 
 ROOT_URLCONF = 'core.urls'
@@ -171,23 +171,23 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': "Arrendify",
-        'USER': 'arrendify',
-        'PASSWORD': 'Arrendy.123',
-        'HOST': 'pruebas.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
-        'PORT': '5432',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': 'db.sqlite3',
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': "Arrendify",
+#         'USER': 'arrendify',
+#         'PASSWORD': 'Arrendy.123',
+#         'HOST': 'pruebas.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
+#         'PORT': '5432',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'db.sqlite3',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators

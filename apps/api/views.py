@@ -51,6 +51,7 @@ from decouple import config
 from pypdf import PdfReader, PdfWriter
 from io import BytesIO
 from PIL import Image
+import requests
 
 from django.core.files.storage import default_storage
 
@@ -82,10 +83,14 @@ def eliminar_archivo_s3(file_name):
             aws_access_key_id=AWS_ACCESS_KEY_ID,
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY
              )
+    print("id",AWS_ACCESS_KEY_ID)
+    print("key",AWS_SECRET_ACCESS_KEY)
+    print("soy el valor de s3",s3)
     print("soy el valor de s3",s3.__dict__)
    
     try:
         print("entre en el Try")
+        print("nombre del archivo: ",file_name)
         s3.delete_object(Bucket="arrendifystorage", Key=f"static/{str(file_name)}")
         print("El archivo se eliminó correctamente de S3.")
     except NoCredentialsError:
@@ -197,8 +202,8 @@ class Inquilinos_fiadores(viewsets.ModelViewSet):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
 class DocumentosInquilino(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [TokenAuthentication, SessionAuthentication]
+    # permission_classes = [IsAuthenticated]
     
     queryset = DocumentosInquilino.objects.all()
     serializer_class = DISerializer
@@ -289,7 +294,9 @@ class DocumentosInquilino(viewsets.ModelViewSet):
     
    
     def update(self, request, *args, **kwargs):
+        print("entro en el metodo")
         instance = self.get_object()
+        print("paso la instancia")
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         print(request.data)
@@ -450,7 +457,9 @@ class DocumentosFoo(viewsets.ModelViewSet):
     
     def create (self, request, *args,**kwargs):
         user_session = request.user.id
-        print(user_session)
+        print("user sesion",user_session)
+        print(request.data['Fiador'])
+        print(request.FILES.get('Estado_cuenta'))
         try: 
             data = request.data
             print("primer print",data)
@@ -462,16 +471,22 @@ class DocumentosFoo(viewsets.ModelViewSet):
                     "Fiador":request.data['Fiador'],
                     "user":user_session
                 }
+            
+            print("")
             print("segundo print",data)
             if data:
+                print("entreo al if")
                 documentos_serializer = self.get_serializer(data=data)
+                print("obtengo serializer",documentos_serializer)
                 documentos_serializer.is_valid(raise_exception=True)
+                print("serializer valido")
                 documentos_serializer.save()
+                print("serizizer save pasado")
                 return Response(documentos_serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error en el try': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 
     def destroy(self, request, pk=None, *args, **kwargs):
@@ -875,6 +890,7 @@ class investigaciones(viewsets.ModelViewSet):
         if user_session.username == "Arrendatario1" or user_session.username == "Legal":
             print("Si eres el elegido")
             qs = request.GET.get('nombre')     
+            print("no hay nombres",qs)
             try:
                 if qs:
                     inquilino = Inquilino.objects.all().filter(nombre__icontains = qs)
@@ -1118,8 +1134,8 @@ class investigaciones(viewsets.ModelViewSet):
         # Configura los detalles del correo electrónico
         try:
             remitente = 'notificaciones_arrendify@outlook.com'
-            #destinatario = info.email
-            destinatario = 'jsepulvedaarrendify@gmail.com'
+            destinatario = info.email
+            #destinatario = 'jsepulvedaarrendify@gmail.com'
             #destinatario = 'juridico.arrendify1@gmail.com'
             
             
@@ -1916,7 +1932,7 @@ class Paks(viewsets.ModelViewSet):
                     serializer = self.get_serializer(paquetes, many=True)
                     return Response(serializer.data)
                 else:
-                    print("Esta entrando a listar fiador_obligado fil")
+                    print("No hay codigo que buscar")
                     paquetes =  Paquetes.objects.all()
                     serializer = self.get_serializer(paquetes, many=True)
                     return Response(serializer.data)
@@ -2358,33 +2374,117 @@ class Inventario_fotografico(viewsets.ModelViewSet):
             inventario_serializer = self.serializer_class(data=request.data)
             archivo = request.FILES['inv_fotografico']  # 'archivo' es el nombre del campo de archivo en tu formulario
             tamaño = archivo.size
-            print(f"El archivo que entre es{archivo} y su peso es {tamaño} bytes")
-            reader = PdfReader(archivo)
-
-            page = reader.pages[0]
-            count = 0
-
-            # for image_file_object in page.images:
-            #     with open(str(count) + image_file_object.name, "wb") as fp:
-            #         fp.write(image_file_object.data)
-            #         count += 1
-                    
-            writer = PdfWriter()
-            for page in reader.pages:
-                writer.add_page(page)
-            for page in writer.pages:
-                for img in page.images:
-                    img.replace(img.image, quality=15)
-            with open("out.pdf", "wb") as f:
-                writer.write(f)            
-                                
-            if inventario_serializer.is_valid():
-                print("soy valido")
-                #inventario_serializer["paquete_asociado"] = request.data.id
-                #inventario_serializer.save()
+            print(f"El archivo que entre es {archivo} y su peso es {tamaño} bytes")
+            #paso 1, hay que autenticarnos
+            api_key = {'public_key': "project_public_306f10caefca911ddc39bd560343d779_gqanEb7d559d1f1d40b67136ea41e5c048457"}
+            auth = requests.post("https://api.ilovepdf.com/v1/auth", api_key)
+            token = auth.json()
+            token_solo = token["token"]
+            print("soy token",token_solo)
+            
+            #paso 2 iniciar el proceso
+            headers = {
+            'Authorization': f'Bearer {token_solo}',
+            'Cookie': '_csrf=Yw9SsIIKedwL6MlLorEVBirpKi66Wfq0'
+            }
+            start = requests.get("https://api.ilovepdf.com/v1/start/compress", headers = headers, data = {})
+            start = start.json()
+            task = start["task"]
+            server = start["server"]
+            remaining_files = start["remaining_files"]
+            print(remaining_files)
+           
+            if remaining_files > 0:
+                print("eres mayor a cero aun hay archivos")
+                #paso 3 subir el archivo a la api, Juntamos la info del archivo que requiere la peticion para enviarla
+                filename = archivo.name
+                file_data = ('file', (filename, archivo.file, archivo.content_type))
+                files = [file_data]
+    
+                headers = {
+                'Authorization': f'Bearer {token_solo}'
+                }
                 
-                return Response( {"writer":inventario_serializer.data}, status=status.HTTP_201_CREATED)
+                upload = requests.post(f"https://{server}/v1/upload", headers = headers, data = {'task': task}, files = files)
+                upload = upload.json()
+                server_filename = upload["server_filename"]
+               
+                #paso 4 comprimir el archivo
+                payload = json.dumps({
+                "task": task,
+                "tool": "compress",
+                "files": [
+                    {
+                    "server_filename": server_filename,
+                    "filename": f"{filename}"
+                    }
+                ],
+                "compression_level": "recommended"
+                })
+              
+                headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {token_solo}'
+                }
+
+                proceso = requests.post(f"https://{server}/v1/process", headers = headers, data = payload)
+                print("proceso text",proceso.text)
+                print("antes de proceso.json",proceso)
+                proceso = proceso.json()
+                print("despues de proceso.json",proceso)
+                proceso_status = proceso["status"]
+                print(proceso_status)
+                
+                if proceso_status == "TaskSuccess":
+                    print("entre al if del status")
+                    #paso 5 Obtener el archivo comprimido
+                    payload = {}
+                    descarga = requests.get(f"https://{server}/v1/download/{task}", headers=headers, data=payload)
+                    print("sin texto plano",descarga)
+                    
+                    if descarga.status_code == 200:
+                        print("tengo status 200")
+                        print(f"esto es valido? 'compress_{filename}'")
+                        with open(f'{filename}', 'wb') as f:
+                            for chunk in descarga.iter_content(chunk_size=128):
+                                f.write(chunk)
+                        
+                    #paso 6 Eliminar el archivo temporal del servidor del api
+                    print("vamos a borrar")
+                    payload = json.dumps({
+                    "task": task,
+                    "server_filename": server_filename
+                    })
+                    
+                    headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token_solo}'
+                    }
+                    
+                    print(f"https://{server}/v1/upload/{task}/{server_filename}")
+                    borrar = requests.delete(f"https://{server}/v1/upload/{task}/{server_filename}", headers=headers)
+                    
+
+                    print(borrar.text)
+                    
+                else:
+                    print("No se completo el proceso")
+                    return Response( {"error en el proceso":"error en el proceso"}, status=status.HTTP_409_CONFLICT)
+                
+                print("el proceso salio bien")
+                if inventario_serializer.is_valid():
+                    print("soy valido")
+                    
+                    #inventario_serializer["paquete_asociado"] = request.data.id
+                    #inventario_serializer.save()
+                    
+                    return Response( {"writer":descarga}, status=status.HTTP_100_CONTINUE)
+                else:
+                    return Response({'serializer no valido': inventario_serializer.errors})
             else:
-                return Response({'serializer no valido': inventario_serializer.errors})
+                print("eres igual a cero aun hay archivos")
+                return Response( {"0 archivos":"no hay compresiones restantes"}, status=status.HTTP_204_NO_CONTENT)
+                
+        
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
