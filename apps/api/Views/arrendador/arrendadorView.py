@@ -44,8 +44,10 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
         try:
             user_session = self.request.user
             if user_session.is_staff:
+                snippets = Arrendador.objects.all()
                 # Crear una copia de los datos serializados
-                serialized_data = self.serializer_class(self.queryset, many=True).data
+                serializer = ArrendadorSerializer(snippets, many=True)
+                serialized_data = serializer.data
 
                 # Agregar el campo 'is_staff'
                 for item in serialized_data:
