@@ -28,9 +28,12 @@ urlpatterns = [
     path('poliza/', views.poliza, name='poliza'),
     path('poliza_pdf/', views.poliza_pdf, name='poliza_pdf'),
     path('pagare/', views.pagare, name='pagare'),
+    path('pagare_fraterna/', views.pagare_fraterna, name='pagare'),
+    path('pagare_fraterna_pdf/', views.pagare_fraterna_pdf, name='pagare'),
     path('pagare_pdf/', views.pagare_pdf, name='pagare_pdf'),
     path('contrato/', views.contrato, name='contrato'),
     path('contrato_pdf/', views.contrato_pdf, name='contrato_pdf'),
+    path('contrato_fraterna_pdf/', views.contrato_fraterna_pdf, name='contrato_fraterna_pdf'),
     path('aprobado_pdf/', views.generar_pdf_aprobado, name='generar_pdf_aprobado'),
  
     

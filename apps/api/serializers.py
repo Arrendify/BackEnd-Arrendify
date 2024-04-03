@@ -2,6 +2,7 @@ from rest_framework import serializers
 from ..home.models import *
 from ..authentication.models import *
 from ..authentication.serializers import User2Serializer
+from django.conf import settings
 
 class DFSerializer(serializers.ModelSerializer):
     fiador_nombre = serializers.CharField(source='fiador.n_fiador', read_only=True)
@@ -89,7 +90,7 @@ class InmueblesSerializer(serializers.ModelSerializer):
 # Comentario 
 class UserSerializer2(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = settings.AUTH_USER_MODEL
         fields = ('username', 'first_name', 'email', 'is_staff')
 
 # Arrendador
@@ -169,6 +170,14 @@ class PaquetesSerializer(serializers.ModelSerializer):
         fields = '__all__' 
     
     def get_is_staff(self, obj):
+        current_user = self.context['request'].user
+        
+        is_staff_value = current_user.is_staff
+        
+        if is_staff_value == True:
+            #"quiero valida er usuario tambien, queda pendiente para el lunes"
+            return is_staff_value
+         
         return obj.user.is_staff
 
 class EncuestaSerializer(serializers.ModelSerializer):
@@ -180,3 +189,34 @@ class Inventario_fotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Inventario_foto
         fields = '__all__'
+        
+#FRATERNA
+class DRSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = DocumentosResidentes
+        fields = '__all__'
+
+class ResidenteSerializers(serializers.ModelSerializer):
+    # aval = Fiador_obligadoSerializer(many=True, read_only=True)
+    archivos = DRSerializer(many=True, read_only=True)
+    user =  User2Serializer(read_only=True)
+    
+    class Meta:
+        model = Residentes
+        fields = '__all__'
+
+class ProcesoFraternaSerializers(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ProcesoContrato
+        fields = '__all__'
+        
+class ContratoFraternaSerializer(serializers.ModelSerializer):
+    residente_contrato = ResidenteSerializers(read_only=True, source='residente')
+    proceso = ProcesoFraternaSerializers(many=True, read_only=True, source ='contrato')
+    
+    class Meta:
+        model = FraternaContratos
+        fields = '__all__' 
+    

@@ -11,9 +11,12 @@ import string
 
 from unittest.util import _MAX_LENGTH
 from django.db import models
-from django.contrib.auth.models import User
+
 from django.core.files.storage import FileSystemStorage
+
 from django.conf import settings
+User = settings.AUTH_USER_MODEL
+
 from django.urls import reverse
 from django.utils.text import slugify
 
@@ -43,7 +46,7 @@ class Rol(models.Model):
 
 class Profile(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     roles =models.ManyToManyField(Rol)
     direccion=models.CharField(max_length=10,null=True)
 
@@ -51,7 +54,7 @@ class Profile(models.Model):
 class Inquilino(models.Model):
     # datos personales
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     p_fom=models.CharField(max_length=100, blank=True)
     nombre=models.CharField(max_length=100, blank=True)
     apellido= models.CharField(max_length=100, null=True, blank=True)
@@ -156,6 +159,7 @@ class Inquilino(models.Model):
     tarjeta  =  models.JSONField(null=True)
     credito  =  models.JSONField(null=True)
     
+    mi_agente_es = models.CharField(max_length=100, null=True, blank=True)
     status = models.CharField(max_length=100, null=True, blank=True)
     codigo_amigo = models.CharField(max_length=8, editable = False, unique=True)
     created = models.DateField(auto_now_add=True, null=True, blank=True)
@@ -181,7 +185,7 @@ class Inquilino(models.Model):
 class Fiador_obligado(models.Model):
     # fiador/oblicado
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     inquilino = models.ForeignKey(Inquilino, null=True, blank=True, on_delete=models.CASCADE,related_name="aval")
     fiador_obligado = models.CharField(max_length=35, null=True, blank=True)
    
@@ -333,7 +337,7 @@ class Zip_code(models.Model):
 class Arrendador(models.Model):    
     # datos personales
     id = models.AutoField(auto_created = True, primary_key=True)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     pmoi = models.CharField(max_length=100) 
     dir_ac = models.CharField(max_length=250, null=True, blank=True) 
     nombre=models.CharField(max_length=100, blank=True)
@@ -411,7 +415,8 @@ class Arrendador(models.Model):
     # Estatus del arrendador
     estatus_arrendador = models.CharField(max_length=100, null=True, blank=True, default='En espera')
     
-    created=models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    mi_agente_es = models.CharField(max_length=100, null=True, blank=True)
+    created=models.DateField(auto_now_add=True, null=True, blank=True)
     codigo_amigo = models.CharField(max_length=8, editable = False, unique=True)
     # Agregando slug
     slug = models.SlugField(null=True, unique=True)
@@ -460,7 +465,7 @@ class Arrendador(models.Model):
         
 class ValidacionArrendador(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     arrendador_validacion = models.ForeignKey(Arrendador, on_delete=models.CASCADE, related_name='arrendador_validacion')
     validacion_ine = models.CharField(max_length=100, null=True, blank=True, default='En revision')
     validacion_comprobante_domicilio = models.CharField(max_length=100, null=True, blank=True, default='En revision')
@@ -509,14 +514,14 @@ class DocumentosInquilino(models.Model):
         return f'inquilino/documentos/{ip}/Recomendacion_laboral/{filename}'
     
     id = models.AutoField(primary_key=True)
-    user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     inquilino = models.ForeignKey(Inquilino, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
-    Ine = models.FileField(upload_to=get_ine_upload_path)
-    Comp_dom = models.FileField(upload_to =get_dom_upload_path)
-    Rfc = models.FileField(upload_to = get_rfc_upload_path)
-    Ingresos = models.FileField(null=True, blank=True,upload_to = get_ingresos_upload_path)
-    Extras = models.FileField(null=True, blank=True,upload_to = get_extras_upload_path)
-    Recomendacion_laboral = models.FileField(null=True, blank=True,upload_to = get_rl_upload_path)
+    Ine = models.FileField(upload_to=get_ine_upload_path, max_length=255)
+    Comp_dom = models.FileField(upload_to =get_dom_upload_path, max_length=255)
+    Rfc = models.FileField(upload_to = get_rfc_upload_path, max_length=255)
+    Ingresos = models.FileField(null=True, blank=True,upload_to = get_ingresos_upload_path, max_length=255)
+    Extras = models.FileField(null=True, blank=True,upload_to = get_extras_upload_path, max_length=255)
+    Recomendacion_laboral = models.FileField(null=True, blank=True,upload_to = get_rl_upload_path, max_length=255)
     Acta_constitutiva = models.CharField(max_length=200, null=True, blank=True)
     #comentarios
     comentarios_ine = models.CharField(max_length=200, null=True, blank=True)
@@ -560,15 +565,15 @@ class DocumentosFiador(models.Model):
         return f'inquilino/documentos/{ip}/{ip2}/Escrituras/{filename}'
     
     id = models.AutoField(primary_key=True)
-    user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     Fiador = models.ForeignKey(Fiador_obligado, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
     #Obligado y fiador
-    Ine = models.FileField(upload_to=get_ine_upload_path)
-    Comp_dom = models.FileField(upload_to =get_dom_upload_path)
+    Ine = models.FileField(upload_to=get_ine_upload_path, max_length=255)
+    Comp_dom = models.FileField(upload_to =get_dom_upload_path, max_length=255)
     #obligado
-    Estado_cuenta = models.FileField(null=True, blank=True,upload_to = get_estado_upload_path)
+    Estado_cuenta = models.FileField(null=True, blank=True,upload_to = get_estado_upload_path, max_length=255)
     #fiador
-    Escrituras = models.FileField(null=True, blank=True,upload_to = get_esc_upload_path)
+    Escrituras = models.FileField(null=True, blank=True,upload_to = get_esc_upload_path, max_length=255)
     
     #comentarios
     comentarios_ine = models.CharField(max_length=200, null=True, blank=True)
@@ -612,14 +617,14 @@ class DocumentosArrendador(models.Model):
         return f'arrendador/documentos/{ip}/Escrituras/{filename}'
 
     id = models.AutoField(primary_key=True)
-    user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     arrendador=models.ForeignKey(Arrendador, on_delete=models.SET_NULL, null=True, related_name='archivos')
-    ine = models.FileField(upload_to=get_ine_upload_path, null=True)
-    comp_dom = models.FileField(upload_to =get_dom_upload_path, null=True)
-    predial = models.FileField(upload_to = get_rfc_upload_path,null=True, blank=True)
-    escrituras_titulo = models.FileField(upload_to = get_escrituras_upload_path, null=True)
-    reglamento_interno = models.FileField(upload_to = get_reg_upload_path,null=True, blank=True) #Se deben eliminar al pasar a produccion
-    mobiliario = models.FileField(upload_to = get_mob_upload_path,null=True, blank=True) #Se deben eliminar al pasar a produccion
+    ine = models.FileField(upload_to=get_ine_upload_path, null=True, max_length=255)
+    comp_dom = models.FileField(upload_to =get_dom_upload_path, null=True, max_length=255)
+    predial = models.FileField(upload_to = get_rfc_upload_path,null=True, blank=True, max_length=255)
+    escrituras_titulo = models.FileField(upload_to = get_escrituras_upload_path, null=True, max_length=255)
+    reglamento_interno = models.FileField(upload_to = get_reg_upload_path,null=True, blank=True, max_length=255) #Se deben eliminar al pasar a produccion
+    mobiliario = models.FileField(upload_to = get_mob_upload_path,null=True, blank=True, max_length=255) #Se deben eliminar al pasar a produccion
     
     #comentarios
     comentarios_comp = models.CharField(max_length=200, null=True, blank=True)
@@ -634,7 +639,7 @@ class DocumentosArrendador(models.Model):
 
 class Inmuebles(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     arrendador = models.ForeignKey(Arrendador, null=True, blank=True, on_delete=models.SET_NULL)
     alias_inmueble = models.CharField(max_length=100, null=True, blank=True)
     estatus_inmueble = models.CharField(max_length=100, null=True, blank=True)
@@ -727,7 +732,7 @@ class InmueblesInmobiliario(models.Model):
         return f'inmuebles/mobiliario/{ip}/Mobiliario/{filename}'
 
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     inmuebles = models.ForeignKey(Inmuebles, on_delete=models.CASCADE, related_name='inmuebles')
     
     observaciones = models.CharField(max_length = 200 , null=True, blank=True)
@@ -742,7 +747,7 @@ class ImagenInmueble(models.Model):
         print(self.user)
         return f'{self.user}/Inmuebles/{self.inmueble.alias_inmueble}/{filename}'
     
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     imagenes = models.ImageField(upload_to=get_img_inmueble_upload_path)
     inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE,related_name="fotos")
         
@@ -781,7 +786,7 @@ class Agentify (models.Model):
 
 class Cotizacion(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     inmueble = models.ForeignKey(Inmuebles, null=True, blank=True, on_delete=models.CASCADE, related_name="datos_inmueble")
     arrendador =  models.ForeignKey(Arrendador,null=True, blank=True, on_delete=models.CASCADE,  related_name='datos_arrendador')
     inquilino = models.ForeignKey(Inquilino, null=True, blank=True, on_delete=models.CASCADE,related_name="cot_inquilino")
@@ -823,7 +828,7 @@ class Cotizacion_gen(models.Model):
 
     id = models.AutoField(primary_key=True)
     cotizacion_archivo = models.ForeignKey(Cotizacion, on_delete=models.CASCADE, null=True, blank=True, related_name='cotizacion')
-    documento_cotizacion = models.FileField(upload_to=get_dom_upload_path_documentos)
+    documento_cotizacion = models.FileField(upload_to=get_dom_upload_path_documentos, max_length=255)
     fecha_vigencia = models.DateField(null=True)
     # objects = ArchivoCotizacionManager()
 
@@ -839,11 +844,11 @@ class HistorialDocumentosArrendador(models.Model):
     
     id = models.AutoField(primary_key=True)
     historial_documentos = models.ForeignKey(DocumentosArrendador, on_delete=models.CASCADE, related_name='historial_documentos_arrendador')
-    user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    previo_ine = models.FileField(upload_to=get_dom_upload_path_pasado,null=True) #Comentarlas al pasar a produccion
-    previo_comp_dom = models.FileField(upload_to=get_dom_upload_path_pasado, null=True) #Comentarlas al pasar a produccion
-    previo_predial = models.FileField(upload_to=get_dom_upload_path_pasado, null=True)
-    previo_escrituras_titulo = models.FileField(upload_to=get_dom_upload_path_pasado, null=True)  #Comentarlas al pasar a produccion
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    previo_ine = models.FileField(upload_to=get_dom_upload_path_pasado,null=True, max_length=255) #Comentarlas al pasar a produccion
+    previo_comp_dom = models.FileField(upload_to=get_dom_upload_path_pasado, null=True, max_length=255) #Comentarlas al pasar a produccion
+    previo_predial = models.FileField(upload_to=get_dom_upload_path_pasado, null=True, max_length=255)
+    previo_escrituras_titulo = models.FileField(upload_to=get_dom_upload_path_pasado, null=True, max_length=255)  #Comentarlas al pasar a produccion
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     class Meta:
         db_table = 'historial_documentos_arrendador'
@@ -853,14 +858,14 @@ class HistorialDocumentosInquilinos(models.Model):
         return f'inquilinos/documentos/{self.inquilino}/Historial/{filename}'
     id = models.AutoField(primary_key=True)
     historial_documentos = models.ForeignKey(DocumentosInquilino, on_delete=models.CASCADE, related_name='historial_d_inquilinos')
-    user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    previo_Ingresos = models.FileField(upload_to=get_dom_upload_path_pasado_inquilinos,null=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    previo_Ingresos = models.FileField(upload_to=get_dom_upload_path_pasado_inquilinos,null=True, max_length=255)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     class Meta:
         db_table = 'historial_documentos_inquilinos'
         
 class Accion(models.Model):
-    usuario = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
     fecha = models.DateField(null=True, blank=True)
     contador = models.IntegerField(null=True, blank=True, default = 3)
     
@@ -869,7 +874,7 @@ class Accion(models.Model):
 
 class Comentario(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     nombre_problema = models.CharField(max_length=100, null=True, blank=True)
     descripcion_problema = models.CharField(max_length=100, null=True, blank=True)
     detalles_extras = models.TextField(blank=True, null=True)  # Campo para los detalles
@@ -904,7 +909,7 @@ class Friends(models.Model):
 
 class Paquetes(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     codigo_paquete = models.CharField(max_length=100, null=True, blank=True)
     cotizacion = models.ForeignKey(Cotizacion, null = True, blank = True, on_delete=models.CASCADE, related_name='paq_cotizacion')
     arrendador =  models.ForeignKey(Arrendador,null=True, blank=True, on_delete=models.CASCADE,  related_name='paq_arrendador')
@@ -941,10 +946,176 @@ class Inventario_foto(models.Model):
         return f'Contrato/documentos/{inq_split}/inventario_fotografico/{filename}'
     
     id = models.AutoField(primary_key=True)
-    user=models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     paquete_asociado = models.ForeignKey(Paquetes, null=True, blank=True, on_delete=models.CASCADE,related_name="paq_asociado")
-    inv_fotografico = models.FileField(upload_to=get_inv_upload_path)
+    inv_fotografico = models.FileField(upload_to=get_inv_upload_path, max_length=255)
     dateTimeOfUpload = models.DateTimeField(auto_now = True)
     class Meta:
         db_table = 'inventario_fotografico'
 
+#FRATERNA
+class Residentes(models.Model):
+    # datos personales de arrendatario
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    nombre_arrendatario=models.CharField(max_length=100, blank=True)
+    nacionalidad_arrendatario=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
+    rfc_arrendatario=models.CharField(max_length=13, null=True, blank=True)
+    identificacion_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    no_ide_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    sexo_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    celular_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    correo_arrendatario=models.EmailField(null=True, blank=True)
+    empleo=models.CharField(max_length = 100, null = True, blank = True)
+    domicilio_empleo=models.CharField(max_length = 100, null = True, blank = True)
+    direccion_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    
+    # datos de residente
+    nombre_residente=models.CharField(max_length=100, blank=True)
+    nacionalidad_residente=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
+    rfc_residente=models.CharField(max_length=13, null=True, blank=True)
+    identificacion_residente=models.CharField(max_length = 100, null = True, blank = True)
+    no_ide_residente=models.CharField(max_length = 100, null = True, blank = True)
+    sexo=models.CharField(max_length = 100, null = True, blank = True)
+    fecha_nacimiento=models.DateField(auto_now_add=True, null=True, blank=True)
+    edad=models.CharField(max_length = 100, null = True, blank = True)
+    celular_residente=models.CharField(max_length = 100, null = True, blank = True)
+    correo_residente=models.EmailField(null=True, blank=True)
+    direccion_residente=models.CharField(max_length = 100, null = True, blank = True)
+    
+    ciudad_origen=models.CharField(max_length = 100, null = True, blank = True)
+    escuela_origen=models.CharField(max_length = 100, null = True, blank = True)
+    carrera=models.CharField(max_length = 100, null = True, blank = True)
+    semestre=models.CharField(max_length = 100, null = True, blank = True)
+    
+    #Info personal
+    fumas=models.CharField(max_length=100, null=True, blank=True)
+    tomas=models.CharField(max_length=100, null=True, blank=True)
+    aseo=models.CharField(max_length=100, null=True, blank=True)
+    musica=models.CharField(max_length=100, null=True, blank=True)
+    tipo_musica=models.CharField(max_length=100, null=True, blank=True)
+    pasatiempos=models.CharField(max_length=255, null=True, blank=True)
+    
+    # Referencias Personales
+    n_ref1=models.CharField(max_length=100, null=True, blank=True)
+    p_ref1=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref1=models.BigIntegerField(null=True, blank=True)
+    n_ref2=models.CharField(max_length=100, null=True, blank=True)
+    p_ref2=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref2=models.BigIntegerField(null=True, blank=True)
+    n_ref3=models.CharField(max_length=100, null=True, blank=True)
+    p_ref3=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref3=models.BigIntegerField(null=True, blank=True)
+    
+    #info de emergencia
+    nombre_emergencia=models.CharField(max_length=100, null=True, blank=True)
+    parentesco_emergencia=models.CharField(max_length=100, null=True, blank=True)
+    telefono_emergencia=models.CharField(max_length=100, null=True, blank=True)
+    celular_emergencia=models.CharField(max_length=100, null=True, blank=True)
+    correo_emergencia=models.EmailField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'residentes'
+    
+class DocumentosResidentes(models.Model):
+    def get_ine_upload_path(self, filename):
+        inq_split = str(self.residente.nombre_residente)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Fraterna/residente/{ip}/INE/{filename}'
+    
+    def get_dom_upload_path(self, filename):
+        inq_split = str(self.residente.nombre_residente)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Fraterna/residente/{ip}/Comprobante_de_domicilio/{filename}'
+    
+    def get_rfc_upload_path(self, filename):
+        inq_split = str(self.residente.nombre_residente)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Fraterna/residente/{ip}/RFC/{filename}'
+   
+    def get_ingresos_upload_path(self, filename):
+        inq_split = str(self.residente.nombre_residente)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Fraterna/residente/{ip}/Ingresos/{filename}'
+   
+    def get_extras_upload_path(self, filename):
+        inq_split = str(self.residente.nombre_residente)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Fraterna/residente/{ip}/Documentos_extras/{filename}'
+   
+    def get_rl_upload_path(self, filename):
+        inq_split = str(self.residente.nombre_residente)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Fraterna/residente/{ip}/Recomendacion_laboral/{filename}'
+    
+    id = models.AutoField(primary_key=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    residente = models.ForeignKey(Residentes, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
+    Ine = models.FileField(upload_to=get_ine_upload_path, max_length=255)
+    Ine_arr = models.FileField(null=True, blank=True, upload_to=get_ine_upload_path, max_length=255)
+    Comp_dom = models.FileField(upload_to =get_dom_upload_path, max_length=255)
+    Rfc = models.FileField(upload_to = get_rfc_upload_path, max_length=255)
+    Ingresos = models.FileField(null=True, blank=True,upload_to = get_ingresos_upload_path, max_length=255)
+    Extras = models.FileField(null=True, blank=True,upload_to = get_extras_upload_path, max_length=255)
+    Recomendacion_laboral = models.FileField(null=True, blank=True,upload_to = get_rl_upload_path, max_length=255)
+    Acta_constitutiva = models.CharField(max_length=200, null=True, blank=True)
+    #comentarios
+    comentarios_ine = models.CharField(max_length=200, null=True, blank=True)
+    comentarios_comp = models.CharField(max_length=200, null=True, blank=True)
+    comentarios_rfc = models.CharField(max_length=200, null=True, blank=True)
+    comentarios_ingresos = models.CharField(max_length=200, null=True, blank=True)
+    comentarios_extra = models.CharField(max_length=200, null=True, blank=True)
+    comentarios_rl = models.CharField(max_length=200, null=True, blank=True)
+    dateTimeOfUpload = models.DateTimeField(auto_now = True)
+    class Meta:
+        db_table = 'documentos_residentes'
+        
+        
+#Datos De contrato
+class FraternaContratos(models.Model):
+    def get_plano_upload_path(self, filename):
+            return f'Fraterna/plano_localizacion/{filename}'
+     
+    id = models.AutoField(primary_key=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    residente = models.ForeignKey(Residentes, null=True, blank=True, on_delete=models.CASCADE, related_name="residente_contrato")
+    no_depa=models.CharField(max_length = 100, null = True, blank = True)
+    cama=models.CharField(max_length = 100, null = True, blank = True)
+    piso=models.CharField(max_length = 100, null = True, blank = True)
+    habitantes=models.CharField(max_length=100,null=True, blank=True)
+    tipologia=models.CharField(max_length = 100, null = True, blank = True)
+    medidas=models.CharField(max_length = 100, null = True, blank = True)
+    renta=models.CharField(max_length = 100, null = True, blank = True)
+    estacionamiento=models.CharField(max_length = 100, null = True, blank = True)
+    #mascotas=models.CharField(max_length = 100, null = True, blank = True)
+    #cajones=models.CharField(max_length = 100, null = True, blank = True)
+    
+    duracion=models.CharField(max_length = 100, null = True, blank = True)
+    fecha_celebracion = models.DateField(null=True, blank=True)
+    fecha_vigencia=models.DateField(null=True, blank=True)
+    fecha_move_in=models.DateField(null=True, blank=True)
+    fecha_move_out=models.DateField(null=True, blank=True)
+
+    plano_localizacion = models.FileField(null=True, blank=True, upload_to=get_plano_upload_path, max_length=255)
+    
+    class Meta:
+            db_table = 'fraterna_contrato'
+    
+    
+class ProcesoContrato(models.Model):
+       
+        usuario = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
+        contrato = models.ForeignKey(FraternaContratos, null=True, blank=True, on_delete=models.CASCADE,related_name="contrato")
+        fecha = models.DateField(null=True, blank=True)
+        status_proceso=models.CharField(max_length = 100, null = True, blank = True)
+        contador = models.IntegerField(null=True, blank=True, default = 2)
+        
+        class Meta:
+            db_table = 'fraterna_proceso'
+    

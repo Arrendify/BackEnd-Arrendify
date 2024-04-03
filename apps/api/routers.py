@@ -41,7 +41,12 @@ router.register(r'encuesta', Encuestas, basename='encuesta'),# encuesta
 # invetario fotografico
 router.register(r'inventario_fotografico', Inventario_fotografico, basename='inventario_fotografico'),
 
+#FRATERNA
+router.register(r'residentes', fraterna_views.ResidenteViewSet, basename='residentes')
 
+router.register(r'documentos_residentes', fraterna_views.DocumentosRes, basename='documentos_residentes')
+router.register(r'contratos_fraterna', fraterna_views.Contratos_fraterna, basename='contratos_fraterna')
+# router.register(r'documentos_foo', DocumentosFoo, basename='documentos_foo')
 # router.register(r'i_a', Inmuebles_a, basename='a_a')
 
 

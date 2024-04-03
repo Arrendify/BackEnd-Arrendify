@@ -20,6 +20,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.decorators import action
 
+#nuevo mod user
+from ....accounts.models import CustomUser
+User = CustomUser
 
 #correo
 import smtplib
@@ -53,6 +56,60 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
 
                 # Devolver la respuesta
                 return Response(serialized_data)
+            
+            elif user_session.rol == "Inmobiliaria":  
+                #tengo que buscar a los arrendadores que tiene a un agente vinculado
+                print("soy inmobiliaria", user_session.name_inmobiliaria)
+                agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+                
+                #busqueda de arrendadores propios y registrados por mis agentes
+                arrendadores_a_cargo = Arrendador.objects.filter(user_id__in = agentes)
+                arrendadores_mios = Arrendador.objects.filter(user_id = user_session)
+                mios = arrendadores_a_cargo.union(arrendadores_mios)
+                
+                #busqueda de inquilino vinculado
+                pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+                pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+                pertenece = pertenece.union(pertenece2)
+                arrendador_all = mios.union(pertenece)
+               
+                print("Registrados por mi o por un agente directo", mios)
+                print("Independientes vinculado(s) a un agente(s)", pertenece)
+                print("Todos los arrendadores",arrendador_all)
+               # print("inquilinos_all con ids",arrendador_all("id"))
+                
+                serializer = ArrendadorSerializer(arrendador_all, many=True)
+                serialized_data = serializer.data
+                
+                if not serialized_data:
+                    print("no hay datos mi carnal")
+                    return Response({"message": "No hay datos disponibles",'asunto' :'1'})
+                
+                # Agregar el campo 'is_staff'
+                for item in serialized_data:
+                    item['inmobiliaria'] = True
+                    
+                return Response(serialized_data)      
+        
+            elif user_session.rol == "Agente":  
+                print("soy agente", user_session.first_name)
+                agente_qs = Arrendador.objects.filter(user_id = user_session)
+                print(agente_qs)
+                pertenece = Arrendador.objects.filter(mi_agente_es__icontains = user_session.first_name)
+                print(pertenece)
+                arredores_a_cargo = agente_qs.union(pertenece)
+                serializer = ArrendadorSerializer(arredores_a_cargo, many=True)
+                serialized_data = serializer.data
+                
+                if not serialized_data:
+                    print("no hay datos mi carnal")
+                    return Response({"message": "No hay datos disponibles",'asunto' :'2'})
+                
+                for item in serialized_data:
+                    item['agente'] = True
+            
+                return Response(serialized_data)
+     
             else:
                 # Listar muchos a muchos
                 # optimizar esto
@@ -106,7 +163,11 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
             arrendador = modelos.filter(slug=slug)
             if arrendador:
                 arrendador_serializer = self.serializer_class(arrendador, many=True)
-                return Response(arrendador_serializer.data, status=status.HTTP_200_OK)
+                # Agregar el campo 'is_staff'
+                serialized_data = arrendador_serializer.data
+                for item in serialized_data:
+                    item['is_staff'] = True
+                return Response(serialized_data, status=status.HTTP_200_OK)
             else:
                 return Response({'message': 'No hay persona con esos datos'}, status = status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -302,6 +363,40 @@ class Arrendador_inmuebles(viewsets.ModelViewSet):
             if user_session.is_staff:
                 data_serializer = self.serializer_class(self.queryset, many=True)
                 return Response(data_serializer.data)
+            
+            elif user_session.rol == "Inmobiliaria":  
+                #tengo que buscar a los arrendadores que tiene a un agente vinculado
+                print("soy inmobiliaria", user_session.name_inmobiliaria)
+                agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+                
+                #busqueda de arrendadores propios y registrados por mis agentes
+                arrendadores_a_cargo = Arrendador.objects.filter(user_id__in = agentes)
+                arrendadores_mios = Arrendador.objects.filter(user_id = user_session)
+                mios = arrendadores_a_cargo.union(arrendadores_mios)
+                
+                #busqueda de arrendador vinculado
+                pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+                pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+                pertenece = pertenece.union(pertenece2)
+                arrendador_all = mios.union(pertenece)
+                
+                serializer = ArrendadorSerializer(arrendador_all, many=True)
+                serialized_data = serializer.data
+                    
+                return Response(serialized_data)      
+        
+            elif user_session.rol == "Agente":  
+               
+                agente_qs = Arrendador.objects.filter(user_id = user_session)
+               
+                pertenece = Arrendador.objects.filter(mi_agente_es__icontains = user_session.first_name)
+        
+                arredores_a_cargo = agente_qs.union(pertenece)
+                serializer = ArrendadorSerializer(arredores_a_cargo, many=True)
+                serialized_data = serializer.data
+            
+                return Response(serialized_data)
+            
             else:
                 snippets = self.queryset.filter(user_id=request.user)
                 print(snippets)

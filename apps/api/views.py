@@ -4,21 +4,17 @@ from rest_framework.views import APIView
 from .serializers import *
 from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.renderers import JSONRenderer
-import io
-from rest_framework.parsers import JSONParser
+
 #intento de factorizacion 1
 from.Views.Inquilinos.inquilinos_view import * 
+from.Views import fraterna_views 
 
-from rest_framework.generics import ListAPIView
 from ..home.models import *
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework import viewsets
 from django.db.models import Subquery
 
-from rest_framework.authentication import TokenAuthentication,SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
 from apps.authentication.authentication_mixins import Authentication
 
 from rest_framework.decorators import action
@@ -48,10 +44,7 @@ from smtplib import SMTPException
 from django.core.files.base import ContentFile
 from decouple import config
 #pdf reduccion
-from pypdf import PdfReader, PdfWriter
-from io import BytesIO
-from PIL import Image
-
+import requests
 from django.core.files.storage import default_storage
 
 # Para autenticacion
@@ -65,14 +58,19 @@ from num2words import num2words
 # Token
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import TokenAuthentication,SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 # Password
 from django.utils import timezone
 from datetime import timedelta
+
 #  Importacion contacto
 from .plantillas_mensaje_contacto.mensaje_contacto import Contacto
 from datetime import datetime
+
+#nuevo modelo user
+from ..accounts.models import CustomUser
+User = CustomUser
 
 # Create your views here.
 # ----------------------------------Metodos Extras----------------------------------------------- #
@@ -100,29 +98,33 @@ class inquilino_registro(APIView):
     
     def post(self, request, format=None):
         user_session = request.user
-
-       # request.data.user = user_session
-        serializer3 = InquilinoSerializers(data=request.data)
-        serializer_check = InvestigacionSerializers(data=request.data)
-      
-        if serializer3.is_valid() and serializer_check.is_valid():
-            print("valido")
-            nombre = serializer3.validated_data['nombre']
-            print(nombre)
-            if len(nombre) > 0:
-                print("ya pase el self")
-               
-                id = serializer3.save(user = user_session)
-                #serializer3.save(user = user_session)
-                serializer_check.validated_data['inquilino'] = id
-                serializer_check.save()
-                return Response(serializer3.data, status=status.HTTP_201_CREATED)
+        try:
+            # request.data.user = user_session
+            serializer3 = InquilinoSerializers(data=request.data)
+            serializer_check = InvestigacionSerializers(data=request.data)
+        
+            if serializer3.is_valid() and serializer_check.is_valid():
+                print("valido")
+                nombre = serializer3.validated_data['nombre']
+                print(nombre)
+                if len(nombre) > 0:
+                    print("ya pase el self")
+                
+                    id = serializer3.save(user = user_session)
+                    #serializer3.save(user = user_session)
+                    serializer_check.validated_data['inquilino'] = id
+                    serializer_check.save()
+                    return Response(serializer3.data, status=status.HTTP_201_CREATED)
+                else:
+                    print("Nombre no valido")
+                    return Response("Nombre vacio", status=status.HTTP_400_BAD_REQUEST)
             else:
-                print("Nombre no valido")
-                return Response("Nombre vacio", status=status.HTTP_400_BAD_REQUEST)
-        else:
-            print("no valido")
-            return Response(serializer3.errors, status=status.HTTP_400_BAD_REQUEST)
+                print("no valido")
+                print(serializer3.errors)
+                return Response(serializer3.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print("error",e)
+            return Response({'error en el try': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -164,17 +166,74 @@ class InquilinoFiadorObligadoViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         user_session = request.user 
-        if user_session.is_authenticated:
-            inquilinos_paks = Inquilino.objects.all().filter(user_id = user_session.id, status = 1)
-            arrendadores_amigos = Arrendador.objects.all().filter(user_id = user_session)
-            inquilinos_amigos = Inquilino.objects.filter(amigo_inquilino__receiver__in = arrendadores_amigos)
-            snippets = inquilinos_paks.union(inquilinos_amigos)
-            print(snippets)
-            serializer = self.get_serializer(snippets, many=True)
-            return Response(serializer.data)
-        else:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-
+        try:
+            if user_session.rol == "Inmobiliaria":   
+                print("soy inmobiliaria", user_session.name_inmobiliaria)
+                agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+                
+                #Obtenemos todos los inquilinos
+                inquilinos_a_cargo = Inquilino.objects.filter(user_id__in = agentes, status = 1)
+                inquilinos_mios = Inquilino.objects.filter(user_id = user_session, status = 1)
+                mios = inquilinos_a_cargo.union(inquilinos_mios)
+                pertenece2 = Inquilino.objects.filter(mi_agente_es__icontains = agentes.values("first_name"), status = 1)
+                pertenece = Inquilino.objects.filter(mi_agente_es__in = agentes.values("first_name"), status = 1)
+                pertenece = pertenece.union(pertenece2)
+                inquilinos_all = mios.union(pertenece)
+                
+                #busqueda de arrendadores propios y registrados por mis agentes
+                arrendadores_a_cargo = Arrendador.objects.filter(user_id__in = agentes)
+                arrendadores_mios = Arrendador.objects.filter(user_id = user_session)
+                mios2 = arrendadores_a_cargo.union(arrendadores_mios)
+                pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+                pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+                pertenece = pertenece.union(pertenece2)
+                arrendador_all = mios2.union(pertenece)
+                
+                #buscamos si tenemos amigos en los arrendadores
+                inquilinos_amigos = Inquilino.objects.filter(amigo_inquilino__receiver__in = arrendador_all.values("id"))
+                snippets = inquilinos_amigos.union(inquilinos_all)
+                
+                serializer = self.get_serializer(snippets, many=True)
+                serialized_data = serializer.data
+                return Response(serialized_data) 
+            
+            elif user_session.rol == "Agente":
+                print("soy Agente", user_session.first_name)
+                
+                inquilinos_ag = Inquilino.objects.filter(user_id = user_session, status = 1)
+                pertenece = Inquilino.objects.filter(mi_agente_es__icontains = user_session.first_name, status = 1)
+                inquilinos_all = inquilinos_ag.union(pertenece)
+                
+                agente_qs = Arrendador.objects.filter(user_id = user_session)
+                pertenece = Arrendador.objects.filter(mi_agente_es__icontains = user_session.first_name)
+                arredores_a_cargo = agente_qs.union(pertenece)
+                
+                inquilinos_amigos = Inquilino.objects.filter(amigo_inquilino__receiver__in = arredores_a_cargo.values("id"))
+                snippets = inquilinos_amigos.union(inquilinos_all)
+                
+                serializer = self.get_serializer(snippets, many=True)
+                serialized_data = serializer.data
+                return Response(serialized_data) 
+                
+            else:
+                if user_session.is_authenticated:
+                    #primero obtenemos todos los inquilinos que sean mios y que hayan sido aprobados
+                    inquilinos_paks = Inquilino.objects.all().filter(user_id = user_session.id, status = 1)
+                    #despues obtenemos los arrendadores
+                    arrendadores_amigos = Arrendador.objects.all().filter(user_id = user_session)
+                    #despues buscamos todos los inquilinos esten relacionados con un arrendador
+                    inquilinos_amigos = Inquilino.objects.filter(amigo_inquilino__receiver__in = arrendadores_amigos)
+                    #juntamos y mandamos al serializer
+                    snippets = inquilinos_paks.union(inquilinos_amigos)
+                    print("mis snippets",snippets)
+                    serializer = self.get_serializer(snippets, many=True)
+                    return Response(serializer.data)
+                else:
+                    return Response(status=status.HTTP_403_FORBIDDEN)
+            
+        except Exception as e:
+            print(f"Error: {e}")   
+            
 class Inquilinos_fiadores(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -358,7 +417,78 @@ class Fiador_obligadoViewSet(viewsets.ModelViewSet):
                 print("Esta entrando a listar fiador_obligado fil")
                 fiadores_obligados =  Fiador_obligado.objects.all()
                 serializer = self.get_serializer(fiadores_obligados, many=True)
-                return Response(serializer.data)
+                serialized_data = serializer.data
+                
+                # Agregar el campo 'is_staff' en el arreglo de user
+                for item in serialized_data:
+                    item['user']['is_staff'] = True
+                
+                return Response(serialized_data)
+            
+           elif user_session.rol == "Inmobiliaria":  
+                #tengo que busca a los inquilinos que tiene a un agente vinculado
+                print("soy inmobiliaria", user_session.name_inmobiliaria)
+                agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+                
+                #busqueda de inquilino propios y registrados por mis agentes
+                inquilinos_a_cargo = Inquilino.objects.filter(user_id__in = agentes)
+                inquilinos_mios = Inquilino.objects.filter(user_id = user_session)
+                mios = inquilinos_a_cargo.union(inquilinos_mios)
+               
+                #busqueda de inquilino vinculado
+                pertenece2 = Inquilino.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+                pertenece = Inquilino.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+                pertenece = pertenece.union(pertenece2)
+                inquilinos_all = mios.union(pertenece)
+                print("Registrados por mi o por un agente directo", mios)
+                print("Independientes vinculado(s) a un agente(s)", pertenece)
+                print("inquilinos_all",inquilinos_all)
+                print("inquilinos_all con ids",inquilinos_all.values("id"))
+                
+                #toca obtener los fiadores propios y de los agentes e inquilinos
+                fiadores_mios = Fiador_obligado.objects.filter(user_id = user_session)
+                fiadores_obligados =  Fiador_obligado.objects.filter(inquilino_id__in = inquilinos_all.values("id"))
+                fiadores_all = fiadores_obligados.union(fiadores_mios)
+                serializer = self.get_serializer(fiadores_all, many=True)
+                serialized_data = serializer.data
+                
+                if not serialized_data:
+                    print("no hay datos mi carnal")
+                    return Response({"message": "No hay datos disponibles",'asunto' :'1'})
+                
+                # Agregar el campo 'is_staff'
+                for item in serialized_data:
+                    item['inmobiliaria'] = True
+                    
+                return Response(serialized_data)      
+            
+           elif user_session.rol == "Agente":  
+                print("soy Agente", user_session.first_name)
+                #obtengo mis inquilinos
+                inquilinos_ag = Inquilino.objects.filter(user_id = user_session)
+                #tengo que obtener a mis inquilinos vinculados
+                pertenece2 = Inquilino.objects.filter(mi_agente_es__icontains = user_session.first_name)
+                pertenece = Inquilino.objects.filter(mi_agente_es__in = user_session.first_name)
+                pertenece = pertenece.union(pertenece2)
+                inquilinos_all = inquilinos_ag.union(pertenece)
+                print("mis inquilinos propios:",inquilinos_ag)
+                print("mis inquilinos vinculados:",pertenece)
+                print("todos mis inquilinos:",inquilinos_all)
+                
+                fiadores_mios = Fiador_obligado.objects.filter(user_id = user_session)
+                fiadores_obligados =  Fiador_obligado.objects.filter(inquilino_id__in = inquilinos_all.values("id"))
+                fiadores_all = fiadores_obligados.union(fiadores_mios)
+                serializer = self.get_serializer(fiadores_all, many=True)
+                serialized_data = serializer.data
+                
+                if not serialized_data:
+                    print("no hay datos mi carnal")
+                    return Response({"message": "No hay datos disponibles",'asunto' :'2'})
+
+                for item in serialized_data:
+                    item['agente'] = True
+                    
+                return Response(serialized_data)
            else:
                 print("Esta entrando a listar fiador_obligado fil")
                 fiadores_obligados =  Fiador_obligado.objects.all().filter(user_id = user_session)
@@ -619,6 +749,79 @@ class inmueblesViewSet(viewsets.ModelViewSet):
             inmueble = Inmuebles.objects.all()
             data_serializer = self.serializer_class(inmueble, many=True)
             return Response(data_serializer.data)
+        
+        elif user_session.rol == "Inmobiliaria":  
+                #tengo que busca a los arrendadores que tiene a un agente vinculado
+                print("soy inmobiliaria", user_session.name_inmobiliaria)
+                agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+                
+                #busqueda de arrendadores propios y registrados por mis agentes
+                arrendadores_a_cargo = Arrendador.objects.filter(user_id__in = agentes)
+                arrendadores_mios = Arrendador.objects.filter(user_id = user_session)
+                mios = arrendadores_a_cargo.union(arrendadores_mios)
+               
+                #busqueda de inquilino vinculado
+                pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+                pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+                pertenece = pertenece.union(pertenece2)
+                arrendadores_all = mios.union(pertenece)
+                print("Registrados por mi o por un agente directo", mios)
+                print("Independientes vinculado(s) a un agente(s)", pertenece)
+                print("arrendador_all", arrendadores_all)
+                print("arrendador_all con ids",arrendadores_all.values("id"))
+                
+                #toca obtener los inmuebles propios y de los agentes e inquilinos
+                inmuebles_mios = Inmuebles.objects.filter(user_id = user_session)
+                print("paso1",inmuebles_mios)
+                inmuebles =  Inmuebles.objects.filter(arrendador_id__in = arrendadores_all.values("id"))
+                print("paso2",)
+                inmuebles_all = inmuebles.union(inmuebles_mios)
+                print("paso3")
+                serializer = self.get_serializer(inmuebles_all, many=True)
+                serialized_data = serializer.data
+                
+                if not serialized_data:
+                    print("no hay datos mi carnal")
+                    return Response({"message": "No hay datos disponibles",'asunto' :'1'})
+                
+                # Agregar el campo 'is_staff'
+                for item in serialized_data:
+                    item['inmobiliaria'] = True
+                    
+                return Response(serialized_data)      
+            
+        elif user_session.rol == "Agente":  
+            print("soy Agente", user_session.first_name)
+            #obtengo mis inquilinos
+            arrendadores_ag = Arrendador.objects.filter(user_id = user_session)
+            #tengo que obtener a mis inquilinos vinculados
+            pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = user_session.first_name)
+            pertenece = Arrendador.objects.filter(mi_agente_es__in = user_session.first_name)
+            pertenece = pertenece.union(pertenece2)
+            arrendadores_all = arrendadores_ag.union(pertenece)
+            print("mis arrendadores propios:",arrendadores_ag)
+            print("mis arrendadores vinculados:",pertenece)
+            print("todos mis arrendadores:",arrendadores_all)
+            
+            #toca obtener los inmuebles propios y de los agentes e inquilinos
+            inmuebles_mios = Inmuebles.objects.filter(user_id = user_session)
+            print("paso1",inmuebles_mios)
+            inmuebles =  Inmuebles.objects.filter(arrendador_id__in = arrendadores_all.values("id"))
+            print("paso2",)
+            inmuebles_all = inmuebles.union(inmuebles_mios)
+            print("paso3")
+            serializer = self.get_serializer(inmuebles_all, many=True)
+            serialized_data = serializer.data
+            
+            if not serialized_data:
+                print("no hay datos mi carnal")
+                return Response({"message": "No hay datos disponibles",'asunto' :'2'})
+
+            for item in serialized_data:
+                item['agente'] = True
+                
+            return Response(serialized_data)
+    
         else:            
             user_id = self.request.user.id
             snippets = Inmuebles.objects.filter(user_id=user_id)
@@ -1172,30 +1375,89 @@ class investigaciones(viewsets.ModelViewSet):
 class Arrendador_Cotizador(viewsets.ModelViewSet):
     queryset = Arrendador.objects.all()
     serializer_class = ArrendadorSerializer
+    
     def list(self, request, *args, **kwargs): 
         user_session = self.request.user
-        qs = request.GET.get('tipo') 
-        tipo_persona = ""
-        if qs == "Arrendador":
-            tipo_persona = "Persona Fisica" 
+        try:
+            qs = request.GET.get('tipo') 
+            tipo_persona = ""
             
-        if qs == "Inmobiliaria":
-            tipo_persona = "Inmobiliaria"        
-        
-        print("el valor de qs",qs)
-        
-        #print(request.data)
-
-        if tipo_persona == 'Persona Fisica':
-            print("Arrendadro pf y pm")
-            queryset = self.queryset.exclude(pmoi="Inmobiliaria").filter(user=user_session)
-            #queryset = self.queryset.filter(Q(pmoi='Persona Fisica') | Q(pmoi='Persona Moral'))
-        else:
-            print("Inmobiliaria")
-            queryset = self.queryset.filter(pmoi="Inmobiliaria",user=user_session)
-        
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+            if qs == "Arrendador":
+                tipo_persona = "Persona Fisica" 
+                
+            if qs == "Inmobiliaria":
+                tipo_persona = "Inmobiliaria"        
+            print("el valor de qs",qs)
+            
+            if user_session.rol == "Inmobiliaria":  
+                #tengo que buscar a los arrendadores que tiene a un agente vinculado
+                print("soy inmobiliaria", user_session.name_inmobiliaria)
+                agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+                
+                if tipo_persona == 'Persona Fisica':
+                    #busqueda de arrendadores propios y registrados por mis agentes
+                    arrendadores_a_cargo = Arrendador.objects.filter(user_id__in = agentes).exclude(pmoi="Inmobiliaria")
+                    arrendadores_mios = Arrendador.objects.filter(user_id = user_session).exclude(pmoi="Inmobiliaria")
+                    mios = arrendadores_a_cargo.union(arrendadores_mios)
+                    print("ya excluimos las inmobi", mios)
+                    
+                    #busqueda de arrendador vinculado y excluimos el inmuebiliaria
+                    pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name")).exclude(pmoi="Inmobiliaria")
+                    pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name")).exclude(pmoi="Inmobiliaria")
+                    pertenece = pertenece.union(pertenece2)
+                    arrendador_all = mios.union(pertenece)
+                    print("all",arrendador_all)  
+                    
+                else:
+                    #busqueda de arrendadores propios y registrados por mis agentes
+                    arrendadores_a_cargo = Arrendador.objects.filter(user_id__in = agentes, pmoi="Inmobiliaria")
+                    arrendadores_mios = Arrendador.objects.filter(user_id = user_session, pmoi="Inmobiliaria")
+                    mios = arrendadores_a_cargo.union(arrendadores_mios)
+                    print("ya excluimos las inmobi", mios)
+                    
+                    #busqueda de arrendador vinculado y excluimos el inmuebiliaria
+                    pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"), pmoi="Inmobiliaria")
+                    pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"), pmoi="Inmobiliaria")
+                    pertenece = pertenece.union(pertenece2)
+                    arrendador_all = mios.union(pertenece)
+                    print("all",arrendador_all)  
+                
+                serializer = ArrendadorSerializer(arrendador_all, many=True)
+                serialized_data = serializer.data
+                return Response(serialized_data)      
+            
+            elif user_session.rol == "Agente":  
+                print("soy agente", user_session.first_name)
+                
+                if tipo_persona == 'Persona Fisica':
+                    agente_qs = Arrendador.objects.filter(user_id = user_session).exclude(pmoi="Inmobiliaria")
+                    pertenece = Arrendador.objects.filter(mi_agente_es__icontains = user_session.first_name).exclude(pmoi="Inmobiliaria")
+                    arredores_a_cargo = agente_qs.union(pertenece)
+                    
+                else:
+                    agente_qs = Arrendador.objects.filter(user_id = user_session, pmoi="Inmobiliaria")
+                    pertenece = Arrendador.objects.filter(mi_agente_es__icontains = user_session.first_name, pmoi="Inmobiliaria")
+                    arredores_a_cargo = agente_qs.union(pertenece)
+                
+                serializer = ArrendadorSerializer(arredores_a_cargo, many=True)
+                serialized_data = serializer.data
+            
+                return Response(serialized_data)
+                
+            else:
+                if tipo_persona == 'Persona Fisica':
+                    print("Arrendador pf y pm")   
+                    queryset = self.queryset.exclude(pmoi="Inmobiliaria").filter(user=user_session)
+                    #queryset = self.queryset.filter(Q(pmoi='Persona Fisica') | Q(pmoi='Persona Moral'))
+                else:
+                    print("Inmobiliaria")
+                    queryset = self.queryset.filter(pmoi="Inmobiliaria",user=user_session)
+                
+                serializer = self.get_serializer(queryset, many=True)
+                return Response(serializer.data)
+        except Exception as e:
+            print(f"Error: {e}")
+            
 
 class Cotizacion_ap(viewsets.ModelViewSet):
   
@@ -1208,20 +1470,84 @@ class Cotizacion_ap(viewsets.ModelViewSet):
         user_session = request.user       
         try:
            if user_session.is_staff:
-                print("Esta entrando a listar cotizacion")
-                cotizaciones =  Cotizacion.objects.all()
-                serializer = self.get_serializer(cotizaciones, many=True)
-                return Response(serializer.data)
-           else:
-                # Obtener las consultas de cotizacion y paquetes
-                cotizaciones = Cotizacion.objects.filter(user_id = user_session.id)
-                paquetes =  Paquetes.objects.all().filter(user_id = user_session.id)
-                # Obtener las cotizaciones del usuario que no tienen un paquete asociado
-                cotizaciones_sin_paquete = cotizaciones.exclude(id__in = paquetes.values_list('cotizacion_id', flat=True))
-                print("soy cotizaciones_sin_paquete",cotizaciones_sin_paquete)
+               print("Esta entrando a listar cotizacion")
+               cotizaciones =  Cotizacion.objects.all()
+               serializer = self.get_serializer(cotizaciones, many=True)
+               return Response(serializer.data)
+           
+           elif user_session.rol == "Inmobiliaria":
+               #primero obtenemos mis agentes.
+               print("soy inmobiliaria en listar cotizacion", user_session.name_inmobiliaria)
+               agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+               
+               #a continuacion obtenemos los inquilinos
+               inquilinos_a_cargo = Inquilino.objects.filter(user_id__in = agentes)
+               inquilinos_mios = Inquilino.objects.filter(user_id = user_session)
+               mios = inquilinos_a_cargo.union(inquilinos_mios)
+               pertenece2 = Inquilino.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+               pertenece = Inquilino.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+               pertenece = pertenece.union(pertenece2)
+               inquilinos_all = mios.union(pertenece) 
+               
+               #obtenemos los arrendadores
+               arrendadores_a_cargo = Arrendador.objects.filter(user_id__in = agentes)
+               arrendadores_mios = Arrendador.objects.filter(user_id = user_session)
+               mios2 = arrendadores_a_cargo.union(arrendadores_mios)
+               pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+               pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+               pertenece = pertenece.union(pertenece2)
+               arrendador_all = mios2.union(pertenece)
+               
+               print("inquilinos_all",inquilinos_all)
+               print("Todos los arrendadores",arrendador_all)
+               
+               #obtenemos las cotizaciones
+               cotizaciones_mias = Cotizacion.objects.filter(user_id = user_session.id)
+               cotizaciones_inquilinos = Cotizacion.objects.filter(inquilino_id__in = inquilinos_all.values("id"))
+               cotizaciones_arrendador = Cotizacion.objects.filter(arrendador_id__in = arrendador_all.values("id"))
+               cotizaciones_all = cotizaciones_mias.union(cotizaciones_arrendador, cotizaciones_inquilinos)
+               print("mis cotizaciones", cotizaciones_mias)
+               print("cotizacion inquilinos all", cotizaciones_inquilinos)
+               print("cotizaciones de arrendadores",cotizaciones_arrendador)
+               print("es posible hacer esto:", cotizaciones_all)
+               
+               serializer = self.get_serializer(cotizaciones_all, many=True)
+               return Response(serializer.data)
+               
+           elif user_session.rol == "Agente":
+               print(f"soy Agente: {user_session.first_name} en listar cotizacion")
+               inquilinos_ag = Inquilino.objects.filter(user_id = user_session, status = 1)
+               pertenece = Inquilino.objects.filter(mi_agente_es__icontains = user_session.first_name)
+               inquilinos_all = inquilinos_ag.union(pertenece)
+                
+               agente_qs = Arrendador.objects.filter(user_id = user_session)
+               pertenece = Arrendador.objects.filter(mi_agente_es__icontains = user_session.first_name)
+               arredores_a_cargo = agente_qs.union(pertenece)
+               
+               print("inquilinos_all",inquilinos_all)
+               print("Todos los arrendadores",arredores_a_cargo)
+               
+               #obtenemos las cotizaciones
+               cotizaciones_mias = Cotizacion.objects.filter(user_id = user_session.id)
+               cotizaciones_inquilinos = Cotizacion.objects.filter(inquilino_id__in = inquilinos_all.values("id"))
+               cotizaciones_arrendador = Cotizacion.objects.filter(arrendador_id__in = arredores_a_cargo.values("id"))
+               cotizaciones_all = cotizaciones_mias.union(cotizaciones_arrendador, cotizaciones_inquilinos)
+               print("mis cotizaciones", cotizaciones_mias)
+               print("cotizacion inquilinos all", cotizaciones_inquilinos)
+               print("cotizaciones de arrendadores",cotizaciones_arrendador)
+               print("es posible hacer esto:", cotizaciones_all)
+               
+               serializer = self.get_serializer(cotizaciones_all, many=True)
+               return Response(serializer.data)
                  
-                                                
-                serializer = self.get_serializer(cotizaciones_sin_paquete, many=True)
+           else:
+               # Obtener las consultas de cotizacion y paquetes
+               cotizaciones = Cotizacion.objects.filter(user_id = user_session.id)
+               paquetes =  Paquetes.objects.all().filter(user_id = user_session.id)
+               # Obtener las cotizaciones del usuario que no tienen un paquete asociado
+               cotizaciones_sin_paquete = cotizaciones.exclude(id__in = paquetes.values_list('cotizacion_id', flat=True))
+               print("soy cotizaciones_sin_paquete",cotizaciones_sin_paquete)                                                
+               serializer = self.get_serializer(cotizaciones_sin_paquete, many=True)
            
            return Response(serializer.data, status= status.HTTP_200_OK)
         except Exception as e:
@@ -1265,7 +1591,10 @@ class Cotizacion_ap(viewsets.ModelViewSet):
                 print("soy INFO",info.__dict__)
                 print(info.nombre_cotizacion)
                 print("soy poliza",info.tipo_poliza)
-                print("sou arrendador",info.arrendador.__dict__)
+                if info.arrendador:
+                    print("sou arrendador",info.arrendador.__dict__)
+                else:
+                    print("soy inquilino",info.inquilino.__dict__)
                 context = {"info": info}  # Ejemplo de contexto de datos
                 
                 if info.tipo_poliza == "Plata":
@@ -1391,6 +1720,7 @@ class Cotizacion_ap(viewsets.ModelViewSet):
                 print("Error en validacion")
                 return Response({'errors': cotizador_serializer.errors})
         except Exception as e:
+            print(f"Error: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     # probando con variables de entorno
@@ -1414,6 +1744,7 @@ class Cotizacion_ap(viewsets.ModelViewSet):
                 destinatario = info.inquilino.email
             destinatarios = [destinatario,destinatario2]
             print("destinatario",destinatario)
+            print("ejecutivo comercial ",destinatario2)
             asunto = f"Cotización Arrendify Póliza {info.tipo_poliza} {info.cliente}"
 
             # Crea un objeto MIMEMultipart para el correo electrónico
@@ -1421,7 +1752,7 @@ class Cotizacion_ap(viewsets.ModelViewSet):
             msg['From'] = remitente
             msg['To'] = destinatario
             msg['Subject'] = asunto
-            msg['Cc'] = destinatario2
+            #msg['Cc'] = destinatario2
             print("pase mime")
             # Estilo del mensaje
             if info.arrendador:
@@ -1477,7 +1808,7 @@ class Cotizacion_ap(viewsets.ModelViewSet):
                     <p>Agradezco su interés en nuestros servicios y espero que esta cotización sea útil para usted. Si está satisfecho/a con nuestra evaluación, estaríamos encantados de discutir los próximos pasos y cualquier otro detalle relacionado con la contratacion nuestros servicios.</p>
                     <br>
                     <p>Le agradezco su atención y quedo a la espera de sus respuesta.</p>
-                    <p>Nota: Le Recuerdo que se tiene que pagar el monto que aparece en la cotización en maximo 3 dias para empezar poder inciar el proceso de investigación.</p>
+                    <p>Nota: Le Recuerdo que se tiene que pagar el monto que aparece en la cotización en maximo 3 dias para poder inciar el proceso de investigación.</p>
                     <br>
                     <hr style="color: #0056b2;" />
                     <table>
@@ -1622,7 +1953,7 @@ class Cotizacion_ap(viewsets.ModelViewSet):
                     <p>Agradezco su interés en nuestros servicios y espero que esta cotización sea útil para usted. Si está satisfecho/a con nuestra evaluación, estaríamos encantados de discutir los próximos pasos y cualquier otro detalle relacionado a la contratación de nuestros servicios.</p>
                     <br>
                     <p>Le agradezco su atención y quedo a la espera de su respuesta.</p>
-                    <p>Nota: Le Recuerdo que se tiene que pagar el monto que aparece en la cotización en maximo 3 dias para empezar poder inciar el proceso de investigación.</p>
+                    <p>Nota: Le Recuerdo que se tiene que pagar el monto que aparece en la cotización en maximo 3 dias para poder inciar el proceso de investigación.</p>
                     <hr style="color: #0056b2;" />
                     <table>
                       <tbody><tr>
@@ -1736,8 +2067,9 @@ class Cotizacion_ap(viewsets.ModelViewSet):
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
                 server.sendmail(remitente, destinatarios, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
             return Response({'message': 'Correo electrónico enviado correctamente.'})
+        
         except SMTPException as e:
-            print("Error al enviar el correo electrónico:", str(e))
+            print("Error al enviar el correo electrónico:", e)
             return Response({'message': 'Error al enviar el correo electrónico.'})
         
     
@@ -1800,6 +2132,7 @@ class RecuperarPassword(viewsets.ViewSet):
 
             return Response({'message': 'Recuperación de contraseña enviada correctamente.',"correo":email})
         except Exception as e:
+            print(f"error {e}")
             return Response({'message:Error': e}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'], url_path='reset_password')
@@ -1916,7 +2249,31 @@ class Paks(viewsets.ModelViewSet):
                     serializer = self.get_serializer(paquetes, many=True)
                     return Response(serializer.data)
                 else:
-                    print("Esta entrando a listar fiador_obligado fil")
+                    print("No hay codigo que buscar")
+                    paquetes =  Paquetes.objects.all()
+                    serializer = self.get_serializer(paquetes, many=True)
+                    return Response(serializer.data)
+                
+           elif user_session.rol == "Inmobiliaria":
+                print("soy Inmobiliaria en paqs", user_session.first_name)
+                if qs:
+                    paquetes =  Paquetes.objects.all().filter(codigo_paquete__icontains = qs)
+                    print("soy el query set de paquetes",paquetes)
+                    serializer = self.get_serializer(paquetes, many=True)
+                    return Response(serializer.data)
+                else:
+                    paquetes =  Paquetes.objects.all()
+                    serializer = self.get_serializer(paquetes, many=True)
+                    return Response(serializer.data)
+           
+           elif user_session.rol == "Agente":
+                if qs:
+                    paquetes =  Paquetes.objects.all().filter(codigo_paquete__icontains = qs)
+                    print("soy el query set de paquetes",paquetes)
+                    serializer = self.get_serializer(paquetes, many=True)
+                    return Response(serializer.data)
+                else:
+                    print("soy Agente", user_session.first_name)
                     paquetes =  Paquetes.objects.all()
                     serializer = self.get_serializer(paquetes, many=True)
                     return Response(serializer.data)
@@ -2209,32 +2566,32 @@ class Paks(viewsets.ModelViewSet):
         return HttpResponse(response, content_type='application/pdf')
     
     
-class Pagares(viewsets.ModelViewSet):
-    queryset = Cotizacion.objects.all()
-    serializer_class = CotizacionSerializerPagares
+# class Pagares(viewsets.ModelViewSet):
+#     queryset = Cotizacion.objects.all()
+#     serializer_class = CotizacionSerializerPagares
 
-    def create(self, request, *args, **kwargs):
+#     def create(self, request, *args, **kwargs):
     
-        info = self.queryset.filter(id=1).first()
-        serializer = self.get_serializer(info)
-        template = 'home/plan.html'
-        data = serializer.data
-        fecha_cotizacion = str(date.today())
-        # Convert the fecha_cotizacion string to a datetime object
-        fecha_cotizacion_datetime = datetime.strptime(fecha_cotizacion, '%Y-%m-%d')
+#         info = self.queryset.filter(id=1).first()
+#         serializer = self.get_serializer(info)
+#         template = 'home/plan.html'
+#         data = serializer.data
+#         fecha_cotizacion = str(date.today())
+#         # Convert the fecha_cotizacion string to a datetime object
+#         fecha_cotizacion_datetime = datetime.strptime(fecha_cotizacion, '%Y-%m-%d')
 
-        # Extraer el día y el año del objeto de fecha y hora
-        dia = fecha_cotizacion_datetime.day
-        anio = fecha_cotizacion_datetime.year
-        context = {'info': data, 'dia':dia, 'anio':anio} 
-        html_string = render_to_string(template, context)
-        pdf_file = HTML(string=html_string).write_pdf(target=None)
+#         # Extraer el día y el año del objeto de fecha y hora
+#         dia = fecha_cotizacion_datetime.day
+#         anio = fecha_cotizacion_datetime.year
+#         context = {'info': data, 'dia':dia, 'anio':anio} 
+#         html_string = render_to_string(template, context)
+#         pdf_file = HTML(string=html_string).write_pdf(target=None)
         
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="mi_pdf.pdf"'
-        response.write(pdf_file)
-        # agregar logica extra para el pagare, se le tenen que enviar al arrendador ya firmados
-        return response
+#         response = HttpResponse(content_type='application/pdf')
+#         response['Content-Disposition'] = 'attachment; filename="mi_pdf.pdf"'
+#         response.write(pdf_file)
+#         # agregar logica extra para el pagare, se le tenen que enviar al arrendador ya firmados
+#         return response
     
 class Amigos(viewsets.ModelViewSet):
     queryset = Friends.objects.all()
@@ -2358,33 +2715,120 @@ class Inventario_fotografico(viewsets.ModelViewSet):
             inventario_serializer = self.serializer_class(data=request.data)
             archivo = request.FILES['inv_fotografico']  # 'archivo' es el nombre del campo de archivo en tu formulario
             tamaño = archivo.size
-            print(f"El archivo que entre es{archivo} y su peso es {tamaño} bytes")
-            reader = PdfReader(archivo)
-
-            page = reader.pages[0]
-            count = 0
-
-            # for image_file_object in page.images:
-            #     with open(str(count) + image_file_object.name, "wb") as fp:
-            #         fp.write(image_file_object.data)
-            #         count += 1
-                    
-            writer = PdfWriter()
-            for page in reader.pages:
-                writer.add_page(page)
-            for page in writer.pages:
-                for img in page.images:
-                    img.replace(img.image, quality=15)
-            with open("out.pdf", "wb") as f:
-                writer.write(f)            
-                                
-            if inventario_serializer.is_valid():
-                print("soy valido")
-                #inventario_serializer["paquete_asociado"] = request.data.id
-                #inventario_serializer.save()
+            print(f"El archivo que entre es {archivo} y su peso es {tamaño} bytes")
+            #paso 1, hay que autenticarnos
+            api_key = {'public_key': "project_public_306f10caefca911ddc39bd560343d779_gqanEb7d559d1f1d40b67136ea41e5c048457"}
+            auth = requests.post("https://api.ilovepdf.com/v1/auth", api_key)
+            token = auth.json()
+            token_solo = token["token"]
+            print("soy token",token_solo)
+            
+            #paso 2 iniciar el proceso
+            headers = {
+            'Authorization': f'Bearer {token_solo}',
+            'Cookie': '_csrf=Yw9SsIIKedwL6MlLorEVBirpKi66Wfq0'
+            }
+            start = requests.get("https://api.ilovepdf.com/v1/start/compress", headers = headers, data = {})
+            start = start.json()
+            task = start["task"]
+            server = start["server"]
+            remaining_files = start["remaining_files"]
+            print(remaining_files)
+           
+            if remaining_files > 0:
+                print("eres mayor a cero aun hay archivos")
+                #paso 3 subir el archivo a la api, Juntamos la info del archivo que requiere la peticion para enviarla
+                filename = archivo.name
+                file_data = ('file', (filename, archivo.file, archivo.content_type))
+                files = [file_data]
+    
+                headers = {
+                'Authorization': f'Bearer {token_solo}'
+                }
                 
-                return Response( {"writer":inventario_serializer.data}, status=status.HTTP_201_CREATED)
+                upload = requests.post(f"https://{server}/v1/upload", headers = headers, data = {'task': task}, files = files)
+                upload = upload.json()
+                server_filename = upload["server_filename"]
+               
+                #paso 4 comprimir el archivo
+                payload = json.dumps({
+                "task": task,
+                "tool": "compress",
+                "files": [
+                    {
+                    "server_filename": server_filename,
+                    "filename": f"{filename}"
+                    }
+                ],
+                "compression_level": "recommended"
+                })
+              
+                headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {token_solo}'
+                }
+
+                proceso = requests.post(f"https://{server}/v1/process", headers = headers, data = payload)
+                print("proceso text",proceso.text)
+                print("antes de proceso.json",proceso)
+                proceso = proceso.json()
+                print("despues de proceso.json",proceso)
+                proceso_status = proceso["status"]
+                print(proceso_status)
+                
+                if proceso_status == "TaskSuccess":
+                    print("entre al if del status")
+                    #paso 5 Obtener el archivo comprimido
+                    payload = {}
+                    descarga = requests.get(f"https://{server}/v1/download/{task}", headers=headers, data=payload)
+                    print("sin texto plano",descarga)
+                    
+                    if descarga.status_code == 200:
+                        print("tengo status 200")
+                        print(f"esto es valido? 'compress_{filename}'")
+                        with open(f'{filename}', 'wb') as f:
+                            for chunk in descarga.iter_content(chunk_size=128):
+                                f.write(chunk)
+                        
+                    #paso 6 Eliminar el archivo temporal del servidor del api
+                    print("vamos a borrar")
+                    payload = json.dumps({
+                    "task": task,
+                    "server_filename": server_filename
+                    })
+                    
+                    headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token_solo}'
+                    }
+                    
+                    print(f"https://{server}/v1/upload/{task}/{server_filename}")
+                    borrar = requests.delete(f"https://{server}/v1/upload/{task}/{server_filename}", headers=headers)
+                    
+
+                    print(borrar.text)
+                    
+                else:
+                    print("No se completo el proceso")
+                    return Response( {"error en el proceso":"error en el proceso"}, status=status.HTTP_409_CONFLICT)
+                
+                print("el proceso salio bien")
+                if inventario_serializer.is_valid():
+                    print("soy valido")
+                    
+                    #inventario_serializer["paquete_asociado"] = request.data.id
+                    #inventario_serializer.save()
+                    
+                    return Response( {"writer":descarga}, status=status.HTTP_100_CONTINUE)
+                else:
+                    return Response({'serializer no valido': inventario_serializer.errors})
             else:
-                return Response({'serializer no valido': inventario_serializer.errors})
+                print("eres igual a cero aun hay archivos")
+                return Response( {"0 archivos":"no hay compresiones restantes"}, status=status.HTTP_204_NO_CONTENT)
+                
+           
+                        
+                                
+            
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

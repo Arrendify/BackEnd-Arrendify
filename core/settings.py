@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'apps.home',  # Enable the inner home (home)
     'apps.api',  # Enable the inner home (home)
+    'apps.accounts',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -85,6 +86,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://192.168.2.24:8080',
     'http://192.168.3.2:8001',
     'http://192.168.3.2:8000',
+    'http://192.168.1.188:8000',
     'http://localhost',
 )
 # CORS_ORIGIN_ALLOW_ALL = True
@@ -174,13 +176,24 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': "Arrendify",
+        'NAME': "postgres",
         'USER': 'arrendify',
         'PASSWORD': 'Arrendy.123',
-        'HOST': 'pruebas.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
+        'HOST': 'arrendifyapp.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
         'PORT': '5432',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': "Arrendify",
+#         'USER': 'arrendify',
+#         'PASSWORD': 'Arrendy.123',
+#         'HOST': 'pruebas.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
+#         'PORT': '5432',
+#     }
+# }
 
 # DATABASES = {
 #     'default': {
@@ -222,7 +235,7 @@ USE_TZ = True
 
 ALLOWED_HOSTS = ['*']
 
-
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 # SESSION_CACHE_ALIAS = 'default'

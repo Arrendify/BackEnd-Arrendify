@@ -12,7 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadReque
 from django.template import loader
 from django.urls import reverse
 from requests import get
-from .models import Inmuebles, InmueblesInmobiliario, Inquilino, Arrendador, ImagenInmueble, DocumentosInquilino, Fiador_obligado,Cotizacion,Investigacion,Paquetes
+from .models import FraternaContratos, Inmuebles, InmueblesInmobiliario, Inquilino, Arrendador, ImagenInmueble, DocumentosInquilino, Fiador_obligado,Cotizacion,Investigacion,Paquetes
 from django.shortcuts import redirect, render, get_object_or_404
 from .forms import InquilinosForm, InmueblesForm, ArrendadorForm, ImagenInmuelbeForm, FiadorForm
 from time import sleep
@@ -28,6 +28,10 @@ from django.template.loader import get_template
 from num2words import num2words
 from datetime import date
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
+#Libreria para obtener el lenguaje en español
+import locale
+
 
 def generate_pdf(request):
     #podemos usar lo modelos de la conexion a la base de datos para mostrarlos desde una variable con f string
@@ -437,6 +441,51 @@ def contrato_pdf(request):
 
     return HttpResponse(response, content_type='application/pdf')
 
+def contrato_fraterna_pdf(request):
+    info = FraternaContratos.objects.all().first()
+    print(info.__dict__)
+    meses={1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
+    
+    #obtenermos la renta para pasarla a letra
+    habitantes = int(info.habitantes)
+    habitantes_texto = num2words(habitantes, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+    #obtenemos renta y costo poliza para letra
+    renta = int(info.renta)
+    renta_texto = num2words(renta, lang='es').capitalize()
+    #obtener la tipologia
+    # Definir las opciones y sus correspondientes valores para la variable "plano"
+    opciones = {
+        'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/loft.png",
+        'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/twin.png",
+        'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/double.png",
+        'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/squad.png",
+        'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/master.png",
+        'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/crew.png",
+        'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png"
+    }
+    tipologia = info.tipologia
+    if tipologia in opciones:
+        plano = opciones[tipologia]
+        print(f"Tu Tipologia es: {tipologia}, URL: {plano}")
+    #obtener la url de el plano que sube fraterna
+    plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
+   
+    
+ 
+    context = {'info': info, 'habitantes_texto':habitantes_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc}
+    template = 'home/contrato_fraterna.html'
+    html_string = render_to_string(template,context)
+
+    # Genera el PDF utilizando weasyprint
+    pdf_file = HTML(string=html_string).write_pdf()
+
+    # Devuelve el PDF como respuesta
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
+    response.write(pdf_file)
+
+    return HttpResponse(response, content_type='application/pdf')
+
 def generar_pdf_aprobado(request):
        # Renderiza el template HTML
         today = date.today().strftime('%d/%m/%Y')
@@ -541,6 +590,103 @@ def pdf_descarga(request):
     response.write(pdf_file)
 
     return response
+
+def pagare_fraterna(request):
+    #activamos la libreri de locale para obtener el mes en español
+    locale.setlocale(locale.LC_ALL,"es-ES")
+    info = FraternaContratos.objects.all().first()
+    print(info.__dict__)
+    # Definir la fecha inicial
+    fecha_inicial = info.fecha_move_in
+    print(fecha_inicial)
+    #fecha_inicial = datetime(2024, 3, 20)
+    #checar si cambiar el primer dia o algo asi
+    # fecha inicial move in
+    dia = fecha_inicial.day
+    
+    # Definir la duración en meses
+    duracion_meses = info.duracion.split()
+    duracion_meses = int(duracion_meses[0])
+    print("duracion en meses",duracion_meses)
+    # Calcular la fecha final
+    fecha_final = fecha_inicial + relativedelta(months=duracion_meses)
+    # Lista para almacenar las fechas iteradas (solo meses y años)
+    fechas_iteradas = []
+    # Iterar sobre todos los meses entre la fecha inicial y la fecha final
+    while fecha_inicial < fecha_final:
+        nombre_mes = fecha_inicial.strftime("%B")  # %B da el nombre completo del mes
+        print("fecha",fecha_inicial.year)
+        fechas_iteradas.append((nombre_mes.capitalize(),fecha_inicial.year))      
+        fecha_inicial += relativedelta(months=1)
+    
+    print("fechas_iteradas",fechas_iteradas)
+    # Imprimir la lista de fechas iteradas
+    for month, year in fechas_iteradas:
+        print(f"Año: {year}, Mes: {month}")
+     
+    #obtenermos la renta para pasarla a letra
+    number = info.renta
+    number = int(number)
+    text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+    text_representation = text_representation.capitalize()
+    
+    context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses}
+  
+    return render(request, "home/pagare_fraterna.html", context)
+
+def pagare_fraterna_pdf(request):
+    #activamos la libreri de locale para obtener el mes en español
+    locale.setlocale(locale.LC_ALL,"es-ES")
+    info = FraternaContratos.objects.all().first()
+    print(info.__dict__)
+    # Definir la fecha inicial
+    fecha_inicial = info.fecha_move_in
+    print(fecha_inicial)
+    #fecha_inicial = datetime(2024, 3, 20)
+    #checar si cambiar el primer dia o algo asi
+    # fecha inicial move in
+    dia = fecha_inicial.day
+    
+    # Definir la duración en meses
+    duracion_meses = info.duracion.split()
+    duracion_meses = int(duracion_meses[0])
+    print("duracion en meses",duracion_meses)
+    # Calcular la fecha final
+    fecha_final = fecha_inicial + relativedelta(months=duracion_meses)
+    # Lista para almacenar las fechas iteradas (solo meses y años)
+    fechas_iteradas = []
+    # Iterar sobre todos los meses entre la fecha inicial y la fecha final
+    while fecha_inicial < fecha_final:
+        nombre_mes = fecha_inicial.strftime("%B")  # %B da el nombre completo del mes
+        print("fecha",fecha_inicial.year)
+        fechas_iteradas.append((nombre_mes.capitalize(),fecha_inicial.year))      
+        fecha_inicial += relativedelta(months=1)
+    
+    print("fechas_iteradas",fechas_iteradas)
+    # Imprimir la lista de fechas iteradas
+    for month, year in fechas_iteradas:
+        print(f"Año: {year}, Mes: {month}")
+     
+    #obtenermos la renta para pasarla a letra
+    number = info.renta
+    number = int(number)
+    text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+    text_representation = text_representation.capitalize()
+    
+    context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses}
+    
+    template = 'home/pagare_fraterna.html'
+    html_string = render_to_string(template, context)
+
+    # Genera el PDF utilizando weasyprint
+    pdf_file = HTML(string=html_string).write_pdf()
+
+    # Devuelve el PDF como respuesta
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+    response.write(pdf_file)
+
+    return HttpResponse(response, content_type='application/pdf')
 
 def index(request):
     context = {'segment': 'index'}

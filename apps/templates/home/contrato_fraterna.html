@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+<head>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous"> 
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script> 
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js" integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS" crossorigin="anonymous"></script>
+	
+	<meta http-equiv="content-type" content="text/html"/>
+	<meta charset="utf-8">
+	<title>Contrato - Fraterna</title>
+	<meta  name = "viewport" content="width=device-width, initial-scale=1">
+<style>
+		  .table_headers1{
+			align:center; 
+			text-align: center;
+			vertical-align: top; 
+			background-color: #bebebe; 
+			height:12; 
+			color:black; 
+			font-weight: bold; 
+			font-family: Segoe UI, serif;
+			font-size: 15px;
+		  }
+		  .celdas{
+			font-family: Segoe UI, serif; 
+			font-size:13px;
+			margin-left: 0.07in;
+		  }
+		  .fuente{
+			font-family: Segoe UI, serif; 
+			font-size:14px;
+			text-align:justify;
+		  }
+		  @page {
+			size: A4;
+			margin: 0.1cm 1 1 0.1cm
+		}
+	</style>
+	
+</head>
+
+<body>
+	{% comment %} nota: checar como va a quedar esta parte {% endcomment %}
+<table style="margin-left: 0.07in" width="697" align="left" cellspacing="0" border="0">
+	<colgroup width="286"></colgroup>
+	<colgroup width="60"></colgroup>
+	<colgroup width="97"></colgroup>
+	<colgroup width="42"></colgroup>
+	<colgroup width="101"></colgroup>
+	<colgroup width="104"></colgroup>
+	
+	<tr>
+		<td style="border: 1px solid #000000;" class="table_headers1"  colspan=6 >ARRENDATARIO</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">PERSONA FÍSICA</div></td>
+	</tr>
+	{% comment %} datos arrendatario {% endcomment %}
+	<tr>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6>
+			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_arrendatario}}</b> / Nacionalidad: {{info.residente.nacionalidad_arrendatario}} / RFC: {{info.residente.rfc_arrendatario}} / Identificación Oficial: {{info.residente.no_ide_arrendatario}}<div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">RESIDENTE- OBLIGADO SOLIDARIO (PERSONAS QUE HABITARAN EN LA PROPIEDAD ARRENDADA)</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000;border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_residente}}</b> / Nacionalidad: {{info.residente.nacionalidad_residente}} / Identificación Oficial: {{info.residente.no_ide_residente}}<div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">NÚMERO MÁXIMO DE PERSONAS QUE PODRÁN HABITAR LA PROPIEDAD ARRENDADA:</div></td>
+	</tr>
+	<tr>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6><div class="celdas"><b>{{info.habitantes}} [{{habitantes_texto | upper}}] HABITANTES</b><div></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">MASCOTAS: NO APLICA</div></td>
+	</tr>
+	{% comment %} datos de la propiedad {% endcomment %}
+	<tr>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">PROPIEDAD</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">ARRENDADA</div></td>
+	</tr>
+
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">Inmueble:<div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">"U TOWER", el cual se encuentra ubicado en Av. Don Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.<div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">Propiedad Arrendada:<div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">Departamento número: {{info.no_depa}}<div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">Cama: {{info.cama}}<div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">Cajón(es) de Estacionamiento incluidos en la Contraprestación (en su caso):</div></td>
+	</tr>
+	{% if info.estacionamiento == "Si" %}
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">1 CAJÓN DE ESTACIONAMIENTO<br/>
+				Dicho Cajón o Cajones de Estacionamiento, a discreción del Arrendador o la administración, podrán ser fijos 
+				en un lugar asignado, o podrán no estar asignados, en cuyo caso el Arrendatario utilizará cualquier
+				lugar(es) que el Arrendador o la administración indiquen al Arrendatario, de tiempo en tiempo. 
+				<div>
+		</td>
+	</tr>
+	{% else %}
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">0 CAJÓN DE ESTACIONAMIENTO<br/>
+				Dicho Cajón o Cajones de Estacionamiento, a discreción del Arrendador o la administración, podrán ser fijos 
+				en un lugar asignado, o podrán no estar asignados, en cuyo caso el Arrendatario utilizará cualquier
+				lugar(es) que el Arrendador o la administración indiquen al Arrendatario, de tiempo en tiempo. 
+				<div>
+		</td>
+	</tr>
+	{% endif %}
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">PLAZO Y FECHAS</div></td>
+	</tr>
+
+	<tr>
+		<td style="border: 1px solid #000000;" colspan=1 height="17"><div class="celdas">Fecha de Celebración:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.fecha_celebracion}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Plazo de Vigencia:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.fecha_vigencia}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Fecha de Move in:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.fecha_move_in}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Fecha de Move out:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.fecha_move_out}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; position: relative; top: -157px;" height="17" align="left" colspan=1><div class="celdas">Terminación Anticipada (en su caso):</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:justify;" colspan=5>
+			<div class="celdas">
+				En caso que el Arrendatario decida dar por terminado en forma anticipada el presente Contrato, deberá notificar por escrito al Arrendador su intención de terminar el presente Contrato cuando menos con 45 (cuarenta y cinco) días naturales de anticipación y deberá pagar al Arrendador una pena convencional equivalente a 2 meses de Contraprestación.<br/>
+				Al momento de presentar dicha notificación, el Arrendatario tendrá la opción de presentar al Arrendador un nuevo posible arrendatario, mismo que podrá ser autorizado a entera satisfacción y discreción por el Arrendador. En caso de ser autorizado, se deberá celebrar un nuevo contrato de arrendamiento (sustancialmente en los mismos términos de este Contrato), y cuando menos, por una duración de 6 (seis) meses o por el plazo remanente del Plazo de Vigencia del Contrato actual, lo que resulte mayor.<br/>
+				
+				En caso de que el Arrendador autorice la celebración del nuevo contrato de arrendamiento, el Arrendatario podrá desocupar la Propiedad Arrendada sin la penalidad de terminación anticipada.</td>
+			</div>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">CONTRAPRESTACIÓN</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Contraprestación: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">${{info.renta | intcomma}}.00 ({{renta_texto}} pesos 00/100 moneda nacional)</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Póliza jurídica:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">$900.00 (novecientos pesos 00/100 moneda nacional)</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Energía Eléctrica:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">250 KW</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Renta Integral:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">${{info.renta | intcomma}}.00 ({{renta_texto}} pesos 00/100 moneda nacional)</div></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">INFORMACIÓN DE PAGO DE RENTAS</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Banco: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">Banregio</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Cuenta bancaria: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">021727730041</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Para depósitos vía transferencia electrónica (CLABE): </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; position: relative; top: -8px;" colspan=5><div class="celdas">058580217277300416</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Referencia: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">{{info.residente.rfc_arrendatario}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Pago a nombre de: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">Fraterna Administradora de Proyectos, S.A. de C.V.</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Divisa: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">Pesos</div></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left; font-weight:normal;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">GARANTÍAS</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Depósito en Garantía: </div></td>
+		
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">${{info.renta | intcomma}}.00 ({{renta_texto}} pesos 00/100 moneda nacional)</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; position: relative; top: -20px;" height="17" align="left" colspan=1><div class="celdas">Cuenta Bancaria del Depósito de Garantía:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:justify;" colspan=5>
+			<div class="celdas">
+				Banco: Banregio <br/>
+				Pago a nombre de: Fraterna Administradora de Proyectos, S.A. de C.V. <br/>
+				Cuenta Bancaria: 021727730041 <br/>
+				CLABE Interbancaria: 058580217277300416 <br/>
+				Referencia: {{info.residente.rfc_arrendatario}} <br/>
+				Divisa: Pesos</td>
+			</div>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Monto de Rentas por Adelantado: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">1</div></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">DOMICILIOS</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">Del Arrendatario: <b>{{info.residente.nombre_arrendatario}}</b><br/>
+				El Arrendatario señala expresa e irrevocablemente como su domicilio el de la Propiedad Arrendada, siendo esta: <b>{{info.residente.direccion_arrendatario}}</b><br/> 
+				Correo electrónico: {{info.residente.correo_arrendatario}} 
+			<div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">Residente: <b>{{info.residente.nombre_residente}}</b><br/>
+				El Arrendatario señala expresa e irrevocablemente como su domicilio el de la Propiedad Arrendada, siendo esta: <b>{{info.residente.direccion_residente}}</b><br/> 
+				Correo electrónico: {{info.residente.correo_residente}}
+				<div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">Del Arrendador:<br/>
+				El Arrendador señala expresa e irrevocablemente como su domicilio el del Inmueble, siendo este: Av. Don 
+				Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.<br/> 
+				Correo electrónico:  jcasados@fraterna.mx 
+			<div>
+		</td>
+	</tr>
+</table>
+
+<!--comienza la segunda tabla-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+
+	<tr>
+		<td height="21"  valign=middle>
+			<div class="fuente">
+				El Arrendador, el Arrendatario y el Obligado Solidario aceptan que los términos establecidos en la presente carátula (la “<u>Carátula</u>”) 
+				son parte integrante del Contrato que sigue a esta Carátula, firmando al efecto las Partes de conformidad. Asimismo, reconocen que los términos definidos en la presente Carátula 
+				podrán utilizarse en cualquier otra sección del presente Contrato.
+			</div>
+		</td>
+	</tr>	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Contrato de Arrendamiento (el “<u>Contrato</u>”) que celebran, en la fecha señalada en la Carátula:</div></td>
+	</tr>	
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(i)       Fraterna Administradora de Proyectos, S.A. de C.V. (el “<u>Arrendador</u>”); </div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(ii)      La persona (física o moral) descrita en la Carátula del presente Contrato en calidad de arrendatario (el “Arrendatario”);</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(iii)     En su caso, la persona (física o moral) identificada en la Carátula de este Contrato como obligado 
+			solidario (el “Obligado Solidario”, y conjuntamente con el Arrendador y el Arrendatario, las “<u>Partes</u>”); de 
+			conformidad con las siguientes Declaraciones y Cláusulas. 
+		</div></td>
+	</tr>
+
+
+  <tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+  </tr>
+  <tr>
+	<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">DECLARACIONES</div></b></td>
+  </tr>	
+  <tr>
+	<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+</tr>
+  <tr>
+	<td height="21"  valign=middle><b><div class="fuente">I.       El Arrendador, a través de su representante legal, declara que:</div></b></td>
+  </tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(a)     Es una sociedad mercantil legalmente constituida y existente de conformidad con las leyes mexicanas 
+			vigentes, según consta en la Escritura Pública número 28,281, de fecha 26 de abril del 2022, otorgada ante la fe 
+			del Lic. Ignacio Gerardo Martínez González, Titular de la Notaría Pública No. 75, con ejercicio en el Primer Distrito 
+			Registral y Notarial del Estado de Nuevo León, con residencia en la ciudad de San Pedro Garza García, Nuevo 
+			León, y debidamente registrada con fecha 5 de mayo del 2022 ante el Registro Público de la Propiedad y del 
+			Comercio de Monterrey, Nuevo León bajo el No. de Folio Mercantil Electrónico N-2022031789. </div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(b)      Su representante legal cuenta con todos los poderes y facultades necesarias y suficientes para la 
+			celebración de este Contrato, mismos que no le han sido revocados ni limitados en forma alguna.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(c)      Se encuentra en posesión del departamento identificado en la Carátula del presente Contrato como la 
+			Propiedad Arrendada, mismo que se encuentra ubicado dentro del Inmueble. La Propiedad Arrendada tiene las 
+			características generales que se señalan en el <b><u>Anexo 1</u></b> del presente Contrato.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(d)      Es su intención otorgar en arrendamiento a favor del Arrendatario la Propiedad Arrendada, misma que 
+			deberá destinarse única y exclusivamente para casa habitación. La localización exacta de la Propiedad Arrendada 
+			se encuentra debidamente identificada en el <b><u>Anexo 1</u></b> del presente Contrato</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(e)      En caso de ser aplicable, es su intención otorgar en arrendamiento a favor del Arrendatario el o los 
+			Cajones de Estacionamiento que se describen en la Carátula del presente Contrato.</div></td>
+	</tr>
+   
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+    </tr>
+
+  <tr>
+	<td height="21"  valign=middle><b><div class="fuente">II.      El Arrendatario, por su propio derecho o a través de su representante legal, según sea el caso, 
+		declara que:</div></b></td>
+  </tr>
+  <tr>
+	<td height="21"  valign=middle><div class="fuente">(a)     Es una persona física con la nacionalidad que se describe en la Carátula del presente Contrato, plenamente capaz para 
+		celebrar el presente Contrato, o es una sociedad legalmente constituida y existente de conformidad con las leyes de México, según sea el caso. </div></td>
+  </tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(b)      Su representante legal cuenta con todos los poderes y facultades necesarias y suficientes para la celebración de este Contrato, 
+			mismos que no le han sido revocados ni limitados en forma alguna o celebra el presente Contrato por su propio derecho, según sea el caso.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(c)      Es su deseo recibir la Propiedad Arrendada en arrendamiento, en los términos y condiciones 
+			establecidos en el presente Contrato, para destinarlo a casa habitación, para su uso propio, así como los Cajones 
+			de Estacionamiento, según sea aplicable. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(d)      Ha revisado y está de acuerdo en obligarse a cumplir con el Reglamento de Administración que se 
+			adjunta al presente Contrato como <b><u>Anexo 2</u></b> (el “Reglamento”). Lo anterior, en el entendido que reconoce y 
+			está de acuerdo que el Reglamento podrá variar de tiempo en tiempo, conforme lo establezca el Arrendador, y 
+			que dichas modificaciones al Reglamento se harán del conocimiento del Arrendatario y del resto de los 
+			inquilinos del Inmueble mediante avisos que sean colocados en las áreas comunes del Inmueble.</div></td>
+	</tr>
+
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">III.     En su caso, el Obligado Solidario, por su propio derecho o a través de su representante legal, 
+			según sea el caso, declara que: 
+			</div></b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(a)     Es una sociedad constituida conforme a las leyes de México, según lo acredita con el documento 
+			referido en la Carátula, o una persona física capaz para celebrar el presente contrato en nombre propio, según 
+			se haya establecido en la Carátula.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(b)      En caso que sea una persona moral, su representante legal cuenta con todos los poderes y facultades 
+			necesarias y suficientes para la celebración de este Contrato, mismos que no le han sido revocados ni limitados 
+			en forma alguna.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(c)      Está de acuerdo en obligarse solidariamente respecto de todos y cada uno de los términos y 
+			condiciones a que se sujeta el Arrendatario en el presente Contrato. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(d)      Cuenta con un patrimonio suficiente para responder al Arrendador por el cumplimiento de las 
+			obligaciones que asume el Arrendatario de conformidad con el presente Contrato.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(e)      Manifiesta, bajo protesta de decir verdad, que los recursos con los que hará frente a sus obligaciones 
+			derivadas de este Contrato provienen de fuentes lícitas, de conformidad con lo establecido en la Ley Federal de 
+			Extinción de Dominio y en los artículos 17 y 18 de la Ley para la Prevención e Identificación de Operaciones con 
+			Recursos de Procedencia Ilícita. </div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">En virtud de las Declaraciones anteriores, las Partes se someten a las siguientes:</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+
+	<tr>
+		{% comment %} clausulas {% endcomment %}
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">CLÁUSULAS</div></b></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Primera. <u>Objeto, Entrega y Recepción.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">De conformidad con los términos y condiciones establecidos en el presente Contrato, el Arrendador en este acto 
+			otorga en arrendamiento al Arrendatario y éste recibe en arrendamiento la Propiedad Arrendada, con todo lo 
+			que de hecho y por derecho le corresponde, dándose el Arrendatario por recibido de la Propiedad Arrendada 
+			jurídica y materialmente a su entera satisfacción. Las instalaciones y accesorios con los que cuenta la Propiedad 
+			Arrendada se describen en la lista de inventario que se adjunta al presente Contrato como <b><u>Anexo 3</u></b>, que firmado 
+			por las Partes forma parte integral del mismo. 
+			</div></td>
+	</tr>	
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendador entrega al Arrendatario la posesión de la Propiedad Arrendada para el uso permitido (de 
+			conformidad con los términos establecidos en la cláusula siguiente), sujeto al cumplimiento de todas las 
+			disposiciones y restricciones aplicables a su uso conforme al presente Contrato, la legislación aplicable y el 
+			Reglamento, en la Fecha de Entrega, según se establece en la Carátula del presente Contrato. Lo anterior, 
+			mediante la firma de un acta de entrega y recepción de la Propiedad Arrendada sustancialmente en los términos 
+			del documento que se adjunta al presente Contrato como <b><u>Anexo 4</u></b>. 
+			 
+			</div></td>
+	</tr>	
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">En caso de que así lo hayan acordado las Partes, y según haya sido establecido en la Carátula, conforme a los 
+			términos y condiciones del presente Contrato, el Arrendador otorga en arrendamiento al Arrendatario el o los 
+			Cajones de Estacionamiento. En la Fecha de Entrega, el Arrendador entregará al Arrendatario, en su caso, el o 
+			los Cajones de Estacionamiento, mediante la firma del acta de entrega y recepción del o de los Cajones de 
+			Estacionamiento que se adjunta al presente Contrato como <b><u>Anexo 5</u></b>.
+			</div></td>
+	</tr>	
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Segunda. <u>Uso Permitido.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario se obliga a destinar la Propiedad Arrendada (incluyendo lo descrito en la lista de inventario que 
+			se adjunta al presente Contrato como <b><u>Anexo 3</u></b>) exclusivamente para uso de casa habitación de conformidad 
+			con lo establecido en este Contrato, el Reglamento y la legislación aplicable. Asimismo, el Arrendatario se obliga 
+			a conservar este tipo de uso de la Propiedad Arrendada durante todo el tiempo que ocupe la misma. En caso 
+			de incumplimiento por parte del Arrendatario a lo dispuesto en el presente párrafo el Arrendador podrá dar por 
+			terminado el Contrato en forma anticipada, sin responsabilidad para el Arrendador, únicamente mediante 
+			entrega de una notificación por escrito al Arrendatario. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario reconoce que las únicas personas que podrán habitar la Propiedad Arrendada son las que se 
+			mencionan en la Carátula, y que el Arrendatario en ningún caso permitirá que habiten en la Propiedad 
+			Arrendada un número de personas mayor al número máximo de personas establecido en la Carátula. En caso 
+			de incumplimiento por parte del Arrendatario a lo dispuesto en el presente párrafo el Arrendador podrá dar por 
+			terminado el Contrato en forma anticipada, sin responsabilidad para el Arrendador, únicamente mediante 
+			entrega de una notificación por escrito al Arrendatario. 			
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario se obliga a usar la Propiedad Arrendada y el Inmueble de manera cuidadosa, segura y adecuada, 
+			por lo que no podrá: (i) almacenar Materiales Peligrosos en contravención a los límites establecidos en la 
+			legislación aplicable; (ii) sobrecargar los pisos, o la estructura de la Propiedad Arrendada; (iii) producir ni permitir 
+			que se produzcan en la Propiedad Arrendada olores, humo, polvo, ruido o vibraciones en niveles que afecten a 
+			la Propiedad Arrendada o el Inmueble, las áreas comunes del Inmueble, y los demás arrendatarios del Inmueble; 
+			(iv) llevar a cabo actos que puedan causar un desequilibrio ecológico, daños a la salud, al medio ambiente y/o a 
+			los recursos naturales; y (v) usar la Propiedad Arrendada y el Inmueble en forma tal que pueda invalidar las 
+			pólizas de los seguros o incremente el riesgo de las coberturas de dichas pólizas.		
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">“Materiales Peligrosos” significa: cualquier substancia, material, residuos, contaminantes o contaminantes que 
+			puedan ser o que sean regulados por cualquier legislación ambiental aplicable o que puedan tener un efecto 
+			adverso en la salud humana, en el medio ambiente o los recursos naturales, incluyendo, sin limitar, cualquier 
+			residuo sólido o peligroso, sustancias peligrosas, asbesto, petróleo (incluyendo petróleo crudo o cualquiera de 
+			sus derivados, gas natural, gas de sintético, bifenilos policlorados (PBC), o materiales explosivos o radioactivos).		
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario no podrá introducir a la Propiedad Arrendada y/o el Inmueble, animales o mascotas de cualquier 
+			tipo, incluyendo animales domésticos.		
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario se obliga a no tener o permitir en la Propiedad Arrendada y/o el Inmueble armas de fuego, 
+			armas blancas, pólvora, explosivos, droga de cualquier naturaleza, instrumentos para procesarlas y o cualquier 
+			otro de naturaleza análoga que sirva o haya servido para cometer algún ilícito, siendo el Arrendatario el único 
+			responsable en caso que se pretenda involucrar a la Propiedad Arrendada, el Inmueble, y/o al Arrendador, al 
+			administrador o sus funcionarios o empleados, obligándose el Arrendatario a indemnizar, mantener a salvo y 
+			en paz al Arrendador, al administrador o sus funcionarios o empleados por los daños, perjuicios y costos por 
+			un incumplimiento del Arrendatario a lo establecido en el presente párrafo. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario será el único responsable del uso que se le dé a la Propiedad Arrendada e indemnizará y sacará 
+			a salvo y en paz al Arrendador, al administrador o sus funcionarios o empleados, por los daños y costos que se 
+			generen como resultado de un acto ilícito llevado a cabo dentro de la Propiedad Arrendada y/o el Inmueble. 
+			Asimismo, el Arrendatario será el único responsable ante las autoridades penales, civiles, mercantiles y o 
+			laborales del fuero común o federal, por cualquier acto ilícito que se haya llevado a cabo dentro de la Propiedad 
+			Arrendada y/o el Inmueble, deslindando desde este momento a la Propiedad Arrendada, el Inmueble, al 
+			Arrendador, al administrador o sus funcionarios o empleados. 
+			
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Asimismo, el Arrendatario reconoce y conviene que en ningún momento podrá llevar a cabo durante la vigencia 
+			del presente Contrato, dentro de la Propiedad Arrendada y/o el Inmueble, cualquier acto que (i) represente un 
+			riesgo para la salud humana o el medio ambiente, (ii) represente un riesgo no razonable de daño a cualquier 
+			persona o entidad (ya sea sobre o en la Propiedad Arrendada y/o el Inmueble), (iii) ocasione un detrimento en el 
+			valor de la Propiedad Arrendada y/o el Inmueble, (iv) invalide una póliza de seguros, o (v) que viole cualquier 
+			reglamento, permiso, licencia, o servidumbre aplicable a la Propiedad Arrendada y/o el Inmueble, incluyendo el 
+			Reglamento y el presente Contrato. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario autoriza al Arrendador o a quien éste designe para tales efectos, a realizar visitas de inspección 
+			tendientes a revisar el estado de las instalaciones eléctricas, ductos de agua, y demás aspectos que sean 
+			necesarios para garantizar el adecuado mantenimiento y la seguridad del Inmueble y de la Propiedad 
+			Arrendada, de conformidad con lo siguiente: (i) en caso que se trate de una visita de inspección rutinaria, el 
+			Arrendador deberá dar aviso por escrito al Arrendatario con 3 (tres) días hábiles de anticipación a la fecha en 
+			que esté programada la visita, y (ii) en caso de emergencia, el Arrendador podrá ingresar a la Propiedad 
+			Arrendada sin necesidad de dar aviso previo al Arrendatario. El Arrendador realizará estas visitas de inspección 
+			procurando evitar molestias al Arrendatario. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Tercera. <u>Vigencia; Devolución de la Propiedad Arrendada; Terminación Anticipada; Renovación.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El presente Contrato tendrá el Plazo de Vigencia que se haya establecido en la Carátula, mismo que será forzoso 
+			para ambas partes, y empezará a contar a partir de la Fecha de Entrega según se establece en la Carátula. La 
+			vigencia del arrendamiento del o de los Cajones de Estacionamiento y de la Propiedad Arrendada será la misma. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario podrá solicitar una prórroga del Plazo de Vigencia del presente Contrato, debiendo entregar al 
+			Arrendador una solicitud vía correo electrónico, respecto de su intención de renovar el presente Contrato, con 
+			cuando menos 30 (treinta) días calendario anteriores a la fecha de terminación del Plazo de Vigencia. Lo anterior 
+			en el entendido, que el Arrendador podrá a su entera discreción decidir si renueva o no el presente Contrato, y 
+			en su caso, fijar los nuevos términos del arrendamiento, los cuales se harán del conocimiento de El Arrendatario 
+			vía correo electrónico. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Al finalizar el Plazo de Vigencia, incluyendo cualesquiera prórrogas del mismo conforme a lo establecido en el 
+			párrafo anterior, el Arrendatario se obliga a desocupar y entregar la Propiedad Arrendada al Arrendador, y el o 
+			los Cajones de Estacionamiento, sin necesidad de resolución judicial alguna. El Arrendatario deberá entregar la 
+			Propiedad Arrendada y el o los Cajones de Estacionamiento libres de cualquier responsabilidad o reclamación 
+			de carácter civil, penal, mercantil, fiscal, laboral, o de cualquier otra naturaleza. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">En caso que el Arrendatario permanezca en posesión de la totalidad o parte de la Propiedad Arrendada una vez 
+			vencido el Plazo de Vigencia, o cualesquiera prórrogas del mismo conforme a lo establecido en la presente 
+			cláusula, se entenderá que lo hace en oposición a la voluntad del Arrendador. En consecuencia, el Arrendatario 
+			deberá pagar al Arrendador, por cada mes (o fracción) durante el cual el Arrendatario permanezca en posesión 
+			de la Propiedad Arrendada una cantidad igual a la última Contraprestación Mensual vigente más el 100% (cien 
+			por ciento), como pena convencional. Los pagos que realice el Arrendatario cuando continúe en posesión de la 
+			Propiedad Arrendada una vez finalizado el Plazo de Vigencia del presente Contrato, o cualesquiera prórrogas 
+			del mismo conforme a lo establecido en la presente cláusula, no se considerarán como una prórroga, novación 
+			o renuncia de los derechos del Arrendador conforme al presente Contrato. En ningún caso se podrá interpretar 
+			que el presente Contrato se ha convertido en un arrendamiento por tiempo indeterminado, o que el plazo del 
+			arrendamiento ha sido renovado en forma automática. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario autoriza y faculta al Obligado Solidario y a cualesquiera de los residentes identificados en la 
+			Carátula del presente Contrato para que entregue en su nombre la Propiedad Arrendada al término del presente 
+			Contrato. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Cuarta. <u>Contraprestación. Adicionales. Renta Integral Mensual. Interés.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Como contraprestación por el uso y goce temporal de la Propiedad Arrendada, incluyendo en su caso el uso o 
+			goce del o de los Cajones de Estacionamiento, el Arrendatario se obliga a pagar al Arrendador las cantidades 
+			señaladas como rentas en la Carátula del presente Contrato, conforme a los términos y condiciones establecidos 
+			en el Contrato (conjuntamente a la renta por la Propiedad Arrendada, y la renta por el o los Cajones de 
+			Estacionamiento se les denominará, la “<u>Contraprestación</u>”). Asimismo, el Arrendatario deberá pagar al 
+			Arrendador los conceptos adicionales descritos en la Carátula del presente Contrato (los “<u>Conceptos Adicionales</u>” 
+			conjuntamente con la Contraprestación, como la “<u>Renta Integral</u>”), en el entendido que los conceptos 
+			adicionales que no estén incluidos en la Carátula del presente Contrato (los “Costos <u>Adicionales</u>”), tendrán un 
+			costo adicional a la Renta Integral (la Renta Integral, conjuntamente con los Costos Adicionales se le denominará 
+			la “<u>Renta Integral Mensual</u>”). 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Las partes acuerdan que La Propiedad Arrendada cuenta con un medidor independiente de electricidad, 
+			asimismo, la administración del edificio pagará el servicio de electricidad de La Propiedad Arrendada a Comisión 
+			Federal de Electricidad, para posteriormente cobrársele al arrendatario, en la inteligencia que el monto de la 
+			contraprestación incluye solamente el consumo de electricidad de 250 kw de manera bimestral, por lo que, si 
+			el consumo por parte del arrendatario en la Propiedad Arrendada excede en el bimestre de los 250 kw 
+			mencionados, el arrendatario deberá de pagar el excedente en partes iguales, dependiendo del número de 
+			inquilinos que tenga la Propiedad Arrendada. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario deberá pagar al Arrendador la Renta Integral Mensual, en cualquiera de los siguientes casos, 
+			según aplique y se especifique en la carátula del presente contrato:
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><b>1. Separación antes de inicio del semestre:</b> Se paga el 100% de la Renta Integral Mensual.<br>
+			<b>2. Separación hasta el día 5 del primer mes:</b> Se paga el 100% de la Renta Integral Mensual. <br>
+			<b>3. Separación entre el día 6 al 15 del primer mes:</b> Pago proporcional de la Renta Integral Mensual en base 
+			a días de arrendamiento.<br>
+			<b>4. Separación a partir del día 16 del primer mes:</b> Pago de la Renta Integral Mensual por 15 días completos
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Después del primer mes, la Renta Integral Mensual se pagará, dentro de los primeros 5 (cinco) días hábiles de 
+			cada mes, independientemente de la Fecha de Move In establecida en la carátula. Si la Fecha de Vigencia fuera 
+			un día distinto al día primero de un mes calendario, el Arrendatario deberá pagar la Renta Integral Mensual, en 
+			su caso, sobre una base diaria hasta que termine el mes calendario de que se trate, y a partir de ese momento, la 
+			Renta Integral Mensual, en su caso, se pagarán sobre una base mensual dentro de los primeros 5 (cinco) días 
+			hábiles de cada mes.
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">En la fecha de firma del presente Contrato, el Arrendatario entrega al Arrendador la cantidad establecida en la 
+			Carátula como Rentas por Adelantado, que se aplicarán por el Arrendador conforme se haya establecido en la 
+			Carátula. 			
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario conviene en que todo mes de arrendamiento es forzoso y que la Renta Integral Mensual, en su 
+			caso, deberán pagarse íntegramente, aún y cuando el Arrendatario ocupe la Propiedad Arrendada y el o los 
+			Cajones de Estacionamiento, parcialmente o por un periodo inferior a dicho mes. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Por ningún motivo, causa o razón, se aceptarán pagos en efectivo al personal de la administración del Inmueble.</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Las Partes acuerdan que en caso que el Arrendatario no pague puntualmente la Renta Integral Mensual, en su 
+			caso, aplicarán las siguientes penas convencionales por incumplimiento:<br>
+			1.- Una cantidad equivalente a 10 (diez) días de Renta Integral (la Renta Integral dividida entre 30), más el IVA 
+			correspondiente, aplicable al tercer día natural de retraso en el pago de la Renta Integral Mensual, en su caso; 
+			más,<br> 
+			2.- Aplicará un interés moratorio equivalente al 10% (diez por ciento) de la Renta Mensual Integral y el cual se 
+			generará a partir del 6to (sexto) día hábil del mes corriente, es decir, al 1er (primer) día hábil de incumplimiento 
+			de pago de la Renta Integral Mensual. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Sin perjuicio de lo establecido anteriormente, las Partes acuerdan que en caso que el Arrendatario dejare de 
+			cumplir con la obligación de pago de la Contraprestación Mensual, o si incumpliera en alguna de sus 
+			obligaciones establecidas en el presente Contrato, entonces el Arrendador podrá cancelar su tarjeta de acceso 
+			al Edificio, en el entendido de que El Arrendatario si podrá entrar al edificio solicitando al guardia la apertura de 
+			la puerta; así mismo se cancelará el acceso a los elevadores, por lo que tendrá que subir por escaleras y por 
+			último se le restringirá el acceso a áreas comunes que estén controladas por tarjetas de acceso. 
+			
+			</div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Quinta. <u>Depósito en Garantía.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario entrega en este acto al Arrendador, las cantidades establecidas en la Carátula del presente, por 
+			concepto de depósito en garantía, con la finalidad de garantizar el cumplimiento de todas y cada una de las 
+			obligaciones del Arrendatario establecidas en el presente Contrato, incluyendo, sin limitación, el pago de la Renta 
+			Integral Mensual que se hubieren solicitado a la firma del Contrato, en su caso, y las reparaciones que la 
+			Propiedad Arrendada, el Inmueble y sus áreas comunes, y el o los Cajones de Estacionamiento, respectivamente, 
+			pudieran llegar a necesitar por mal uso que les haya dado el Arrendatario, en su caso. En caso que el Arrendador 
+			utilice todo o parte del depósito en garantía, el Arrendatario deberá reponer la cantidad que haya sido utilizada 
+			por el Arrendador, en los 5 (cinco) días siguientes a que el Arrendador se lo haya requerido por escrito.
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendador, una vez desocupada la Propiedad Arrendada, se obliga a reembolsar íntegramente al 
+			Arrendatario (sin estar obligado al pago de intereses por dicho depósito) o la parte restante, en un término no 
+			mayor a 60 (sesenta) días naturales, siempre y cuando: (i) el Arrendatario se encuentre en cumplimiento de 
+			todas y cada una de sus obligaciones establecidas en el presente Contrato, incluyendo, sin limitación, en el pago 
+			de la Renta Integral Mensual, en su caso; y (ii) no existan desperfectos o daños (distintos a aquellos que puedan 
+			esperarse por el uso normal de la Propiedad Arrendada, el Inmueble y sus áreas comunes, y del o de los Cajones 
+			de Estacionamiento) atribuibles al Arrendatario y pendientes de reparar; y (iii) el Arrendatario entregue al 
+			Arrendador la información bancaria que se requiera para realizar la devolución del depósito de garantía. El 
+			Arrendador estará autorizado para utilizar el monto total del depósito en garantía para el pago de los anteriores 
+			conceptos en caso de que existan adeudos. 
+			
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Transcurrido el plazo de un año sin que el Arrendatario indique la cuenta para el reembolso del depósito, el 
+			Arrendador no estará obligado al reembolso. 			
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Sexta. <u>Asunción de Obligaciones.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">CEl Arrendatario asume la responsabilidad por todas las personas que habiten con él en la Propiedad Arrendada, 
+			o que lo visiten en el Inmueble, y cualquier incumplimiento de estos a las obligaciones del presente Contrato 
+			y/o el Reglamento, será considerado como un incumplimiento atribuible al Arrendatario. 			
+			</div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Séptima. <u>Mejoras.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario por ningún motivo y bajo ninguna excepción, podrá realizar remodelaciones, cambios, 
+			alteraciones o construcciones en la Propiedad Arrendada, las áreas comunes de la Propiedad Arrendada, y/o al 
+			o a los Cajones de Estacionamiento. Cualquier modificación al estado de la Propiedad Arrendada, las áreas 
+			comunes de la Propiedad Arrendada y al o a los Cajones de Estacionamiento podrá realizarse únicamente sujeto 
+			a los términos para dichos efectos establecidos en el Reglamento. 			
+			</div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El incumplimiento a lo establecido en la presente cláusula será motivo de rescisión del presente Contrato por 
+			causa imputable al Arrendatario, siendo este último responsable de pagar los gastos necesarios para dejar la 
+			Propiedad Arrendada, las áreas comunes de la Propiedad Arrendada, y/o el o los Cajones de Estacionamiento, 
+			según corresponda, que hayan sido alterados en contravención de lo dispuesto en la presente Cláusula, en las 
+			condiciones en que le fueron entregadas al Arrendatario en la fecha de firma del presente Contrato. 
+			</div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Octava. <u>Impuestos.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Las Partes acuerdan que cualquier contribución, impuesto, derecho, cooperación, ya sea de carácter federal, 
+			estatal o municipal, que se cause con motivo del presente Contrato, serán cubiertos por cuenta y a cargo del 
+			Arrendatario. Se exceptúa de lo establecido en la presente cláusula el impuesto sobre la renta, el cual será 
+			cubierto por cuenta y a cargo del Arrendador.	
+			</div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Novena. <u>Cesión y Subarrendamiento.</u></div></b></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario no podrá: (i) ceder a un tercero los derechos y obligaciones establecidos en el presente Contrato 
+			para el Arrendatario, ni subarrendar a un tercero la Propiedad Arrendada o cualquier parte de la misma, (ii) 
+			otorgar alguna concesión o permiso para usar en todo o en parte la Propiedad Arrendada, y (iii) en general no 
+			podrá en cualquier otra forma transmitir y/o afectar los derechos y obligaciones que le derivan de este Contrato. 
+			Para los efectos del Contrato, los actos anteriores se entenderán como una “Cesión” o un “Subarrendamiento”, 
+			según corresponda. En todo caso, cualquier Cesión o Subarrendamiento que se lleve a cabo en contravención 
+			de lo anterior será nula y no producirá efecto alguno.
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Adicionalmente a lo descrito en el párrafo anterior, el Arrendatario tiene expresamente prohibido utilizar 
+			“Airbnb” o cualquier tipo de plataforma similar con relación a la Propiedad Arrendada.
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendador podrá ceder en todo o en parte sus derechos y obligaciones que le derivan del presente Contrato, 
+			incluyendo, sin limitación, sus derechos de cobro, así como transferir el dominio y/o de cualquier otra forma 
+			gravar o constituir garantías sobre la Propiedad Arrendada y/o los derechos derivados de este Contrato a 
+			cualquier tercero, sin la previa autorización del Arrendatario. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Décima. <u>Renuncias.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario renuncia en forma expresa e irrevocable, desde este acto, a cualquier derecho que le pudiera 
+			otorgar los artículos 2197, 2198, 2199, 2341, 2379, 2380 y 2381 del Código Civil para el Estado de Nuevo León; 
+			en consecuencia, en ningún caso el Arrendatario tendrá derecho de preferencia, prórroga, o del tanto en 
+			relación con (i) nuevos arrendamientos sobre el Inmueble, la Propiedad Arrendada o el o los Cajones de 
+			Estacionamiento, o (ii) una enajenación del Inmueble, la Propiedad Arrendada o el o los Cajones de 
+			Estacionamiento independientemente del tiempo que se encuentre el Arrendatario en posesión de los mismos.			
+			</div></td>
+	</tr>
+
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Décima Primera. <u>Incumplimiento y Rescisión.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">
+			(i)       La muerte del Arrendatario;<br/>
+			(ii)      El hecho de que el Arrendatario no ocupe personalmente la Propiedad Arrendada, y/o el o los Cajones 
+			de Estacionamiento;<br/>
+			(iii)     El hecho de que el Arrendatario ocupe el Inmueble, la Propiedad Arrendada, o el o los Cajones de 
+			Estacionamiento, para cualquier ilícito, sea o no constitutivo de delito, o para cualquier otro uso distinto al 
+			autorizado por el Arrendador y/o el administrador del Inmueble;<br/> 
+			(iv)      El hecho de que el Arrendatario realice cualquier acto u omisión contrario a las normas y disposiciones 
+			contenidas en el presente Contrato y en el Reglamento;<br/> 
+			(v)       El hecho de que el Arrendatario, en cualquier forma permita que cualquier persona que no esté descrita 
+			en la Carátula habite la Propiedad Arrendada, ya sea mediante un subarrendamiento verbal o escrito o por 
+			cualquier otra causa;<br/> 
+			(vi)      El hecho de que el Arrendatario permita que habite o ingrese a la Propiedad Arrendada un número de 
+			personas mayor al número máximo de personas establecido en la Carátula; a excepción de las visitas permitidas 
+			y autorizadas de forma previa por El Arrendador;<br/> 
+			(vii)     El hecho de que el Arrendatario produzca o permita que se produzcan en la Propiedad Arrendada o el 
+			Inmueble olores, humo, polvo, ruido o vibraciones en niveles que afecten a la Propiedad Arrendada, las áreas 
+			comunes del Inmueble, y/o los demás arrendatarios del Inmueble;<br/> 
+			(viii)    El incumplimiento del Arrendatario a cualquiera de sus obligaciones establecidas en el presente 
+			Contrato, incluyendo, sin limitación, la falta de pago de, la Renta Integral Mensual y/o la existencia de un 
+			conflicto (enunciativamente, más no limitativamente demanda, querella, denuncia, juicio, averiguación previa, 
+			cateo, etc.) con cualquier autoridad, ya sea municipal, estatal o federal, en el que esté involucrado el 
+			Arrendatario o la Propiedad Arrendada; y<br/>
+			(ix)      En caso que el Arrendatario sea una persona moral, el hecho de que el Arrendatario o un tercero 
+			demande la declaración de concurso mercantil del Arrendatario, o si el Arrendatario cede sus bienes para 
+			beneficio de sus acreedores, o por la admisión por escrito del Arrendatario de su incapacidad para pagar sus 
+			deudas en general a su vencimiento, o su consentimiento para la designación de un conciliador, síndico, 
+			interventor o liquidador, o que el Arrendatario pretenda obtener una resolución de concurso o una resolución 
+			de naturaleza similar conforme a las leyes aplicables; o que mediante resolución judicial se le designe un síndico, 
+			interventor o liquidador para sí mismo o para cualesquiera de sus bienes, o se haya emitido respecto del 
+			Arrendatario o sus bienes una resolución relativa a quiebras, concurso, reestructuración de pasivos, quitas sobre 
+			sus deudas, o instaurado un procedimiento de quiebra, insolvencia, concurso o reestructuración de pasivos o 
+			se haya dictado providencia precautoria o medida cautelar alguna, y que cualquiera de dichos procedimientos 
+			subsista sin cancelarse por un período de 60 (sesenta) días calendario. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">En caso que se actualice cualquiera de los supuestos establecidos en la presente Cláusula, el Arrendador podrá 
+			terminar el presente Contrato en forma anticipada, mediante notificación por escrito al Arrendatario, y sin 
+			necesidad de declaración judicial alguna. En caso que el Arrendador termine el presente Contrato en forma 
+			anticipada conforme a lo establecido en los incisos (ii) al (vi) anteriores, el Arrendatario deberá pagar al 
+			Arrendador una pena convencional equivalente a 2 (dos) meses de Contraprestación, vigentes en ese momento, 
+			además de cualquier otra cantidad debida por el Arrendatario y que no se haya liquidado en su totalidad, 
+			incluyendo penas y/o intereses moratorios, según sea el caso. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">En el caso de que el Arrendatario sea detenido y privado de su libertad por más de 15 (quince) días calendario 
+			(sea cual fuere el motivo), o se encuentre ausente o desaparecido por un periodo mayor a 30 (treinta) días 
+			calendario, el Arrendador podrá terminar el presente Contrato, y el Arrendador tendrá derecho a ingresar a la 
+			Propiedad Arrendada en compañía de un notario público que levante una fe de hechos respecto de los bienes 
+			muebles del Arrendatario que se encuentran en el lugar, así como de las condiciones en que se encuentra la 
+			Propiedad Arrendada, para posteriormente sustraer todos los bienes del Arrendatario y disponer de ellos sin 
+			ninguna responsabilidad para el Arrendador. 			
+			</div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Décima Segunda. <u>Seguros.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendador cuenta con un seguro para el Inmueble y la Propiedad Arrendada, por lo tanto, el Arrendatario 
+			se obliga, cuando por su mal uso, negligencia o distracción, llegue a causar directa o indirectamente algún daño 
+			o desperfecto en cualquier parte del Inmueble, o en los bienes que se encuentren dentro de el mismo, 
+			incluyendo la Propiedad Arrendada, a pagar el deducible de dicho seguro mantenido por el Arrendador. A la 
+			firma del presente Contrato.
+			</div></td>
+	</tr>
+
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Décima Tercera. <u>Indemnización.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario se compromete y obliga a indemnizar, defender y sacar en paz y a salvo al Arrendador, y sus 
+			respectivos directores, funcionarios, ejecutivos, miembros, beneficiarios directos o indirectos, socios, empleados 
+			y agentes, demás causahabientes o arrendatarios de departamentos o unidades comerciales del Inmueble o a 
+			terceras personas contra y respecto a cualesquier reclamos, demandas, responsabilidades, multas, acciones, 
+			procedimientos, órdenes, decretos, sentencias de cualesquier materia o naturaleza por parte, o en favor, de 
+			cualesquier persona o personas, y contra y respecto a cualesquier costos, daños, perjuicios y gastos, incluyendo 
+			honorarios de abogados, que surjan directa o indirectamente por: (i) cualquier incumplimiento del Arrendatario 
+			de cualesquiera de sus obligaciones y acuerdos establecidos en este Contrato; (ii) cualquier hecho ilícito, delito 
+			(incluyendo un acto ilegal previsto en la Ley Federal de Extinción de Dominio, y/o la Ley Federal para la 
+			Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita), conducta impropia, negligente 
+			o deliberada, o mala fe del Arrendatario, y (iii) cualquier falsedad o inexactitud en las declaraciones realizadas 
+			por el Arrendatario en el presente Contrato. 
+			
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Décima Cuarta. <u>Ausencia de vicios.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Las Partes acuerdan y reconocen que en el presente Contrato no existe dolo, error, violencia, mala fe, lesión, ni 
+			ningún otro vicio del consentimiento que pudiera afectar su existencia y/o validez.
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Décima Quinta. <u>Notificaciones.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Todos los avisos y notificaciones que se requieran en términos del presente Contrato deberán constar por escrito 
+			y enviarse a los domicilios que las Partes han indicado en la Carátula del presente Contrato; asimismo, deberán 
+			enviarse copia de dichos avisos y notificaciones mediante correo electrónico a las direcciones que las Partes 
+			han indicado en la Carátula del presente Contrato. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Décima Sexta. <u>Confidencialidad.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario se compromete durante el Plazo de Vigencia del presente Contrato, incluyendo cualesquiera 
+			prórrogas del mismo conforme a lo establecido en la Cláusula Tercera de este Contrato, o en cualquier tiempo 
+			con posterioridad a su terminación, a no revelar, sin el consentimiento del Arrendador, los términos y condiciones 
+			del presente Contrato, a ninguna persona (física o moral) a menos que:
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">
+			(i)       Dichos términos se hayan vuelto del dominio público por cualquier medio distinto a un incumplimiento 
+			a las disposiciones de la presente cláusula; o<br/> 
+			(ii)      La revelación sea requerida por cualquier ley, orden judicial o las reglas y reglamentos de cualquier 
+			autoridad gubernamental, administrativa o regulatoria, a la cual dicha parte se encuentre sujeta.
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Décima Séptima. <u>Obligado Solidario.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Obligado Solidario, según aplique en la Caratula del presente Contrato, en este acto se constituye como 
+			obligado solidario de todas y cada una de las obligaciones del Arrendatario establecidas en el presente 
+			Contrato, manifestando que ha leído el Contrato, así como el Reglamento. El Obligado Solidario renuncia, 
+			expresamente, a los beneficios de orden y excusión contenidos en el Código Civil Federal y los correlativos en 
+			los Códigos Civiles de los demás estados de la República Mexicana. En el supuesto de que el Arrendador otorgue 
+			una prórroga, o un periodo de gracia al Arrendatario, las obligaciones del Obligado Solidario conforme a este 
+			Contrato no se considerarán reducidas o saldadas. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Las Partes acuerdan que, conforme a lo establecido en la Carátula del presente Contrato, en caso de que se 
+			constituyan como Obligado Solidario más de una persona, todas ellas serán obligadas solidarias del 
+			Arrendatario, y entre sí, renunciando expresamente a los beneficios de orden, excusión y división contenidos en 
+			el Código Civil Federal y los correlativos en los Códigos Civiles de los demás estados de la República Mexicana.
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El Arrendatario autoriza y faculta al (o a los) Obligado(s) Solidario(s) y a cualesquiera de los residentes 
+			identificados en la Carátula del presente Contrato para que entregue en su nombre la Propiedad Arrendada en 
+			cualquier momento durante la vigencia del presente contrato. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Décima Octava. <u>Independencia.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">En la medida que la ley aplicable lo permita, si cualquier plazo o disposición de este Contrato o cualquiera 
+			aplicación del mismo fuera declarada inválida o no exigible, el resto de este Contrato y cualesquiera otros 
+			términos o disposiciones del mismo, no se verán afectadas y continuarán con pleno vigor y fuerza legal.			
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Décima Novena. <u>Encabezados.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Los títulos de las cláusulas, sub-cláusulas, secciones, párrafos y cualquier otra división en este Contrato se 
+			incluyen únicamente por conveniencia de las Partes y no deberán ser interpretados como que los mismos tienen 
+			un efecto o significado respecto del contenido de las demás cláusulas, sub-cláusulas, párrafos o cualquier otra 
+			división del mismo, siendo dicho otro contenido el acuerdo que subsiste y controla el acuerdo de las Partes 
+			conforme al presente Contrato. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Vigésima. <u>Anexos.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Este Contrato y los Anexos del mismo constituyen el acuerdo total de las Partes respecto del asunto materia del 
+			presente. Todos los Anexos del presente Contrato se incorporan a este documento como si a la letra se 
+			insertasen:
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">
+			       <b>Anexo 1:</b> Características Generales<br/>
+			       <b>Anexo 2:</b> Reglamento <br/>
+			       <b>Anexo 3:</b> Inventario <br/>
+			       <b>Anexo 4:</b> Acta de entrega de propiedad arrendada<br/> 
+			       <b>Anexo 5:</b> Acta de entrega de cajón de estacionamiento.
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Vigésima Primera. <u>Jurisdicción y Legislación Aplicable.</u></div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Este Contrato será regido por, e interpretado, de conformidad con las leyes de la Ciudad de Monterrey, Nuevo 
+			León. Las Partes por medio del presente se someten irrevocablemente a la jurisdicción y competencia de los 
+			tribunales de la Ciudad de Monterrey, Nuevo León, respecto de cualquier asunto relacionado con la 
+			interpretación o cumplimiento de este Contrato y por medio del presente y en este acto renuncian expresa e 
+			irrevocablemente a la jurisdicción de cualquier tribunal diferente que les pudiera corresponder por razón de 
+			su domicilio presente o futuro o por cualquier otra circunstancia. 			
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Las Partes, sabedoras del alcance jurídico y material del presente Contrato lo firman a su entera conformidad 
+			ante la presencia de dos testigos que dan fe de su celebración y firma en la Fecha de Celebración según se 
+			establece en la Carátula, en la ciudad de Monterrey, Nuevo León.
+			</div></td>
+	</tr>
+	
+	</tr>
+	{% comment %} FIRMAS {% endcomment %}
+	<tr>
+		<td style="height:63px" align="center" valign=middle></td>
+	</tr>
+	
+
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div style="text-align:center" class="fuente">El Arrendador</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">_____________________________________</div></b></td>
+	</tr>
+	
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">Carlos Manuel Padilla Silva</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">Representante Legal</div></b></td>
+	</tr>
+
+
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">El Arrendatario</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">_____________________________________</div></b></td>
+	</tr>
+	
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">{{info.residente.nombre_arrendatario}}</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">Por sus propios derechos.</div></b></td>
+	</tr>
+
+
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">Residente</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">_____________________________________</div></b></td>
+	</tr>
+	
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">{{info.residente.nombre_residente}}</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">Por sus propios derechos.</div></b></td>
+	</tr>
+	
+	
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+
+</table>
+<!--Fin de la segunda tabla-->
+<br><br><br><br><br>
+<br><br><br><br><br>
+<br><br><br><br><br>
+<br><br><br><br><br>
+
+<!--ANEXOS TABLAS-->
+<!--Inicio de la PRIMERA TABLA ANEXO 1 Header-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">                                               ANEXO 1 - CARACTERISTICAS GENERALES</div></b></td>
+	</tr>	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+</table>
+<!--Fin de la primera tabla anexos header-->
+<!--Inicio de la SEGUNDA TABLA ANEXO 1-->
+<table style="margin-left: 0.21in; display:block; width:100%" align="left" cellspacing="0" border="0">
+	<colgroup width="100"></colgroup>
+	<colgroup width="600"></colgroup>
+	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000">                                               </font></td>
+		<td height="20" align="left" valign=middle><font color="#000000">                                                                         </font></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000;"  height="17"><div class="celdas">Desarrollo: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" ><div class="celdas">U TOWER</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Departamento: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.no_depa}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Piso:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.piso}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Tipo: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.tipologia}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Medida aproximada:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.medidas}} M2</div></td>
+	</tr>
+</table>
+<!--Inicio de la SEGUNDA TABLA ANEXO 1-->
+
+<!--comienza la cuarta tabla-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>
+			<div  class="fuente" style="margin-left: 0.14in;">Plano del piso con localización de la propiedad Arrendada.</div>
+		</td>
+	</tr>	
+	<tr>
+		<td height="21"  valign=middle><img src="{{plan_loc}}" style="width:658px; height:271px"></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">Plano Propiedad Arrendada</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><img src="{{plano}}" style="width:450px; height:341px"></td>
+	</tr>
+	<tr>
+			<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">ANEXO 2 - REGLAMENTO</div></b></td>
+	</tr>	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;">La Arrendataria en este acto hace constar expresa e inequívocamente que recibió, leyó y entendió el 
+			Reglamento de Operación y está de acuerdo en cumplir con todos los términos y condiciones del mismo 
+			que le son aplicables. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	{% comment %} Espacio de hoja para el Anexo 3 {% endcomment %}
+	<tr>
+		<td style="height:790px" align="center" valign=middle></td>
+	</tr>
+	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">ANEXO 3 – INVENTARIO</div></b></td>
+	</tr>	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+</table>
+<!--Fin de la segunda tabla-->
+<!--inicio tabla inventario-->
+<table align="left" style="width:442.15px; border:0.75pt solid #000000; border-collapse:collapse;">
+	<tbody>
+		<tr>
+			<td style="width:17.3pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">&nbsp;</span></p>
+			</td>
+			<td style="width:286.9pt; border-right-style:solid; border-right-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:11pt;"><span style="font-family:'Segoe UI'; font-size:10pt;">Departamento: {{info.no_depa}} - {{info.cama}}</span></p>
+			</td>
+			<td colspan="2" style="width:104.8pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Tipología: {{info.tipologia}}</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">&nbsp;</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI';">Conceptos</span></strong></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI';">Unidad</span></strong></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI';">Cantidad</span></strong></p>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="4" style="width:430.6pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top; background-color:#76923c;">
+				<p style="margin-top:0pt; margin-left:22.45pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI'; color:#ffffff;">RECÁMARA</span></strong></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Closet metálico 1.05 x .52 m</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Base metálica Individual mod. Venecia</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">3</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Colchon Premium Dream Individual</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">4</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Buró dos cajones</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">5</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Luminaria para buró Cains</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">6</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Escritorio Metálico</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">7</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Silla modelo Milán para escritorio</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">8</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Ventilador de techo ASHBY PARK 44 pulgadas led</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+	
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">9</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Persianas enrollables universal (clutch Slim) pantalla solar tela mod. Elegance screen 2500</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+	{% comment %} Checar lo del color amarillo cambia conforme el tipologia double = 1 Master = 0 por ejemplo {% endcomment %}
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">10</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Cuadro decorativo 45 x 60 cm</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+	{% comment %} Checar lo del color amarillo {% endcomment %}
+		<tr>
+			<td colspan="4" style="width:430.6pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top; background-color:#76923c;">
+				<p style="margin-top:0pt; margin-left:22.45pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI'; color:#ffffff;">COCINA</span></strong></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Cocineta de 1.50 m</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Campana Empotrable 50 cm Inox. Teka</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">3</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Refrigerador Automatico 251.19 L grafito mod. RMA1025VMXE0, MCA MABE </span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">4</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Horno microondas + grill MWG 14X TEKA</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">5</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Parrilla eléctrica 2 platos 30 cm Teka</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">6</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Kit de instalación para fregadero</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">7</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Monomando para fregadero LUX SANY KFN-813B Acero inoxidable</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="4" style="width:430.6pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top; background-color:#76923c;">
+				<p style="margin-top:0pt; margin-left:22.45pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI'; color:#ffffff;">SALA-COMEDOR </span></strong></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Mesa modelo Milán para comedor </span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+	{% comment %} checar por que estan esta seccion en amarillo {% endcomment %}
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Silla modelo Milán para comedor</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">6</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">3</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Persianas enrollables universal (clutch Slim) pantalla solar tela mod. Elegance screen 2500</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">4</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Sofá</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">5</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Mesa de centro</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">6</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Minisplit PRIME 2</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">7</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Ventilador de techo ASHBY PARK 44 pulgadas led</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">8</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Cuadro decorativo 45 x 60 cm </span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
+			</td>
+		</tr>
+	{% comment %} checar por que estan esta seccion en amarillo {% endcomment %}
+		<tr>
+			<td colspan="4" style="width:430.6pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle; background-color:#76923c;">
+				<p style="margin-top:0pt; margin-left:22.5pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI'; color:#ffffff;">BAÑO</span></strong></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Sanitario </span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Lavabo metálico&nbsp;</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">3</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Espejo Biselado 3 mm</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">4</span></p>
+			</td>
+			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Cortina para baño una hoja 100% nylon corte de inferior ultrasónico, tubo colocador de acero inoxidable</span></p>
+			</td>
+			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="4" style="width:430.6pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top; background-color:#76923c;">
+				<p style="margin-top:0pt; margin-left:22.75pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI'; color:#ffffff;">ACABADOS</span></strong></p>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+			<td style="width:286.9pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
+				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Pintura epóxica color gris black splash.</span></p>
+			</td>
+			<td style="width:45.9pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">lote</span></p>
+			</td>
+			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
+				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
+			</td>
+		</tr>
+	</tbody>
+</table>
+<!--fin tabla inventario-->
+
+<!--inicio de tabla anexo 4-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">ANEXO 4 - ACTA DE ENTREGA Y RECEPCION</div></b></td>
+	</tr>	
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;"><u>El presente anexo será completado en la fecha de entrega de la Propiedad Arrendada<u/></div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>FRATERNA 
+			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor CARLOS MANUEL PADILLA SILVA, 
+			en su carácter de <b>ARRENDADORA</b>, y por otra parte, la persona física <b> {{info.residente.nombre_arrendatario}} </b> en su carácter 
+			de <b>ARRENDATARIA</b> respecto del siguiente inmueble: </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+</table>
+<!--Fin de la segunda tabla-->
+
+
+<!--Inicio de la SEGUNDA TABLA ANEXO 4-->
+<table style="margin-left: 0.21in; display:block; width:100%" align="left" cellspacing="0" border="0">
+	<colgroup width="100"></colgroup>
+	<colgroup width="600"></colgroup>
+	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000">                                               </font></td>
+		<td height="20" align="left" valign=middle><font color="#000000">                                                                         </font></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000;"  height="17"><div class="celdas">Desarrollo: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" ><div class="celdas">U TOWER</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Departamento: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.no_depa}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Piso:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.piso}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Tipo: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.tipologia}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Medida aproximada:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.medidas}} M2</div></td>
+	</tr>
+</table>
+<!--Inicio de la SEGUNDA TABLA ANEXO 4-->
+<!--comienza la sexta tabla-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Por lo que se levanta la presente <b>ACTA DE ENTREGA Y RECEPCIÓN</b>, para efecto de dar cumplimiento a lo 
+			establecido en el citado Contrato de Arrendamiento, mediante el cual la <b>ARRENDADORA</b> se obligó a entregar a la 
+			<b>ARRENDATARIA</b> el inmueble el día {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}}.
+		 </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Por consiguiente, se hace constar que siendo las 13:00 horas del {{info.fecha_move_in}}, 
+			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor CARLOS MANUEL PADILLA SILVA, 
+			en su carácter de <b>ARRENDADORA</b>, hace la entrega material y jurídica del inmueble descrito en el primer párrafo a 
+			la persona física en su carácter de <b>ARRENDATARIA</b>, quien recibe la posesión material del mismo a su entera 
+			conformidad. 
+		 </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Ambas partes manifiestan estar enteradas perfectamente del contenido y alcance de la presente acta 
+			firmándola de conformidad, en la ciudad de Monterrey, Nuevo León, el día {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}}. 			
+		 </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">                          “EL ARRENDADOR”                                                 {“LA ARRENDATARIA”}</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                         Fraterna Administradora de Proyectos,</div></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                                              S.A. DE C.V.</div></td>
+	</tr>
+	<tr>
+		<td style="height:63px" align="center" valign=middle></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><b>             _______________________________                             _______________________________</b></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                              Representada en este acto                                                                            {{info.residente.nombre_arrendatario}}</div></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                          por medio de su apoderado legal:</div></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                              Carlos Manuel Padilla Silva</div></td>
+	</tr>
+	<tr>
+		<td style="height:63px" align="center" valign=middle></td>
+	</tr>
+	
+</table>
+<!--Fin de la sexta tabla-->
+
+
+<!--fin de anexo 4-->
+<!--<img src="ar_logo.png" width=269 height=55>-->
+<br clear=left>
+<!-- ************************************************************************** -->
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+</html>

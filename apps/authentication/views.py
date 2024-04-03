@@ -20,13 +20,25 @@ from rest_framework.authtoken.views import ObtainAuthToken
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView #da una vista al login generica
-from django.contrib.auth.models import User
+
+from ..accounts.models import CustomUser
+User = CustomUser
 
 from rest_framework.authentication import TokenAuthentication,SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from apps.authentication.serializers import UserTokenSerializer, CustomUserSerializer, UserListSerializer, User2Serializer
+from apps.authentication.serializers import UserTokenSerializer, CustomUserSerializer, UserListSerializer, User2Inmobiliaria, UserSerializer
 from rest_framework.decorators import api_view
+#variables
+from ..api.variables import *
+#correo
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from smtplib import SMTPException
+from decouple import config
+
 
 
 
@@ -132,17 +144,67 @@ class Logout(APIView):
 class Register(APIView):
     #EN API NO LLEGA EL REQUEST.POST, SE DEBE USAR EL REQUEST.DATA PARA OBTENER LOS DATOS
     def post(self,request,*arg,**kwargs):
-       user_serializar = CustomUserSerializer(data = request.data)
-       qs = User.objects.all()
-       print(request.data)
-       print("query setr chido",qs)
-      
+       user_serializar = UserSerializer(data = request.data)
+       entrada = request.data     
+       print("soy requesta data",entrada)
+ 
+       #agregar comprobacion del codigo de arrendify proporcionado
        if request.data.get('password') == request.data.get('password2'):
-        
            if user_serializar.is_valid():
-               user_serializar.save()
+               print("serializer valido")
+               if entrada["rol"] == "Inmobiliaria": 
+                    print("Soy Inmobiliaria")                  
+                    user_serializar.save()
+                    info = User.objects.all().get(username = entrada["username"])
+                    self.enviar_codigo(info)
+                    print("usuario guardado")
+                
+               elif entrada["rol"] == "Agente":
+                    print("Soy Agente")
+                    #consulta para buscar la inmobiliaria para el codigo
+                    inmo_ag = User.objects.all().get(name_inmobiliaria = entrada["pertenece_a"])
+                    codigo = entrada["c_inmobiliaria"]
+                    if codigo == inmo_ag.code_inmobiliaria:
+                        print("Bienvenido Agente, si tienes el codigo correcto")
+                        user_serializar.save()
+                        print("usuario guardado")
+                    else:
+                        return Response({'error':"El codigo que proporcionaste no es correcto", 'status':101})
+                    
+               elif entrada["rol"] == "Normal":
+                   print("Normalito")
+                   user_serializar.save()
+                   print("usuario guardado")
+                  
+               print("ya voy a retornar la info")
                return Response(user_serializar.data)
        return Response({'error':user_serializar.errors, 'status':205})
+    
+    def enviar_codigo (self, info):
+         #variable
+            print("que onda")
+            print("soy info despues de entrar al metodo",info)
+            #hacemos una llamada a la base que nos devuelve el codigo
+            print(info.__dict__)
+            codigo = info.code_inmobiliaria
+            email = info.email
+            html = codigo_inmobiliaria(codigo)
+            # Envío de la notificación por correo electrónico
+            msg = MIMEMultipart()
+            msg['From'] = 'notificaciones_arrendify@outlook.com'
+            msg['To'] = email
+            msg['Subject'] = 'Registro Exitoso - Tu código de inmobiaria'
+            msg.attach(MIMEText(html, 'html'))
+            smtp_server = 'smtp.office365.com'
+            smtp_port = 587
+            smtp_username = config('smtp_u')
+            smtp_password = config('smtp_pw') 
+
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_username, smtp_password)
+                server.sendmail(smtp_username, email, msg.as_string())
+                print("Si envio")
 
 @api_view(['GET'])
 def user_unico(request):
@@ -153,3 +215,34 @@ def user_unico(request):
             print("entre estoy logeado")
             return Response({'user':True}, status= status.HTTP_200_OK)
     return Response({'user':False}, status= status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
+def agente_inmobiliaria(request):
+    if request.method == 'POST':
+        print("entre al metodo")
+        entrada_codigo = request.data["code_inmobiliaria"]
+        print("entrada_codigo",entrada_codigo)
+        inmobiliaria = User.objects.all().filter(code_inmobiliaria = entrada_codigo)
+        Inmobiliaria_serializer = User2Inmobiliaria(inmobiliaria, many=True)
+        return Response(Inmobiliaria_serializer.data)    
+    return Response({'error':"No existe inmobiliarias"}, status= status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+def agente_inquilino(request):
+    if request.method == 'POST':
+        print("entre al metodo")
+        entrada_codigo = request.data["code_agente"]
+        print("entrada_codigo",entrada_codigo)
+        inmobiliaria = User.objects.all().filter(code_agente = entrada_codigo)
+        Inmobiliaria_serializer = User2Inmobiliaria(inmobiliaria, many=True)
+        return Response(Inmobiliaria_serializer.data)    
+    return Response({'error':"No existe inmobiliarias"}, status= status.HTTP_204_NO_CONTENT)
+
+# @api_view(['GET'])
+# def agente_inmobiliaria(request):
+#     if request.method == 'GET':
+#         print("entre al metodo")
+#         inmobiliaria = User.objects.all().filter(rol = "Inmobiliaria")
+#         Inmobiliaria_serializer = User2Inmobiliaria(inmobiliaria, many=True)
+#         return Response(Inmobiliaria_serializer.data)    
+#     return Response({'error':"No existe inmobiliarias"}, status= status.HTTP_204_NO_CONTENT)
