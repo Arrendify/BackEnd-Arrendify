@@ -27,7 +27,7 @@ User = CustomUser
 from rest_framework.authentication import TokenAuthentication,SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from apps.authentication.serializers import UserTokenSerializer, CustomUserSerializer, UserListSerializer, User2Inmobiliaria, UserSerializer
+from apps.authentication.serializers import UserTokenSerializer, CustomUserSerializer, UserListSerializer, User2Inmobiliaria, UserSerializer,User2Serializer
 from rest_framework.decorators import api_view
 #variables
 from ..api.variables import *
@@ -68,8 +68,30 @@ class Login(ObtainAuthToken):
                 print("estoy activo",user)
                 token,created = Token.objects.get_or_create(user = user)
                 user_serilizer = UserTokenSerializer(user)
+                inmobiliaria_user = User2Inmobiliaria(user)
+                arrendify_user = User2Serializer(user)
+
+                print("YO SOY USER",user)
+            
+
                 if created:
-                     return Response({'token':token.key, 
+                     if inmobiliaria_user.data['rol'] == "Inmobiliaria" or inmobiliaria_user.data['rol'] == "Agente":
+                        print("estoy entrando a inmo")
+                        return Response({'token':token.key, 
+                                      'user':inmobiliaria_user.data,
+                                      'type':'Token',
+                                      'message': 'Inicio de Sesion Existoso'
+                                      },status=status.HTTP_201_CREATED)
+                     elif arrendify_user.data['is_staff'] == True:
+                        return Response({'token':token.key, 
+                                      'user':arrendify_user.data,
+                                      'type':'Token',
+                                      'message': 'Inicio de Sesion Existoso'
+                                      },status=status.HTTP_201_CREATED)
+                     
+                     else:
+                        print("estoy entrando aqui")
+                        return Response({'token':token.key, 
                                       'user':user_serilizer.data,
                                       'type':'Token',
                                       'message': 'Inicio de Sesion Existoso'

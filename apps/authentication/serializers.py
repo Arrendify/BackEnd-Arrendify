@@ -72,5 +72,5 @@ class User2Serializer(serializers.ModelSerializer):
 class User2Inmobiliaria(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'rol','name_inmobiliaria')
+        fields = ('id','username', 'rol','name_inmobiliaria','pertenece_a')
 

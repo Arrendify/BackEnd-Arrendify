@@ -466,179 +466,192 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
     def generar_pagare(self, request, *args, **kwargs):
-        #activamos la libreri de locale para obtener el mes en español
-        locale.setlocale(locale.LC_ALL,"es-ES")
-        print("Generar Pagare Fraterna")
-        id_paq = request.data
-        print("el id que llega", id_paq)
-        info = self.queryset.filter(id = id_paq).first()
-        print(info.__dict__)       
-        # Definir la fecha inicial
-        fecha_inicial = info.fecha_move_in
-        print(fecha_inicial)
-        #fecha_inicial = datetime(2024, 3, 20)
-        #checar si cambiar el primer dia o algo asi
-        # fecha inicial move in
-        dia = fecha_inicial.day
-        
-        # Definir la duración en meses
-        duracion_meses = info.duracion.split()
-        duracion_meses = int(duracion_meses[0])
-        print("duracion en meses",duracion_meses)
-        # Calcular la fecha final
-        fecha_final = fecha_inicial + relativedelta(months=duracion_meses)
-        # Lista para almacenar las fechas iteradas (solo meses y años)
-        fechas_iteradas = []
-        # Iterar sobre todos los meses entre la fecha inicial y la fecha final
-        while fecha_inicial < fecha_final:
-            nombre_mes = fecha_inicial.strftime("%B")  # %B da el nombre completo del mes
-            print("fecha",fecha_inicial.year)
-            fechas_iteradas.append((nombre_mes.capitalize(),fecha_inicial.year))      
-            fecha_inicial += relativedelta(months=1)
-        
-        print("fechas_iteradas",fechas_iteradas)
-        # Imprimir la lista de fechas iteradas
-        for month, year in fechas_iteradas:
-            print(f"Año: {year}, Mes: {month}")
-        
-        #obtenermos la renta para pasarla a letra
-        number = info.renta
-        number = int(number)
-        text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-        text_representation = text_representation.capitalize()
-        
-        context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses}
-        
-        template = 'home/pagare_fraterna.html'
-        html_string = render_to_string(template, context)
+        try:
+            #activamos la libreri de locale para obtener el mes en español
+            locale.setlocale(locale.LC_ALL,"es-ES")
+            print("Generar Pagare Fraterna")
+            id_paq = request.data
+            print("el id que llega", id_paq)
+            info = self.queryset.filter(id = id_paq).first()
+            print(info.__dict__)       
+            # Definir la fecha inicial
+            fecha_inicial = info.fecha_move_in
+            print(fecha_inicial)
+            #fecha_inicial = datetime(2024, 3, 20)
+            #checar si cambiar el primer dia o algo asi
+            # fecha inicial move in
+            dia = fecha_inicial.day
+            
+            # Definir la duración en meses
+            duracion_meses = info.duracion.split()
+            duracion_meses = int(duracion_meses[0])
+            print("duracion en meses",duracion_meses)
+            # Calcular la fecha final
+            fecha_final = fecha_inicial + relativedelta(months=duracion_meses)
+            # Lista para almacenar las fechas iteradas (solo meses y años)
+            fechas_iteradas = []
+            # Iterar sobre todos los meses entre la fecha inicial y la fecha final
+            while fecha_inicial < fecha_final:
+                nombre_mes = fecha_inicial.strftime("%B")  # %B da el nombre completo del mes
+                print("fecha",fecha_inicial.year)
+                fechas_iteradas.append((nombre_mes.capitalize(),fecha_inicial.year))      
+                fecha_inicial += relativedelta(months=1)
+            
+            print("fechas_iteradas",fechas_iteradas)
+            # Imprimir la lista de fechas iteradas
+            for month, year in fechas_iteradas:
+                print(f"Año: {year}, Mes: {month}")
+            
+            #obtenermos la renta para pasarla a letra
+            number = info.renta
+            number = int(number)
+            text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+            text_representation = text_representation.capitalize()
+            
+            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses}
+            
+            template = 'home/pagare_fraterna.html'
+            html_string = render_to_string(template, context)
 
-        # Genera el PDF utilizando weasyprint
-        pdf_file = HTML(string=html_string).write_pdf()
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
 
-        # Devuelve el PDF como respuesta
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
-        response.write(pdf_file)
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+            response.write(pdf_file)
 
-        return HttpResponse(response, content_type='application/pdf')
+            return HttpResponse(response, content_type='application/pdf')
+    
+        except Exception as e:
+            print(f"el error es: {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
     def generar_poliza(self, request, *args, **kwargs):
-        id_paq = request.data
-        print("el ID que llegas es: ",id_paq)
-        info = self.queryset.filter(id = id_paq).first()
-        print(info.__dict__)
-        meses={1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
-    
-        #estabelcemos la fecha de inicio 
-        fecha_inicio = info.datos_arrendamiento['fecha_inicio_contrato']
-        print("SOY EL FORMATO DE FECHA inicio",fecha_inicio)
-        fecha_inicio_datetime = datetime.strptime(fecha_inicio, '%Y-%m-%d')
-        dia = fecha_inicio_datetime.day
-        mes = fecha_inicio_datetime.month
-        mes_inicio = meses[mes]
-        anio = fecha_inicio_datetime.year
-        datos_inicio = {'dia':dia, 'anio':anio ,'mes':mes_inicio}
+        try:
+            id_paq = request.data
+            print("el ID que llegas es: ",id_paq)
+            info = self.queryset.filter(id = id_paq).first()
+            print(info.__dict__)
+            meses={1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
         
-        #estabelcemos la fecha de fin
-        fecha_fin = info.datos_arrendamiento['fecha_fin_contrato']
-        fecha_fin_datetime = datetime.strptime(fecha_fin, '%Y-%m-%d')
-        dia_fin = fecha_fin_datetime.day
-        mes2 = fecha_fin_datetime.month
-        mes_fin = meses[mes2]
-        anio_fin = fecha_fin_datetime.year
-        datos_fin = {'dia':dia_fin, 'anio':anio_fin ,'mes':mes_fin}
+            #estabelcemos la fecha de inicio 
+            fecha_inicio = info.datos_arrendamiento['fecha_inicio_contrato']
+            print("SOY EL FORMATO DE FECHA inicio",fecha_inicio)
+            fecha_inicio_datetime = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+            dia = fecha_inicio_datetime.day
+            mes = fecha_inicio_datetime.month
+            mes_inicio = meses[mes]
+            anio = fecha_inicio_datetime.year
+            datos_inicio = {'dia':dia, 'anio':anio ,'mes':mes_inicio}
+            
+            #estabelcemos la fecha de fin
+            fecha_fin = info.datos_arrendamiento['fecha_fin_contrato']
+            fecha_fin_datetime = datetime.strptime(fecha_fin, '%Y-%m-%d')
+            dia_fin = fecha_fin_datetime.day
+            mes2 = fecha_fin_datetime.month
+            mes_fin = meses[mes2]
+            anio_fin = fecha_fin_datetime.year
+            datos_fin = {'dia':dia_fin, 'anio':anio_fin ,'mes':mes_fin}
+            
+            #estabelcemos la fecha de fin
+            fecha_firma = info.datos_arrendamiento['fecha_firma']
+            fecha_firma_datetime = datetime.strptime(fecha_firma, '%Y-%m-%d')
+            dia_firma = fecha_firma_datetime.day
+            mes3 = fecha_firma_datetime.month
+            mes_firma = meses[mes3]
+            anio_firma = fecha_firma_datetime.year
+            datos_firma = {'dia':dia_firma, 'anio':anio_firma ,'mes':mes_firma}
+                
+            datos = info.inmueble
+            print(datos.__dict__)
+            print(info.fiador.__dict__)
+            #obtenermos la renta para pasarla a letra
+            number = datos.renta
+            number = int(number)
+            text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+            text_representation = text_representation.capitalize()
+            #obtenermos el precio de la poliza para pasarla a letra
+            precio = info.cotizacion.monto
+            precio = int(precio)
+            print(precio)
+            precio_texto = num2words(precio, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+            precio_texto = precio_texto.capitalize()
+            
+            print("Tu Póliza es: ",info.cotizacion.tipo_poliza)
+            if info.cotizacion.tipo_poliza == "Plata":
+                template = 'home/poliza_plata.html'
+                
+            elif info.cotizacion.tipo_poliza == "Oro":
+                template = 'home/poliza_oro.html'
+                
+            elif info.cotizacion.tipo_poliza == "Platino":
+                template = 'home/poliza_platino.html'
         
-        #estabelcemos la fecha de fin
-        fecha_firma = info.datos_arrendamiento['fecha_firma']
-        fecha_firma_datetime = datetime.strptime(fecha_firma, '%Y-%m-%d')
-        dia_firma = fecha_firma_datetime.day
-        mes3 = fecha_firma_datetime.month
-        mes_firma = meses[mes3]
-        anio_firma = fecha_firma_datetime.year
-        datos_firma = {'dia':dia_firma, 'anio':anio_firma ,'mes':mes_firma}
-            
-        datos = info.inmueble
-        print(datos.__dict__)
-        print(info.fiador.__dict__)
-        #obtenermos la renta para pasarla a letra
-        number = datos.renta
-        number = int(number)
-        text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-        text_representation = text_representation.capitalize()
-        #obtenermos el precio de la poliza para pasarla a letra
-        precio = info.cotizacion.monto
-        precio = int(precio)
-        print(precio)
-        precio_texto = num2words(precio, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-        precio_texto = precio_texto.capitalize()
-        
-        print("Tu Póliza es: ",info.cotizacion.tipo_poliza)
-        if info.cotizacion.tipo_poliza == "Plata":
-            template = 'home/poliza_plata.html'
-            
-        elif info.cotizacion.tipo_poliza == "Oro":
-            template = 'home/poliza_oro.html'
-            
-        elif info.cotizacion.tipo_poliza == "Platino":
-            template = 'home/poliza_platino.html'
-       
-        context = {'info': info, 'datos_inicio':datos_inicio, 'datos_fin':datos_fin,'datos_firma':datos_firma, 'text_representation':text_representation,'precio_texto':precio_texto}
-        html_string = render_to_string(template, context)
+            context = {'info': info, 'datos_inicio':datos_inicio, 'datos_fin':datos_fin,'datos_firma':datos_firma, 'text_representation':text_representation,'precio_texto':precio_texto}
+            html_string = render_to_string(template, context)
 
-        # Genera el PDF utilizando weasyprint
-        pdf_file = HTML(string=html_string).write_pdf()
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
 
-        # Devuelve el PDF como respuesta
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
-        response.write(pdf_file)
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
+            response.write(pdf_file)
 
-        return response
+            return response
+        except Exception as e:
+            print(f"el error es: {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
     def generar_contrato(self, request, *args, **kwargs):
-        print("Generar contrato Fraterna")
-        id_paq = request.data
-        print("el id que llega", id_paq)
-        info = self.queryset.filter(id = id_paq).first()
-        print(info.__dict__)       
-        #obtenermos la renta para pasarla a letra
-        habitantes = int(info.habitantes)
-        habitantes_texto = num2words(habitantes, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-        #obtenemos renta y costo poliza para letra
-        renta = int(info.renta)
-        renta_texto = num2words(renta, lang='es').capitalize()
-        #obtener la tipologia
-        # Definir las opciones y sus correspondientes valores para la variable "plano"
-        opciones = {
-            'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/loft.png",
-            'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/twin.png",
-            'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/double.png",
-            'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/squad.png",
-            'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/master.png",
-            'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/crew.png",
-            'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png"
-        }
-        tipologia = info.tipologia
-        if tipologia in opciones:
-            plano = opciones[tipologia]
-            print(f"Tu Tipologia es: {tipologia}, URL: {plano}")
-        #obtener la url de el plano que sube fraterna
-        plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
-    
-
-        context = {'info': info, 'habitantes_texto':habitantes_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc}
-        template = 'home/contrato_fraterna.html'
-        html_string = render_to_string(template,context)
-
-        # Genera el PDF utilizando weasyprint
-        pdf_file = HTML(string=html_string).write_pdf()
-
-        # Devuelve el PDF como respuesta
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
-        response.write(pdf_file)
-        print("TERMINANDO PROCESO CONTRATO")
-        return HttpResponse(response, content_type='application/pdf')
+        try:
+            print("Generar contrato Fraterna")
+            id_paq = request.data
+            print("el id que llega", id_paq)
+            info = self.queryset.filter(id = id_paq).first()
+            print(info.__dict__)       
+            #obtenermos la renta para pasarla a letra
+            habitantes = int(info.habitantes)
+            habitantes_texto = num2words(habitantes, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+            #obtenemos renta y costo poliza para letra
+            renta = int(info.renta)
+            renta_texto = num2words(renta, lang='es').capitalize()
+            #obtener la tipologia
+            # Definir las opciones y sus correspondientes valores para la variable "plano"
+            opciones = {
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png"
+            }
+            tipologia = info.tipologia
+            if tipologia in opciones:
+                plano = opciones[tipologia]
+                print(f"Tu Tipologia es: {tipologia}, URL: {plano}")
+            #obtener la url de el plano que sube fraterna
+            plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
         
+
+            context = {'info': info, 'habitantes_texto':habitantes_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc}
+            template = 'home/contrato_fraterna.html'
+            html_string = render_to_string(template,context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
+            response.write(pdf_file)
+            print("TERMINANDO PROCESO CONTRATO")
+            return HttpResponse(response, content_type='application/pdf')
+        
+        except Exception as e:
+            print(f"el error es: {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)    
         
         
