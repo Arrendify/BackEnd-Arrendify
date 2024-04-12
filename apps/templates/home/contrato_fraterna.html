@@ -36,6 +36,25 @@
 			size: A4;
 			margin: 0.1cm 1 1 0.1cm
 		}
+
+		/* Estilo para el contenedor principal de la tabla*/
+		.container {
+		  position: relative;
+		  width: 100%; /* Ajusta el ancho según tus necesidades */
+		  max-width: 600px; /* Ancho máximo de la imagen */
+		}
+		
+		/* Estilo para el texto encima de la imagen */
+		.text {
+		  position: absolute;
+		  top: 53px;
+		  left: 173px;
+		  transform: translate(-50%, -50%);
+		  color: black;
+		  font-family: Segoe UI, serif; 
+		  font-size:12px;
+		  text-align:justify;
+		}
 	</style>
 	
 </head>
@@ -59,7 +78,7 @@
 	{% comment %} datos arrendatario {% endcomment %}
 	<tr>
 		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6>
-			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_arrendatario}}</b> / Nacionalidad: {{info.residente.nacionalidad_arrendatario}} / RFC: {{info.residente.rfc_arrendatario}} / Identificación Oficial: {{info.residente.no_ide_arrendatario}}<div>
+			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_arrendatario}}</b> / Nacionalidad: {{info.residente.nacionalidad_arrendatario}} / RFC: {{info.residente.rfc_arrendatario}} / Identificación Oficial: {{info.residente.identificacion_arrendatario}} {{info.residente.no_ide_arrendatario}}<div>
 		</td>
 	</tr>
 	<tr>
@@ -67,7 +86,7 @@
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000;border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
-			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_residente}}</b> / Nacionalidad: {{info.residente.nacionalidad_residente}} / Identificación Oficial: {{info.residente.no_ide_residente}}<div>
+			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_residente}}</b> / Nacionalidad: {{info.residente.nacionalidad_residente}} / Identificación Oficial: {{info.residente.identificacion_residente}} {{info.residente.no_ide_residente}}<div>
 		</td>
 	</tr>
 	<tr>
@@ -89,7 +108,7 @@
 
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
-			<div class="celdas">Inmueble:<div>
+			<div class="celdas">Inmueble: Departamento<div>
 		</td>
 	</tr>
 	<tr>
@@ -146,7 +165,7 @@
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Plazo de Vigencia:</div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.fecha_vigencia}}</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.duracion}}</div></td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Fecha de Move in:</div></td>
@@ -425,9 +444,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Primera. <u>Objeto, Entrega y Recepción.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">De conformidad con los términos y condiciones establecidos en el presente Contrato, el Arrendador en este acto 
 			otorga en arrendamiento al Arrendatario y éste recibe en arrendamiento la Propiedad Arrendada, con todo lo 
@@ -467,9 +484,6 @@
 
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Segunda. <u>Uso Permitido.</u></div></b></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">El Arrendatario se obliga a destinar la Propiedad Arrendada (incluyendo lo descrito en la lista de inventario que 
@@ -586,9 +600,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Tercera. <u>Vigencia; Devolución de la Propiedad Arrendada; Terminación Anticipada; Renovación.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">El presente Contrato tendrá el Plazo de Vigencia que se haya establecido en la Carátula, mismo que será forzoso 
 			para ambas partes, y empezará a contar a partir de la Fecha de Entrega según se establece en la Carátula. La 
@@ -650,9 +662,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Cuarta. <u>Contraprestación. Adicionales. Renta Integral Mensual. Interés.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">Como contraprestación por el uso y goce temporal de la Propiedad Arrendada, incluyendo en su caso el uso o 
 			goce del o de los Cajones de Estacionamiento, el Arrendatario se obliga a pagar al Arrendador las cantidades 
@@ -769,9 +779,6 @@
 		<td height="21"  valign=middle><b><div class="fuente">Quinta. <u>Depósito en Garantía.</u></div></b></td>
 	</tr>
 	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
 		<td height="21"  valign=middle><div class="fuente">El Arrendatario entrega en este acto al Arrendador, las cantidades establecidas en la Carátula del presente, por 
 			concepto de depósito en garantía, con la finalidad de garantizar el cumplimiento de todas y cada una de las 
 			obligaciones del Arrendatario establecidas en el presente Contrato, incluyendo, sin limitación, el pago de la Renta 
@@ -813,9 +820,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Sexta. <u>Asunción de Obligaciones.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">CEl Arrendatario asume la responsabilidad por todas las personas que habiten con él en la Propiedad Arrendada, 
 			o que lo visiten en el Inmueble, y cualquier incumplimiento de estos a las obligaciones del presente Contrato 
@@ -829,9 +834,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Séptima. <u>Mejoras.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">El Arrendatario por ningún motivo y bajo ninguna excepción, podrá realizar remodelaciones, cambios, 
 			alteraciones o construcciones en la Propiedad Arrendada, las áreas comunes de la Propiedad Arrendada, y/o al 
@@ -859,9 +862,6 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Octava. <u>Impuestos.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
 
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">Las Partes acuerdan que cualquier contribución, impuesto, derecho, cooperación, ya sea de carácter federal, 
@@ -878,9 +878,6 @@
 		<td height="21"  valign=middle><b><div class="fuente">Novena. <u>Cesión y Subarrendamiento.</u></div></b></td>
 	</tr>
 
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">El Arrendatario no podrá: (i) ceder a un tercero los derechos y obligaciones establecidos en el presente Contrato 
 			para el Arrendatario, ni subarrendar a un tercero la Propiedad Arrendada o cualquier parte de la misma, (ii) 
@@ -915,9 +912,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Décima. <u>Renuncias.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">El Arrendatario renuncia en forma expresa e irrevocable, desde este acto, a cualquier derecho que le pudiera 
 			otorgar los artículos 2197, 2198, 2199, 2341, 2379, 2380 y 2381 del Código Civil para el Estado de Nuevo León; 
@@ -935,9 +930,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Décima Primera. <u>Incumplimiento y Rescisión.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">
 			(i)       La muerte del Arrendatario;<br/>
@@ -1008,9 +1001,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Décima Segunda. <u>Seguros.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">El Arrendador cuenta con un seguro para el Inmueble y la Propiedad Arrendada, por lo tanto, el Arrendatario 
 			se obliga, cuando por su mal uso, negligencia o distracción, llegue a causar directa o indirectamente algún daño 
@@ -1027,9 +1018,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Décima Tercera. <u>Indemnización.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">El Arrendatario se compromete y obliga a indemnizar, defender y sacar en paz y a salvo al Arrendador, y sus 
 			respectivos directores, funcionarios, ejecutivos, miembros, beneficiarios directos o indirectos, socios, empleados 
@@ -1052,9 +1041,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Décima Cuarta. <u>Ausencia de vicios.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">Las Partes acuerdan y reconocen que en el presente Contrato no existe dolo, error, violencia, mala fe, lesión, ni 
 			ningún otro vicio del consentimiento que pudiera afectar su existencia y/o validez.
@@ -1066,9 +1053,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Décima Quinta. <u>Notificaciones.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">Todos los avisos y notificaciones que se requieran en términos del presente Contrato deberán constar por escrito 
 			y enviarse a los domicilios que las Partes han indicado en la Carátula del presente Contrato; asimismo, deberán 
@@ -1082,9 +1067,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Décima Sexta. <u>Confidencialidad.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">El Arrendatario se compromete durante el Plazo de Vigencia del presente Contrato, incluyendo cualesquiera 
 			prórrogas del mismo conforme a lo establecido en la Cláusula Tercera de este Contrato, o en cualquier tiempo 
@@ -1109,9 +1092,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Décima Séptima. <u>Obligado Solidario.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">El Obligado Solidario, según aplique en la Caratula del presente Contrato, en este acto se constituye como 
 			obligado solidario de todas y cada una de las obligaciones del Arrendatario establecidas en el presente 
@@ -1147,9 +1128,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Décima Octava. <u>Independencia.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">En la medida que la ley aplicable lo permita, si cualquier plazo o disposición de este Contrato o cualquiera 
 			aplicación del mismo fuera declarada inválida o no exigible, el resto de este Contrato y cualesquiera otros 
@@ -1162,9 +1141,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Décima Novena. <u>Encabezados.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">Los títulos de las cláusulas, sub-cláusulas, secciones, párrafos y cualquier otra división en este Contrato se 
 			incluyen únicamente por conveniencia de las Partes y no deberán ser interpretados como que los mismos tienen 
@@ -1179,9 +1156,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Vigésima. <u>Anexos.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">Este Contrato y los Anexos del mismo constituyen el acuerdo total de las Partes respecto del asunto materia del 
 			presente. Todos los Anexos del presente Contrato se incorporan a este documento como si a la letra se 
@@ -1206,9 +1181,7 @@
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">Vigésima Primera. <u>Jurisdicción y Legislación Aplicable.</u></div></b></td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
+	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">Este Contrato será regido por, e interpretado, de conformidad con las leyes de la Ciudad de Monterrey, Nuevo 
 			León. Las Partes por medio del presente se someten irrevocablemente a la jurisdicción y competencia de los 
@@ -1317,10 +1290,6 @@
 
 </table>
 <!--Fin de la segunda tabla-->
-<br><br><br><br><br>
-<br><br><br><br><br>
-<br><br><br>
-
 
 <!--ANEXOS TABLAS-->
 <!--Inicio de la PRIMERA TABLA ANEXO 1 Header-->
@@ -1415,503 +1384,27 @@
 	<tr>
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
-	{% comment %} Espacio de hoja para el Anexo 3 {% endcomment %}
-	<tr>
-		<td style="height:790px" align="center" valign=middle></td>
-	</tr>
-	
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">ANEXO 3 – INVENTARIO</div></b></td>
-	</tr>	
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
 </table>
 <!--Fin de la segunda tabla-->
-<!--inicio tabla inventario-->
-<table align="left" style="width:442.15px; border:0.75pt solid #000000; border-collapse:collapse;">
-	<tbody>
-		<tr>
-			<td style="width:17.3pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">&nbsp;</span></p>
-			</td>
-			<td style="width:286.9pt; border-right-style:solid; border-right-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:11pt;"><span style="font-family:'Segoe UI'; font-size:10pt;">Departamento: {{info.no_depa}} - {{info.cama}}</span></p>
-			</td>
-			<td colspan="2" style="width:104.8pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Tipología: {{info.tipologia}}</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">&nbsp;</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI';">Conceptos</span></strong></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI';">Unidad</span></strong></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI';">Cantidad</span></strong></p>
-			</td>
-		</tr>
-		<tr>
-			<td colspan="4" style="width:430.6pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top; background-color:#76923c;">
-				<p style="margin-top:0pt; margin-left:22.45pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI'; color:#ffffff;">RECÁMARA</span></strong></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Closet metálico 1.05 x .52 m</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Base metálica Individual mod. Venecia</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">3</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Colchon Premium Dream Individual</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">4</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Buró dos cajones</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">5</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Luminaria para buró Cains</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">6</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Escritorio Metálico</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">7</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Silla modelo Milán para escritorio</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">8</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Ventilador de techo ASHBY PARK 44 pulgadas led</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-	
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">9</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Persianas enrollables universal (clutch Slim) pantalla solar tela mod. Elegance screen 2500</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-	{% comment %} Checar lo del color amarillo cambia conforme el tipologia double = 1 Master = 0 por ejemplo {% endcomment %}
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">10</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Cuadro decorativo 45 x 60 cm</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-	{% comment %} Checar lo del color amarillo {% endcomment %}
-		<tr>
-			<td colspan="4" style="width:430.6pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top; background-color:#76923c;">
-				<p style="margin-top:0pt; margin-left:22.45pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI'; color:#ffffff;">COCINA</span></strong></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Cocineta de 1.50 m</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Campana Empotrable 50 cm Inox. Teka</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">3</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Refrigerador Automatico 251.19 L grafito mod. RMA1025VMXE0, MCA MABE </span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">4</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Horno microondas + grill MWG 14X TEKA</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">5</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Parrilla eléctrica 2 platos 30 cm Teka</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">6</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Kit de instalación para fregadero</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">7</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Monomando para fregadero LUX SANY KFN-813B Acero inoxidable</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td colspan="4" style="width:430.6pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top; background-color:#76923c;">
-				<p style="margin-top:0pt; margin-left:22.45pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI'; color:#ffffff;">SALA-COMEDOR </span></strong></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Mesa modelo Milán para comedor </span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-	{% comment %} checar por que estan esta seccion en amarillo {% endcomment %}
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Silla modelo Milán para comedor</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">6</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">3</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Persianas enrollables universal (clutch Slim) pantalla solar tela mod. Elegance screen 2500</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">4</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Sofá</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">5</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Mesa de centro</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">6</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Minisplit PRIME 2</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">7</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Ventilador de techo ASHBY PARK 44 pulgadas led</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">8</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Cuadro decorativo 45 x 60 cm </span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
-			</td>
-		</tr>
-	{% comment %} checar por que estan esta seccion en amarillo {% endcomment %}
-		<tr>
-			<td colspan="4" style="width:430.6pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle; background-color:#76923c;">
-				<p style="margin-top:0pt; margin-left:22.5pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI'; color:#ffffff;">BAÑO</span></strong></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Sanitario </span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Lavabo metálico&nbsp;</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">3</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Espejo Biselado 3 mm</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">4</span></p>
-			</td>
-			<td style="width:286.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Cortina para baño una hoja 100% nylon corte de inferior ultrasónico, tubo colocador de acero inoxidable</span></p>
-			</td>
-			<td style="width:45.9pt; border-style:solid; border-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">pza</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">2</span></p>
-			</td>
-		</tr>
-		<tr>
-			<td colspan="4" style="width:430.6pt; border-top-style:solid; border-top-width:0.75pt; border-bottom-style:solid; border-bottom-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top; background-color:#76923c;">
-				<p style="margin-top:0pt; margin-left:22.75pt; margin-bottom:0pt; font-size:10pt;"><strong><span style="font-family:'Segoe UI'; color:#ffffff;">ACABADOS</span></strong></p>
-			</td>
-		</tr>
-		<tr>
-			<td style="width:17.3pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-			<td style="width:286.9pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:top;">
-				<p style="margin-top:0pt; margin-bottom:0pt; font-size:10pt;"><span style="font-family:'Segoe UI';">Pintura epóxica color gris black splash.</span></p>
-			</td>
-			<td style="width:45.9pt; border-top-style:solid; border-top-width:0.75pt; border-right-style:solid; border-right-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">lote</span></p>
-			</td>
-			<td style="width:48.1pt; border-top-style:solid; border-top-width:0.75pt; border-left-style:solid; border-left-width:0.75pt; padding-right:5.03pt; padding-left:5.03pt; vertical-align:middle;">
-				<p style="margin-top:0pt; margin-bottom:0pt; text-align:center; font-size:10pt;"><span style="font-family:'Segoe UI';">1</span></p>
-			</td>
-		</tr>
-	</tbody>
-</table>
+
+<!--Estapcio de hoja en blanco-->
+<br><br><br><br><br>
+<br><br><br><br><br>
+<br><br><br><br><br>
+
+<br><br><br><br><br>
+<br><br><br><br><br>
+<br><br><br>
+<!--Estapcio de hoja en blanco-->
+
+<!--inicio tabla inventario ANEXO 3-->
+  <div class="container">
+	<img src="{{tabla_inventario}}" alt="Imagen" style="width:100%; height:850px;">
+	<div class="text">{{info.no_depa}} - {{info.cama}} </div>
+  </div>
 <!--fin tabla inventario-->
+
+<br><br><br><br>
 
 <!--inicio de tabla anexo 4-->
 <table align="left" cellspacing="0" border="0">

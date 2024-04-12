@@ -6,6 +6,11 @@ from rest_framework import status
 from ....accounts.models import CustomUser
 User = CustomUser
 
+#obtener Logs de errores
+import logging
+import sys
+logger = logging.getLogger(__name__)
+
 @api_view(['GET'])
 def inquilinos_list_all(request):
     """
@@ -105,4 +110,7 @@ def inquilinos_list_all(request):
         
                 return Response(serializer.data)
     except Exception as e:
+        print(f"el error es: {e}")
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

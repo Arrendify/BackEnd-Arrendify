@@ -33,6 +33,11 @@ from email import encoders
 from smtplib import SMTPException
 from decouple import config
 
+#obtener Logs de errores
+import logging
+import sys
+logger = logging.getLogger(__name__)
+
 from rest_framework.authentication import TokenAuthentication
 
 class ArrendadorViewSet(viewsets.ModelViewSet):
@@ -48,8 +53,9 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
             user_session = self.request.user
             if user_session.is_staff:
                 # Crear una copia de los datos serializados
+                print("soy staff en arrendador")
                 serialized_data = self.serializer_class(self.queryset, many=True).data
-
+                print("self.queryset",self.queryset)
                 # Agregar el campo 'is_staff'
                 for item in serialized_data:
                     item['is_staff'] = True
@@ -128,6 +134,9 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
                 return Response(data_serializer.data)
                 
         except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
@@ -151,8 +160,14 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
                 print("Error al crear arrendador")
                 return Response({'errors': arrendador_serializer.errors})
         except ValidationError as e:
+            print(f"el error es: {e.detail}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'errors en el try': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error en el exept': str(e)}, status = status.HTTP_302_FOUND)
         
     
@@ -184,6 +199,9 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
     def destroy (self,request, *args, **kwargs):
@@ -225,6 +243,9 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status=status.HTTP_200_OK)
         
     @action(detail=False, methods=['put'], url_path='investigacion_arrendador_pdf')
@@ -404,4 +425,7 @@ class Arrendador_inmuebles(viewsets.ModelViewSet):
                 return Response(data_serializer.data)
                 
         except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

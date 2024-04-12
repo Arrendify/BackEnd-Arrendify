@@ -85,6 +85,7 @@
 
 
 <div class="container content watermark-container">
+    {% if forloop.counter == 1  %}
     <div class="row">
         <div class="col-md-12">
             <p id="ref8" class="text-center">
@@ -128,27 +129,88 @@
             </p>
         </div>
     </div>
+    {% else %}
+    <div class="row">
+        <div class="col-md-12">
+            <p id="ref8" class="text-center">
+                <span id="ref5">{{info.inmueble.estado}} </span>
+                <span id="ref5">En EL ESTADO DE NUEVO LEON a </span>
+                {% if mes == "Febrero" and dia > 28 %}
+                <span id="ref5">5</span>
+                {% else %}
+                <span id="ref5">5</span>
+                {% endif %}
+                <span id="ref5">de</span>
+                <span id="ref6">{{mes}}</span>
+                <span id="ref7">de</span>
+                <span id="ref7">{{anio}}</span>
+            </p>
+            <br>
+            <p>
+                <span class="justi" id="ref4">Debemos y pagaremos incondicionalmente por este pagaré a la orden de:</span>
+            </p>
+            <p>
+                <span class="justi negritas" id="ref4"><b>''FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR CARLOS MANUEL PADILLA SILVA</b></span>
+            </p>
+            <br>
+            <p id="ref8">
+                <span id="ref5">En EL ESTADO DE NUEVO LEON a</span>
+                {% if mes == "Febrero" and dia > 28 %}
+                <span id="ref5">5</span>
+                {% else %}
+                <span id="ref5">5</span>
+                {% endif %}
+                <span id="ref5">de</span>
+                <span id="ref6">{{mes}}</span>
+                <span id="ref7">de</span>
+                <span id="ref7">{{anio}}</span>
+            </p>
+            <p class="justi" id="moneda-nacional">Valor recibido a mi entera satisfacción por la cantidad de ${{info.renta | intcomma}}.00 ({{text_representation}} Pesos 00/100
+                MONEDA NACIONAL). Este pagaré forma parte de una serie numerada del 1 al {{duracion_meses}} y todos están sujetos a la condición de que,
+                al no pagarse cualquiera de ellos a su vencimiento, serán exigibles todos los que le sigan en número, además de los ya vencidos, 
+                desde la fecha de vencimiento de este documento hasta el día de su liquidación causará intereses moratorios al tipo de 5% mensual, pagadero en esta ciudad 
+                juntamente con el principal.
+            </p>
+        </div>
+    </div>
+    
+    {% endif %}
+    
 </div>
-<br>
 <br>
 <div class="container">
     <div class="row ">
         <div class="col-md-12 "> 
             <div class="col-md-8">
                 <h3>Nombre y Datos del Deudor</h3>
-                <p>Nombre: <span id="ref9"><b class="negritas">{{info.residente.nombre_residente | upper}}</b></span></p>
-                <p class="acepto"><b class="negritas">Acepto</b><span>&nbsp &nbsp _____________________________________________</span></p>
-                <p>Dirección: <span id="ref10"><b class="negritas">{{info.residente.direccion_residente | upper}}.</b></span></p>
+                <p>Nombre: <span id="ref11"><b class="negritas">{{ info.residente.nombre_arrendatario | upper }}</b></span></p>
+                <p class="acepto">Acepto <span>&nbsp &nbsp _____________________________________________</span></p>
+                <p>Dirección: <span id="ref12"><b class="negritas">{{info.residente.direccion_arrendatario | upper}}</b></span></p>
+                
             </div>
             <br>
             {% comment %} agregar una variable cuando el arrentarop sea el mismo que el residente {% endcomment %}
+            
+            {% if info.residente.aval == "Si" and info.residente.edad >= "18" %}
             <br>
             <div class="col-md-8">
                 <h3>Nombre y Datos del Deudor</h3>
-                <p>Nombre: <span id="ref11">{{ info.residente.nombre_arrendatario | upper }}</span></p>
-                <p class="acepto">Acepto <span>_____________________________________________</span></p>
-                <p>Dirección: <span id="ref12">{{info.residente.direccion_arrendatario | upper}}</span></p>
+                <p>Nombre: <span id="ref9">{{info.residente.nombre_residente | upper}}</span></p>
+                <p class="acepto">Acepto<span>&nbsp &nbsp _____________________________________________</span></p>
+                <p>Dirección: <span id="ref10"><b class="negritas">{{info.residente.direccion_residente | upper}}.</span></p>
             </div>
+            
+            {% else%}
+            <div class="col-md-8">
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            </div>
+            
+            {% endif %}
         </div>
     </div>
 </div>

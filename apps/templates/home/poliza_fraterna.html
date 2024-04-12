@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+<head>
+	
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>Póliza Fraterna </title>
+	<meta name="generator" content="LibreOffice 7.4.2.3 (Linux)"/>
+	<meta name="created" content="2021-04-08T17:59:28"/>
+	<meta name="changedby" content="GM Integraciones"/>
+	<meta name="changed" content="2023-07-05T17:55:17"/>
+	<meta name="AppVersion" content="16.0300"/>
+	
+	<style type="text/css">
+
+	.contenedor-imagenes {
+		display: block;
+	   
+	  }
+	  
+	.contenedor-imagenes img:first-child {
+		margin-right: 1px;
+	  }
+    @page {
+      size: letter;
+      margin: 1cm;
+  }
+
+  .fuente{
+	font-family: "Calibri"; 
+	font-size: 13.5px;
+	text-align: justify;
+	color: black;
+  }
+	</style>
+	
+</head>
+<!-- ************************************************************************** -->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<p style="font-size:15px;"><b>Contrato No. {{nom_contrato}}</b></p>
+	<tr>
+		<tr class="contenedor-imagenes">
+			<td ><img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_1.png" style="width:400px; height:102px"></td>
+			<td ><img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_2.png" style="width:300px; height:108px"></td>
+		</tr>
+		<tr>
+			<td height="21"  valign=middle><div class="fuente" style="font-size: 11px;"><b>Arrendify se compromete a que toda información recabada será de carácter confidencial y de no divulgación de acuerdo a los Artículos 15 y 16 de la Ley Federal 
+				de Protección de Datos Personales en Posesión de Particulares</b></div></td>
+		</tr>
+	
+  <tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+  </tr>
+	
+  <tr>
+	<td height="21"  valign=middle><div class="fuente"><b><div class="fuente">Arrendador: “FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. de C.V.” REPRESENTADA POR CARLOS MANUEL PADILLA SILVA.</div></b></td>
+  </tr>
+  <tr>
+	<td height="21"  valign=middle><div class="fuente"><b><div class="fuente">Arrendatario: {{info.residente.nombre_arrendatario | upper}}.</div></b></td>
+  </tr>
+  <tr>
+	<td height="21"  valign=middle><div class="fuente"><b><div class="fuente">Inmueble: "U TOWER", EL CUAL SE ENCUENTRA UBICADO EN AV. DON LUIS G. SADA, NÚMERO 202, COL. REGINA, MONTERREY, N.L.</div></b></td>
+  </tr>	
+	{% comment %} <tr>
+		<td align="left" valign=bottom><font color="#000000"><br></div></td>
+	</tr> {% endcomment %}
+	<tr>
+		<td height="21" align="justify" valign = middle><b><div class="fuente">Inicio: DIA {{info.fecha_move_in | date:"d"}} DEL MES DE {{info.fecha_move_in | date:"F" | upper}} DEL AÑO {{info.fecha_move_in | date:"Y"}}.</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" align="justify" valign = middle><b><div class="fuente">Fin: DIA {{info.fecha_move_out | date:"d"}} DEL MES DE {{info.fecha_move_out | date:"F" | upper}} DEL AÑO {{info.fecha_move_out | date:"Y"}}.</div></b></td>
+	</tr>
+	{% comment %} meter un if si tiene centavos {% endcomment %}
+	<tr>
+		<td height="21" align="justify" valign = middle><b><div class="fuente">Renta: ${{info.renta | intcomma}} ({{renta_texto}} Pesos 00/100 M.N.).</div></b></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+  </tr>
+
+	<tr>
+		<td height="41" align="justify" valign=middle><b><div class="fuente"><b>CONTRATO DE PRESTACIÓN DE SERVICIOS ESPECIALIZADOS EN MATERIA DE ARRENDAMIENTO INMOBILIARIO QUE CELEBRAN 
+			POR UNA PARTE "ARRENDIFY S.A.P.I. DE C.V.", REPRESENTADA EN ESTE ACTO POR JONATHAN GUADARRAMA SALGADO, EN SU 
+			CARÁCTER DE APODERADO LEGAL, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ EL “PRESTADOR” Y POR OTRA “FRATERNA 
+			ADMINISTRADORA DE PROYECTOS, S.A. de C.V.” REPRESENTADA POR CARLOS MANUEL PADILLA SILVA.A QUIEN EN LO SUCESIVO 
+			SE LE DENOMINARÁ EL “CLIENTE” CONFORME A LAS SIGUIENTES:</b></div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+    </tr>
+	<tr>
+		<td height="21"  valign=middle><b><div style="text-align:center" class="fuente">DECLARACIONES</div></b></td>
+	</tr>	
+	
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>PRIMERA.-DECLARA EL“CLIENTE”,</b> por propio derecho:</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><b><div class="fuente">Arrendador: “FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. de C.V.” REPRESENTADA POR CARLOS MANUEL PADILLA 
+			SILVA.</div><b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">a.   Que es una persona moral, constituida legalmente por la legislación mexicana, encontrarse debidamente 
+			representada por una persona fisica de nacionalidad MEXICANA, mayor de edad, estado civil casado, con capacidad 
+			jurídica necesaria para obligarse en términos del presente contrato. </div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">b.   Que requiere de los servicios especializados en materia de arrendamiento inmobiliario brindados por el 
+			“PRESTADOR” derivado del “CONTRATO DE ARRENDAMIENTO” que celebra como “ARRENDADOR” del inmueble ubicado 
+			en <b>"U TOWER", EL CUAL SE ENCUENTRA UBICADO EN AV. DON LUIS G. SADA, NÚMERO 202, COL. REGINA, 
+			MONTERREY, N.L.</b>, servicios que quedan precisados en la CLÁUSULA PRIMERA de este CONTRATO.
+		</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">c.   Que señala como domicilio para recibir notificaciones el ubicado en <b>AV. DON LUIS G. SADA, NÚMERO 
+			202,COL.REGINA, MONTERREY, N.L.</b></div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+    </tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>PRIMERA BIS.-DECLARA EL“CLIENTE”,</b> por propio derecho:</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><b><div class="fuente">Arrendatario: {{info.residente.nombre_arrendatario | upper}}.</div><b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">a.   Que es de nacionalidad <b>{{info.residente.nacionalidad_arrendatario | upper}}</b>, mayor de edad, estado civil {{info.residente.estado_civil | lower}}, con capacidad jurídica necesaria para 
+			obligarse en términos del presente contrato.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">b.   Que requiere de los servicios especializados en materia de arrendamiento inmobiliario brindados por el 
+			“PRESTADOR” derivado del <b>“CONTRATO DE ARRENDAMIENTO”</b> que celebra como “ARRENDATARIO” del inmueble 
+			ubicado en <b>"U TOWER", EL CUAL SE ENCUENTRA UBICADO EN AV. DON LUIS G. SADA, NÚMERO 202, COL. REGINA, 
+			MONTERREY, N.L.</b>, servicios que quedan precisados en la CLÁUSULA PRIMERA de este CONTRATO.
+		</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">c.   Que señala como domicilio para recibir notificaciones el ubicado en <b>EL INMUEBLE A ARRENDAR</b>
+		</div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+    </tr>
+
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>SEGUNDA.-DECLARA “EL PRESTADOR”,</b>a través de su apoderada legal:</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">a.     Que es una sociedad mercantil constituida legalmente conforme a las leyes de los Estados Unidos Mexicanos.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">b.    Que <b>Jonathan Guadarrama Salgado</b> en su carácter de apoderado legal, cuenta con plenas facultades para obligarse en términos del presente contrato, manifestando bajo protesta de decir verdad que, a la fecha de firma del presente contrato, dichas facultades no le han sido limitadas, modificadas o revocadas en forma alguna.
+		</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">c.     Que cuenta con el personal capacitado, los conocimientos profesionales y con la experiencia necesaria para obligarse en términos del presente contrato.
+		</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">d.    Que señala como domicilio, para efectos del presente contrato el ubicado en <b>Blvrd Manuel Ávila Camacho 80, Int. 204, Col. El Parque, C.P. 53398 Naucalpan de Juárez, Estado de México.</b>		
+		</div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+    </tr>
+
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>TERCERA.-DECLARAN AMBAS PARTES:</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>a.</b>     Que se reconocen mutua y recíprocamente la personalidad para suscribir el presente contrato, no mediando entre ellas incapacidad legal o vicio del consentimiento alguno.
+		</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>b.</b>     Que para efectos del presente contrato se entenderá como:</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>1.</b>     Las <b>PARTES</b>: El <b>“PRESTADOR”</b> y el <b>“CLIENTE”</b>.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>2.</b>     El <b>CONTRATO</b>: El presente contrato de <b>“PRESTACIÓN DE SERVICIOS EN MATERIA DE ARRENDAMIENTO INMOBILIARIO”</b>.</div></td>
+	</tr>
+	{% if info.residente.aval == "Si" %}
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>3.    El CONTRATO DE ARRENDAMIENTO: Que celebra el “CLIENTE” con {{info.residente.nombre_arrendatario | upper}}, en su carácter de ARRENDATARIO y con {{info.residente.nombre_residente |  upper}}, como Obligado Solidario del ARRENDATARIO.</b></div></td>
+	</tr>
+	{% else %}
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>3.    El CONTRATO DE ARRENDAMIENTO: Que celebra el “CLIENTE” con {{info.residente.nombre_arrendatario | upper}}, en su carácter de ARRENDATARIO.</b></div></td>
+	</tr>
+	{% endif %}
+	
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>4.     El INMUEBLE: Ubicado en "U TOWER", EL CUAL SE ENCUENTRA UBICADO EN AV. DON LUIS G. SADA, NÚMERO 202, COL. 
+			REGINA, MONTERREY, N.L.</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>5.</b>     La <b>RENTA</b>: La estipulada en el <b>“CONTRATO DE ARRENDAMIENTO”</b>, misma que es por la cantidad de:</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>${{info.renta}} ({{renta_texto}} Pesos 00/100 M.N.).</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>c.</b>   Que es su deseo formalizar el presente contrato de Prestación de Servicios Especializados en Materia de Arrendamiento Inmobiliario, comprometiéndose en términos de las siguientes:
+		</div></td>
+	</tr>
+	<tr>
+		<td height="31" align="justify" valign=middle><br></td>
+	</tr>
+	{% comment %} clausulas {% endcomment %}
+	<tr>
+		<td height="21" valign=middle><div style="text-align:center" class="fuente"><b> CLÁUSULAS</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>PRIMERA</b>.-El <b>"PRESTADOR"</b> se obliga a brindar sus servicios de asesoría, consultoría, investigación, gestión y patrocinio jurídico al <b>“CLIENTE”</b> en materia de arrendamiento inmobiliario, desde antes, durante y hasta la terminación y/o rescisión del <b>“CONTRATO DE ARRENDAMIENTO”</b>, mismos que de manera enunciativa se mencionan a continuación:</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>1.</b>     Consultoría y asesoría jurídica en materia de arrendamiento inmobiliario respecto del “INMUEBLE” durante la vigencia del <b>“CONTRATO”</b>.
+		</div></td>
+	</tr>
+	{% if info.residente.aval == "Si" %}
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>2.     Investigación judicial del “ARRENDATARIO” y  su ''Obligado Solidario'' a efecto de determinar su situación judicial, así como proporcionarle al “CLIENTE” un estudio de cómo estos juicios pueden repercutir o no en el “CONTRATO DE ARRENDAMIENTO”.</b></div></td>
+	</tr>
+	{% else %}
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>2.     Investigación judicial del “ARRENDATARIO” a efecto de determinar su situación judicial, así como proporcionarle al “CLIENTE” un estudio de cómo estos juicios pueden repercutir o no en el “CONTRATO DE ARRENDAMIENTO”.</b></div></td>
+	</tr>
+	{% endif %}
+	{% if info.residente.aval == "Si" %}
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>3.     Informe pormenorizado de la capacidad moral y económica del “ARRENDATARIO” y su ''Obligado Solidario'' a efecto de que el “CLIENTE” decida si es su deseo llevar a cabo la celebración del “CONTRATO DE ARRENDAMIENTO”.</b></div></td>
+	</tr>
+	{% else %}
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>3.     Informe pormenorizado de la capacidad moral y económica del “ARRENDATARIO” a efecto de que el “CLIENTE” decida si es su deseo llevar a cabo la celebración del “CONTRATO DE ARRENDAMIENTO”.</b></div></td>
+	</tr>
+
+	{% endif %}
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>4.</b>      Redacción del <b>“CONTRATO DE ARRENDAMIENTO”</b> profesional y personalizado ajustado a las necesidades del <b>“INMUEBLE”</b>, exigencias del <b>“CLIENTE”</b> y a las disposiciones legales aplicables.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>5.</b>      Presencia del <b>“PRESTADOR”</b> en la firma del <b>“CONTRATO DE ARRENDAMIENTO”</b> para salvaguardar los intereses del <b>“CLIENTE”</b>.
+		</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>6.</b>     Elaboración del <b>“INVENTARIO”</b> del <b>“INMUEBLE”</b>, a efecto de que el <b>“ARRENDATARIO”</b> realice la entrega de este, en las mismas condiciones en que les fue dado.</div></td>
+	</tr>
+	{% if info.residente.aval == "Si" %}
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>7.   Intermediación con el “ARRENDATARIO” y su ''Obligado Solidario'' en caso de algún desacuerdo relacionado con el “CONTRATO DE ARRENDAMIENTO”.
+		</b></div></td>
+	</tr>
+	{% else %}
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>7.   Intermediación con el “ARRENDATARIO” en caso de algún desacuerdo relacionado con el “CONTRATO DE ARRENDAMIENTO”.
+		</b></div></td>
+	</tr>
+	{% endif %}
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>8.</b>       Cobranza extrajudicial en caso de que el <b>“ARRENDATARIO”</b> deje de pagar de manera puntual la <b>“RENTA”</b>.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>9.</b>     Recuperación de adeudos vencidos por impago de servicios del <b>“INMUEBLE”</b> que <b>“EL ARRENDATARIO”</b> no haya cubierto durante la vigencia del <b>“CONTRATO DE ARRENDAMIENTO”</b>.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>10.</b>     Protección para <b>“EL ARRENDADOR”</b> ante cualquier actividad ilícita sucedida dentro del inmueble durante la vigencia del <b>“CONTRATO DE ARRENDAMIENTO”</b> mediante la ley de extinción de dominio.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>11.</b>     Patrocinio jurídico por la existencia de alguna causal de rescisión del <b>“CONTRATO DE ARRENDAMIENTO”</b>; mismo que consiste en: </div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>a.</b>     Asesoria para la Instauración de un juicio especial de arrendamiento ante Tribunales competentes.
+		</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>b.</b>    Representación jurídica a través de un Licenciado en Derecho capacitado en materia de arrendamiento durante la mediación y conciliación de las partes, previas a un procedimiento judicial
+		</div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+    </tr>
+
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>SEGUNDA</b>.-El <b>"PRESTADOR"</b> se obliga a desarrollar las actividades mencionadas en la <b>CLÁUSULA PRIMERA</b> con toda la diligencia a efecto de dejar plenamente satisfecho al <b>“CLIENTE”</b> estableciéndose como parámetros de cumplimiento y pericia, los que regularmente se manejan en el mercado.</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+    </tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>TERCERA.– Las “PARTES” convienen en que la vigencia del presente “CONTRATO” será por el término de {{info.duracion}} a partir del {{info.fecha_move_in}} fecha de vigencia del “CONTRATO DE ARRENDAMIENTO” hasta el {{info.fecha_move_out}} especificando lo siguiente:</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">1.     De no renovarse oportunamente el <b>“CONTRATO”</b>, el <b>“PRESTADOR”</b> únicamente se obliga en términos de la CLÁUSULA PRIMERA durante la vigencia estipulada en la presente cláusula.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">2.     El <b>“CONTRATO DE ARRENDAMIENTO”</b> tiene una vigencia por {{info.duracion}}, el <b>“PRESTADOR”</b> se obliga en términos de la <b>CLÁUSULA PRIMERA</b>, en caso de intervención judicial o extrajudicial hasta el momento del cobro de rentas vencidas, daños al <b>“INMUEBLE”</b> y desalojo del <b>“ARRENDATARIO”</b>.</div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>CUARTA</b>.– Las <b>“PARTES”</b> aceptan que el precio de los servicios especializados en materia de arrendamiento durante la vigencia del <b>“CONTRATO”</b> será por la cantidad de <b>$2,500.00 (Dos Mil Quinientos Pesos 00/100 M.N.)</b>, misma que quedará debidamente liquidada por el <b>“CLIENTE”</b>, al momento de la celebración del <b>“CONTRATO DE ARRENDAMIENTO”</b>,misma que quedará debidamente liquidada por el “CLIENTE”, al momento de la celebración del “CONTRATO DE ARRENDAMIENTO”.</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>QUINTA</b>.– El <b>“CLIENTE”</b> se obliga a notificar al <b>“PRESTADOR”</b> de cualquier incumplimiento por parte del <b>“ARRENDATARIO”</b> en términos del <b>“CONTRATO DE ARRENDAMIENTO”</b>, en un plazo máximo de 3(tres) días hábiles a partir de dicho incumplimiento.</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>SEXTA</b>.- El inventario fotográfico del inmueble deberá realizarse durante los primeros días en que da inicio de la vigencia del presente contrato a fin de corroboran el estado en que se entrega la posesión del bien, por lo que en el supuesto de que sea <b>“EL CLIENTE”</b> quien proporcione las fotografías del inmueble, estas deberán ser acompañadas con un video que corrobore la veracidad de las evidencias proporcionadas, así mismo deberán enviarse a los medios proporcionados por <b>“EL PRESTADOR”</b> en un plazo no mayor a 15 días después del inicio de vigencia del contrato, de lo contrato <b>“EL PRESTADOR”</b> no se hace responsable del estado en que sea entregado el inmueble ni de la restauración de este.</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>SÉPTIMA.- "ARRENDIFY S.A.P.I. DE C.V."</b>, no se hace responsable de cualquier trato, recomendación, oferta y/o conflicto que se suscite a causa de la inmobiliaria, agente inmobiliario o propietario que actúe fuera de lo establecido en los protocolos y lineamientos de nuestra empresa, antes o durante la vigencia del presente contrato.
+			Asimismo, será responsable aquel que haya ofrecido, recomendado, hecho trato u ocasionado algún conflicto ya sea respecto al inmueble o las partes a quienes se les haya ofrecido su servicio, dejando en claro que <b>"ARRENDIFY S.A.P.I. DE C.V."</b>, exclusivamente actuará conforme a lo establecido en la póliza jurídica ofrecida y debidamente firmada, de igual forma <b>EL PRESTADOR</b> no es responsable de la devolución del depósito en garantía, pago, recuperación o aseguramiento de penas convencionales, sin embargo, este último será el encargado de solicitarlos el tiempo que este considere necesario.
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>OCTAVA</b>.- <b>“EL PRESTADOR”</b> no se hace responsable de la pérdida total, parcial o de daños en bienes muebles o de terceros que se encuentren dentro o anexos al bien inmueble arrendado, por lo que “EL PRESTADOR” no tiene la obligación de responder, reponer, pagar, ni asegurar la integridad o devolución de estos bienes muebles, sin importar el costo que tengan.</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>NOVENA</b>.- <b>“LAS PARTES”</b>  autorizan ampliamente a <b>“EL PRESTADOR”</b> a la firma del presente documento a fin de que pueda hacer única y exclusivamente la legal entrega del inmueble objeto de este contrato, por abandono del bien por parte de <b>“EL ARRENDATARIO”</b>; para este caso se podrá hacer entrega únicamente cuando el inmueble se encuentre vacío, el arrendatario haya dejado de pagar más de dos rentas, no obtener respuesta por parte de <b>“EL ARRENDATARIO”</b> habiendo agotado todos los medios de comunicación para localizarlo durante más de 15 días naturales, no obstante lo anterior <b>"EL ARRENDADOR"</b> queda facultado para demandar a <b>"EL ARRENDATARIO"</b> extra-judicial o judicialmente por los daños y perjuicios que le pueda ocasionar.
+			Derivado de lo anterior, <b>“EL PRESTADOR”</b> únicamente es responsable de hacer entrega del inmueble, por lo que cualquier adeudo en rentas o servicios, así como daños o desperfectos no es responsabilidad de este, siendo responsabilidad directa de todo aquello que se estipule en la póliza contratada y firmada por <b>“LAS PARTES”</b>."
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>DÉCIMA</b>.- Cualquier comunicación entre las <b>“PARTES”</b> que deba ser notificada conforme a este <b>“CONTRATO”</b> podrá realizarse por cualquier medio, incluyendo los electrónicos, con tal de que la comunicación sea efectiva y dirigida a los domicilios, teléfonos o correos electrónicos señalados a continuación:</div></td>
+	</tr>
+	{% comment %} <td height="21"  valign=middle><div class="fuente"><b><font face="Times New Roman" size=3 color="#000000"><br></div></b></td> {% endcomment %}
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+  </tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">EL <b>"CLIENTE"</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>Arrendador: “FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. de C.V.” REPRESENTADA POR CARLOS MANUEL PADILLA SILVA.</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">Dirección: AV. DON LUIS G. SADA, NÚMERO 202, COL. REGINA, MONTERREY, N.L</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">Correo electrónico: jcasados@fraterna.mx</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">Celular: 8118322600</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+	</tr>
+
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">EL <b>"CLIENTE"</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>Arrendatario: {{info.residente.nombre_arrendatario | upper}}.</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">Dirección: <b>{{info.residente.direccion_arrendatario | upper}}.</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">Correo electrónico: <b>{{info.residente.correo_arrendatario}}</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">Celular: <b>{{info.residente.celular_arrendatario}}</b></div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>EL "PRESTADOR"</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">Dirección: Perif. Blvd. Manuel Ávila Camacho #80-int 204, Col. El Parque, C.P. 53398, Naucalpan de Juárez, Estado de México.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">Correo electrónico: contacto@arrendify.com</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">Oficina: 5572589136</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>DÉCIMA PRIMERA</b>.- Jurisdicción y Ley aplicable. Las <b>“PARTES”</b> se sujetan al contenido del presente Contrato de Servicios Especializados en materia de Arrendamiento Inmobiliario al Código Civil para la Ciudad de México y se someten expresamente a la jurisdicción de los tribunales competentes de la Ciudad de México, respecto del procedimiento, ejecución y cumplimiento del presente contrato.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente">Enteradas las “PARTES” del alcance y contenido del presente Contrato de Prestación de Servicios Especializados en materia de Arrendamiento Inmobiliario, y con pleno reconocimiento de la personalidad de estas, lo firman de conformidad en la Ciudad de México, con fecha {{info.fecha_move_in}}.</div></td>
+	</tr>
+	<tr>
+		<td height="84" align="justify" valign=middle></td>
+	</tr>
+	{% comment %} FIRMAS {% endcomment %}
+	<tr>
+		<td style="height:63px" align="center" valign=middle></td>
+	</tr>
+	
+	<tr>
+		<td height="21" valign=middle><b><div style="text-align: center;"  class="fuente">_______________________________                                           _______________________________</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><b><div style="text-align: center;" class="fuente">“EL CLIENTE”                                                                                          EL PRESTADOR</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><b><div class="fuente">   “FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. de C.V.”.                                  "ARRENDIFY S.A.P.I. DE C.V."</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><b><div class="fuente">                                           REPRESENTADA POR</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><b><div style="text-align: center;" class="fuente">CARLOS MANUEL PADILLA SILVA.                                                   JONATHAN GUADARRAMA SALGADO</div></b></td>
+	</tr>
+	<tr>
+		<td style="height:63px" align="center" valign=middle></td>
+	</tr>
+
+	
+	<tr>
+		<td height="21"  valign=middle><b><div style="text-align:center" class="fuente">_______________________________</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><b><div style="text-align:center" class="fuente">EL CLIENTE</div></b></td>
+
+	</tr>
+	<tr>
+		<td height="21" valign=middle><b><div style="text-align:center" class="fuente">{{info.residente.nombre_arrendatario | upper}}.</div></b></td>
+	</tr>
+	
+	
+	
+</table>
+
+
+<br clear=left>
+<!-- ************************************************************************** -->
+</body>
+
+</html>

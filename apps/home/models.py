@@ -969,11 +969,12 @@ class Residentes(models.Model):
     empleo=models.CharField(max_length = 100, null = True, blank = True)
     domicilio_empleo=models.CharField(max_length = 100, null = True, blank = True)
     direccion_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    curp=models.CharField(max_length=100, null=True, blank=True)
+    estado_civil=models.CharField(max_length=100, null=True, blank=True, default="Soltero")
     
     # datos de residente
     nombre_residente=models.CharField(max_length=100, blank=True)
     nacionalidad_residente=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
-    rfc_residente=models.CharField(max_length=13, null=True, blank=True)
     identificacion_residente=models.CharField(max_length = 100, null = True, blank = True)
     no_ide_residente=models.CharField(max_length = 100, null = True, blank = True)
     sexo=models.CharField(max_length = 100, null = True, blank = True)
@@ -982,6 +983,7 @@ class Residentes(models.Model):
     celular_residente=models.CharField(max_length = 100, null = True, blank = True)
     correo_residente=models.EmailField(null=True, blank=True)
     direccion_residente=models.CharField(max_length = 100, null = True, blank = True)
+    aval=models.CharField(max_length = 100, null = True, blank = True)
     
     ciudad_origen=models.CharField(max_length = 100, null = True, blank = True)
     escuela_origen=models.CharField(max_length = 100, null = True, blank = True)

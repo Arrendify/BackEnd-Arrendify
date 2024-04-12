@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+<head>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous"> 
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script> 
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js" integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS" crossorigin="anonymous"></script>
+	
+	<meta http-equiv="content-type" content="text/html"/>
+	<meta charset="utf-8">
+	<title>Comodato - Fraterna</title>
+	<meta  name = "viewport" content="width=device-width, initial-scale=1">
+<style>
+		  .table_headers1{
+			align:center; 
+			text-align: center;
+			vertical-align: top; 
+			background-color: #bebebe; 
+			height:12; 
+			color:black; 
+			font-weight: bold; 
+			font-family: Segoe UI, serif;
+			font-size: 15px;
+		  }
+		  .celdas{
+			font-family: Segoe UI, serif; 
+			font-size:12.5px;
+			margin-left: 0.07in;
+		  }
+		  .fuente{
+			font-family: Segoe UI, serif; 
+			font-size:12.5px;
+			text-align:justify;
+			color:black;
+		  }
+		  @page {
+			size: A4;
+			margin: 0.1cm 1 1 0.1cm
+		}
+
+		/* Estilo para el contenedor principal de la tabla*/
+		.container {
+		  position: relative;
+		  width: 100%; /* Ajusta el ancho según tus necesidades */
+		  max-width: 600px; /* Ancho máximo de la imagen */
+		}
+		
+		/* Estilo para el texto encima de la imagen */
+		.text {
+		  position: absolute;
+		  top: 55px;
+		  left: 175px;
+		  transform: translate(-50%, -50%);
+		  color: black;
+		  font-family: Segoe UI, serif; 
+		  font-size:12px;
+		  text-align:justify;
+		}
+
+		.text_anexo {
+			position: absolute;
+			top: 20px;
+			left: 250px;
+			transform: translate(-50%, -50%);
+			color: white;
+			background:white;
+			font-family: Segoe UI, serif; 
+			font-size:12px;
+			text-align:justify;
+		  }
+	</style>
+	
+</head>
+
+<body>
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+
+	<tr>
+		<td height="21"  valign=middle>
+			<div class="fuente">
+				<b>CONTRATO DE COMODATO</b> que formalizan por una parte la sociedad <b>PATRIMONIO TORRE VERDE, S.A. DE C.V.</b>
+				representada en este acto por, el señor <b>CARLOS MANUEL PADILLA SILVA</b> a quien en lo sucesivo se le denominará 
+				como <b>“EL COMODANTE”</b> y por otra parte <b>{{info.residente.nombre_arrendatario | upper}}</b> a quien en lo sucesivo se les denominará 
+				como <b>“EL COMODATARIO”</b>, en conjunto <b>“LAS PARTES”</b>; mismas que se sujetan a las Declaraciones y Cláusulas 
+				siguientes: 
+			</div>
+		</td>
+	</tr>	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">DECLARACIONES</div></b></td>
+	</tr>	
+  <tr>
+	<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+  </tr>
+  <tr>
+	<td height="21"  valign=middle><b><div class="fuente">I.- Expresa “EL COMODANTE”:</div></b></td>
+  </tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(a)     Que cuenta con la legítima posesión y pleno dominio de los muebles descritos en el <b>Anexo I</b>: (En lo sucesivo LOS 
+			MUEBLES) </div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(b)     Que LOS MUEBLES se encuentran dentro del Departamento {{info.no_depa}} de <b>{{info.medidas}} M2</b> en el Nivel {{info.piso}} del proyecto 
+			denominado como Utower ubicado en la Avenida Don Luis G. Sada No. 202, Colonia Regina, CP 64500, Monterrey, Nuevo León, México. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(c)     Que es una sociedad anónima de capital variable debidamente constituida conforme a las leyes mexicanas según 
+			consta en la Escritura Pública No. 18,065 de fecha 26 de febrero del 2018, otorgada ante la fe del licenciado 
+			Francisco Garza Calderón, Notario Público Suplente de la Notaría Pública número 75, debidamente inscrita en el 
+			Instituto Registral y Catastral en el Estado de Nuevo León bajo el FME N-2018021694 con fecha 12 de abril del año 
+			2018. </div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(d)     En fecha 10 de febrero del 2020 cambio de denominación social a Patrimonio Torre Verde, S.A. de C.V. mediante 
+			Escritura Pública No. 22,768 otorgada ante la fe del licenciado Ignacio Gerardo Martínez González, Notario Público 
+			Titular de la Notaría Pública No. 75 con ejercicio en el primer distrito, debidamente inscrita en el Instituto Registral 
+			y Catastral en el Estado de Nuevo León bajo el FME N-2018021694 de fecha 19 de febrero del año 2020. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(e)     Que su representante legal cuenta con amplias facultades para celebrar el presente instrumento.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(f)      Que el objeto social de su representada le permite la celebración del presente Contrato.
+		</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(g)     Que el Registro Federal de Contribuyentes de su representada es <b>DIT180226CR7</b>.
+		</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(h)     Que LOS MUEBLES anteriormente descritos, se encuentran libre de todo gravamen y responsabilidad.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(i)      Que es voluntad e intención expresa de su representada, celebrar el presente Contrato de Comodato de 
+			conformidad con los términos y condiciones que se pactan más adelante en el clausulado del mismo.</div></td>
+	</tr>
+   
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+    </tr>
+	<tr>
+	<td height="21"  valign=middle><b><div class="fuente">II.- Expresa “EL COMODATARIO”: </div></b></td>
+  </tr>
+  <tr>
+	<td height="21"  valign=middle><div class="fuente">(a)     Que es su deseo recibir de manera gratuita en forma de Comodato el uso de LOS MUEBLES. </div></td>
+  </tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(b)     Que es una persona física de nacionalidad {{info.residente.nacionalidad_arrendatario}}, mayor de edad, de estado civil {{info.residente.estado_civil}}, con Clave Única de 
+			Registro de Población {{info.residente.curp | upper}} con plena capacidad para obligarse en los términos del presente Contrato. </div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(c)      Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe 
+			restricción contractual u orden de cualquier tribunal, organismo gubernamental o autoridad que pudiera afectar la 
+			celebración de este acto jurídico.			
+			</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(d)      Que su Registro Federal de Contribuyentes es {{info.residente.rfc_arrendatario | upper}}.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(e)      Que tiene los recursos económicos para responder de los daños y perjuicios que origine a LOS MUEBLES por el 
+			uso temporal del que se servirá por virtud de este instrumento. </div></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">III.- Expresan Las Partes: 
+			</div></b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(a)     Que se reconocen mutuamente la personalidad propia y de sus respectivos representantes, así como la legítima 
+			existencia de sus representadas, por lo que, expresamente, se obligan a no invocar la nulidad del Comodato por 
+			falta de personalidad de alguno de los comparecientes, o por cualquier causa derivada de lo declarado por cada 
+			una de ellas.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">(b)      Que en la celebración de este Contrato no ha habido error, mala fe, ni dolo entre éstas y con base en las 
+			declaraciones y manifestaciones anteriores, ambas partes están de acuerdo en otorgar y obligarse en los términos 
+			de las siguientes:</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		{% comment %} clausulas {% endcomment %}
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">CLÁUSULAS</div></b></td>
+	</tr>
+
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Primera.</b> - “EL COMODANTE” concede el uso gratuito, y a su vez, “EL COMODATARIO”, así lo recibe en esa condición 
+			y calidad, respecto de LOS MUEBLES descritos en el <b>Anexo I</b>, los cuales se dan por reproducidos íntegramente para 
+			todos los efectos de ley y promete cuidar y conservar lo que recibe en calidad de COMODATO. </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Segunda.</b> - Todos los gastos de conservación de la cosa objeto del presente Comodato, son por cuenta total y 
+			exclusiva de “EL COMODATARIO” y se entenderán como inherentes al uso y cuidado de LOS MUEBLES que han sido 
+			materia del mismo en el presente contrato.  </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Tercera.</b> – La vigencia del comodato materia de este Contrato, será por el término forzoso de {{duracion_meses}} ({{duracion_texto}}) meses para 
+			ambas partes, contados a partir de la fecha de firma del presente instrumento.  </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">El presente Comodato podrá darse por terminado por el siguiente supuesto:</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">       (a)  Cuando se termine la vigencia del presente instrumento. </div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">       (b)  Si se diera el caso de fallecimiento de “EL COMODATARIO”.</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">       (c)  A causa de incumplimiento de alguna obligación de “EL COMODATARIO”. </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Cuarta.</b> - “EL COMODATARIO” se obliga a la firma de un título de crédito en forma de un pagaré por el precio de 
+			lista globalizado de LOS MUEBLES descritos en el <b>Anexo I</b>, dicho pagaré formará parte íntegra del contrato 
+			identificándose como <b>Anexo II</b>. </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">Quinta.</b> - Las partes se someten a los Tribunales competentes de la Ciudad de Monterrey, Nuevo León, para todo lo 
+			relativo a interpretación, decisión y ejecución de todo lo pactado en este instrumento, renunciando al fuero, de sus 
+			actuales o futuros domicilios. 
+			 </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Enteradas las partes del alcance y contenido de cada una de las cláusulas del presente contrato, lo firman por 
+			<b>duplicado</b>, en el municipio de Monterrey, Nuevo León, a los <b>{{info.fecha_move_in}}</b>. 
+			 
+			</div></td>
+	</tr>	
+	
+	{% comment %} firmas {% endcomment %}
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">                          “EL COMODANTE”                                                                  “EL COMODATARIO”</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                  <b>Patrimonio Torre Verde, S.A. de C.V. </b></div></td>
+	</tr>
+	
+	<tr>
+		<td style="height:63px" align="center" valign=middle></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><b>   _________________________________________                   _________________________________________</b></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                              Representada en este acto                                                                        Por sus propios derechos.</div></td>
+	</tr>
+	<tr>
+		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                            <b>Carlos Manuel Padilla Silva </b>                                                                {{info.residente.nombre_arrendatario | upper}}</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+</table>
+<!--Inicio de la PRIMERA TABLA ANEXO 1 Header-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">                                                                                  ANEXO 1</div></b></td>
+	</tr>	
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">                                                                        Inventario de Muebles</div></td>
+	</tr>	
+</table>
+<!--Fin de la primera tabla anexos header-->
+
+<!--Inicio de la SEGUNDA TABLA ANEXO 1-->
+  <div class="container">
+	<img src="{{tabla_inventario}}" alt="Imagen" style="width:100%; height:850px;">
+	<div class="text">{{info.no_depa}} - {{info.cama}} </div>
+	<div class="text_anexo"><b>Anexo I cuadro para tapar esta informacion</b></div>
+  </div>
+<!--fin tabla inventario-->
+
+<!--inicio de tabla anexo 4-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">ANEXO II</div></b></td>
+	</tr>	
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" style="text-align:center;">Pagaré</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">Pagaré</div></b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">01 de 01</div></b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:right;">Bueno por ${{info.renta | intcomma}}.00</div></b></td>
+	</tr>
+	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" >Debo y Pagaré incondicionalmente por el presente PAGARÉ a la empresa denominada PATRIMONIO TORRE VERDE, 
+			S.A. DE C.V., el día: <b>{{info.fecha_move_out}}</b>, en el domicilio ubicado en la Avenida Don Luis G. Sada No. 202, 
+			Colonia Regina, CP 64500, Monterrey, Nuevo León, México, la cantidad de <b>${{info.renta | intcomma}}.00 ({{renta_texto}} pesos 00/100 M.N.)</b>. 
+			El importe será cubierto en una sola exhibición, pagadera en el <b>Banco Banregio, en la cuenta de cheques no. 021-
+			76523-003-06, con CLABE Interbancaria 058580217652300361, con la referencia {{info.residente.rfc_arrendatario | upper}}. </b></div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" >Obligándome a pagar para el caso de mora un interés equivalente al 05% mensual durante todo el tiempo que 
+			permanezca insoluto.</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" >Este pagaré se rige por las disposiciones de la Ley General de Títulos y Operaciones de Crédito y para exigir el 
+			cumplimiento de las obligaciones incorporadas al mismo, no se requiere de ningún protesto o formalidad alguna, 
+			siendo la obligación autónoma de su pago a cargo del suscriptor o avalistas, aun cuando no hayan sido presentado o 
+			requerido de pago y si el pagaré vence a la vista, y no fue presentando anteriormente para su pago, se entenderá 
+			presentado para pago y no pagado, después del término de seis meses contados a partir de la fecha de su expedición. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" >Expresamente acepto para el caso de incumplimiento en mi obligación someterme a la jurisdicción y competencia de 
+			los Tribunales Judiciales de la ciudad de Monterrey, Nuevo León, para su pago el beneficiario o el tenedor de este 
+			pagaré renunciando también expresamente al fuero que en razón de mí domicilio presente o futuro pudiera 
+			corresponderme. </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" >____________________________________</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" ><b>Suscriptor: {{info.residente.nombre_arrendatario | upper}}</b></div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" >Domicilio: <b>{{info.residente.direccion_arrendatario}}</b>. </div></td>
+	</tr>
+
+</table>
+<!--Fin de la segunda tabla-->
+<br clear=left>
+<!-- ************************************************************************** -->
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+</html>

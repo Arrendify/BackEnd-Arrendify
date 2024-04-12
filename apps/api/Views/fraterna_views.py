@@ -27,6 +27,12 @@ from datetime import date
 from datetime import datetime
 #Libreria para obtener el lenguaje en español
 import locale
+#obtener Logs de errores
+import logging
+import sys
+logger = logging.getLogger(__name__)
+
+
 
 # ----------------------------------Metodos Extras----------------------------------------------- #
 def eliminar_archivo_s3(file_name):
@@ -42,13 +48,12 @@ def eliminar_archivo_s3(file_name):
         s3.delete_object(Bucket="arrendifystorage", Key=f"static/{str(file_name)}")
         print("El archivo se eliminó correctamente de S3.")
     except NoCredentialsError:
-        print("No se encontraron las credenciales de AWS.")
+        print("No se encontraron las credenciales de AWS.",{NoCredentialsError})
 # ----------------------------------Metodos Extras----------------------------------------------- #
 
 class ResidenteViewSet(viewsets.ModelViewSet):
-    # authentication_classes = [TokenAuthentication, SessionAuthentication]
-    # permission_classes = [IsAuthenticated]
-    
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = Residentes.objects.all()
     serializer_class = ResidenteSerializers
     
@@ -57,7 +62,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
         try:
            if user_session.is_staff:
                 print("Esta entrando a listar Residentes")
-                residentes =  Residentes.objects.all()
+                residentes =  Residentes.objects.all().order_by('id')
                 serializer = self.get_serializer(residentes, many=True)
                 return Response(serializer.data, status= status.HTTP_200_OK)
             
@@ -70,6 +75,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
                 inquilinos_a_cargo = Residentes.objects.filter(user_id__in = agentes)
                 inquilinos_mios = Residentes.objects.filter(user_id = user_session)
                 mios = inquilinos_a_cargo.union(inquilinos_mios)
+                mios = mios.order_by('id')
                
                 serializer = self.get_serializer(mios, many=True)
                 serialized_data = serializer.data
@@ -88,6 +94,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
                 print("soy Agente", user_session.first_name)
                 #obtengo mis inquilinos
                 residentes_ag = Residentes.objects.filter(user_id = user_session)
+                residentes_ag = residentes_ag.order_by('id')
                 #tengo que obtener a mis inquilinos vinculados
               
                 serializer = self.get_serializer(residentes_ag, many=True)
@@ -108,12 +115,14 @@ class ResidenteViewSet(viewsets.ModelViewSet):
            
            return Response(serializer.data, status= status.HTTP_200_OK)
         except Exception as e:
-            print(f"El error es {e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
     def create(self, request, *args, **kwargs):
-        user_session = request.user
         try:
+            user_session = request.user
             print("Llegando a create de residentes")
             print(request.data)
             residente_serializer = self.serializer_class(data=request.data) #Usa el serializer_class
@@ -126,8 +135,10 @@ class ResidenteViewSet(viewsets.ModelViewSet):
                 print("Error en validacion")
                 return Response({'errors': residente_serializer.errors})
         except Exception as e:
-            print(f"Error {e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
 
     def update(self, request, *args, **kwargs):
@@ -148,12 +159,14 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'errors': serializer.errors})
         except Exception as e:
-            print(f"el error es {e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
     def retrieve(self, request, slug=None, *args, **kwargs):
-        user_session = request.user
         try:
+            user_session = request.user
             print("Entrando a retrieve")
             modelos = Residentes.objects.all().filter(user_id = user_session) #Toma los datos de Inmuebles.objects.all() que esta al inicio de la clase viewset
             Residentes = modelos.filter(slug=slug)
@@ -163,7 +176,10 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'message': 'No hay persona fisica con esos datos'}, status = status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
     def destroy (self,request, *args, **kwargs):
         try:
@@ -183,19 +199,24 @@ class DocumentosRes(viewsets.ModelViewSet):
     serializer_class = DRSerializer
    
     def list(self, request, *args, **kwargs):
-        content = {
-            'user': str(request.user),
-            'auth': str(request.auth),
-        }
-        queryset = self.filter_queryset(self.get_queryset())
-        ResidenteSerializers = self.get_serializer(queryset, many=True)
-       
-        return Response(ResidenteSerializers.data ,status=status.HTTP_200_OK)
+        try:
+            content = {
+                'user': str(request.user),
+                'auth': str(request.auth),
+            }
+            queryset = self.filter_queryset(self.get_queryset())
+            ResidenteSerializers = self.get_serializer(queryset, many=True)
+            return Response(ResidenteSerializers.data ,status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
     def create (self, request, *args,**kwargs):
-        
-        user_session = str(request.user.id)
         try: 
+            user_session = str(request.user.id)
             data = request.data
             data = {
                     "Ine": request.FILES.get('Ine', None),
@@ -217,38 +238,41 @@ class DocumentosRes(viewsets.ModelViewSet):
             else:
                 return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(f"el error es {e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
 
     def destroy(self, request, pk=None, *args, **kwargs):
-        # try:
-        documentos_inquilinos = self.get_object()
-        documento_inquilino_serializer = self.serializer_class(documentos_inquilinos)
-        print("Soy ine", documento_inquilino_serializer.data['ine'])
-        print("1")
-        if documentos_inquilinos:
-            ine = documento_inquilino_serializer.data['ine']
-            print("Soy ine 2", ine)
-            comp_dom= documento_inquilino_serializer.data['comp_dom']
-            rfc= documento_inquilino_serializer.data['escrituras_titulo']
-            print("Soy RFC", rfc)
-            ruta_ine = 'apps/static'+ ine
-            print("Ruta ine", ruta_ine)
-            ruta_comprobante_domicilio = 'apps/static'+ comp_dom
-            ruta_rfc = 'apps/static'+ rfc
-            print("Ruta com", ruta_comprobante_domicilio)
-            print("Ruta RFC", ruta_rfc)
-            os.remove(ruta_ine)
-            os.remove(ruta_comprobante_domicilio)
-            os.remove(ruta_rfc)
-            # self.perform_destroy(documentos_arrendador)  #Tambien se puede eliminar asi
-            documentos_inquilinos.delete()
-            return Response({'message': 'Archivo eliminado correctamente'}, status=204)
-        else:
-            return Response({'message': 'Error al eliminar archivo'}, status=400)
-        # except Exception as e:
-        #     return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            documentos_inquilinos = self.get_object()
+            documento_inquilino_serializer = self.serializer_class(documentos_inquilinos)
+            print("Soy ine", documento_inquilino_serializer.data['ine'])
+            print("1")
+            if documentos_inquilinos:
+                ine = documento_inquilino_serializer.data['ine']
+                print("Soy ine 2", ine)
+                comp_dom= documento_inquilino_serializer.data['comp_dom']
+                rfc= documento_inquilino_serializer.data['escrituras_titulo']
+                print("Soy RFC", rfc)
+                ruta_ine = 'apps/static'+ ine
+                print("Ruta ine", ruta_ine)
+                ruta_comprobante_domicilio = 'apps/static'+ comp_dom
+                ruta_rfc = 'apps/static'+ rfc
+                print("Ruta com", ruta_comprobante_domicilio)
+                print("Ruta RFC", ruta_rfc)
+            
+                # self.perform_destroy(documentos_arrendador)  #Tambien se puede eliminar asi
+                documentos_inquilinos.delete()
+                return Response({'message': 'Archivo eliminado correctamente'}, status=204)
+            else:
+                return Response({'message': 'Error al eliminar archivo'}, status=400)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
         
     def retrieve(self, request, pk=None):
@@ -263,15 +287,18 @@ class DocumentosRes(viewsets.ModelViewSet):
             # print(documentos_arrendador)
             return Response(serializer_inquilino.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
    
     def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        print(request.data)
         try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            print(request.data)
             # Verificar si se proporciona un nuevo archivo adjunto
             if 'Ine' in request.data:
                 print("entro aqui")
@@ -325,8 +352,10 @@ class DocumentosRes(viewsets.ModelViewSet):
 
         
         except Exception as e:
-            print(f"el error es {e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
 #////////////////////////CONTRATOS///////////////////////////////
 class Contratos_fraterna(viewsets.ModelViewSet):
@@ -336,8 +365,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     serializer_class = ContratoFraternaSerializer
     
     def list(self, request, *args, **kwargs):
-        user_session = request.user       
         try:
+           user_session = request.user       
            if user_session.is_staff:
                print("Esta entrando a listar cotizacion")
                contratos =  FraternaContratos.objects.all()
@@ -380,16 +409,19 @@ class Contratos_fraterna(viewsets.ModelViewSet):
            
            
         except Exception as e:
-            print(f"error{e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
     def create(self, request, *args, **kwargs):
-        user_session = request.user
-        print(user_session)
-        print("RD",request.data)
-        print("Request",request)
         try:
+            user_session = request.user
+            print(user_session)
+            print("RD",request.data)
+            print("Request",request)
             print("Llegando a create de contrato para fraterna")
+            
             fecha_actual = date.today()
             contrato_serializer = self.serializer_class(data = request.data) #Usa el serializer_class
             if contrato_serializer.is_valid():
@@ -412,8 +444,10 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             
         
         except Exception as e:
-            print(f"Error: {e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
     def update(self, request, *args, **kwargs):
         try:
@@ -446,7 +480,10 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 return Response({'msj': 'LLegaste al limite de tus modificaciones en el proceso'}, status=status.HTTP_205_RESET_CONTENT)
       
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
     def aprobar_contrato(self, request, *args, **kwargs):
         try:
@@ -463,6 +500,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             return Response({'Exito': 'Se cambio el estatus a aprobado'}, status= status.HTTP_200_OK)
         except Exception as e:
             print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
     def generar_pagare(self, request, *args, **kwargs):
@@ -525,71 +564,37 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     
         except Exception as e:
             print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
     def generar_poliza(self, request, *args, **kwargs):
         try:
+            print("Generar Poliza Fraterna")
             id_paq = request.data
-            print("el ID que llegas es: ",id_paq)
+            print("el id que llega", id_paq)
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)
-            meses={1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
-        
-            #estabelcemos la fecha de inicio 
-            fecha_inicio = info.datos_arrendamiento['fecha_inicio_contrato']
-            print("SOY EL FORMATO DE FECHA inicio",fecha_inicio)
-            fecha_inicio_datetime = datetime.strptime(fecha_inicio, '%Y-%m-%d')
-            dia = fecha_inicio_datetime.day
-            mes = fecha_inicio_datetime.month
-            mes_inicio = meses[mes]
-            anio = fecha_inicio_datetime.year
-            datos_inicio = {'dia':dia, 'anio':anio ,'mes':mes_inicio}
+            print()
             
-            #estabelcemos la fecha de fin
-            fecha_fin = info.datos_arrendamiento['fecha_fin_contrato']
-            fecha_fin_datetime = datetime.strptime(fecha_fin, '%Y-%m-%d')
-            dia_fin = fecha_fin_datetime.day
-            mes2 = fecha_fin_datetime.month
-            mes_fin = meses[mes2]
-            anio_fin = fecha_fin_datetime.year
-            datos_fin = {'dia':dia_fin, 'anio':anio_fin ,'mes':mes_fin}
+            #vamos a genenrar el numero de contrato
+            arrendatario = info.residente.nombre_arrendatario
+            primera_letra = arrendatario[0].upper()  # Obtiene la primera letra
+            ultima_letra = arrendatario[-1].upper()  # Obtiene la última letra
+
+            year = info.fecha_celebracion.strftime("%g")
+            month = info.fecha_celebracion.strftime("%m")
             
-            #estabelcemos la fecha de fin
-            fecha_firma = info.datos_arrendamiento['fecha_firma']
-            fecha_firma_datetime = datetime.strptime(fecha_firma, '%Y-%m-%d')
-            dia_firma = fecha_firma_datetime.day
-            mes3 = fecha_firma_datetime.month
-            mes_firma = meses[mes3]
-            anio_firma = fecha_firma_datetime.year
-            datos_firma = {'dia':dia_firma, 'anio':anio_firma ,'mes':mes_firma}
-                
-            datos = info.inmueble
-            print(datos.__dict__)
-            print(info.fiador.__dict__)
-            #obtenermos la renta para pasarla a letra
-            number = datos.renta
-            number = int(number)
-            text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-            text_representation = text_representation.capitalize()
-            #obtenermos el precio de la poliza para pasarla a letra
-            precio = info.cotizacion.monto
-            precio = int(precio)
-            print(precio)
-            precio_texto = num2words(precio, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-            precio_texto = precio_texto.capitalize()
+            nom_contrato = f"AFY{month}{year}CX51{info.id}CA{primera_letra}{ultima_letra}"  
+            print("Nombre del contrato", nom_contrato)     
+            #obtenemos renta y costo poliza para letra
+            renta = int(info.renta)
+            renta_texto = num2words(renta, lang='es').capitalize()
             
-            print("Tu Póliza es: ",info.cotizacion.tipo_poliza)
-            if info.cotizacion.tipo_poliza == "Plata":
-                template = 'home/poliza_plata.html'
-                
-            elif info.cotizacion.tipo_poliza == "Oro":
-                template = 'home/poliza_oro.html'
-                
-            elif info.cotizacion.tipo_poliza == "Platino":
-                template = 'home/poliza_platino.html'
-        
-            context = {'info': info, 'datos_inicio':datos_inicio, 'datos_fin':datos_fin,'datos_firma':datos_firma, 'text_representation':text_representation,'precio_texto':precio_texto}
-            html_string = render_to_string(template, context)
+       
+            context = {'info': info, 'renta_texto':renta_texto, 'nom_contrato':nom_contrato,}
+            template = 'home/poliza_fraterna.html'
+            html_string = render_to_string(template,context)
 
             # Genera el PDF utilizando weasyprint
             pdf_file = HTML(string=html_string).write_pdf()
@@ -598,10 +603,12 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
             response.write(pdf_file)
-
-            return response
+            print("TERMINANDO PROCESO CONTRATO")
+            return HttpResponse(response, content_type='application/pdf')
         except Exception as e:
             print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
     def generar_contrato(self, request, *args, **kwargs):
@@ -617,6 +624,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             #obtenemos renta y costo poliza para letra
             renta = int(info.renta)
             renta_texto = num2words(renta, lang='es').capitalize()
+            
             #obtener la tipologia
             # Definir las opciones y sus correspondientes valores para la variable "plano"
             opciones = {
@@ -628,15 +636,28 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/crew.png",
                 'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png"
             }
+            
+            inventario = {
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.jpg",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.jpg",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.jpg",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.jpg",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.jpg",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.jpg",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.jpg"
+            }
+            
             tipologia = info.tipologia
-            if tipologia in opciones:
+            if tipologia in opciones and tipologia in inventario:
                 plano = opciones[tipologia]
+                tabla_inventario = inventario[tipologia]
                 print(f"Tu Tipologia es: {tipologia}, URL: {plano}")
+                print(f"Tu Tipologia es: {tipologia}, Inventario: {tabla_inventario}")
+            
             #obtener la url de el plano que sube fraterna
             plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
-        
-
-            context = {'info': info, 'habitantes_texto':habitantes_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc}
+           
+            context = {'info': info, 'habitantes_texto':habitantes_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc, 'tabla_inventario':tabla_inventario}
             template = 'home/contrato_fraterna.html'
             html_string = render_to_string(template,context)
 
@@ -652,6 +673,75 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         
         except Exception as e:
             print(f"el error es: {e}")
-            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)    
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
+        
+    def generar_comodato(self, request, *args, **kwargs):
+        try:
+            print("Generar comodato Fraterna")
+            id_paq = request.data
+            print("el id que llega", id_paq)
+            info = self.queryset.filter(id = id_paq).first()
+            print(info.__dict__)       
+            #obtenermos la duracion para pasarla a letra
+            duracion_meses = info.duracion.split()
+            duracion_meses = int(duracion_meses[0])
+            duracion_texto = num2words(duracion_meses, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+            #obtenemos renta y costo poliza para letra
+            renta = int(info.renta)
+            renta_texto = num2words(renta, lang='es').capitalize()
+            
+            #obtener la tipologia
+            # Definir las opciones y sus correspondientes valores para la variable "plano"
+            opciones = {
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png"
+            }
+            
+            inventario = {
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.jpg",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.jpg",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.jpg",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.jpg",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.jpg",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.jpg",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.jpg"
+            }
+            
+            tipologia = info.tipologia
+            if tipologia in opciones and tipologia in inventario:
+                plano = opciones[tipologia]
+                tabla_inventario = inventario[tipologia]
+                print(f"Tu Tipologia es: {tipologia}, URL: {plano}")
+                print(f"Tu Tipologia es: {tipologia}, Inventario: {tabla_inventario}")
+            
+            #obtener la url de el plano que sube fraterna
+            plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
+           
+            context = {'info': info, 'duracion_meses':duracion_meses, 'duracion_texto':duracion_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc, 'tabla_inventario':tabla_inventario}
+            template = 'home/comodato_fraterna.html'
+            html_string = render_to_string(template,context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
+            response.write(pdf_file)
+            print("TERMINANDO PROCESO CONTRATO")
+            return HttpResponse(response, content_type='application/pdf')
+        
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
         
         
