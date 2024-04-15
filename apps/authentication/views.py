@@ -72,8 +72,6 @@ class Login(ObtainAuthToken):
                 arrendify_user = User2Serializer(user)
 
                 print("YO SOY USER",user)
-            
-
                 if created:
                      if inmobiliaria_user.data['rol'] == "Inmobiliaria" or inmobiliaria_user.data['rol'] == "Agente":
                         print("estoy entrando a inmo")
@@ -83,14 +81,14 @@ class Login(ObtainAuthToken):
                                       'message': 'Inicio de Sesion Existoso'
                                       },status=status.HTTP_201_CREATED)
                      elif arrendify_user.data['is_staff'] == True:
+                        print("SOY STAFF")
                         return Response({'token':token.key, 
                                       'user':arrendify_user.data,
                                       'type':'Token',
                                       'message': 'Inicio de Sesion Existoso'
                                       },status=status.HTTP_201_CREATED)
-                     
                      else:
-                        print("estoy entrando aqui")
+                        print("Soy Normalito")
                         return Response({'token':token.key, 
                                       'user':user_serilizer.data,
                                       'type':'Token',

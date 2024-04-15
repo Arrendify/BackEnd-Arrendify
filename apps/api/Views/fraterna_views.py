@@ -507,6 +507,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     def generar_pagare(self, request, *args, **kwargs):
         try:
             #activamos la libreri de locale para obtener el mes en español
+            print("Generar Pagare Fraterna")
             locale.setlocale(locale.LC_ALL,"es-ES")
             id_paq = request.data
             print("el id que llega", id_paq)
