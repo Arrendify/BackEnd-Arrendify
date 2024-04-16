@@ -11,6 +11,7 @@
 	<meta name="changed" content="2023-07-05T17:55:17"/>
 	<meta name="AppVersion" content="16.0300"/>
 	
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
 	<style type="text/css">
 
 	.contenedor-imagenes {
@@ -27,8 +28,8 @@
   }
 
   .fuente{
-	font-family: "Calibri"; 
-	font-size: 13.5px;
+	font-family: Calibri; 
+	font-size: 12.8px;
 	text-align: justify;
 	color: black;
   }
@@ -47,7 +48,7 @@
 			<td ><img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_2.png" style="width:300px; height:108px"></td>
 		</tr>
 		<tr>
-			<td height="21"  valign=middle><div class="fuente" style="font-size: 11px;"><b>Arrendify se compromete a que toda información recabada será de carácter confidencial y de no divulgación de acuerdo a los Artículos 15 y 16 de la Ley Federal 
+			<td height="21"  valign=middle><div class="fuente" style="font-size: 8px; font-family: 'New Times Roman'";><b>Arrendify se compromete a que toda información recabada será de carácter confidencial y de no divulgación de acuerdo a los Artículos 15 y 16 de la Ley Federal 
 				de Protección de Datos Personales en Posesión de Particulares</b></div></td>
 		</tr>
 	
@@ -419,43 +420,41 @@
 	{% comment %} FIRMAS {% endcomment %}
 	<tr>
 		<td style="height:63px" align="center" valign=middle></td>
-	</tr>
-	
-	<tr>
-		<td height="21" valign=middle><b><div style="text-align: center;"  class="fuente">_______________________________                                           _______________________________</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b><div style="text-align: center;" class="fuente">“EL CLIENTE”                                                                                          EL PRESTADOR</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b><div class="fuente">   “FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. de C.V.”.                                  "ARRENDIFY S.A.P.I. DE C.V."</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b><div class="fuente">                                           REPRESENTADA POR</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b><div style="text-align: center;" class="fuente">CARLOS MANUEL PADILLA SILVA.                                                   JONATHAN GUADARRAMA SALGADO</div></b></td>
-	</tr>
-	<tr>
-		<td style="height:63px" align="center" valign=middle></td>
-	</tr>
-
-	
-	<tr>
-		<td height="21"  valign=middle><b><div style="text-align:center" class="fuente">_______________________________</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b><div style="text-align:center" class="fuente">EL CLIENTE</div></b></td>
-
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b><div style="text-align:center" class="fuente">{{info.residente.nombre_arrendatario | upper}}.</div></b></td>
-	</tr>
-	
-	
-	
+	</tr>	
 </table>
+	<div class="row">
+		<div class="col fuente" style="text-align:center;">____________________________________</div>
+		<div class="col fuente" style="text-align:center;">____________________________________</div>
+	</div>
+	<div class="row">
+		<div class="col fuente" style="text-align:center;"><b>“EL CLIENTE”</b></div>
+		<div class="col fuente" style="text-align:center;"><b>EL PRESTADOR</b></div>	
+	</div>	
+	<div class="row">
+		<div class="col fuente" style="font-size:11px; text-align:center;">“FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. de C.V.”</div>
+		<div class="col fuente" style="font-size:11px; text-align:center;">"ARRENDIFY S.A.P.I. DE C.V."</div>
+	</div>	
+	<div class="row">
+		<div class="col fuente" style="font-size:11px; text-align:center;">REPRESENTADA POR</div>
+		<div class="col fuente" style="font-size:11px; text-align:center;"></div>
+	</div>
 
+	<div class="row">
+		<div class="col fuente" style="font-size:11px; text-align:center;">Carlos Manuel Padilla Silva</div>
+		<div class="col fuente" style="font-size:11px; text-align:center;">JONATHAN GUADARRAMA SALGADO</div>
+	</div>
+
+	<br><br><br><br>
+
+	<div class="row">
+		<div class="col fuente" style="text-align:center;">____________________________________</div>
+	</div>
+	<div class="row">
+		<div class="col fuente" style="text-align:center;"><b>EL CLIENTE</b></div>
+	</div>	
+	<div class="row">
+		<div class="col fuente" style="font-size:11px; text-align:center;">{{info.residente.nombre_arrendatario}}</div>
+	</div>	
 
 <br clear=left>
 <!-- ************************************************************************** -->

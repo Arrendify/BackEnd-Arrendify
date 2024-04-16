@@ -19,39 +19,39 @@
 			height:12; 
 			color:black; 
 			font-weight: bold; 
-			font-family: "Segoe UI", serif;
-			font-size: 15px;
+			font-family: Arial;
+			font-size: 13.95px;
 		  }
 		  .celdas{
-			font-family: "Segoe UI", serif; 
-			font-size:13px;
+			font-family: Arial; 
+			font-size:12.95px;
 			margin-left: 0.07in;
 		  }
 		  .fuente{
-			font-family: "Segoe UI", serif; 
-			font-size:14px;
+			font-family: Arial; 
+			font-size: 13.95px;
 			text-align:justify;
 		  }
+
 		  @page {
 			size: A4;
 			margin: 0.1cm 1 1 0.1cm
 		}
 
-		/* Estilo para el contenedor principal de la tabla*/
+		/* Estilo para el inventario*/
 		.container {
 		  position: relative;
-		  width: 100%; /* Ajusta el ancho según tus necesidades */
-		  max-width: 600px; /* Ancho máximo de la imagen */
+		  width: 100%; 
+		  max-width: 600px; 
 		}
 		
-		/* Estilo para el texto encima de la imagen */
 		.text {
 		  position: absolute;
 		  top: 53px;
 		  left: 173px;
 		  transform: translate(-50%, -50%);
 		  color: black;
-		  font-family: "Segoe UI", serif; 
+		  font-family: Arial; 
 		  font-size:12px;
 		  text-align:justify;
 		}
@@ -82,13 +82,22 @@
 		</td>
 	</tr>
 	<tr>
-		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">RESIDENTE- OBLIGADO SOLIDARIO (PERSONAS QUE HABITARAN EN LA PROPIEDAD ARRENDADA)</div></td>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">RESIDENTE- OBLIGADO SOLIDARIO (PERSONA QUE HABITARAN EN LA PROPIEDAD ARRENDADA)</div></td>
 	</tr>
+	{% if info.residente.aval == "Si" %}
 	<tr>
 		<td style="border-bottom: 1px solid #000000;border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
 			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_residente}}</b> / Nacionalidad: {{info.residente.nacionalidad_residente}} / Identificación Oficial: {{info.residente.identificacion_residente}} {{info.residente.no_ide_residente}}<div>
 		</td>
 	</tr>
+	{% else %}
+	<tr>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6>
+			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_arrendatario}}</b> / Nacionalidad: {{info.residente.nacionalidad_arrendatario}} / RFC: {{info.residente.rfc_arrendatario}} / Identificación Oficial: {{info.residente.identificacion_arrendatario}} {{info.residente.no_ide_arrendatario}}<div>
+		</td>
+	</tr>
+	{% endif %}
+
 	<tr>
 		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">NÚMERO MÁXIMO DE PERSONAS QUE PODRÁN HABITAR LA PROPIEDAD ARRENDADA:</div></td>
 	</tr>
@@ -98,7 +107,6 @@
 	<tr>
 		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">MASCOTAS: NO APLICA</div></td>
 	</tr>
-	{% comment %} datos de la propiedad {% endcomment %}
 	<tr>
 		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">PROPIEDAD</div></td>
 	</tr>
@@ -1290,7 +1298,8 @@
 
 </table>
 <!--Fin de la segunda tabla-->
-
+<br/>
+<br/>
 <!--ANEXOS TABLAS-->
 <!--Inicio de la PRIMERA TABLA ANEXO 1 Header-->
 <table align="left" cellspacing="0" border="0">
@@ -1501,35 +1510,40 @@
 	<tr>
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
-	<tr>
-		<td height="21"  valign=middle><b><div class="fuente">                          “EL ARRENDADOR”                                                 “LA ARRENDATARIA”</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                         Fraterna Administradora de Proyectos,</div></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                                              S.A. DE C.V.</div></td>
-	</tr>
-	<tr>
-		<td style="height:63px" align="center" valign=middle></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b>             _______________________________                             _______________________________</b></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                              Representada en este acto                                                                            {{info.residente.nombre_arrendatario}}</div></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                          por medio de su apoderado legal:</div></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                              Carlos Manuel Padilla Silva</div></td>
-	</tr>
-	<tr>
-		<td style="height:63px" align="center" valign=middle></td>
-	</tr>
-	
 </table>
+
+<div class="row">
+	<div class="col fuente" style="text-align:center;"><b>“EL ARRENDADOR”</b></div>
+	<div class="col fuente" style="text-align:center;"><b>“LA ARRENDATARIA”</b></div>	
+</div>	
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">Fraterna Administradora de Proyectos,</div>
+	<div class="col"></div>
+</div>	
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">S.A. DE C.V.</div>
+	<div class="col"></div>
+</div>
+
+<br><br><br><br><br><br>
+
+<div class="row">
+	<div class="col fuente" style="text-align:center;">____________________________________</div>
+	<div class="col fuente" style="text-align:center;">____________________________________</div>
+</div>
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;"> Representada en este acto</div>
+	<div class="col fuente" style="font-size:11px; text-align:center;">{{info.residente.nombre_arrendatario}}</div>
+</div>
+
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">por medio de su apoderado legal:</div>
+	<div class="col"></div>
+</div>
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">  Carlos Manuel Padilla Silva</div>
+	<div class="col"></div>
+</div>
 <!--Fin de la sexta tabla-->
 
 

@@ -183,6 +183,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
         
     def destroy (self,request, *args, **kwargs):
         try:
+            print("LLegando a eliminar residente")
             Residentes = self.get_object()
             if Residentes:
                 Residentes.delete()
@@ -484,6 +485,16 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def destroy(self,request, *args, **kwargs):
+        try:
+            residente = self.get_object()
+            if residente:
+                residente.delete()
+                return Response({'message': 'residente eliminado'}, status=204)
+            return Response({'message': 'Error al eliminar'}, status=400)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def aprobar_contrato(self, request, *args, **kwargs):
         try:

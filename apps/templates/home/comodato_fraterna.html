@@ -19,16 +19,16 @@
 			height:12; 
 			color:black; 
 			font-weight: bold; 
-			font-family: Segoe UI, serif;
+			font-family: Arial;
 			font-size: 15px;
 		  }
 		  .celdas{
-			font-family: Segoe UI, serif; 
+			font-family: Arial; 
 			font-size:12.5px;
 			margin-left: 0.07in;
 		  }
 		  .fuente{
-			font-family: Segoe UI, serif; 
+			font-family: Arial; 
 			font-size:12.5px;
 			text-align:justify;
 			color:black;
@@ -52,7 +52,7 @@
 		  left: 175px;
 		  transform: translate(-50%, -50%);
 		  color: black;
-		  font-family: Segoe UI, serif; 
+		  font-family: Arial; 
 		  font-size:12px;
 		  text-align:justify;
 		}
@@ -64,7 +64,7 @@
 			transform: translate(-50%, -50%);
 			color: white;
 			background:white;
-			font-family: Segoe UI, serif; 
+			font-family: Arial; 
 			font-size:12px;
 			text-align:justify;
 		  }
@@ -267,29 +267,32 @@
 	<tr>
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
-	<tr>
-		<td height="21"  valign=middle><b><div class="fuente">                          “EL COMODANTE”                                                                  “EL COMODATARIO”</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                  <b>Patrimonio Torre Verde, S.A. de C.V. </b></div></td>
-	</tr>
-	
-	<tr>
-		<td style="height:63px" align="center" valign=middle></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b>   _________________________________________                   _________________________________________</b></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                              Representada en este acto                                                                        Por sus propios derechos.</div></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><div class="fuente" style="font-size:11px;">                            <b>Carlos Manuel Padilla Silva </b>                                                                {{info.residente.nombre_arrendatario | upper}}</div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
 </table>
+	<div class="row">
+		<div class="col fuente" style="text-align:center;"><b>“EL COMODANTE”</b></div>
+		<div class="col fuente" style="text-align:center;"><b>“EL COMODATARIO”</b></div>	
+	</div>	
+	<div class="row">
+		<div class="col fuente" style="font-size:11px; text-align:center;"><b>Patrimonio Torre Verde, S.A. de C.V.</b></div>
+		<div class="col"></div>
+	</div>	
+
+	<br><br><br><br>
+
+	<div class="row">
+		<div class="col fuente" style="text-align:center;">____________________________________</div>
+		<div class="col fuente" style="text-align:center;">____________________________________</div>
+	</div>
+	<div class="row">
+		<div class="col fuente" style="font-size:11px; text-align:center;">Representada en este acto</div>
+		<div class="col fuente" style="font-size:11px; text-align:center;">Por sus propios derechos</div>
+	</div>
+	
+	<div class="row">
+		<div class="col fuente" style="font-size:11px; text-align:center;"><b>Carlos Manuel Padilla Silva</b></div>
+		<div class="col fuente" style="font-size:11px; text-align:center;">{{info.residente.nombre_arrendatario}}</div>
+	</div>
+
 <!--Inicio de la PRIMERA TABLA ANEXO 1 Header-->
 <table align="left" cellspacing="0" border="0">
 	<colgroup width="753"></colgroup>
