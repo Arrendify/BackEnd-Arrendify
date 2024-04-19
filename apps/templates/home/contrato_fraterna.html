@@ -274,14 +274,26 @@
 			<div>
 		</td>
 	</tr>
+	{% if info.residente.aval == "Si" %}
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
 			<div class="celdas">Residente: <b>{{info.residente.nombre_residente}}</b><br/>
 				El Arrendatario señala expresa e irrevocablemente como su domicilio el de la Propiedad Arrendada, siendo esta: <b>{{info.residente.direccion_residente}}</b><br/> 
 				Correo electrónico: {{info.residente.correo_residente}}
-				<div>
+			<div>
 		</td>
 	</tr>
+	{% else %}
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">Del Arrendatario: <b>{{info.residente.nombre_arrendatario}}</b><br/>
+				El Arrendatario señala expresa e irrevocablemente como su domicilio el de la Propiedad Arrendada, siendo esta: <b>{{info.residente.direccion_arrendatario}}</b><br/> 
+				Correo electrónico: {{info.residente.correo_arrendatario}} 
+			<div>
+		</td>
+	</tr>
+	{% endif %}
+	
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
 			<div class="celdas">Del Arrendador:<br/>
@@ -1266,7 +1278,7 @@
 		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">Por sus propios derechos.</div></b></td>
 	</tr>
 
-
+	{% if info.residente.aval == "Si" and info.residente.edad >= "18" %}
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
@@ -1296,6 +1308,23 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 
+	
+	{% else %}
+	<tr>
+		<td height="21" valign=middle>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+		</td>
+	</tr>
+	
+	{% endif %}
+	
 </table>
 <!--Fin de la segunda tabla-->
 <br/>

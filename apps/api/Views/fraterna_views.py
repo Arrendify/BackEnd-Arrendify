@@ -31,7 +31,11 @@ import locale
 import logging
 import sys
 logger = logging.getLogger(__name__)
+#variables para el correo
 
+from ..variables import aprobado_fraterna
+#enviar por correo
+from django.core.files.base import ContentFile
 
 
 # ----------------------------------Metodos Extras----------------------------------------------- #
@@ -191,6 +195,99 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Error al eliminar'}, status=400)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+  
+    def mandar_aprobado(self, request, *args, **kwargs):  
+        try:
+            print("Aprobar al residente")
+            info = request.data
+            print("el id que llega", info )
+            print("accediendo a informacion", info["estado_civil"])
+            today = date.today().strftime('%d/%m/%Y')
+            ingreso = 8000
+            ingreso_texto = num2words(ingreso, lang='es').capitalize()
+            context = {'info': info, "fecha_consulta":today, 'ingreso':ingreso, 'ingreso_texto':ingreso_texto}
+        
+            # Renderiza el template HTML  
+            template = 'home/aprobado_fraterna.html'
+    
+            html_string = render_to_string(template, context)# lo comvertimos a string
+            pdf_file = HTML(string=html_string).write_pdf(target=None) # Genera el PDF utilizando weasyprint para descargar del usuario
+            print("pdf realizado")
+            
+            # archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+            
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+            response.write(pdf_file)
+
+            return HttpResponse(response, content_type='application/pdf')
+        
+            # print("antes de enviar_archivo",context)
+            # self.enviar_archivo(archivo, context["info"])
+            # print("PDF ENVIADO")
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+                 
+        
+    def enviar_archivo(self, archivo, info, comentario="nada"):
+        print("soy pdf content",archivo)
+        print("soy comentario",comentario)
+        print("soy info de investigacion",info.__dict__)
+        
+        # Configura los detalles del correo electrónico
+        try:
+            remitente = 'notificaciones_arrendify@outlook.com'
+            #destinatario = info.email
+            destinatario = 'jsepulvedaarrendify@gmail.com'
+            #destinatario = 'juridico.arrendify1@gmail.com'
+            
+            
+            asunto = f"Resultado Investigación Prospecto {info.nombre}"
+            
+            # Crea un objeto MIMEMultipart para el correo electrónico
+            msg = MIMEMultipart()
+            msg['From'] = remitente
+            msg['To'] = destinatario
+            msg['Subject'] = asunto
+            print("paso objeto mime")
+           
+            if hasattr(info, 'fiador'):
+                print("SOY info.fiador",info.fiador)
+            
+            # Estilo del mensaje
+            #variable resultado_html_fraterna
+            pdf_html = aprobado_fraterna(info)
+          
+           
+          
+            # Adjuntar el contenido HTML al mensaje
+            msg.attach(MIMEText(pdf_html, 'html'))
+            print("pase el msg attach 1")
+            # Adjunta el PDF al correo electrónico
+            pdf_part = MIMEBase('application', 'octet-stream')
+            pdf_part.set_payload(archivo.read())  # Lee los bytes del archivo
+            encoders.encode_base64(pdf_part)
+            pdf_part.add_header('Content-Disposition', 'attachment', filename='Resultado_investigación.pdf')
+            msg.attach(pdf_part)
+            print("pase el msg attach 2")
+            
+            # Establece la conexión SMTP y envía el correo electrónico
+            smtp_server = 'smtp.office365.com'
+            smtp_port = 587
+            smtp_username = config('smtp_u')
+            smtp_password = config('smtp_pw')
+            with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
+                server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
+                server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
+                server.sendmail(remitente, destinatario, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
+            return Response({'message': 'Correo electrónico enviado correctamente.'})
+        except SMTPException as e:
+            print("Error al enviar el correo electrónico:", str(e))
+            return Response({'message': 'Error al enviar el correo electrónico.'})
 
 class DocumentosRes(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]

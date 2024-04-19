@@ -106,10 +106,10 @@ MIDDLEWARE = [
 CORS_ORIGIN_WHITELIST = (
     'https://arrendify.app',
     'http://192.168.0.222:8000',
-    'http://192.168.2.24:8080',
+    'http://192.168.1.187:8080',
     'http://192.168.3.2:8001',
     'http://192.168.3.2:8000',
-    'http://192.168.1.188:8000',
+    'http://192.168.1.187:8000',
     'http://localhost',
 )
 # CORS_ORIGIN_ALLOW_ALL = True

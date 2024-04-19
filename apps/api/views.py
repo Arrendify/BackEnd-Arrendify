@@ -1321,8 +1321,8 @@ class investigaciones(viewsets.ModelViewSet):
         # Configura los detalles del correo electrónico
         try:
             remitente = 'notificaciones_arrendify@outlook.com'
-            #destinatario = info.email
-            destinatario = 'jsepulvedaarrendify@gmail.com'
+            destinatario = info.email
+            #destinatario = 'jsepulvedaarrendify@gmail.com'
             #destinatario = 'juridico.arrendify1@gmail.com'
             
             
@@ -2106,9 +2106,9 @@ class RecuperarPassword(viewsets.ViewSet):
             token.save()
             
             # // switch front
-            server = "http://192.168.2.24:8000"
+            #server = "'http://192.168.1.187:8000'"
             #server = "http://192.168.3.2:8000"
-            #server = "https://arrendify.app"
+            server = "https://arrendify.app"
             
             #variable
             html = correo_pas(server, token)
