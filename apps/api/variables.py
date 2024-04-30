@@ -587,8 +587,9 @@ def codigo_inmobiliaria(codigo):
   return correo_code_inmobiliaria
 
 def aprobado_fraterna(info):
-    
+    arrendatario = info['nombre_arrendatario']
     aprobado_fraterna_html = (
+    
                     """
                <html>
                 <head>
@@ -629,20 +630,23 @@ def aprobado_fraterna(info):
                    <img src="https://arrendify.com/wp-content/uploads/2021/02/logo-arrendafy.png" alt="logo_arrendify" align="right" style="width: 200px; height: auto;">
                    <br>
                    <br>
-                    """
+          
                      
-                    f'<h1>Estimado/a {info.nombre_arrendatario} </h1>' 
+                    <h1>Estimado Joaquin Andres Casados Diaz.</h1>
+                    
+                   
+                    <p>Esperamos se encuentre bien, el motivo de este correo es para brindarle información respecto al proceso de investigación al cual se ha sometido a INQUILINO a fin de verificar su capacidad y/o solvencia económica y moral, lo anterior con la finalidad de llevar a cabo un arrendamiento exitoso.</p>
                     
                     """
-                    <p>Espero que este mensaje te encuentre bien. Adjunto a este correo, encontrarás todos los detalles y la información relevante relacionada con el resultado de la investigación que has estado esperando. </p>
-                    <p>Queremos informarte que hemos realizado una evaluación exhaustiva y hemos tenido en cuenta diversos factores para proporcionarte un resultado preciso y justo.</p>
-                    <p>Por lo cual le informo que su resultado fue <b>POSITIVO.</b></p>                    
-                    <p>Valoramos sinceramente tu participación en este proceso y nos complace que formes parte de este importante proyecto. Tu elección de colaborar con nosotros ha sido fundamental para el éxito de esta investigación, y te agradecemos sinceramente por su confianza.</p>
+                    
+                    f'<p>Derivado a lo anterior, nos complace informarle que el prospecto {arrendatario} ha cumplido con los requisitos solicitados por <b>ARRENDIFY</b>, declarando la presente investigación como <b>POSITIVO</b>, de acuerdo a lo establecido en EL RESULTADO DE INVESTIGACIÓN, documento en donde podrá conocer más a detalle sobre el prospecto.</p>'
+                    
+                    """
+                                     
+                    <p>Agradecemos su preferencia en cuanto a la contratación de nuestros servicios, esperando seguir trabajando en este proyecto durante un largo periodo de tiempo, deseando poder cumplir con las expectativas planteadas.</p>
                    
                  
-                    <p>Si tienes alguna pregunta o necesitas más información, no dudes en ponerte en contacto con nosotros. Estamos aquí para apoyarte en todo lo que necesites.</p>
-                    <br>
-                    <p>Nuevamente, muchas gracias por elegirnos y por tu contribución invaluable a este proyecto.</p>
+                    <p>Sin más por el momento, quedamos en espera de cualquier duda o aclaración que requiera de nuestra parte, le dejamos nuestros números de contacto al pie de este correo.</p>
                     <br>
                     <hr style="color: #0056b2;" />
                     <table>
@@ -733,4 +737,4 @@ def aprobado_fraterna(info):
                 </body>
                 </html>
                  """)
-    return contenido_html_resultado
+    return aprobado_fraterna_html

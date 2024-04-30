@@ -35,6 +35,7 @@ urlpatterns = [
     path('contrato_pdf/', views.contrato_pdf, name='contrato_pdf'),
     path('contrato_fraterna_pdf/', views.contrato_fraterna_pdf, name='contrato_fraterna_pdf'),
     path('aprobado_pdf/', views.generar_pdf_aprobado, name='generar_pdf_aprobado'),
+    path('nuevo_resultado_pdf/', views.nuevo_resultado, name='nuevo_resultado'),
  
     
     # #Rutas Arrendador

@@ -35,7 +35,14 @@ logger = logging.getLogger(__name__)
 
 from ..variables import aprobado_fraterna
 #enviar por correo
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+from smtplib import SMTPException
 from django.core.files.base import ContentFile
+from decouple import config
 
 
 # ----------------------------------Metodos Extras----------------------------------------------- #
@@ -203,7 +210,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             print("el id que llega", info )
             print("accediendo a informacion", info["estado_civil"])
             today = date.today().strftime('%d/%m/%Y')
-            ingreso = 8000
+            ingreso = int(info["ingreso"])
             ingreso_texto = num2words(ingreso, lang='es').capitalize()
             context = {'info': info, "fecha_consulta":today, 'ingreso':ingreso, 'ingreso_texto':ingreso_texto}
         
@@ -214,55 +221,48 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             pdf_file = HTML(string=html_string).write_pdf(target=None) # Genera el PDF utilizando weasyprint para descargar del usuario
             print("pdf realizado")
             
-            # archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
-            
-            # Devuelve el PDF como respuesta
-            response = HttpResponse(content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
-            response.write(pdf_file)
-
-            return HttpResponse(response, content_type='application/pdf')
+            archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+            print("antes de enviar_archivo",context)
+            self.enviar_archivo(archivo, info)
+            print("PDF ENVIADO")
+            return Response({'Mensaje': 'Todo Bien'},status= status.HTTP_200_OK)
         
-            # print("antes de enviar_archivo",context)
-            # self.enviar_archivo(archivo, context["info"])
-            # print("PDF ENVIADO")
+           
         except Exception as e:
             print(f"el error es: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
-                 
-        
+                  
     def enviar_archivo(self, archivo, info, comentario="nada"):
+        print("")
+        print("entrando a enviar archivo")
         print("soy pdf content",archivo)
         print("soy comentario",comentario)
-        print("soy info de investigacion",info.__dict__)
-        
+        arrendatario = info["nombre_arrendatario"]
         # Configura los detalles del correo electrónico
         try:
             remitente = 'notificaciones_arrendify@outlook.com'
-            #destinatario = info.email
             destinatario = 'jsepulvedaarrendify@gmail.com'
-            #destinatario = 'juridico.arrendify1@gmail.com'
+            #destinatario = 'jcasados@fraterna.mx'
+            destinatario2 = 'juridico.arrendify1@gmail.com'
+            #destinatario2 = 'smosqueda@fraterna.mx'
             
             
-            asunto = f"Resultado Investigación Prospecto {info.nombre}"
+            asunto = f"Resultado Investigación Arrendatario {arrendatario}"
             
+            destinatarios = [destinatario,destinatario2]
             # Crea un objeto MIMEMultipart para el correo electrónico
             msg = MIMEMultipart()
             msg['From'] = remitente
             msg['To'] = destinatario
+            msg['Cc'] = destinatario2
             msg['Subject'] = asunto
             print("paso objeto mime")
            
-            if hasattr(info, 'fiador'):
-                print("SOY info.fiador",info.fiador)
-            
             # Estilo del mensaje
             #variable resultado_html_fraterna
             pdf_html = aprobado_fraterna(info)
-          
-           
           
             # Adjuntar el contenido HTML al mensaje
             msg.attach(MIMEText(pdf_html, 'html'))
@@ -283,7 +283,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
-                server.sendmail(remitente, destinatario, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
+                server.sendmail(remitente, destinatarios, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
             return Response({'message': 'Correo electrónico enviado correctamente.'})
         except SMTPException as e:
             print("Error al enviar el correo electrónico:", str(e))
@@ -683,7 +683,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print("el id que llega", id_paq)
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)
-            print()
             
             #vamos a genenrar el numero de contrato
             arrendatario = info.residente.nombre_arrendatario
@@ -746,13 +745,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             }
             
             inventario = {
-                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.jpg",
-                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.jpg",
-                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.jpg",
-                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.jpg",
-                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.jpg",
-                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.jpg",
-                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.jpg"
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.png"
             }
             
             tipologia = info.tipologia
@@ -813,13 +812,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             }
             
             inventario = {
-                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.jpg",
-                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.jpg",
-                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.jpg",
-                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.jpg",
-                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.jpg",
-                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.jpg",
-                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.jpg"
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.png"
             }
             
             tipologia = info.tipologia

@@ -1,0 +1,741 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Resultado de investigacion</title>
+    <meta name="description" content="Report example">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous"> 
+    
+  </head>
+  <style>    
+    @page {
+      @top-left {
+        background: #231942;
+        color: white;
+        content: counter(page);
+        height: 1cm;
+        text-align: center;
+        width: 1cm;
+      }
+      @top-center {
+        background: #231942;
+        content: '';
+        display: block;
+        height: .05cm;
+        opacity: .5;
+        width: 100%;
+      }
+      @top-right {
+        content: string(heading);
+        font-size: 9pt;
+        height: 1cm;
+        vertical-align: middle;
+        width: 100%;
+      }
+    }
+
+    @page :blank {
+      @top-left { background: none; content: 'none' }
+      @top-center { content: none }
+      @top-right { content: none }
+    }
+    @page no-chapter {
+      @top-left { background: none; content: 'none' }
+      @top-center { content: none }
+      @top-right { content: none }
+    }
+
+    @page :first {
+      margin:0;
+    }
+
+    @page chapter {
+      background: #231942;
+      margin: 0;
+      @top-left { content: none }
+      @top-center { content: none }
+      @top-right { content: none }
+    }
+
+    @page buro {
+      @bottom-left {font-size: 8px; color:gray; content: "1. Conditions Apply: Area of Service is Canada. \A 2.-Conditions Apply: Area of Service is Canada." }
+      white-space: pre-wrap;
+    }
+
+    body {
+      color: black;
+      font-family: Arial; 
+			font-size: 12.95px;
+      font-weight: 300;
+      line-height: 1.5;
+    }
+    
+    h1 {
+      color: white;
+      font-size: 38pt;
+      margin: 5cm 2cm 0 2cm;
+      page: no-chapter;
+      width: 100%;
+    }
+    h2, h3, h4 {
+      color: black;
+      font-weight: 400;
+    }
+    h2 {
+      break-before: always;
+      font-size: 28pt;
+      string-set: heading content();
+    }
+    h3 {
+      font-weight: 300;
+      font-size: 15pt;
+    }
+    h4 {
+      font-size: 13pt;
+    }
+
+    {% comment %} Negritas hecho por mis {% endcomment %}
+    b{
+      font-weight: 700;
+    }
+    
+    #cover {
+      align-content: space-between;
+      display: flex;
+      flex-wrap: wrap;
+      height: 297mm;
+    }
+    #cover address {
+      background: #231942;
+      flex: 1 50%;
+      margin: 0 -2cm;
+      padding: 1cm 0;
+      white-space: pre-wrap;
+    }
+    #cover address:first-of-type {
+      padding-left: 3cm;
+    }
+
+    {% comment %} tabla de contenidos {% endcomment %}
+    #contents {
+      break-before: right;
+      break-after: left;
+      page: no-chapter;
+    }
+    #contents h2 {
+      font-size: 20pt;
+      font-weight: 400;
+      margin-bottom: 3cm;
+    }
+    #contents h3 {
+      font-weight: 500;
+      margin: 3em 0 1em;
+    }
+    #contents h3::before {
+      background: #231942;
+      content: '';
+      display: block;
+      height: .08cm;
+      margin-bottom: .25cm;
+      width: 2cm;
+    }
+    #contents ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    #contents ul li {
+      border-top: .25pt solid #c1c1c1;
+      margin: .25cm 0;
+      padding-top: .25cm;
+    }
+    #contents ul li::before {
+      color: #231942;
+      content: '• ';
+      font-size: 40pt;
+      line-height: 16pt;
+      vertical-align: bottom;
+    }
+    #contents ul li a {
+      color: inherit;
+      text-decoration-line: inherit;
+    }
+    #contents ul li a::before {
+      content: target-text(attr(href));
+    }
+    #contents ul li a::after {
+      color: #231942;
+      content: target-counter(attr(href), page);
+      float: right;
+    }
+    
+    {% comment %} hoja 4 info de arrendarios{% endcomment %}
+    #columns section {
+      columns: 2;
+      column-gap: 1cm;
+      padding-top: 1cm;
+    }
+    #columns section p {
+      text-align: justify;
+    }
+    #columns section p:first-of-type {
+      font-weight: 700;
+    }
+
+    
+    #skills h3 {
+      background: #231942;
+      margin: 0 -3cm 1cm;
+      padding: 1cm 1cm 1cm 3cm;
+      width: 21cm;
+    }
+    #skills section {
+      padding: .5cm 0;
+    }
+    #skills section#table-content::before {
+      background: url(https://cdn-icons-png.flaticon.com/512/1827/1827235.png) no-repeat center #5b2992;
+      background-size: 50%;
+      content: '';
+      display: inline-block;
+      float: left;
+      height: 2cm;
+      margin-right: .5cm;
+      vertical-align: middle;
+      width: 2cm;
+    }
+    #skills section#heading::before {
+      background: url(https://cdn-icons-png.flaticon.com/512/3399/3399316.png) no-repeat center #231942;
+      background-size: 50%;
+      content: '';
+      display: inline-block;
+      float: left;
+      height: 2cm;
+      margin-right: .5cm;
+      vertical-align: middle;
+      width: 2cm;
+    }
+    #skills section#multi-columns::before {
+      background: url(https://png.pngtree.com/png-clipart/20230819/original/pngtree-credit-money-bank-icon-picture-image_8064496.png) no-repeat center #231942;
+      background-size: 50%;
+      content: '';
+      display: inline-block;
+      float: left;
+      height: 2cm;
+      margin-right: .5cm;
+      vertical-align: middle;
+      width: 2cm;
+    }
+    #skills section#internal-links::before {
+      background: url(https://st2.depositphotos.com/11574170/44749/v/450/depositphotos_447497642-stock-illustration-bank-icon-website-design-desktop.jpg) no-repeat center #231942;
+      background-size: 50%;
+      content: '';
+      display: inline-block;
+      float: left;
+      height: 2cm;
+      margin-right: .5cm;
+      vertical-align: middle;
+      width: 2cm;
+    }
+    #skills section#style::before {
+      background: url(https://c1.klipartz.com/pngpicture/635/120/sticker-png-online-banking-icon-bank-icon-digital-banking-icon-line-art-house-sign-signage-symbol.png) no-repeat center #231942;
+      background-size: 50%;
+      content: '';
+      display: inline-block;
+      float: left;
+      height: 2cm;
+      margin-right: .5cm;
+      vertical-align: middle;
+      width: 2cm;
+    }
+    #skills section h4 {
+      margin: 0;
+    }
+    #skills section p {
+      margin-top: 0;
+    }
+    
+    #offers {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      page: buro;
+    }
+
+    #offers h2, #offers h3 {
+      width: 100%;
+    }
+    #offers section {
+      width: 30%;
+    }
+    #offers section h4 {
+      margin-bottom: 0;
+    }
+    #offers section ul {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+    }
+    #offers section ul li:not(:last-of-type) {
+      margin: .5cm 0;
+    }
+    #offers section p {
+      background: #231942;
+      display: block;
+      font-size: 15pt;
+      font-weight: 700;
+      margin-bottom: 0;
+      padding: .25cm 0;
+      text-align: center;
+    }
+    
+    #chapter {
+      align-items: center;
+      display: flex;
+      height: 297mm;
+      justify-content: center;
+      page: chapter;
+    }
+    
+    #typography section {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 1cm 0;
+    }
+    #typography section h4 {
+      border-top: 1pt solid;
+      flex: 1 25%;
+      margin: 0;
+    }
+    #typography section h4 + * {
+      flex: 1 75%;
+      margin: 0;
+      padding-left: .5cm;
+    }
+    #typography section p {
+      text-align: justify;
+    }
+    #typography section ul {
+      line-height: 2;
+      list-style: none;
+    }
+    #typography section#small-caps p {
+      font-variant: small-caps;
+    }
+    #typography section#ligatures dl {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    #typography section#ligatures dl dt {
+      font-weight: 400;
+      width: 30%;
+    }
+    #typography section#ligatures dl dd {
+      flex: 1 70%;
+      margin: 0;
+      padding: 0;
+    }
+    #typography section#ligatures .none {
+      font-variant-ligatures: none;
+    }
+    #typography section#ligatures .common {
+      font-variant-ligatures: common-ligatures;
+    }
+    #typography section#ligatures .discretionary {
+      font-variant-ligatures: discretionary-ligatures;
+    }
+    #typography section#ligatures .contextual {
+      font-variant-ligatures: contextual;
+    }
+    #typography section#numbers dl {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    #typography section#numbers dl dt {
+      font-weight: 400;
+      width: 30%;
+    }
+    #typography section#numbers dl dd {
+      flex: 1 70%;
+      margin: 0;
+      padding: 0;
+    }
+    #typography section#numbers #fractions {
+      font-variant-numeric: diagonal-fractions;
+    }
+    #typography section#numbers #ordinals {
+      font-variant-numeric: ordinal;
+    }
+    #typography section#numbers #slashed {
+      font-variant-numeric: slashed-zero;
+    }
+    #typography section#numbers #super {
+      font-variant-position: super;
+    }
+    #typography section#numbers #sub {
+      font-variant-position: sub;
+    }
+    #typography section#figures dl {
+      columns: 4;
+    }
+    #typography section#figures dl dt {
+      font-weight: 400;
+    }
+    #typography section#figures dl dd {
+      display: flex;
+      margin: 0;
+      padding: 0;
+    }
+    #typography section#figures dl dd ul {
+      padding: 0 1em 0 0;
+    }
+    #typography section#figures #oldstyle {
+      font-variant-numeric: oldstyle-nums;
+    }
+    #typography section#figures #tabular {
+      font-variant-numeric: tabular-nums;
+    }
+    #typography section#figures #old-tabular {
+      font-variant-numeric: oldstyle-nums tabular-nums;
+    }
+
+    .contenedor_p1 {
+      position: relative;
+      width: 100%; /* Ajusta el ancho según tus necesidades */
+      max-width: 793px; /* Ancho máximo de la imagen */
+      background-color: red;
+      margin:0
+    }
+
+    .hr{
+      margin: 1rem 0; 
+      color: inherit; 
+      border: 0; 
+      border-top: #231842 solid; 
+      opacity: 0.25;
+      background: #231842;
+    }
+
+    .input-chido {
+    display: block;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    height:30px; 
+    width:180px; 
+    background-color: #f3f2f6; 
+    color:black;
+    font-weight:700;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+}
+  </style>
+	
+  
+  <body>
+    <div id="contenedor_p1">
+      <img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/portada.jpg" style="width:794px">
+    </div>
+
+  
+
+    <div id="tercera-pagina">
+      <h2 id="columns-title" class="mt-3">Información del prospecto</h2>
+      <hr class="hr" > 
+      
+      <div class="row">
+        <div class="col" style="text-align:left">
+          <h3>Datos Generales</h2> 
+        </div>
+        <div class="col" style="text-align:right; margin-top: 4px;">
+          <label style="color:#8082a0;"><b style="font-weight:900;">Fecha de consulta: {asdas}</b></label>
+        </div>
+      </div>
+      
+      <hr class="hr" style="margin-top: 7px;">
+      <div class="pb-2 mb-2" style="font-size: 10px; margin-top:-12px;">
+        Tenga en cuenta que la información que se muestra en esta página, debajo de este punto, se basa en datos autoinformados del formulario de solicitud del prospecto.
+      </div>
+      
+      {% comment %} Informacion Personal del prospecto {% endcomment %}
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Nombre:</b></label>
+            <input class="input-chido" type="text" value="Andrea">
+        </div>
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Apellido Paterno:</b></label>
+            <input class="input-chido" type="text" value="Perez">
+        </div>
+        <div class="col">
+          <label style="color:#8082a0;"><b>Apellido Materno:</b></label>
+          <input class="input-chido" type="text"  value="Soza">
+        </div>
+      </div>
+      
+      <div class="row mt-2" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Teléfono:</b></label>
+            <input class="input-chido" type="text" value=" XXXXXXXXXX">
+        </div>
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Email:</b></label>
+            <input class="input-chido" type="text" style="font-size:13px;" value="aperezsoza@mail.com">
+        </div>
+        <div class="col">
+          <label style="color:#8082a0;"><b>RFC:</b></label>
+          <input class="input-chido" type="text" value="PERK909090Q23">
+        </div>
+      </div>   
+
+      <div class="row mt-2" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Estado civil:</b></label>
+            <input class="input-chido" type="text" value="Divorciada">
+        </div>
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Nacionalidad:</b></label>
+            <input class="input-chido" type="text" value="Colombiana">
+        </div>
+        <div class="col">
+          <label style="color:#8082a0;"><b></b></label>
+        </div>
+      </div>   
+
+      <hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos del empleo</h2>
+      <hr class="hr" >
+      <div class="mb-2" style="font-size: 10px; margin-top:-12px;">
+        Basado en la información proporcionada por el solicitante.
+      </div>
+
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Profesión:</b></label>
+            <input class="input-chido" type="text" value="Chilaquilero">
+        </div>
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Antiguedad:</b></label>
+            <input class="input-chido" type="text" value="100 años">
+        </div>
+        <div class="col">
+          <label style="color:#8082a0;"><b>Puesto:</b></label>
+          <input class="input-chido" type="text"  value="Chef">
+        </div>
+      </div>
+      
+      <div class="row mt-2" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Teléfono:</b></label>
+            <input class="input-chido" type="text" value="XXXXXXXXXX">
+        </div>
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Empresa:</b></label>
+            <input class="input-chido" type="text" value="Chillax">
+        </div>
+        <div class="col">
+          <label style="color:#8082a0;"><b>Ingreso mensual:</b></label>
+          <input class="input-chido" type="text"  value="$35000">
+        </div>
+      </div>  
+
+      <div class="row mt-2" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Nombre del Jefe:</b></label>
+            <input class="input-chido" style="font-size:12px;" type="text" value="Jair Peñaloza Rodriguez">
+        </div>
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Teléfono del Jefe:</b></label>
+            <input class="input-chido" type="text" value="XXXXXXXXXX">
+        </div>
+        <div class="col">
+          <label style="color:#8082a0;"><b>Email del Jefe:</b></label>
+          <input class="input-chido" type="text" style="font-size:13px;" value="jprdev@outlook.com">
+        </div>
+      </div>
+      
+      <hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos del domicilio</h2>
+      <hr class="hr" >
+
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Calle:</b></label>
+            <input class="input-chido" type="text" style="font-size:11px;" value="Blvrd Manuel Ávila Camacho">
+        </div>
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Número ext:</b></label>
+            <input class="input-chido" type="text" value="80">
+        </div>
+        <div class="col">
+          <label style="color:#8082a0;"><b>Número int:</b></label>
+          <input class="input-chido" type="text"  value="204">
+        </div>
+      </div>
+      
+      <div class="row mt-2" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Colonia:</b></label>
+            <input class="input-chido" type="text" value="El Parque">
+        </div>
+        
+        <div class="col">
+          <label style="color:#8082a0;"><b>Código postal:</b></label>
+          <input class="input-chido" type="text" value="53398">
+        </div>
+        
+        <div class="col">
+          <label style="color:#8082a0;"><b>Municipio/Alcaldia:</b></label>
+          <input class="input-chido" type="text" value="Naucalpan">
+        </div>
+      </div>
+
+      <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0; width:100%;"><b>Estado:</b></label>
+          <input class="input-chido" type="text" value="Estado de México">
+        </div>
+      </div>
+
+    </div>
+
+    <br><br><br><br>
+
+    <article id="pagina-3">
+      <hr class="hr" style="opacity: 1;">  
+        <h3 class="mb-2 mt-2">Referencias Personales, Laborales</h2>
+      <hr class="hr">
+
+      <p>Las referencias personales y laborales del interesado a arrendar el inmueble que nos ocupa, son acordes y consistentes en circunstancias de modo tiempo y lugar, 
+        lo que da un mínimo de margen en una posible falsedad en la solicitud del investigado.</p>
+      <div style="display:block: margin-left:auto; margin-right:auto;">
+        <label style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000;  
+        border-left: 1px solid #000000; text-align:justify; align-content: center; height:30px; width:525px;  padding: 5px 108px;">REFERENCIAS PERSONALES, LABORALES
+      </label>
+      </div>
+    </article>
+
+
+    <article id="cuadro_interpol">
+      <h2 class="mt-3">Criterios de investigación por actos ilicitos</h2>
+      <div style="border:1px solid #000000; height:373px; width:650px;">
+        <table class="table">
+          <tbody>
+            <tr>
+              <th style="width:15px" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD;">Alertas terroristas y criminales</td>
+              <td style="width:15px">❌</td>
+              <td>Tráfico de armas de fuego</td>
+            </tr>
+            <tr>
+              <th scope="row">✖</th>
+              <td style="border-right:1px solid #B2AFBD;">Financiamieto Terrorista</td>
+              <td>✖</td>
+              <td>Trata de personas y tráfico ilícito de migrantes</td>
+            </tr>
+            <tr>
+              <th scope="row">✖</th>
+              <td style="border-right:1px solid #B2AFBD;">Lavado de dinero</td>
+              <td>✖</td>
+              <td>Productos Ilegales</td>
+            </tr>
+            <tr>
+              <th scope="row">✖</th>
+              <td style="border-right:1px solid #B2AFBD;">Falsificacion de monedas o documentos de seguridad</td>
+              <td>✖</td>
+              <td>Delitos Marítimos</td>
+            </tr>
+            <tr>
+              <th scope="row">✖</th>
+              <td style="border-right:1px solid #B2AFBD;">Delitos contra menores de edad</td>
+              <td>✖</td>
+              <td>Delincuencia Organizada</td>
+            </tr>
+            <tr>
+              <th scope="row">✖</th>
+              <td style="border-right:1px solid #B2AFBD;">Delitos contra el patrimonio cultural</td>
+              <td>✖</td>
+              <td>Terrorismo</td>
+            </tr>
+            <tr>
+              <th scope="row">✖</th>
+              <td style="border-right:1px solid #B2AFBD;">Ciberdelincuente</td>
+              <td>✖</td>
+              <td>Delincuencia relacionada con vehículos</td>
+            </tr>
+            <tr>
+              <th scope="row">✖</th>
+              <td style="border-right:1px solid #B2AFBD;">Trafico de drogas</td>
+              <td>✖</td>
+              <td>Crimenes de guerra</td>
+            </tr>
+            <tr>
+              <th scope="row">✖</th>
+              <td style="border-right:1px solid #B2AFBD;">Delincuencia financiera</td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    </article>
+
+
+{% comment %} Pagina 4 {% endcomment %}
+    <article id="offers">
+      <h2 id="offers-title">Buró de Crédito</h2>
+
+      <section>
+        <h4>Score Buró</h4>
+        <img src="https://www.superpromise.mx/wp-content/uploads/2022/09/unnamed.png" style="width:215px; height:100px; margin-left:-16px;"></img>
+        <p style="color:white;">84/100</p>
+        <div class="mt-3">
+          <h4>Comentarios...</h4>
+
+        </div>
+        <ul>
+          <li>Se detecto un buen historia crediticio</li>
+          <li>Lo cual lo hace un buen candidato</li>
+          <li>constando con un score en buro de 85</li>
+          <li>fallando unicamente 2 pagos</li>
+        </ul>
+      </section>
+
+      <section>
+        <h4>Score Crédito</h4>
+        <img src="https://www.superpromise.mx/wp-content/uploads/2022/09/unnamed.png" style="width:215px; height:100px; margin-left:-16px;"></img>
+        <p style="color:white;">706/900</p>
+        <div class="mt-3">
+          <h4>Comentarios...</h4>
+
+        </div>
+        <ul>
+          <li>Cuenta con un crédito vigente por parte de bbva.</li>
+          <li>en el cual se dio el atraso de los 2 pagos.</li>
+          <li>por lo cual tiene un score de 706</li>
+          <li>obteniedo un verde mas en esta investigación.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h4>Ingreso Mensual</h4>
+        <img src="https://www.superpromise.mx/wp-content/uploads/2022/09/unnamed.png" style="width:215px; height:100px; margin-left:-16px;"></img>
+        <p style="color:white;">$45000</p>
+        <div class="mt-3">
+          <h4>Comentarios...</h4>
+
+        </div>
+        <ul>
+          <li>Con un ingreso mensual bruto de $45000.</li>
+          <li>Lo hace economicamente estable.</li>
+          <li>Logrando el tercer creck en verde.</li>
+          <li>inidcando que cuenta con la capacidad economica de obligarse para el arrendamiento</li>
+          
+        </ul>
+      </section>
+    </article>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script> 
+  </body>
+</html>

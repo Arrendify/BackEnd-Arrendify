@@ -3,9 +3,8 @@
 <html>
 	
 <head>
-	
 	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-	<title>Resultado de investigacion positivo</title>
+	<title>Resultado de investigacion</title>
 	
 	<style type="text/css">
 		body,div,table,thead,tbody,tfoot,tr,th,td,p {
@@ -35,8 +34,6 @@
 	<colgroup span="18" width="85"></colgroup>
 	
 	<tr class="contenedor-imagenes">
-		{% comment %} <td ><img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_1.png" style="width:418px; height:102px"></td>
-		<td ><img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_2.png" style="width:324px; height:108px"></td> {% endcomment %}
 		<td ><img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_1.png" style="width:418px; height:102px"></td>
 		<td ><img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_2.png" style="width:324px; height:108px"></td>
 	</tr>
@@ -106,7 +103,7 @@
 	</tr>
 	{% if info.aval == "Si" %}
 		<tr>
-			<td height="38" style="text-align: center;" valign=middle><b><font size=3 color="#000000">FIADOR SOLIDARIO</font></b></td>
+			<td height="38" style="text-align: center;" valign=middle><b><font size=3 color="#000000">OBLIGADO SOLIDARIO</font></b></td>
 		</tr>
 		<tr>
 			<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
@@ -144,7 +141,7 @@
 		<td align="left" valign=bottom><font color="#000000"><br></font></td>
 	</tr>
 	<tr>
-		<td height="63" align="justify" valign=middle><font size=3 color="#000000">LAS REFERENCIAS PERSONALES Y LABORALES DEL INTERESADO A ARRENDAR EL INMUEBLE QUE NOS OCUPA, SON ACORDES Y CONSISTENTES EN CIRCUNSTANCIAS DE MODO TIEMPO Y LUGAR, LO QUE DA UN MÍNIMO DE MARGEN EN UNA POSIBLE FALSEDAD EN LA SOLICITUD DEL INVESTIGADO.</font></td>
+		<td height="63" align="justify" valign=middle><font size=3 color="#000000">LAS REFERENCIAS PERSONALES Y LABORALES DE {{info.nombre_arrendatario | upper}}, SON ACORDES Y CONSISTENTES EN CIRCUNSTANCIAS DE MODO TIEMPO Y LUGAR, LO QUE DA UN MÍNIMO DE MARGEN EN UNA POSIBLE FALSEDAD EN LA SOLICITUD DEL INVESTIGADO.</font></td>
 	</tr>
 
 	<tr style="text-align:center; align-content: center;">
@@ -158,7 +155,7 @@
 		<td align="left" valign=bottom><font color="#000000"><br></font></td>
 	</tr>
 	<tr>
-		<td height="84" align="justify" valign=middle><font size=3 color="#000000">DE ACUERDO A UNA BÚSQUEDA DE LOS ÚLTIMOS 5 AÑOS, NO EXISTE NINGÚN JUICIO CIVIL Y/O MERCANTIL ACTIVO PROMOVIDO EN CONTRA DE LA PERSONA A INVESTIGAR  YA SEA EN EL FUERO COMÚN O FEDERAL. LO QUE DEJA VER SU SOLVENCIA MORAL Y ECONÓMICA EN EL CUMPLIMIENTO DE SUS OBLIGACIONES.</font></td>
+		<td height="84" align="justify" valign=middle><font size=3 color="#000000">DE ACUERDO A UNA BÚSQUEDA DE LOS ÚLTIMOS 5 AÑOS, NO EXISTE NINGÚN JUICIO CIVIL Y/O MERCANTIL ACTIVO PROMOVIDO EN CONTRA DE {{info.nombre_arrendatario | upper}} YA SEA EN EL FUERO COMÚN O FEDERAL. LO QUE DEJA VER SU SOLVENCIA MORAL Y ECONÓMICA EN EL CUMPLIMIENTO DE SUS OBLIGACIONES.</font></td>
 	</tr>
 	
 
@@ -173,7 +170,7 @@
 		<td align="left" valign=bottom><font color="#000000"><br></font></td>
 	</tr>
 	<tr>
-		<td height="84" align="justify" valign=middle><font size=3 color="#000000">COMO RESULTADO DE LA INVESTIGACIÓN SOBRE LA INFORMACIÓN PROPORCIONADA POR LA PERSONA FÍSICA, BAJO PROTESTA DE DECIR VERDAD EN LA SOLICITUD ASÍ COMO DE LOS DOCUMENTOS ENTREGADOS, RESULTA QUE  TIENE LA CAPACIDAD ECONÓMICA Y MORAL PARA CELEBRAR EL CONTRATO DE ARRENDAMIENTO.</font></td>
+		<td height="84" align="justify" valign=middle><font size=3 color="#000000">COMO RESULTADO DE LA INVESTIGACIÓN SOBRE LA INFORMACIÓN PROPORCIONADA POR LA PERSONA FÍSICA, BAJO PROTESTA DE DECIR VERDAD EN LA SOLICITUD ASÍ COMO DE LOS DOCUMENTOS ENTREGADOS, RESULTA QUE {{info.nombre_arrendatario | upper}} TIENE LA CAPACIDAD ECONÓMICA Y MORAL PARA CELEBRAR EL CONTRATO DE ARRENDAMIENTO.</font></td>
 
 	</tr>
 	<tr>

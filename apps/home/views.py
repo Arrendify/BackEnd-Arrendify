@@ -688,6 +688,43 @@ def pagare_fraterna_pdf(request):
 
     return HttpResponse(response, content_type='application/pdf')
 
+def nuevo_resultado(request):
+    #activamos la libreri de locale para obtener el mes en español
+    info = FraternaContratos.objects.all().first()
+    print(info.__dict__)
+    # Definir la fecha inicial
+    today = date.today().strftime('%d/%m/%Y')
+    
+    # Definir la duración en meses
+    duracion_meses = info.duracion.split()
+    duracion_meses = int(duracion_meses[0])
+    print("duracion en meses",duracion_meses)
+    
+     
+    #obtenermos la renta para pasarla a letra
+    number = info.renta
+    number = int(number)
+    text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+    text_representation = text_representation.capitalize()
+    x = "Si"
+    context = {'info': info, "fecha_consulta":today, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'x':x}
+    
+    #template = 'home/resultado_investigacion_new.html'
+    template = 'home/report.html'
+    html_string = render_to_string(template, context)
+
+    # Genera el PDF utilizando weasyprint
+    pdf_file = HTML(string=html_string).write_pdf()
+
+    # Devuelve el PDF como respuesta
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+    response.write(pdf_file)
+
+    return HttpResponse(response, content_type='application/pdf')
+    return render(request, "home/report.html", context)
+
+
 def index(request):
     context = {'segment': 'index'}
     html_template = loader.get_template('home/page-404.html')
