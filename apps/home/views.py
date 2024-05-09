@@ -707,7 +707,8 @@ def nuevo_resultado(request):
     text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
     text_representation = text_representation.capitalize()
     x = "Si"
-    context = {'info': info, "fecha_consulta":today, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'x':x}
+    y = "No"
+    context = {'info': info, "fecha_consulta":today, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'x':x, 'y':y}
     
     #template = 'home/resultado_investigacion_new.html'
     template = 'home/report.html'

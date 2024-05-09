@@ -58,7 +58,7 @@
     }
 
     @page buro {
-      @bottom-left {font-size: 8px; color:gray; content: "1. Conditions Apply: Area of Service is Canada. \A 2.-Conditions Apply: Area of Service is Canada." }
+      @bottom-left {font-size: 8px; color:gray; content: "1. El presente resultado de investigación así como el score son realizados y emitidos bajo el criterio interno de Arrendify derivado al estudio del prospecto \A 2.-No relacionado con buro." }
       white-space: pre-wrap;
     }
 
@@ -429,14 +429,10 @@
     border-radius: .25rem;
 }
   </style>
-	
-  
-  <body>
+<body>
     <div id="contenedor_p1">
       <img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/portada.jpg" style="width:794px">
     </div>
-
-  
 
     <div id="tercera-pagina">
       <h2 id="columns-title" class="mt-3">Información del prospecto</h2>
@@ -447,7 +443,7 @@
           <h3>Datos Generales</h2> 
         </div>
         <div class="col" style="text-align:right; margin-top: 4px;">
-          <label style="color:#8082a0;"><b style="font-weight:900;">Fecha de consulta: {asdas}</b></label>
+          <label style="color:#8082a0;"><b style="font-weight:900;">Fecha de consulta: {{fecha_consulta}}</b></label>
         </div>
       </div>
       
@@ -460,15 +456,15 @@
       <div class="row" >
         <div class="col">
             <label style="color:#8082a0;"><b>Nombre:</b></label>
-            <input class="input-chido" type="text" value="Andrea">
+            <input class="input-chido" type="text" value="{{info.inquilino.nombre}}">
         </div>
         <div class="col">
             <label style="color:#8082a0; width:100%;"><b>Apellido Paterno:</b></label>
-            <input class="input-chido" type="text" value="Perez">
+            <input class="input-chido" type="text" value="{{info.inquilino.apellido}}">
         </div>
         <div class="col">
           <label style="color:#8082a0;"><b>Apellido Materno:</b></label>
-          <input class="input-chido" type="text"  value="Soza">
+          <input class="input-chido" type="text"  value="{{info.inquilino.apellido1}}">
         </div>
       </div>
       
@@ -601,78 +597,161 @@
     <br><br><br><br>
 
     <article id="pagina-3">
-      <hr class="hr" style="opacity: 1;">  
+      <hr class="hr" style="opacity: .5;">  
         <h3 class="mb-2 mt-2">Referencias Personales, Laborales</h2>
       <hr class="hr">
 
-      <p>Las referencias personales y laborales del interesado a arrendar el inmueble que nos ocupa, son acordes y consistentes en circunstancias de modo tiempo y lugar, 
-        lo que da un mínimo de margen en una posible falsedad en la solicitud del investigado.</p>
-      <div style="display:block: margin-left:auto; margin-right:auto;">
-        <label style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000;  
-        border-left: 1px solid #000000; text-align:justify; align-content: center; height:30px; width:525px;  padding: 5px 108px;">REFERENCIAS PERSONALES, LABORALES
-      </label>
+      <p>{{datos.referencia}}</p>
+      <br>
+      <p style="color:gray;">LAS REFERENCIAS PERSONALES Y LABORALES DE VALERIA ORTIZ GALLEGO, SON ACORDES Y CONSISTENTES
+        EN CIRCUNSTANCIAS DE MODO TIEMPO Y LUGAR, LO QUE DA UN MÍNIMO DE MARGEN EN UNA POSIBLE
+        FALSEDAD EN LA SOLICITUD DEL INVESTIGADO.</p>
+
+      <hr class="hr">  
+        <h3 class="mb-2 mt-2">Antecedentes Legales Nacionales</h2>
+      <hr class="hr">
+
+      <p>{{datos.antecedentes}}</p>
+      
+     <br>
+      tabla de antecedentes legales.
+
+      <div style="border:1px solid #000000; height:377px; width:650px;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="background:#5e87c5; color:white;" scope="col"> </th>
+              <th style="background:#5e87c5; color:white; text-align:center;" scope="col">Materia Y Tipo</th>
+              <th style="background:#5e87c5; color:white;" scope="col">Actor</th>
+              <th style="background:#5e87c5; color:white;" scope="col">Demandado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th style="width:15px; background:#e4ecef;" scope="row">{% if x == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Extinción De Dominio</td>
+              <td style="width:30px; background:#e4ecef; text-align:center;">1</td>
+              <td style="width:30px; background:#e4ecef; text-align:center;">0</td>
+            </tr>
+            <tr>
+              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD;">Oral Mercantil-Civil - Mercantil</td>
+              <td style="text-align:center;">0</td>
+              <td style="text-align:center;">0</td>
+            </tr>
+            <tr>
+              <th style="width:15px; background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Mercantil - Ejecutivo Mercantil-Civil - Ejecutivo Mercantil</td>
+              <td style="width:30px; background:#e4ecef; text-align:center;">1</td>
+              <td style="width:30px; background:#e4ecef; text-align:center;">0</td>
+            </tr>
+            <tr>
+              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD;">Civil - Juicio Hipotecario-Civil - Especial Hipotecario</td>
+              <td style="text-align:center;">0</td>
+              <td style="text-align:center;">0</td>
+            </tr>
+            <tr>
+              <th style="width:15px; background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Civil, Mercantil o Familiar - Ejecutivo Mercantil</td>
+              <td style="width:30px; background:#e4ecef; text-align:center;">1</td>
+              <td style="width:30px; background:#e4ecef; text-align:center;">0</td>
+            </tr>
+            <tr>
+              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD;">Penal - Lesiones,Homicidio</td>
+              <td style="text-align:center;">0</td>
+              <td style="text-align:center;">0</td>
+            </tr>
+            <tr>
+              <th style="width:15px; background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Penal - Robo Calificado</td>
+              <td style="width:30px; background:#e4ecef; text-align:center;">1</td>
+              <td style="width:30px; background:#e4ecef; text-align:center;">0</td>
+            </tr>
+            <tr>
+              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD;">Civil, Mercantil o Familiar</td>
+              <td style="text-align:center;">1</td>
+              <td style="text-align:center;">0</td>
+            </tr>
+            <tr>
+              <th style="width:15px; background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Arrendamiento - Controversia De Arrendamiento Inmobiliario</td>
+              <td style="width:30px; background:#e4ecef; text-align:center;">1</td>
+              <td style="width:30px; background:#e4ecef; text-align:center;">0</td>
+            </tr>
+          </tbody>
+        </table>
+        
       </div>
+
     </article>
 
 
     <article id="cuadro_interpol">
       <h2 class="mt-3">Criterios de investigación por actos ilicitos</h2>
-      <div style="border:1px solid #000000; height:373px; width:650px;">
+      <div style="border:1px solid #000000; height:414px; width:650px;">
         <table class="table">
+          <thead>
+            <tr>
+              <th style="background:#5e87c5; color:white; text-align:center;"  colspan="4">Interpol</th>
+            </tr>
+          </thead>
           <tbody>
             <tr>
-              <th style="width:15px" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
-              <td style="border-right:1px solid #B2AFBD;">Alertas terroristas y criminales</td>
-              <td style="width:15px">❌</td>
-              <td>Tráfico de armas de fuego</td>
+              <th style="width:15px; background:#e4ecef;" scope="row">{% if info.alertas_terroristas == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Alertas terroristas y criminales</td>
+              <td style="width:15px; background:#e4ecef;">{% if y == "Si" %}✔️{% else %}❌{% endif %}</td>
+              <td style="background:#e4ecef;">Tráfico de armas de fuego</td>
             </tr>
             <tr>
-              <th scope="row">✖</th>
+              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD;">Financiamieto Terrorista</td>
-              <td>✖</td>
+              <td>{% if y == "Si" %}✔️{% else %}❌{% endif %}</td>
               <td>Trata de personas y tráfico ilícito de migrantes</td>
             </tr>
             <tr>
-              <th scope="row">✖</th>
-              <td style="border-right:1px solid #B2AFBD;">Lavado de dinero</td>
-              <td>✖</td>
-              <td>Productos Ilegales</td>
+              <th style="background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD; background:#e4ecef">Lavado de dinero</td>
+              <td style="background:#e4ecef;">{% if y == "Si" %}✔️{% else %}❌{% endif %}</td>
+              <td style="background:#e4ecef;">Productos Ilegales</td>
             </tr>
             <tr>
-              <th scope="row">✖</th>
+              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD;">Falsificacion de monedas o documentos de seguridad</td>
-              <td>✖</td>
+              <td>{% if y == "Si" %}✔️{% else %}❌{% endif %}</td>
               <td>Delitos Marítimos</td>
             </tr>
             <tr>
-              <th scope="row">✖</th>
-              <td style="border-right:1px solid #B2AFBD;">Delitos contra menores de edad</td>
-              <td>✖</td>
-              <td>Delincuencia Organizada</td>
+              <th style="background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD; background:#e4ecef">Delitos contra menores de edad</td>
+              <td style="background:#e4ecef;">{% if y == "Si" %}✔️{% else %}❌{% endif %}</td>
+              <td style="background:#e4ecef;">Delincuencia Organizada</td>
             </tr>
             <tr>
-              <th scope="row">✖</th>
+              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD;">Delitos contra el patrimonio cultural</td>
-              <td>✖</td>
+              <td>{% if y == "Si" %}✔️{% else %}❌{% endif %}</td>
               <td>Terrorismo</td>
             </tr>
             <tr>
-              <th scope="row">✖</th>
-              <td style="border-right:1px solid #B2AFBD;">Ciberdelincuente</td>
-              <td>✖</td>
-              <td>Delincuencia relacionada con vehículos</td>
+              <th style="background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD; background:#e4ecef">Ciberdelincuente</td>
+              <td style="background:#e4ecef;">{% if y == "Si" %}✔️{% else %}❌{% endif %}</td>
+              <td style="background:#e4ecef;">Delincuencia relacionada con vehículos</td>
             </tr>
             <tr>
-              <th scope="row">✖</th>
-              <td style="border-right:1px solid #B2AFBD;">Trafico de drogas</td>
-              <td>✖</td>
+              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD;">Tráfico de drogas</td>
+              <td>{% if y == "Si" %}✔️{% else %}❌{% endif %}</td>
               <td>Crimenes de guerra</td>
             </tr>
             <tr>
-              <th scope="row">✖</th>
-              <td style="border-right:1px solid #B2AFBD;">Delincuencia financiera</td>
-              <td></td>
-              <td></td>
+              <th style="background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Delincuencia financiera</td>
+              <td style="background:#e4ecef;"></td>
+              <td style="background:#e4ecef;"></td>
             </tr>
           </tbody>
         </table>
@@ -683,10 +762,10 @@
 
 {% comment %} Pagina 4 {% endcomment %}
     <article id="offers">
-      <h2 id="offers-title">Buró de Crédito</h2>
+      <h2 id="offers-title">Análisis Créditicio</h2>
 
       <section>
-        <h4>Score Buró</h4>
+        <h4> <sup>1</sup> Score Arrendify</h4>
         <img src="https://www.superpromise.mx/wp-content/uploads/2022/09/unnamed.png" style="width:215px; height:100px; margin-left:-16px;"></img>
         <p style="color:white;">84/100</p>
         <div class="mt-3">
@@ -729,11 +808,56 @@
           <li>Con un ingreso mensual bruto de $45000.</li>
           <li>Lo hace economicamente estable.</li>
           <li>Logrando el tercer creck en verde.</li>
-          <li>inidcando que cuenta con la capacidad economica de obligarse para el arrendamiento</li>
+          <li>indicando que cuenta con la capacidad economica de obligarse para el arrendamiento</li>
           
         </ul>
       </section>
+      
+      <br><br><br>
+      <div class="mt-3" style="width:100%">
+        <hr class="hr">  
+         <h3 class="mb-2 mt-2">Conclusión</h2>
+        <hr class="hr">
+
+        <p>
+          Como resultado de la investigación sobre la información proporcionada por la persona física, bajo protesta de decir verdad en la solicitud, 
+          así como de los documentos entregados, resulta que {prospecto} tiene la capacidad económica y moral para celebrar el contrato de arrendamiento.
+        </p>
+
+        <br>
+
+        <p>
+          {{datos.conclusion}}
+        </p>
+      </div>
     </article>
+
+    <br> <br> <br> <br>
+    {% comment %} Conclusion {% endcomment %}
+
+    <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="col" style="text-align: center;"><b>ELABORÓ</b></div>
+    </div>
+
+    <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="col" style="text-align: center;"><b>ARRENDIFY</b></div>
+    </div>
+
+    <br>
+
+    <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="col" style="text-align: center;"><b>DEPARTAMENTO DEL ÁREA LEGAL</b></div>
+    </div>
+
+    <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="col" style="text-align: left;">
+        <a href="www.arrendify.com">www.arrendify.com</a>
+      </div>
+      <div class="col" style="text-align: right;">
+        Teléfono: 01 55 7258 9136
+      </div>
+      
+    </div>
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script> 

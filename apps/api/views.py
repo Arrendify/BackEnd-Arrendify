@@ -1062,8 +1062,6 @@ class MobiliarioCantidad(viewsets.ModelViewSet):
 
         return Response(mobiliario.data, status=status.HTTP_201_CREATED)
 
-
-
 # ---------------------------------- Investigacion ---------------------------------- #
   
 class investigaciones(viewsets.ModelViewSet):
@@ -1090,7 +1088,7 @@ class investigaciones(viewsets.ModelViewSet):
                     
                 else:
                         print("Esta entrando a listar inquilino desde invetigacion")
-                        print("else")
+                        print("sin barra de busqueda")
                         investigar =  Investigacion.objects.all()
                         serializer = self.get_serializer(investigar, many=True)
                         return Response(serializer.data)
@@ -1370,6 +1368,58 @@ class investigaciones(viewsets.ModelViewSet):
         except SMTPException as e:
             print("Error al enviar el correo electrónico:", str(e))
             return Response({'message': 'Error al enviar el correo electrónico.'})
+        
+        
+    def aprobar_prospecto(self, request, *args, **kwargs):
+        try:
+            print("entrando en Aprobar prospecto")
+            today = date.today().strftime('%d/%m/%Y')
+            req_dat = request.data
+            print("request.data", req_dat)
+            print("el id que llega", req_dat["id"])
+            info = self.queryset.filter(id = req_dat["id"]).first()
+            print(info.__dict__)   
+            print("request.data",req_dat)   
+            print("soy la info del",info.inquilino.nombre)       
+            
+            x = "Si"
+            y = "No"
+            
+            context = {'info': info, "fecha_consulta":today, 'x':x, 'y':y, 'datos':req_dat}
+            
+            #template = 'home/resultado_investigacion_new.html'
+            template = 'home/report.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+            response.write(pdf_file)
+
+            return HttpResponse(response, content_type='application/pdf')
+            
+            context = {'info': info, 'habitantes_texto':habitantes_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc, 'tabla_inventario':tabla_inventario}
+            template = 'home/contrato_fraterna.html'
+            html_string = render_to_string(template,context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
+            response.write(pdf_file)
+            print("TERMINANDO PROCESO CONTRATO")
+            return HttpResponse(response, content_type='application/pdf')
+        
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
 
 # ----------------------------------Cotizador---------------------------------- #        
 class Arrendador_Cotizador(viewsets.ModelViewSet):
@@ -2077,15 +2127,18 @@ class Cotizacion_ap(viewsets.ModelViewSet):
 class RecuperarPassword(viewsets.ViewSet):
     @action(detail=False, methods=['post'], url_path='recuperar_password')
     def recuperar_password(self, request):
+        return Response({'message': 'Ya se ha enviado una solicitud de recuperación de contraseña.'}, status=201)
         try: 
             print("Llego a recuperar password")
+            print("req",request.data)
             email = request.data.get('email')
             print(email)
             try:
                 user = User.objects.get(email=email)
                 
             except User.DoesNotExist:
-                return Response({'message': 'El correo electrónico no está registrado.'}, status=400)
+                print("El correo electrónico no está registrado.")
+                return Response({'message': 'El correo electrónico no está registrado.'}, status=404)
 
             # Verificar si ya se ha generado un token para el usuario
             print("antes de token")
@@ -2098,14 +2151,15 @@ class RecuperarPassword(viewsets.ViewSet):
             # Verificar también que el token no haya expirado
             if token.expires_at and token.expires_at >= timezone.now():
                 # Si ya se ha generado un token y no ha expirado, retornar mensaje de solicitud ya enviada
-                return Response({'message': 'Ya se ha enviado una solicitud de recuperación de contraseña.'})
+                print("ya existe un solicitud de recuperación de contraseña")
+                return Response({'message': 'Ya se ha enviado una solicitud de recuperación de contraseña.'}, status=201)
 
             # Asignamos la fecha de expiración
             expiration = timezone.now() + timedelta(minutes=30)
             token.expires_at = expiration
             token.save()
             
-            # // switch front
+            # switch server
             #server = "'http://192.168.1.187:8000'"
             #server = "http://192.168.3.2:8000"
             server = "https://arrendify.app"
