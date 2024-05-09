@@ -2146,13 +2146,13 @@ class RecuperarPassword(viewsets.ViewSet):
             token, _ = CustomToken.objects.get_or_create(user=user)
             print("llego hasta token",_)
             print("llego hasta token",token)
-            
+            return Response({'message': f'nuevo token {token}'}, status=201)
             # Verificar también que el token no haya expirado
             if token.expires_at and token.expires_at >= timezone.now():
                 # Si ya se ha generado un token y no ha expirado, retornar mensaje de solicitud ya enviada
                 print("ya existe un solicitud de recuperación de contraseña")
                 return Response({'message': 'Ya se ha enviado una solicitud de recuperación de contraseña.'}, status=201)
-            return Response({'message': 'nuevo token.'}, status=201)
+            
             # Asignamos la fecha de expiración
             expiration = timezone.now() + timedelta(minutes=30)
             token.expires_at = expiration
