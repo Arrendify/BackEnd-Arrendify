@@ -2131,15 +2131,10 @@ class RecuperarPassword(viewsets.ViewSet):
             print("Llego a recuperar password")
             print("req",request.data)
             email = request.data.get('email')
-            return Response({'message': email}, status=201)
             print(email)
-            try:
-                user = User.objects.get(email=email)
-                
-            except User.DoesNotExist:
-                print("El correo electrónico no está registrado.")
-                return Response({'message': 'El correo electrónico no está registrado.'}, status=404)
-
+            user = User.objects.get(email=email)
+            return Response({'message': user}, status=201)
+           
             # Verificar si ya se ha generado un token para el usuario
             print("antes de token")
             print("soy user",user)
