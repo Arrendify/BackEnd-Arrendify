@@ -343,10 +343,10 @@ def correo_pas(server, token):
                   
                   
                   <p>Restablecer su contraseña es fácil.</p>
-                  <p>Simplemente haga clic en el enlace de abajo. Lo tendremos listo y funcionando en poco tiempo.</p>
+                  <p>Simplemente haga clic en el enlace de abajo y cambie tu contraseña de manera rápida y sencilla. </p>
                   """
                   
-                  f'{server}/guardar_password?token={token.key}'
+                  f'<a href="{server}/guardar_password?token={token.key}">{server}/guardar_password?token={token.key}</a>'
                   
                   """
                   <br>
