@@ -2128,9 +2128,9 @@ class RecuperarPassword(viewsets.ViewSet):
     @action(detail=False, methods=['post'], url_path='recuperar_password')
     def recuperar_password(self, request):
         try: 
-            return Response({'message': 'nuevo token'}, status=201)
             print("Llego a recuperar password")
             print("req",request.data)
+            return Response({'message': request.data}, status=201)
             email = request.data.get('email')
             print(email)
             try:
