@@ -2133,7 +2133,7 @@ class RecuperarPassword(viewsets.ViewSet):
             email = request.data.get('email')
             print(email)
             user = User.objects.get(email=email)
-            return Response({'message': user}, status=201)
+            return Response({'message': user.username}, status=201)
            
             # Verificar si ya se ha generado un token para el usuario
             print("antes de token")
