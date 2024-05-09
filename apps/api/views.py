@@ -2130,8 +2130,8 @@ class RecuperarPassword(viewsets.ViewSet):
         try: 
             print("Llego a recuperar password")
             print("req",request.data)
-            return Response({'message': request.data}, status=201)
             email = request.data.get('email')
+            return Response({'message': email}, status=201)
             print(email)
             try:
                 user = User.objects.get(email=email)
