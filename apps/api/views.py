@@ -2128,6 +2128,7 @@ class RecuperarPassword(viewsets.ViewSet):
     @action(detail=False, methods=['post'], url_path='recuperar_password')
     def recuperar_password(self, request):
         try: 
+            return Response({'message': 'nuevo token'}, status=201)
             print("Llego a recuperar password")
             print("req",request.data)
             email = request.data.get('email')
@@ -2146,7 +2147,7 @@ class RecuperarPassword(viewsets.ViewSet):
             token, _ = CustomToken.objects.get_or_create(user=user)
             print("llego hasta token",_)
             print("llego hasta token",token)
-            return Response({'message': f'nuevo token {token}'}, status=201)
+            
             # Verificar también que el token no haya expirado
             if token.expires_at and token.expires_at >= timezone.now():
                 # Si ya se ha generado un token y no ha expirado, retornar mensaje de solicitud ya enviada
