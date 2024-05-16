@@ -33,3 +33,6 @@ apps/home/migrations/*
 
 #los archivos env
 .env
+
+#el settings
+core/settings.py

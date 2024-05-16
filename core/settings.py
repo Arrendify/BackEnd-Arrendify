@@ -43,7 +43,7 @@ LOGGING = {
     },
 }
 
-# load production server from .env
+# load production server
 ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1')]
 
 # Application definition
@@ -77,8 +77,6 @@ REST_FRAMEWORK = {
         #'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-        
-
     ),
 }
 
@@ -109,7 +107,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://192.168.1.187:8080',
     'http://192.168.3.2:8001',
     'http://192.168.3.2:8000',
-    'http://192.168.1.187:8000',
+    'http://192.168.1.189:8000',
     'http://localhost',
 )
 # CORS_ORIGIN_ALLOW_ALL = True
@@ -196,16 +194,16 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': "postgres",
-        'USER': 'arrendify',
-        'PASSWORD': 'Arrendy.123',
-        'HOST': 'arrendifyapp.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
-        'PORT': '5432',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': "postgres",
+#         'USER': 'arrendify',
+#         'PASSWORD': 'Arrendy.123',
+#         'HOST': 'arrendifyapp.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
+#         'PORT': '5432',
+#     }
+# }
 
 # DATABASES = {
 #     'default': {
@@ -218,12 +216,12 @@ DATABASES = {
 #     }
 # }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': 'db.sqlite3',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'db.sqlite3',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators

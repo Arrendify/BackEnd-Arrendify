@@ -72,6 +72,9 @@ from datetime import datetime
 from ..accounts.models import CustomUser
 User = CustomUser
 
+# Heath Check
+from django.http import JsonResponse
+
 # Create your views here.
 # ----------------------------------Metodos Extras----------------------------------------------- #
 def eliminar_archivo_s3(file_name):
@@ -91,6 +94,11 @@ def eliminar_archivo_s3(file_name):
 # ----------------------------------pagina 404----------------------------------------------- #
 def pagina_404(request):
     return render(request, 'home/page-404.html')
+
+# ----------------------------------Health Check----------------------------------------------- #
+@api_view(['GET'])
+def health_check(request):
+    return JsonResponse({"status": "OK"})
 # ----------------------------------Inquilino----------------------------------------------- #
 class inquilino_registro(APIView):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
@@ -124,6 +132,7 @@ class inquilino_registro(APIView):
                 return Response(serializer3.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print("error",e)
+            
             return Response({'error en el try': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -1385,7 +1394,25 @@ class investigaciones(viewsets.ModelViewSet):
             x = "Si"
             y = "No"
             
-            context = {'info': info, "fecha_consulta":today, 'x':x, 'y':y, 'datos':req_dat}
+            #obtener la tipologia
+            # Definir las opciones y sus correspondientes valores para la variable "plano"
+            opciones = {
+                'Excelente': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/medidores/medidor_excelente.png",
+                'Bueno': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/medidores/medidor_bueno.png",
+                'Regular': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/medidores/medidor_regular.png",
+                'Malo': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/medidores/medidor_malo.png"
+            }
+            
+            tipo_score_ingreso = req_dat["tipo_score_ingreso"]
+            print("score ingreso",req_dat["tipo_score_ingreso"])
+            
+            if tipo_score_ingreso in opciones:
+                tsi = opciones[tipo_score_ingreso]
+                print(f"Tu Tipo de score es: {tipo_score_ingreso}, URL: {tsi}")
+                
+            
+            
+            context = {'info': info, "fecha_consulta":today, 'x':x, 'y':y, 'datos':req_dat, 'tsi':tsi}
             
             #template = 'home/resultado_investigacion_new.html'
             template = 'home/report.html'
@@ -1398,21 +1425,7 @@ class investigaciones(viewsets.ModelViewSet):
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
             response.write(pdf_file)
-
-            return HttpResponse(response, content_type='application/pdf')
-            
-            context = {'info': info, 'habitantes_texto':habitantes_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc, 'tabla_inventario':tabla_inventario}
-            template = 'home/contrato_fraterna.html'
-            html_string = render_to_string(template,context)
-
-            # Genera el PDF utilizando weasyprint
-            pdf_file = HTML(string=html_string).write_pdf()
-
-            # Devuelve el PDF como respuesta
-            response = HttpResponse(content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
-            response.write(pdf_file)
-            print("TERMINANDO PROCESO CONTRATO")
+            print("Finalizamos el proceso de aprobado") 
             return HttpResponse(response, content_type='application/pdf')
         
         except Exception as e:

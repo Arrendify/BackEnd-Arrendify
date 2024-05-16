@@ -42,6 +42,9 @@ urlpatterns = [
     
     
     #manejamos el index con la pag404
+    path('health/', health_check, name='health_check'),
+    
+    #manejamos el index con la pag404
     path('', pagina_404, name='error'),   
     path('', include(router.urls)),
 ]

@@ -243,10 +243,10 @@ class ResidenteViewSet(viewsets.ModelViewSet):
         # Configura los detalles del correo electrónico
         try:
             remitente = 'notificaciones_arrendify@outlook.com'
-            destinatario = 'jsepulvedaarrendify@gmail.com'
-            #destinatario = 'jcasados@fraterna.mx'
-            destinatario2 = 'juridico.arrendify1@gmail.com'
-            #destinatario2 = 'smosqueda@fraterna.mx'
+            # destinatario = 'jsepulvedaarrendify@gmail.com'
+            destinatario = 'jcasados@fraterna.mx'
+            # destinatario2 = 'juridico.arrendify1@gmail.com'
+            destinatario2 = 'smosqueda@fraterna.mx'
             
             
             asunto = f"Resultado Investigación Arrendatario {arrendatario}"

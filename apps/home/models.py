@@ -198,7 +198,6 @@ class Fiador_obligado(models.Model):
     estado_civil_fiador=models.CharField(max_length=100, null=True, blank=True)
     nacionalidad=models.CharField(max_length=100, null=True, blank=True, default="Mexicana") 
     
-    
     # Datos Domiciliarios del Fiador solidario
     calle_fiador=models.CharField(max_length=100, null=True, blank=True)
     municipio_fiador=models.CharField(max_length=100, null=True, blank=True)
@@ -220,7 +219,7 @@ class Fiador_obligado(models.Model):
     recibos=models.CharField(max_length=2, null=True, blank=True)
     
     # Datos de sus escrituras fiador solidario
-    escritura_publica=models.BigIntegerField(null=True, blank=True)
+    escritura_publica=models.CharField(max_length=100, null=True, blank=True)
     fecha_propiedad=models.DateField(auto_now=False, auto_now_add=False, null=True, blank=True)
     numero_notario=models.BigIntegerField(null=True, blank=True)
     nombre_notario=models.CharField(max_length=100, null=True, blank=True)
@@ -235,7 +234,7 @@ class Fiador_obligado(models.Model):
     estado_escrituras=models.CharField(max_length=100, null=True, blank=True)
     
     # OBLIGADO PERSONA MORAL
-    #Datos empresa del obligado PM
+    # Datos empresa del obligado PM
     nombre_comercial=models.CharField(max_length=100, null=True, blank=True)
     rfc_fiador_em=models.CharField(max_length=100, null=True, blank=True)
     ingreso_fiador_opm=models.BigIntegerField(null=True, blank=True)

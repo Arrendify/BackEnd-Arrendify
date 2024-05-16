@@ -471,26 +471,26 @@
       <div class="row mt-2" >
         <div class="col">
             <label style="color:#8082a0;"><b>Teléfono:</b></label>
-            <input class="input-chido" type="text" value=" XXXXXXXXXX">
+            <input class="input-chido" type="text" value="{{info.inquilino.numeroTel1}}">
         </div>
         <div class="col">
             <label style="color:#8082a0; width:100%;"><b>Email:</b></label>
-            <input class="input-chido" type="text" style="font-size:13px;" value="aperezsoza@mail.com">
+            <input class="input-chido" type="text" style="font-size:13px;" value="{{info.inquilino.email}}">
         </div>
         <div class="col">
           <label style="color:#8082a0;"><b>RFC:</b></label>
-          <input class="input-chido" type="text" value="PERK909090Q23">
+          <input class="input-chido" type="text" value="{{info.inquilino.rfc}}">
         </div>
       </div>   
 
       <div class="row mt-2" >
         <div class="col">
             <label style="color:#8082a0;"><b>Estado civil:</b></label>
-            <input class="input-chido" type="text" value="Divorciada">
+            <input class="input-chido" type="text" value="{{info.inquilino.estado_civil}}">
         </div>
         <div class="col">
             <label style="color:#8082a0; width:100%;"><b>Nacionalidad:</b></label>
-            <input class="input-chido" type="text" value="Colombiana">
+            <input class="input-chido" type="text" value="{{info.inquilino.nacionalidad}}">
         </div>
         <div class="col">
           <label style="color:#8082a0;"><b></b></label>
@@ -592,21 +592,77 @@
         </div>
       </div>
 
+      <br><br><br><br>
+      
+      <hr class="hr" style="opacity: .9;" >  
+        <h3 class="mb-2 mt-2">Fiador u obligado</h2>
+      <hr class="hr" >
+
+      <div class="row">
+        <div class="col">
+            <label style="color:#8082a0;"><b>Nombre:</b></label>
+            <input class="input-chido" type="text" value="Bruce">
+        </div>
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Apellido Paterno:</b></label>
+            <input class="input-chido" type="text" value="Straley">
+        </div>
+        <div class="col">
+          <label style="color:#8082a0;"><b>Apellido Materno:</b></label>
+          <input class="input-chido" type="text"  value="Straley">
+        </div>
+      </div>
+    
+      <div class="row mt-2" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Identificación:</b></label>
+            <input class="input-chido" type="text" value="INE 99999999XXXXX">
+        </div>
+        
+        <div class="col">
+          <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
+          <input class="input-chido" type="text" value="ChilanGOD">
+        </div>
+
+        <div class="col">
+        </div>
+
+      </div>
+      <div class="row">
+        <div class="col">
+          <label style="color:#8082a0;"><b>Domicilio Actual:</b></label>
+          <input class="input-chido" style="width:500px;" type="text" value="D Geology 12 Int. 1, SeaHorse, 1790, Seattle, Washington.">
+        </div>
+      </div>
+
+      <hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos del inmueble en garantía</h2>
+      <hr class="hr" >
+
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Escritura pública número:</b></label>
+            <input class="input-chido" style="width:500px;" type="text" value="7865423156498">
+        </div>
+      </div>
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Dirección:</b></label>
+            <input class="input-chido" style="width:500px;" type="text" value="Hollywood Blvd 1 Int. 1, Los Angeles, 90028, CA, California.">
+        </div>
+      </div>
     </div>
 
-    <br><br><br><br>
+    <br>
 
     <article id="pagina-3">
       <hr class="hr" style="opacity: .5;">  
         <h3 class="mb-2 mt-2">Referencias Personales, Laborales</h2>
       <hr class="hr">
-
+      
       <p>{{datos.referencia}}</p>
       <br>
-      <p style="color:gray;">LAS REFERENCIAS PERSONALES Y LABORALES DE VALERIA ORTIZ GALLEGO, SON ACORDES Y CONSISTENTES
-        EN CIRCUNSTANCIAS DE MODO TIEMPO Y LUGAR, LO QUE DA UN MÍNIMO DE MARGEN EN UNA POSIBLE
-        FALSEDAD EN LA SOLICITUD DEL INVESTIGADO.</p>
-
+      
       <hr class="hr">  
         <h3 class="mb-2 mt-2">Antecedentes Legales Nacionales</h2>
       <hr class="hr">
@@ -628,59 +684,54 @@
           </thead>
           <tbody>
             <tr>
-              <th style="width:15px; background:#e4ecef;" scope="row">{% if x == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</th>
+              <th style="width:15px; background:#e4ecef;" scope="row">{% if datos.extincion_de_dominio == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Extinción De Dominio</td>
               <td style="width:30px; background:#e4ecef; text-align:center;">1</td>
               <td style="width:30px; background:#e4ecef; text-align:center;">0</td>
             </tr>
             <tr>
-              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <th scope="row">{% if datos.omc_mercantil == "Si" %}✔️{% else %}❌{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD;">Oral Mercantil-Civil - Mercantil</td>
               <td style="text-align:center;">0</td>
               <td style="text-align:center;">0</td>
             </tr>
             <tr>
-              <th style="width:15px; background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <th style="width:15px; background:#e4ecef;" scope="row">{% if datos.mem_civil == "Si" %}✔️{% else %}❌{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Mercantil - Ejecutivo Mercantil-Civil - Ejecutivo Mercantil</td>
               <td style="width:30px; background:#e4ecef; text-align:center;">1</td>
               <td style="width:30px; background:#e4ecef; text-align:center;">0</td>
             </tr>
             <tr>
-              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <th scope="row">{% if datos.cjhc_especial_hipotecario == "Si" %}✔️{% else %}❌{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD;">Civil - Juicio Hipotecario-Civil - Especial Hipotecario</td>
               <td style="text-align:center;">0</td>
               <td style="text-align:center;">0</td>
             </tr>
             <tr>
-              <th style="width:15px; background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <th style="width:15px; background:#e4ecef;" scope="row">{% if datos.cmf_em == "Si" %}✔️{% else %}❌{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Civil, Mercantil o Familiar - Ejecutivo Mercantil</td>
               <td style="width:30px; background:#e4ecef; text-align:center;">1</td>
               <td style="width:30px; background:#e4ecef; text-align:center;">0</td>
             </tr>
             <tr>
-              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <th scope="row">{% if datos.penal_lesiones == "Si" %}✔️{% else %}❌{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD;">Penal - Lesiones,Homicidio</td>
               <td style="text-align:center;">0</td>
               <td style="text-align:center;">0</td>
             </tr>
             <tr>
-              <th style="width:15px; background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <th style="width:15px; background:#e4ecef;" scope="row">{% if datos.robo_calificado == "Si" %}✔️{% else %}❌{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Penal - Robo Calificado</td>
               <td style="width:30px; background:#e4ecef; text-align:center;">1</td>
               <td style="width:30px; background:#e4ecef; text-align:center;">0</td>
             </tr>
             <tr>
-              <th scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
+              <th scope="row">{% if datos.civil_mercantil == "Si" %}✔️{% else %}❌{% endif %}</th>
               <td style="border-right:1px solid #B2AFBD;">Civil, Mercantil o Familiar</td>
               <td style="text-align:center;">1</td>
               <td style="text-align:center;">0</td>
             </tr>
-            <tr>
-              <th style="width:15px; background:#e4ecef;" scope="row">{% if x == "Si" %}✔️{% else %}❌{% endif %}</th>
-              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Arrendamiento - Controversia De Arrendamiento Inmobiliario</td>
-              <td style="width:30px; background:#e4ecef; text-align:center;">1</td>
-              <td style="width:30px; background:#e4ecef; text-align:center;">0</td>
-            </tr>
+           
           </tbody>
         </table>
         
@@ -690,7 +741,12 @@
 
 
     <article id="cuadro_interpol">
-      <h2 class="mt-3">Criterios de investigación por actos ilicitos</h2>
+      <h2 class="mt-3">Investigación de actos ilicitos</h2>
+
+      <p>La verificación de antecedentes en un busqueda exhaustiva que se realiza en mas de 110.000 bases de datos de más de 240 países en busca de antecedentes penales, decisiones judiciales, prensa negativa,
+        perfiles sociales, biografías públicas, empleos anteriores y más. Tenga en cuenta que es posible que esto no sea una coincidencia exacta con el prospecto, sino una búsqueda general con los detalles del prospecto, por lo que sugerimos
+        verificar la validez de los datos con el prospecto. </p>
+
       <div style="border:1px solid #000000; height:414px; width:650px;">
         <table class="table">
           <thead>
@@ -765,72 +821,100 @@
       <h2 id="offers-title">Análisis Créditicio</h2>
 
       <section>
-        <h4> <sup>1</sup> Score Arrendify</h4>
-        <img src="https://www.superpromise.mx/wp-content/uploads/2022/09/unnamed.png" style="width:215px; height:100px; margin-left:-16px;"></img>
-        <p style="color:white;">84/100</p>
+        <h4> <sup>1</sup> Ingresos vs créditos</h4>
+        <img src="{{tsi}}" style="width:215px; height:100px; margin-left:-16px;"></img>
+        <p style="color:white;">{{datos.score_ingreso}}/100</p>
         <div class="mt-3">
           <h4>Comentarios...</h4>
-
         </div>
         <ul>
-          <li>Se detecto un buen historia crediticio</li>
-          <li>Lo cual lo hace un buen candidato</li>
-          <li>constando con un score en buro de 85</li>
-          <li>fallando unicamente 2 pagos</li>
+          <li>{{datos.comentarios_ingresos}}</li>
+          <li>Declara $10,000 en cuanto a pago de creditos</li>
+          <li>Declara su ingreso mensual es de un valor neto de $15,000</li>
+          <li>idea 1</li>
+          <li>idea 2</li>
         </ul>
       </section>
 
       <section>
-        <h4>Score Crédito</h4>
+        <h4>Pagos Puntuales</h4>
         <img src="https://www.superpromise.mx/wp-content/uploads/2022/09/unnamed.png" style="width:215px; height:100px; margin-left:-16px;"></img>
-        <p style="color:white;">706/900</p>
+        <p style="color:white;">76/100</p>
         <div class="mt-3">
           <h4>Comentarios...</h4>
 
         </div>
         <ul>
-          <li>Cuenta con un crédito vigente por parte de bbva.</li>
-          <li>en el cual se dio el atraso de los 2 pagos.</li>
-          <li>por lo cual tiene un score de 706</li>
-          <li>obteniedo un verde mas en esta investigación.</li>
+          <li>Cuenta con pagos puntuales en el credito X</li>
+          <li>Se encontraron atrasos de un par dias con un adedudo de $50 pesos</li>
+          <li>cuenta con 5 creditos vigentes</li>
+          <li>Idea X</li>
         </ul>
       </section>
 
       <section>
-        <h4>Ingreso Mensual</h4>
+        <h4>Créditos</h4>
         <img src="https://www.superpromise.mx/wp-content/uploads/2022/09/unnamed.png" style="width:215px; height:100px; margin-left:-16px;"></img>
-        <p style="color:white;">$45000</p>
+        <p style="color:white;">100/100</p>
         <div class="mt-3">
           <h4>Comentarios...</h4>
 
         </div>
         <ul>
-          <li>Con un ingreso mensual bruto de $45000.</li>
-          <li>Lo hace economicamente estable.</li>
-          <li>Logrando el tercer creck en verde.</li>
-          <li>indicando que cuenta con la capacidad economica de obligarse para el arrendamiento</li>
+          <li>Cuenta con 10 creditos cerrados.</li>
+          <li>Su historial esta bien.</li>
+          <li>otro comentario </li>
+          <li>:D</li>
           
         </ul>
       </section>
-      
+
       <br><br><br>
-      <div class="mt-3" style="width:100%">
-        <hr class="hr">  
-         <h3 class="mb-2 mt-2">Conclusión</h2>
-        <hr class="hr">
-
-        <p>
-          Como resultado de la investigación sobre la información proporcionada por la persona física, bajo protesta de decir verdad en la solicitud, 
-          así como de los documentos entregados, resulta que {prospecto} tiene la capacidad económica y moral para celebrar el contrato de arrendamiento.
-        </p>
-
-        <br>
-
-        <p>
-          {{datos.conclusion}}
-        </p>
-      </div>
     </article>
+    
+    <div class="mt-3" style="width:100%" id="redes">
+      <hr class="hr">  
+       <h3 class="mb-2 mt-2">Redes sociales</h2>
+      <hr class="hr">
+
+      <p>Se determino que {{info.inquilino.nombre}} {{info.inquilino.apellido}} {{info.inquilino.apellido1}} presenta un buen historial en sus perfiles públicos de redes sociales, se demostro que su comportamiento y actividades sociales cumplen con lo estipulado por nosotros </p>
+      <p>
+         Esto incluye publicaciones, comentarios, interacciones con otros usuarios y grupos a los que pertenece, además se analiza la cantidad de seguidores, la interacción con su contenido y cualquier discusión sobre ellos en línea.
+         Por lo cual es posible decir que se observa que no hay comportamientos de riesgo que podrían ser indicativos de una mala gestión financiera.
+      </p>
+
+      <p>
+        Durante tu revisión de las redes sociales de {{info.inquilino.nombre}} {{info.inquilino.apellido}} {{info.inquilino.apellido1}}, se encontraron varias publicaciones donde él está mostrando un estilo de vida lujoso, como compras en tiendas exclusivas o vacaciones en destinos caros. 
+        Esto podría ser una señal de alerta si sus ingresos declarados no respaldan este tipo de gastos. 
+      </p>
+      <p>
+        Asi mismo {{info.inquilino.nombre}} {{info.inquilino.apellido}} {{info.inquilino.apellido1}} ha declarado en su solicitud de arrendamiento que trabaja como {{info.inquilino.puesto}} en {{info.inquilino.nombre_empresa}}. 
+        Al revisar sus perfiles de redes sociales, se observaron fotos de él en la oficina y publicaciones relacionadas con su trabajo, lo que confirma la información proporcionada en su solicitud.
+      </p>
+      <p>
+        Por ultimo, a través de su cuenta de instagram, se puede observar que publica con frecuencia fotos y videos de cenas en restaurantes elegantes, fiestas en clubes exclusivos y viajes a destinos exóticos. 
+        Sin embargo, sus ingresos declarados en la solicitud de crédito sugieren que no debería poder costear este estilo de vida. Esto podría indicar un posible riesgo de que esté viviendo por encima de sus posibilidades o incluso podría sugerir fraude.
+      </p>
+
+    </div>
+
+    <div style="width:100%" id="conclusion">
+      <hr class="hr">  
+        <h3 class="mb-2 mt-2">Conclusión</h2>
+      <hr class="hr">
+      <p>
+        Como resultado de la investigación sobre la información proporcionada por la persona física, bajo protesta de decir verdad en la solicitud, 
+        así como de los documentos entregados, resultando que {{info.inquilino.nombre}} {{info.inquilino.apellido}} {{info.inquilino.apellido1}} tiene la capacidad económica y moral para celebrar el contrato de arrendamiento.
+      </p>
+
+      <br>
+
+      <p>
+        {{datos.conclusion}}
+      </p>
+
+    </div>
+
 
     <br> <br> <br> <br>
     {% comment %} Conclusion {% endcomment %}

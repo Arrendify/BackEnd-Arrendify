@@ -20,7 +20,8 @@ def inquilinos_list_all(request):
     try:    
         if request.method == 'GET':
             if user_session.is_staff:
-                snippets = Inquilino.objects.all()
+                snippets = Inquilino.objects.all().order_by('-id')
+                
                 # Crear una copia de los datos serializados
                 serializer = InquilinoSerializers(snippets, many=True)
                 serialized_data = serializer.data
