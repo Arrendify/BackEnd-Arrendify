@@ -131,9 +131,10 @@ class inquilino_registro(APIView):
                 print(serializer3.errors)
                 return Response(serializer3.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print("error",e)
-            
-            return Response({'error en el try': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -1301,8 +1302,6 @@ class investigaciones(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-    
-    
     def generar_archivo(self,context):
         # Renderiza el template HTML  
         template = context["template"] #obtenemos template
@@ -1404,15 +1403,21 @@ class investigaciones(viewsets.ModelViewSet):
             }
             
             tipo_score_ingreso = req_dat["tipo_score_ingreso"]
+            tipo_score_pp = req_dat["tipo_score_pp"]
+            tipo_score_credito = req_dat["tipo_score_credito"]
             print("score ingreso",req_dat["tipo_score_ingreso"])
+            print("score ingreso",tipo_score_pp)
+            print("score ingreso",tipo_score_credito)
             
-            if tipo_score_ingreso in opciones:
+            if tipo_score_ingreso and tipo_score_pp and tipo_score_credito in opciones:
                 tsi = opciones[tipo_score_ingreso]
+                tspp = opciones[tipo_score_pp]
+                tsc = opciones[tipo_score_credito]
                 print(f"Tu Tipo de score es: {tipo_score_ingreso}, URL: {tsi}")
                 
             
             
-            context = {'info': info, "fecha_consulta":today, 'x':x, 'y':y, 'datos':req_dat, 'tsi':tsi}
+            context = {'info': info, "fecha_consulta":today, 'x':x, 'y':y, 'datos':req_dat, 'tsi':tsi, 'tspp':tspp, 'tsc':tsc}
             
             #template = 'home/resultado_investigacion_new.html'
             template = 'home/report.html'
