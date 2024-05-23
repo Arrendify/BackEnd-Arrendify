@@ -114,7 +114,7 @@ class Inquilino(models.Model):
     codigo_postal_empleo=models.BigIntegerField(null=True, blank=True)
     municipio_empleo=models.CharField(max_length=100, null=True, blank=True)
     
-      # Referencia del Arrendatario Anterior
+    # Referencia del Arrendatario Anterior
     rentado_antes=models.CharField(max_length=2, null=True, blank=True)
     nombre_aa=models.CharField(max_length=100, null=True, blank=True)
     monto_renta_aa=models.BigIntegerField(null=True, blank=True)

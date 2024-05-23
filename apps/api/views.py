@@ -117,7 +117,6 @@ class inquilino_registro(APIView):
                 print(nombre)
                 if len(nombre) > 0:
                     print("ya pase el self")
-                
                     id = serializer3.save(user = user_session)
                     #serializer3.save(user = user_session)
                     serializer_check.validated_data['inquilino'] = id
@@ -125,10 +124,12 @@ class inquilino_registro(APIView):
                     return Response(serializer3.data, status=status.HTTP_201_CREATED)
                 else:
                     print("Nombre no valido")
-                    return Response("Nombre vacio", status=status.HTTP_400_BAD_REQUEST)
+                    logger.error("Nombre no valido o vacio")
+                    return Response({'error':"Nombre vacio"}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 print("no valido")
                 print(serializer3.errors)
+                logger.error(f"error en el serializer de inquilino {serializer3.errors}")
                 return Response(serializer3.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(f"el error es: {e}")
