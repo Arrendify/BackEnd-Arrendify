@@ -9,6 +9,7 @@ class HomeAppConfig(AppConfig):
         print("Esta en apps.py ")
         # Código adicional que deseas ejecutar cuando la aplicación esté lista
         from . import scheduler # Esta línea importa el módulo
-        scheduler.start_scheduler() #inicia el scheduler
+       # scheduler.start_scheduler() #inicia el scheduler
+        scheduler.start_scheduler_notificaciones() #inicia el scheduler de notificaciones
 
 default_app_config = 'home.apps.HomeAppConfig'

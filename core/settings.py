@@ -18,6 +18,7 @@ SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
+#DEBUG = True
 
 LOGGING = {
     'version': 1,
@@ -107,10 +108,13 @@ CORS_ORIGIN_WHITELIST = (
     'http://192.168.1.187:8080',
     'http://192.168.3.2:8001',
     'http://192.168.3.2:8000',
-    'http://192.168.1.189:8000',
+    'http://192.168.1.190:8000',
+    'http://192.168.1.218',
+    'http://192.168.1.142',
+    'http://10.104.109.84:47626',
     'http://localhost',
 )
-# CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = True
 # CORS_ALLOW_METHODS = (
 #     'GET',
 #     'POST',
@@ -205,16 +209,6 @@ DATABASES = {
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': "Arrendify",
-#         'USER': 'arrendify',
-#         'PASSWORD': 'Arrendy.123',
-#         'HOST': 'pruebas.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
-#         'PORT': '5432',
-#     }
-# }
 
 # DATABASES = {
 #     'default': {
@@ -246,7 +240,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'es-mx'
 
-TIME_ZONE = 'America/Mexico_City'
+TIME_ZONE = 'America/Cancun'
 
 USE_I18N = True
 
@@ -254,7 +248,8 @@ USE_L10N = True
 
 USE_TZ = True
 
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['192.168.3.2']
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 

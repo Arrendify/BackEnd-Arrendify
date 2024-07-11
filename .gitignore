@@ -30,6 +30,9 @@ apps/static/assets/yarn.lock
 apps/static/assets/.temp
 #migraciones
 apps/home/migrations/*
+apps/accounts/migrations/*
+apps/api/migrations/*
+
 
 #los archivos env
 .env

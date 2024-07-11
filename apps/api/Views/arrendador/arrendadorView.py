@@ -56,6 +56,7 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
                 print("soy staff en arrendador")
                 serialized_data = self.serializer_class(self.queryset, many=True).data
                 print("self.queryset",self.queryset)
+               
                 # Agregar el campo 'is_staff'
                 for item in serialized_data:
                     item['is_staff'] = True

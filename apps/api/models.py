@@ -1,4 +1,12 @@
+#Django
+from .utils.models import AbstractNotificacion
 from django.db import models
 
 # Create your models here.
-from model_utils.models import TimeStampedModel, SoftDeletableModel
+
+
+class Notification(AbstractNotificacion):
+    
+    class Meta(AbstractNotificacion.Meta):
+        abstract = False
+

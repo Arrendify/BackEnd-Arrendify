@@ -2,6 +2,8 @@ from rest_framework import serializers
 from ..home.models import *
 from ..authentication.models import *
 from ..authentication.serializers import User2Serializer
+from .models import Notification
+from ..accounts.models import *
 from django.conf import settings
 
 class DFSerializer(serializers.ModelSerializer):
@@ -90,7 +92,7 @@ class InmueblesSerializer(serializers.ModelSerializer):
 # Comentario 
 class UserSerializer2(serializers.ModelSerializer):
     class Meta:
-        model = settings.AUTH_USER_MODEL
+        model = CustomUser
         fields = ('username', 'first_name', 'email', 'is_staff')
 
 # Arrendador
@@ -144,6 +146,7 @@ class Cotizacion_genSerializer(serializers.ModelSerializer):
         fields = '__all__' 
 
 class ComentarioSerializer(serializers.ModelSerializer):
+    #user = User2Serializer(read_only=True)
     user = UserSerializer2(read_only=True)  # Campo solo de lectura para mostrar los datos del usuario
     # user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True, source='user')  # Campo de escritura para insertar el ID del usuario
     class Meta:
@@ -219,4 +222,36 @@ class ContratoFraternaSerializer(serializers.ModelSerializer):
     class Meta:
         model = FraternaContratos
         fields = '__all__' 
+
+class PostSerializer(serializers.ModelSerializer):    
+
+    class Meta:
+        model = Post
+        fields = '__all__' 
+
+class NotificationSerializer(serializers.ModelSerializer):
+    actor_name = serializers.CharField(source='actor', read_only=True) # con este metodo obtengo los nombres en lugar del id con *source*
+    destiny_name = serializers.CharField(source='destiny', read_only=True)
+    
+
+    class Meta:
+        model = Notification
+        fields = '__all__'  # O especifica los campos que deseas serializar, por ejemplo: ['field1', 'field2']
+
+# class NotiSerializer(serializers.ModelSerializer):
+#     usuario_post = PostSerializer(many=True, read_only=True)
+#     notificaciones = NotificationSerializer(many = True, read_only = True)
+
+#     class Meta:
+#         model = CustomUser
+#         fields = ['usuario_post','notificaciones']  # O especifica los campos que deseas serializar, por ejemplo: ['field1', 'field2']
+
+
+    
+   
+        
+
+        
+    
+    
     

@@ -19,7 +19,7 @@ from time import sleep
 import os
 from django.core.paginator import Paginator
 from django.views.generic import View
-from ..api.utils import render_to_pdf
+
 #weasyprint
 from weasyprint import HTML, CSS
 from django.template.loader import render_to_string

@@ -25,15 +25,18 @@ from django.template.loader import get_template
 from num2words import num2words
 from datetime import date
 from datetime import datetime
+
 #Libreria para obtener el lenguaje en español
 import locale
+
 #obtener Logs de errores
 import logging
 import sys
 logger = logging.getLogger(__name__)
-#variables para el correo
 
+#variables para el correo
 from ..variables import aprobado_fraterna
+
 #enviar por correo
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -43,6 +46,7 @@ from email import encoders
 from smtplib import SMTPException
 from django.core.files.base import ContentFile
 from decouple import config
+
 
 
 # ----------------------------------Metodos Extras----------------------------------------------- #
@@ -60,6 +64,45 @@ def eliminar_archivo_s3(file_name):
         print("El archivo se eliminó correctamente de S3.")
     except NoCredentialsError:
         print("No se encontraron las credenciales de AWS.",{NoCredentialsError})
+        
+# ----------------------------------Metodo para disparar notificaciones a varios destinos----------------------------------------------- #
+def send_noti_varios(self, request, *args, **kwargs):
+        print("entramos al metodo de notificaiones independientes")
+        print("lo que llega es en self",self)
+        print("lo que llega es en kwargs",kwargs["title"])
+        print("lo que llega es en kwargs",kwargs['text'])
+        print("lo que llega es en kwargs",kwargs['url'])
+        print("request: ",request.data)
+        print("")
+        
+        print("request verbo",kwargs["title"])
+        try:
+            print("entramos en el try")
+            user_session = request.user
+            print("el que envia usuario es: ", user_session)
+            
+            destinatarios = User.objects.all().filter(pertenece_a = 'Arrendify')
+            
+            print("actores:",destinatarios)
+            
+            data_noti = {'title':kwargs["title"], 'text':kwargs["text"], 'user':user_session.id, 'url':kwargs['url']}
+            print("Post serializer a continuacion")
+        
+            for destiny in destinatarios:
+                post_serializer = PostSerializer(data=data_noti) #Usa el serializer_class
+                if post_serializer.is_valid(raise_exception=True):
+                    print("hola")
+                    print("destinyes",destiny)
+                    datos = post_serializer.save(user = destiny)
+                    print("Guardado residente")
+                    print('datos',datos)
+                else:
+                    print("Error en validacion",post_serializer.errors)
+            return Response({'Post': post_serializer.data}, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            print("error",e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 # ----------------------------------Metodos Extras----------------------------------------------- #
 
 class ResidenteViewSet(viewsets.ModelViewSet):
@@ -73,7 +116,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
         try:
            if user_session.is_staff:
                 print("Esta entrando a listar Residentes")
-                residentes =  Residentes.objects.all().order_by('id')
+                residentes =  Residentes.objects.all().order_by('-id')
                 serializer = self.get_serializer(residentes, many=True)
                 return Response(serializer.data, status= status.HTTP_200_OK)
             
@@ -86,7 +129,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
                 inquilinos_a_cargo = Residentes.objects.filter(user_id__in = agentes)
                 inquilinos_mios = Residentes.objects.filter(user_id = user_session)
                 mios = inquilinos_a_cargo.union(inquilinos_mios)
-                mios = mios.order_by('id')
+                mios = mios.order_by('-id')
                
                 serializer = self.get_serializer(mios, many=True)
                 serialized_data = serializer.data
@@ -105,7 +148,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
                 print("soy Agente", user_session.first_name)
                 #obtengo mis inquilinos
                 residentes_ag = Residentes.objects.filter(user_id = user_session)
-                residentes_ag = residentes_ag.order_by('id')
+                residentes_ag = residentes_ag.order_by('-id')
                 #tengo que obtener a mis inquilinos vinculados
               
                 serializer = self.get_serializer(residentes_ag, many=True)
@@ -467,7 +510,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
            user_session = request.user       
            if user_session.is_staff:
                print("Esta entrando a listar cotizacion")
-               contratos =  FraternaContratos.objects.all()
+               contratos =  FraternaContratos.objects.all().order_by('-id')
                serializer = self.get_serializer(contratos, many=True)
                serialized_data = serializer.data
                 
@@ -485,6 +528,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                contratos_mios = FraternaContratos.objects.filter(user_id = user_session.id)
                contratos_agentes = FraternaContratos.objects.filter(user_id__in = agentes.values("id"))
                contratos_all = contratos_mios.union(contratos_agentes)
+               contratos_all = contratos_all.order_by('-id')
                
                print("es posible hacer esto:", contratos_all)
                
@@ -493,17 +537,17 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                
            elif user_session.rol == "Agente":
                print(f"soy Agente: {user_session.first_name} en listar contrato")
-               residentes_ag = FraternaContratos.objects.filter(user_id = user_session)
+               residentes_ag = FraternaContratos.objects.filter(user_id = user_session).order_by('-id')
               
                serializer = self.get_serializer(residentes_ag, many=True)
                return Response(serializer.data, status= status.HTTP_200_OK)
                  
-           else:
-               print(f"soy normalito: {user_session.first_name} en listar contrato")
-               residentes_ag = FraternaContratos.objects.filter(user_id = user_session)
+        #    else:
+        #        print(f"soy normalito: {user_session.first_name} en listar contrato")
+        #        residentes_ag = FraternaContratos.objects.filter(user_id = user_session)
               
-               serializer = self.get_serializer(residentes_ag, many=True)
-               return Response(serializer.data, status= status.HTTP_200_OK)
+        #        serializer = self.get_serializer(residentes_ag, many=True)
+        #        return Response(serializer.data, status= status.HTTP_200_OK)
            
            
         except Exception as e:
@@ -530,6 +574,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     info = contrato_serializer.save(user = user_session)
                     nuevo_proceso.contrato = info
                     nuevo_proceso.save()
+                    send_noti_varios(FraternaContratos, request, title="Nueva solicitud de contrato en Fraterna", text=f"A nombre del Arrendatario {info.residente.nombre_arrendatario}", url = f"fraterna/contrato/#{info.residente.id}_{info.cama}_{info.no_depa}")
+                    print("despues de metodo send_noti")
                     print("Se Guardado solicitud")
                     return Response({'Residentes': contrato_serializer.data}, status=status.HTTP_201_CREATED)
                 else:
@@ -571,6 +617,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     proceso.contador = proceso.contador - 1
                     proceso.save()
                     print("edito proceso contrato")
+                    send_noti_varios(FraternaContratos, request, title="Se a modificado el contrato de:", text=f"FRATERNA VS {instance.residente.nombre_arrendatario} - {instance.residente.nombre_residente}".upper(), url = f"fraterna/contrato/#{instance.residente.id}_{instance.cama}_{instance.no_depa}")
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 else:
                     return Response({'errors': serializer.errors})
@@ -606,6 +653,23 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             proceso.status_proceso = request.data["status"]
             proceso.save()
             return Response({'Exito': 'Se cambio el estatus a aprobado'}, status= status.HTTP_200_OK)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def desaprobar_contrato(self, request, *args, **kwargs):
+        try:
+            print("desaprobar Contrato")
+            instance = self.queryset.get(id = request.data["id"])
+            #se utiliza el "get" en lugar del filter para obtener el objeto y no un queryset
+            proceso = ProcesoContrato.objects.all().get(contrato_id = instance.id)
+            print("proceso",proceso.__dict__)
+            proceso.status_proceso = "En Revisión"
+            proceso.contador = 2 # en vista que me indiquen lo contrario lo dejamos asi
+            proceso.save()
+            return Response({'Exito': 'Se cambio el estatus a desaprobado'}, status= status.HTTP_200_OK)
         except Exception as e:
             print(f"el error es: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()

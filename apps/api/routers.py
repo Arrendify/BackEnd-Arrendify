@@ -46,6 +46,10 @@ router.register(r'residentes', fraterna_views.ResidenteViewSet, basename='reside
 
 router.register(r'documentos_residentes', fraterna_views.DocumentosRes, basename='documentos_residentes')
 router.register(r'contratos_fraterna', fraterna_views.Contratos_fraterna, basename='contratos_fraterna')
+
+# si descomentamos la linea de abajo nos da el create con post de notificacion directo con el metodo notify_signals.
+
+# router.register(r'notis_prueba', notis_prueba, basename='notis_prueba')
 # router.register(r'documentos_foo', DocumentosFoo, basename='documentos_foo')
 # router.register(r'i_a', Inmuebles_a, basename='a_a')
 

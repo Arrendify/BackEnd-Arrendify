@@ -69,11 +69,24 @@ from .plantillas_mensaje_contacto.mensaje_contacto import Contacto
 from datetime import datetime
 
 #nuevo modelo user
-from ..accounts.models import CustomUser
+from ..accounts.models import CustomUser, Post
 User = CustomUser
+
+#obtener Logs de errores
+import logging
+import sys
+logger = logging.getLogger(__name__)
 
 # Heath Check
 from django.http import JsonResponse
+
+#LIBRERIAS PARA NOTIFICAR
+#loader model
+from swapper import load_model
+#buit-in signals
+from django.db.models.signals import post_save
+#signals 
+from .utils.signals import notificar 
 
 # Create your views here.
 # ----------------------------------Metodos Extras----------------------------------------------- #
@@ -99,6 +112,83 @@ def pagina_404(request):
 @api_view(['GET'])
 def health_check(request):
     return JsonResponse({"status": "OK"})
+# ----------------------------------Metodo para disparar notificaciones de manera individual----------------------------------------------- #
+def send_noti(self, request, *args, **kwargs):
+        print("entramos al metodo de notificaiones independientes")
+        print("lo que llega es en self",self)
+        print("lo que llega es en kwargs",kwargs["title"])
+        print("lo que llega es en kwargs",kwargs['text'])
+        print("lo que llega es en kwargs",kwargs['url'])
+        
+        print("request: ",request.data)
+        print("")
+        actor = User.objects.all().filter(username = 'Arrendatario1').first()
+        print("request verbo",kwargs["title"])
+        
+        try:
+            print("entramos en el tri")
+            user_session = request.user
+            print("el que envia usuario es: ", user_session)
+            print("el que recibe actor es: ",actor)
+          
+            data_noti = {'title':kwargs["title"], 'text':kwargs["text"], 'user':user_session.id, 'url':kwargs['url']}
+          
+            print("Post serializer a continuacion")
+            post_serializer = PostSerializer(data=data_noti) #Usa el serializer_class
+            if post_serializer.is_valid(raise_exception=True):
+                print("hola es valido el serializer")
+                datos = post_serializer.save(user = actor)
+                print('datos',datos)
+                return Response({'Post': post_serializer.data}, status=status.HTTP_201_CREATED)
+            
+            else:
+                print("Error en validacion", post_serializer.errors)
+                return Response({'errors': post_serializer.errors})
+            
+        except Exception as e:
+            print("error",e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# ----------------------------------Metodo para disparar notificaciones a varios destinos----------------------------------------------- #
+def send_noti_varios(self, request, *args, **kwargs):
+        print("entramos al metodo de notificaiones independientes")
+        print("lo que llega es en self",self)
+        print("lo que llega es en kwargs",kwargs["title"])
+        print("lo que llega es en kwargs",kwargs['text'])
+        print("lo que llega es en kwargs",kwargs['url'])
+        print("request: ",request.data)
+        print("")
+        
+        print("request verbo",kwargs["title"])
+        try:
+            print("entramos en el try")
+            user_session = request.user
+            print("el que envia usuario es: ", user_session)
+            
+            destinatarios = User.objects.all().filter(pertenece_a = 'Arrendify')
+            
+            print("actores:",destinatarios)
+            
+            data_noti = {'title':kwargs["title"], 'text':kwargs["text"], 'user':user_session.id, 'url':kwargs['url']}
+            print("Post serializer a continuacion")
+        
+            for destiny in destinatarios:
+                post_serializer = PostSerializer(data=data_noti) #Usa el serializer_class
+                if post_serializer.is_valid(raise_exception=True):
+                    print("hola")
+                    print("destinyes",destiny)
+                    datos = post_serializer.save(user = destiny)
+                    print("Guardado residente")
+                    print('datos',datos)
+                else:
+                    print("Error en validacion",post_serializer.errors)
+            return Response({'Post': post_serializer.data}, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            print("error",e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 # ----------------------------------Inquilino----------------------------------------------- #
 class inquilino_registro(APIView):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
@@ -137,7 +227,8 @@ class inquilino_registro(APIView):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
 
-
+# from django.dispatch import receiver
+# @receiver(notificar)
 @api_view(['POST'])
 def editar_inquilino(request):
     print("Yo soy request", request.data)
@@ -150,7 +241,15 @@ def editar_inquilino(request):
     if user_serializer.is_valid():
         user_serializer.save()
         print("Guardo Inquilino")
+        
+        print("PRINTEAMOS EL USER",request.user)
+        
+        print("antes de metodo send")
+        # send_noti(inquilino, request, title="Actualizacion de Inquilino", text=f"El Inquilino: {inquilino.nombre} {inquilino.apellido} ah sido actualizado por {request.user}", url = f"inquilinos/#{inquilino.nombre}_{inquilino.apellido}_{inquilino.apellido1}")
+        send_noti_varios(inquilino, request, title="Actualizacion de Inquilino", text=f"El Inquilino: {inquilino.nombre} {inquilino.apellido} ah sido actualizado por {request.user}", url = f"inquilinos/#{inquilino.nombre}_{inquilino.apellido}_{inquilino.apellido1}")
+        print("despues de metodo send_noti")
         return Response(user_serializer.data, status=status.HTTP_200_OK)
+    
     print("No guardo Inquilino xD")
     return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1100,7 +1199,49 @@ class investigaciones(viewsets.ModelViewSet):
                 else:
                         print("Esta entrando a listar inquilino desde invetigacion")
                         print("sin barra de busqueda")
-                        investigar =  Investigacion.objects.all()
+                        francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
+                        inquilino = Inquilino.objects.all().filter(user_id = francis.id)
+                        print("excluimos el resultado:",inquilino)
+                        id_inq = []
+                        for inq in inquilino:
+                            id_inq.append(inq.id)
+                        investigar = Investigacion.objects.all().exclude(inquilino__in = id_inq)
+                        serializer = self.get_serializer(investigar, many=True)
+                        return Response(serializer.data)
+                
+                #    return Response(serializer.data, status= status.HTTP_200_OK)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'No estas autorizado'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    def investigacion_francis(self, request, *args, **kwargs):
+        user_session = request.user       
+        if user_session.username == "Arrendatario1" or user_session.username == "Legal":
+            print("Si eres el elegido")
+            qs = request.GET.get('nombre')     
+            try:
+                if qs:
+                    inquilino = Inquilino.objects.all().filter(nombre__icontains = qs)
+                    id_inq = []
+                    for inq in inquilino:
+                        id_inq.append(inq.id)
+                    investigar = Investigacion.objects.all().filter(inquilino__in = id_inq)
+                    serializer = self.get_serializer(investigar, many=True)
+                    return Response(serializer.data)
+                    
+                else:
+                        print("Esta entrando a listar inquilino desde investigacion francis calete")
+                        francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
+                        print(francis)
+                        print(francis.id)
+                        inquilino = Inquilino.objects.all().filter(user_id = francis.id)
+                        print(inquilino)
+                        id_inq = []
+                        for inq in inquilino:
+                            id_inq.append(inq.id)
+                        investigar = Investigacion.objects.all().filter(inquilino__in = id_inq)
+                        # investigar =  Investigacion.objects.filter(user_id = user_session)
                         serializer = self.get_serializer(investigar, many=True)
                         return Response(serializer.data)
                 
@@ -1111,181 +1252,182 @@ class investigaciones(viewsets.ModelViewSet):
             return Response({'No estas autorizado'}, status=status.HTTP_401_UNAUTHORIZED)
 
     def update(self, request, *args, **kwargs):
-        try:
-            print("Esta entrando a actualizar inv")
-            partial = kwargs.pop('partial', False)
-            print("partials",partial)
-            print("soy el request",request.data)
-            print("soy el status que llega",request.data["status"])
-            instance = self.get_object()
-            print("instance",instance)
-            print("id",instance.id)
+        pass
+        # try:
+        #     print("Esta entrando a actualizar inv")
+        #     partial = kwargs.pop('partial', False)
+        #     print("partials",partial)
+        #     print("soy el request",request.data)
+        #     print("soy el status que llega",request.data["status"])
+        #     instance = self.get_object()
+        #     print("instance",instance)
+        #     print("id",instance.id)
             
-            #Consulata para obtener el inquilino y establecemos fecha de hoy
-            today = date.today().strftime('%d/%m/%Y')
-            inquilino_mod =  Inquilino.objects.all().filter(id = instance.id)
-            primer_inquilino = inquilino_mod.first()
-            print("soy nombre de inquilino",primer_inquilino.nombre)
-            #Consulata para obtener el fiador confirme a la fk y releated name 
-            fiador = primer_inquilino.aval.all().first()
-            #primero comprobar si hay aval
-            if fiador:
-                print("si hay fiador")
-                print("yo soy info de los fiadores",fiador.__dict__)
+        #     #Consulata para obtener el inquilino y establecemos fecha de hoy
+        #     today = date.today().strftime('%d/%m/%Y')
+        #     inquilino_mod =  Inquilino.objects.all().filter(id = instance.id)
+        #     primer_inquilino = inquilino_mod.first()
+        #     print("soy nombre de inquilino",primer_inquilino.nombre)
+        #     #Consulata para obtener el fiador confirme a la fk y releated name 
+        #     fiador = primer_inquilino.aval.all().first()
+        #     #primero comprobar si hay aval
+        #     if fiador:
+        #         print("si hay fiador")
+        #         print("yo soy info de los fiadores",fiador.__dict__)
                 
-                #si hay fiador hacemos el proceso de aprobar           
-                if request.data["status"] == "Aprobado":
-                    print("APROBADO")
-                    primer_inquilino.status = "1"
-                    print("status cambiado",primer_inquilino.status)
-                    primer_inquilino.save()
-                    print("fiador.fiador_obligado",fiador.fiador_obligado)
-                    #asignacion de variables dependiendo del Regimen fiscal del Fiador
-                    if primer_inquilino.p_fom == "Persona Moral":
-                        print("Soy persona moral")
-                    else: 
+        #         #si hay fiador hacemos el proceso de aprobar           
+        #         if request.data["status"] == "Aprobado":
+        #             print("APROBADO")
+        #             primer_inquilino.status = "1"
+        #             print("status cambiado",primer_inquilino.status)
+        #             primer_inquilino.save()
+        #             print("fiador.fiador_obligado",fiador.fiador_obligado)
+        #             #asignacion de variables dependiendo del Regimen fiscal del Fiador
+        #             if primer_inquilino.p_fom == "Persona Moral":
+        #                 print("Soy persona moral")
+        #             else: 
                         
-                        if fiador.fiador_obligado == "Obligado Solidario Persona Moral":
-                            print("No agregamos nada")
-                        else:
-                            ingreso = request.data["roe_inquilino"]
-                            ine_inquilino = request.data["ine_inquilino"]
-                            ine_fiador = request.data["ine_fiador"]
+        #                 if fiador.fiador_obligado == "Obligado Solidario Persona Moral":
+        #                     print("No agregamos nada")
+        #                 else:
+        #                     ingreso = request.data["roe_inquilino"]
+        #                     ine_inquilino = request.data["ine_inquilino"]
+        #                     ine_fiador = request.data["ine_fiador"]
                             
-                            if fiador.recibos == "Si":
-                                ingreso_obligado = "Recibo de nómina"   
-                            else:
-                                ingreso_obligado = "Estado de cuenta" 
-                                #combierte el salario mensual a letra prospecto
+        #                     if fiador.recibos == "Si":
+        #                         ingreso_obligado = "Recibo de nómina"   
+        #                     else:
+        #                         ingreso_obligado = "Estado de cuenta" 
+        #                         #combierte el salario mensual a letra prospecto
                                 
-                            number = primer_inquilino.ingreso_men
-                            number = int(number)
-                            text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-                            text_representation = text_representation.capitalize()
-                            #combierte el salario mensual de aval
-                            number_2 = fiador.ingreso_men_fiador
-                            number_2 = int(number_2)
-                            text_representation2 = num2words(number_2, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-                            text_representation2 = text_representation2.capitalize()
-                    print("Pasamo el if de obligado ")
+        #                     number = primer_inquilino.ingreso_men
+        #                     number = int(number)
+        #                     text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+        #                     text_representation = text_representation.capitalize()
+        #                     #combierte el salario mensual de aval
+        #                     number_2 = fiador.ingreso_men_fiador
+        #                     number_2 = int(number_2)
+        #                     text_representation2 = num2words(number_2, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+        #                     text_representation2 = text_representation2.capitalize()
+        #             print("Pasamo el if de obligado ")
                 
-                    #hacer el proceso de enviar archivo especial para persona moral
-                    if primer_inquilino.p_fom == "Persona Moral":
-                        print("soy persona moral")
-                        archivo = request.data["doc_rec"]                        
-                        archivo = request.data["doc_rec"]
-                        comentario = "nada"
-                        self.enviar_archivo(archivo,primer_inquilino,comentario)
+        #             #hacer el proceso de enviar archivo especial para persona moral
+        #             if primer_inquilino.p_fom == "Persona Moral":
+        #                 print("soy persona moral")
+        #                 archivo = request.data["doc_rec"]                        
+        #                 archivo = request.data["doc_rec"]
+        #                 comentario = "nada"
+        #                 self.enviar_archivo(archivo,primer_inquilino,comentario)
                            
-                    else:    
-                        if fiador.fiador_obligado == "Fiador Solidario":
-                            print("Hola soy Fiador Solidario")
-                            context = {
-                            'info':primer_inquilino,
-                            'fiador':fiador,
-                            'fecha_actual':today,
-                            'ine_inquilino':ine_inquilino,
-                            'ine_fiador':ine_fiador,
-                            'number': number,
-                            'number_2': number_2,
-                            'text_representation': text_representation,
-                            'text_representation2': text_representation2,
-                            'ingreso':ingreso,
-                            'ingreso_obligado':ingreso_obligado,
-                            'template':"home/aprobado_fiador.html",
-                            }
-                            self.generar_archivo(context)  
+        #             else:    
+        #                 if fiador.fiador_obligado == "Fiador Solidario":
+        #                     print("Hola soy Fiador Solidario")
+        #                     context = {
+        #                     'info':primer_inquilino,
+        #                     'fiador':fiador,
+        #                     'fecha_actual':today,
+        #                     'ine_inquilino':ine_inquilino,
+        #                     'ine_fiador':ine_fiador,
+        #                     'number': number,
+        #                     'number_2': number_2,
+        #                     'text_representation': text_representation,
+        #                     'text_representation2': text_representation2,
+        #                     'ingreso':ingreso,
+        #                     'ingreso_obligado':ingreso_obligado,
+        #                     'template':"home/aprobado_fiador.html",
+        #                     }
+        #                     self.generar_archivo(context)  
                         
-                        elif fiador.fiador_obligado == "Obligado Solidario Persona Fisica":
-                            context = {
-                            'info':primer_inquilino,
-                            'fiador':fiador,
-                            'fecha_actual':today,
-                            'ine_inquilino':ine_inquilino,
-                            'ine_fiador':ine_fiador,
-                            'number': number,
-                            'number_2': number_2,
-                            'text_representation': text_representation,
-                            'text_representation2': text_representation2,
-                            'ingreso':ingreso,
-                            'ingreso_obligado':ingreso_obligado,
-                            'template':"home/aprobado_obligado.html",
-                            }
-                            self.generar_archivo(context)  
+        #                 elif fiador.fiador_obligado == "Obligado Solidario Persona Fisica":
+        #                     context = {
+        #                     'info':primer_inquilino,
+        #                     'fiador':fiador,
+        #                     'fecha_actual':today,
+        #                     'ine_inquilino':ine_inquilino,
+        #                     'ine_fiador':ine_fiador,
+        #                     'number': number,
+        #                     'number_2': number_2,
+        #                     'text_representation': text_representation,
+        #                     'text_representation2': text_representation2,
+        #                     'ingreso':ingreso,
+        #                     'ingreso_obligado':ingreso_obligado,
+        #                     'template':"home/aprobado_obligado.html",
+        #                     }
+        #                     self.generar_archivo(context)  
                         
-                        else:
-                            print("Obligado Solidario Persona Moral")
-                            print("Otro proceso")
-                            archivo = request.data["doc_rec"]
-                            comentario = "nada"
-                            self.enviar_archivo(archivo,primer_inquilino,comentario)      
+        #                 else:
+        #                     print("Obligado Solidario Persona Moral")
+        #                     print("Otro proceso")
+        #                     archivo = request.data["doc_rec"]
+        #                     comentario = "nada"
+        #                     self.enviar_archivo(archivo,primer_inquilino,comentario)      
                 
-                if request.data["status"] == "Rechazado":
-                    print("rechazado con aval")
-                    primer_inquilino.status = "0"
-                    print("status cambiado",primer_inquilino.status)
-                    primer_inquilino.save()
-                    comentario = request.data["comentario"]
-                    archivo =request.data["doc_rec"]
-                    self.enviar_archivo(archivo,primer_inquilino,comentario)   
+        #         if request.data["status"] == "Rechazado":
+        #             print("rechazado con aval")
+        #             primer_inquilino.status = "0"
+        #             print("status cambiado",primer_inquilino.status)
+        #             primer_inquilino.save()
+        #             comentario = request.data["comentario"]
+        #             archivo =request.data["doc_rec"]
+        #             self.enviar_archivo(archivo,primer_inquilino,comentario)   
                 
 
-                elif request.data["status"] == "En espera":
-                    primer_inquilino.status = "1"
-                    print("status cambiado",primer_inquilino.status)
-                    primer_inquilino.save()
-                    print("paso save")
-            # S I N A V A L            
-            else:
-                print("no hay aval aprobado")
-                if request.data["status"] == "Aprobado":
-                    print("APROBADO SIN AVAL")
-                    primer_inquilino.status = "1"
-                    primer_inquilino.fiador = "no hay"
-                    primer_inquilino.save()
-                    print("status cambiado",primer_inquilino.status)
-                    comentario = "nada"
-                    print(comentario)
+        #         elif request.data["status"] == "En espera":
+        #             primer_inquilino.status = "1"
+        #             print("status cambiado",primer_inquilino.status)
+        #             primer_inquilino.save()
+        #             print("paso save")
+        #     # S I N A V A L            
+        #     else:
+        #         print("no hay aval aprobado")
+        #         if request.data["status"] == "Aprobado":
+        #             print("APROBADO SIN AVAL")
+        #             primer_inquilino.status = "1"
+        #             primer_inquilino.fiador = "no hay"
+        #             primer_inquilino.save()
+        #             print("status cambiado",primer_inquilino.status)
+        #             comentario = "nada"
+        #             print(comentario)
                     
-                    if "doc_sa" in request.data:
-                        print("si existo")
-                        archivo_sa = request.data["doc_sa"]
-                        print(archivo_sa)
-                    else:
-                        print("no existo")
-                        archivo_sa = request.data["doc_rec"] 
-                        print(archivo_sa)
+        #             if "doc_sa" in request.data:
+        #                 print("si existo")
+        #                 archivo_sa = request.data["doc_sa"]
+        #                 print(archivo_sa)
+        #             else:
+        #                 print("no existo")
+        #                 archivo_sa = request.data["doc_rec"] 
+        #                 print(archivo_sa)
                     
-                    self.enviar_archivo(archivo_sa,primer_inquilino,comentario)  
+        #             self.enviar_archivo(archivo_sa,primer_inquilino,comentario)  
                 
-                if request.data["status"] == "Rechazado":
-                        print("Rechazado sin Aval")
-                        primer_inquilino.status = "0"
-                        primer_inquilino.fiador = "no hay"
-                        print("status cambiado",primer_inquilino.status)
-                        primer_inquilino.save()
-                        comentario = request.data["comentario"]
-                        archivo =request.data["doc_rec"]
-                        self.enviar_archivo(archivo,primer_inquilino,comentario)    
+        #         if request.data["status"] == "Rechazado":
+        #                 print("Rechazado sin Aval")
+        #                 primer_inquilino.status = "0"
+        #                 primer_inquilino.fiador = "no hay"
+        #                 print("status cambiado",primer_inquilino.status)
+        #                 primer_inquilino.save()
+        #                 comentario = request.data["comentario"]
+        #                 archivo =request.data["doc_rec"]
+        #                 self.enviar_archivo(archivo,primer_inquilino,comentario)    
             
-                elif request.data["status"] == "En espera":
-                    primer_inquilino.status = "1"
-                    primer_inquilino.fiador = "no hay"
-                    print("status cambiado",primer_inquilino.status)
-                    primer_inquilino.save()
-                    print("paso save")  
+        #         elif request.data["status"] == "En espera":
+        #             primer_inquilino.status = "1"
+        #             primer_inquilino.fiador = "no hay"
+        #             print("status cambiado",primer_inquilino.status)
+        #             primer_inquilino.save()
+        #             print("paso save")  
             
-            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
             
-            if serializer.is_valid(raise_exception=True):
-                self.perform_update(serializer)
-                print("edite investigacion")
+        #     if serializer.is_valid(raise_exception=True):
+        #         self.perform_update(serializer)
+        #         print("edite investigacion")
             
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({'errors': serializer.errors})
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        #         return Response(serializer.data, status=status.HTTP_200_OK)
+        #     else:
+        #         return Response({'errors': serializer.errors})
+        # except Exception as e:
+        #     return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     def retrieve(self, request, pk=None, *args, **kwargs):
         user_session = request.user
@@ -1301,58 +1443,45 @@ class investigaciones(viewsets.ModelViewSet):
             else:
                 return Response({'message': 'No hay investigacion en estos datos'}, status = status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)             
         
-    def generar_archivo(self,context):
-        # Renderiza el template HTML  
-        template = context["template"] #obtenemos template
-        print("template asignado",template)
-        html_string = render_to_string(template, context)# lo comvertimos a string
-        pdf_file = HTML(string=html_string).write_pdf(target=None) # Genera el PDF utilizando weasyprint para descargar del usuario
-        print("pdf realizado")
-        print(pdf_file)
-        
-        archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
-       
-        print("antes de enviar_archivo",context)
-        self.enviar_archivo(archivo, context["info"])
-        print("PDF ENVIADO")
-             
-        
-    def enviar_archivo(self, archivo, info, comentario="nada"):
+    def enviar_archivo(self, archivo, info, estatus):
+        francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
         print("soy pdf content",archivo)
-        print("soy comentario",comentario)
+        print("soy status",estatus)
         print("soy info de investigacion",info.__dict__)
-        
-        
+        print("info id",info.user_id)
+   
         # Configura los detalles del correo electrónico
         try:
             remitente = 'notificaciones_arrendify@outlook.com'
-            destinatario = info.email
-            #destinatario = 'jsepulvedaarrendify@gmail.com'
-            #destinatario = 'juridico.arrendify1@gmail.com'
+            destinatario2 = 'juridico.arrendify1@gmail.com'
+            if info.user_id == francis.id:
+                print("Es el mismo usuaio, envialo a francis calete")
+                # destinatario = 'el que meden @francis o algo asi'
+                pdf_html = contenido_pdf_aprobado_francis(info,estatus)
+                print("destinatario Francis", destinatario)
+            else:
+                #destinatario = 'jsepulvedaarrendify@gmail.com'
+                destinatario = info.email
+                pdf_html = contenido_pdf_aprobado(info,estatus)
+                print("destinatario normalito",destinatario)
             
-            
-            asunto = f"Resultado Investigación Prospecto {info.nombre}"
+            #hacemos una lista destinatarios para enviar el correo
+            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com']
+            asunto = f"Resultado Investigación Prospecto {info.nombre} {info.apellido} {info.apellido1}"
             
             # Crea un objeto MIMEMultipart para el correo electrónico
             msg = MIMEMultipart()
             msg['From'] = remitente
-            msg['To'] = destinatario
+            msg['To'] = ','.join(Destino)
             msg['Subject'] = asunto
             print("paso objeto mime")
-           
-            if hasattr(info, 'fiador'):
-                print("SOY info.fiador",info.fiador)
             
-            # Estilo del mensaje
-            #variable contenido_html_resultado externa jalada de variables.py or info.fiador == "no hay"
-            if comentario == "nada" :
-                pdf_html = contenido_pdf_aprobado(info)
-          
-            else:
-                pdf_html = contenido_pdf(info,comentario)
-          
+            #Evalua si tiene este atributo
+            # if hasattr(info, 'fiador'):
+            #     print("SOY info.fiador",info.fiador)
+            
             # Adjuntar el contenido HTML al mensaje
             msg.attach(MIMEText(pdf_html, 'html'))
             print("pase el msg attach 1")
@@ -1360,7 +1489,7 @@ class investigaciones(viewsets.ModelViewSet):
             pdf_part = MIMEBase('application', 'octet-stream')
             pdf_part.set_payload(archivo.read())  # Lee los bytes del archivo
             encoders.encode_base64(pdf_part)
-            pdf_part.add_header('Content-Disposition', 'attachment', filename='Resultado_investigación.pdf')
+            pdf_part.add_header('Content-Disposition', 'attachment', filename='Reporte_de_investigación.pdf')
             msg.attach(pdf_part)
             print("pase el msg attach 2")
             
@@ -1372,7 +1501,7 @@ class investigaciones(viewsets.ModelViewSet):
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
-                server.sendmail(remitente, destinatario, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
+                server.sendmail(remitente, Destino, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
             return Response({'message': 'Correo electrónico enviado correctamente.'})
         except SMTPException as e:
             print("Error al enviar el correo electrónico:", str(e))
@@ -1382,20 +1511,74 @@ class investigaciones(viewsets.ModelViewSet):
     def aprobar_prospecto(self, request, *args, **kwargs):
         try:
             print("entrando en Aprobar prospecto")
+            #Consulata para obtener el inquilino y establecemos fecha de hoy
             today = date.today().strftime('%d/%m/%Y')
             req_dat = request.data
-            print("request.data", req_dat)
-            print("el id que llega", req_dat["id"])
             info = self.queryset.filter(id = req_dat["id"]).first()
-            print(info.__dict__)   
-            print("request.data",req_dat)   
+            inquilino = info.inquilino
+            
+            
+            aval = info.inquilino.aval.all().first()
+            redes_negativo = req_dat.get("redes_negativo")
+            print("request.data",req_dat)
+            print("soy INFO",info.__dict__)   
+            print("el id que llega", req_dat["id"])
+            print("")
             print("soy la info del",info.inquilino.nombre)       
+            print(info.inquilino.__dict__)
+            print("")        
+            print("soy la info del aval",aval)                                
+            print("")
+            print("redes negativo", redes_negativo)            
+            print("")
             
-            x = "Si"
-            y = "No"
+            requisitos = ['referencia1', 'referencia2', 'referencia3'] # una lista para verificar las referencias 1,2 y 3
+            presentes = [req for req in requisitos if req in request.data and request.data[req]]
+            print("Referencias presentes: ",presentes)
+            if len(presentes) == 3:
+                referencias = "En consideración a lo referido por las referencias podemos constatar que la informacion brindada por el prospecto al inicio del tramite es verídica, lo cual nos permite estimar que cuenta con buenos comentarios hacia su persona."
+            elif len(presentes) > 0:
+                referencias = "En cuanto a la recolección de información por parte de las referencias se nos imposibilita aseverar la cabalidad de la persona a investigar referente a su ámbito social, toda vez que no se logró entablar comunicación con alguna(s) referencias proporcionadas, por lo tanto, no podemos corroborar por completo la veracidad de la información proporcionada en la solicitud de arrendamiento. "
+            else:
+                referencias = "En cuanto a la recolección de información por parte de las referencias se nos imposibilita aseverar la cabalidad de la persona a investigar referente a su ámbito social, toda vez que no se logró entablar comunicación con ninguna de las referencias proporcionadas, por lo tanto, no podemos corroborar la veracidad de la información proporcionada en la solicitud de arrendamiento. "
             
-            #obtener la tipologia
-            # Definir las opciones y sus correspondientes valores para la variable "plano"
+            #comentarios de redes para walden
+            if redes_negativo:
+                redes_negativo = dict(redes_negativo)
+                #inicializamos la lista 
+                redes_comentarios = []
+                #establecemos las frases
+                conductas = {
+                'conducta_violenta': "Conducta violenta o agresiva: Publicaciones que muestran armas de fuego u otros objetos peligrosos.",
+                'conducta_discriminatoria': "Conducta discriminatoria o racista: Comentarios, imágenes o memes que promueven el racismo, sexismo, homofobia, transfobia u otro tipo de discriminación.",
+                'contenido_ofensivo_odio': "Contenido ofensivo o de odio: Publicaciones que contienen discursos de odio contra diversos grupos étnicos, religiosos, de orientación sexual, género, etc",
+                'bullying_acoso': "Bullying o acoso: Participación en o incitación al acoso, ya sea ciberacoso o en la vida real.",
+                'contenido_inapropiado': "Contenido inapropiado o explícito: Publicaciones de contenido sexual explícito o inapropiado.",
+                'desinformacion_teoria': "Desinformación y teorías conspirativas: Difusión de información falsa o engañosa, así como la promoción de teorías conspirativas sin fundamento que puedan poner en peligro la tranquilidad y orden dentro de la comunidad.",
+                'lenguaje_vulgar': "Lenguaje vulgar o inapropiado: Uso excesivo de lenguaje vulgar o soez en sus publicaciones.",
+                'contenido_poco_profesional': "Conducta poco profesional: Publicaciones que muestran comportamientos inapropiados en contextos profesionales.",
+                'falta_integridad': "Falta de integridad: Inconsistencias en la información compartida en diferentes plataformas, o indicios de comportamientos engañosos o fraudulentos.",
+                'divulgacion_info': "Divulgación de información confidencial: Publicaciones que revelan información privada o confidencial de empresas, clientes o individuos.",
+                'exceso_negatividad': "Exceso de negatividad: Publicaciones predominantemente negativas o quejumbrosas.",
+                'falta_respeto_priv': "Falta de respeto hacia la privacidad: Compartir información privada de otras personas sin su consentimiento.",
+                'ausencia_diversidad': "Ausencia de diversidad y tolerancia: Falta de representación de diversas perspectivas y falta de respeto por la diversidad en sus publicaciones."
+                }
+                # Bucle para generar las frases basadas en los valores de redes_negativo
+                for clave, valor in redes_negativo.items(): #hacemos un for basado en la clave valor del dicciones redes_negativo en el .items al ser un diccionario
+                    if valor == "Si" and clave in conductas:
+                        frase = conductas[clave]
+                        #lo agregamos a la lista redes_comentarios
+                        redes_comentarios.append(frase)
+                        print("clave:", clave)
+                        print("frase:", frase)
+                        print("lista finalizada:", redes_comentarios)
+                    elif valor == "Si" and clave not in conductas:
+                        print(f"No hay una frase definida para la clave: {clave}")
+            else:
+                redes_comentarios = "no tengo datos"
+                print("redes coments",redes_comentarios)
+        
+            #opciones para el score interno de nosotros
             opciones = {
                 'Excelente': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/medidores/medidor_excelente.png",
                 'Bueno': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/medidores/medidor_bueno.png",
@@ -1406,39 +1589,139 @@ class investigaciones(viewsets.ModelViewSet):
             tipo_score_ingreso = req_dat["tipo_score_ingreso"]
             tipo_score_pp = req_dat["tipo_score_pp"]
             tipo_score_credito = req_dat["tipo_score_credito"]
-            print("score ingreso",req_dat["tipo_score_ingreso"])
-            print("score ingreso",tipo_score_pp)
-            print("score ingreso",tipo_score_credito)
             
             if tipo_score_ingreso and tipo_score_pp and tipo_score_credito in opciones:
                 tsi = opciones[tipo_score_ingreso]
                 tspp = opciones[tipo_score_pp]
                 tsc = opciones[tipo_score_credito]
                 print(f"Tu Tipo de score es: {tipo_score_ingreso}, URL: {tsi}")
+                print(f"Tu Tipo de score es: {tipo_score_pp}, URL: {tspp}")
+                print(f"Tu Tipo de score es: {tipo_score_credito}, URL: {tsc}")
+            
+            #evaluar el historial crediticio
+            # if tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente":
+            #     print("aprobado")
+            # elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Excelente":
+            #     print("a considerar")
+            # else:
+            #     print("rechazado")
+            
+            
+            
+            #evaluar el historial crediticio antes para no hacerlo 2 veces
+            # if tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente":
+            #         print("aprobado")
+            #         status = "Aprobado"
+            #         conclusion = f"Nos complace informar que el prospecto {info.inquilino.nombre} {info.inquilino.apellido} {info.inquilino.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
+            
+            # elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Excelente":
+            #     print("a considerar")
+            #     status = "A considerar"
+            #     conclusion = ""
                 
+            # else:
+            #     print("rechazado") 
+               
+               
+            #Dar conclusion dinamica
+            antecedentes = request.data.get('antecedentes') # Obtenemos todos los antecedentes del prospecto
+            print("antecedentes",antecedentes)
+            if antecedentes:
+                # del antecedentes["civil_mercantil_demandado"] 
+                print("tienes antecedences, vamos a ver si es civil o familiar",antecedentes)
+                if antecedentes.get("civil_mercantil_demandado") and len(antecedentes) == 1: #tiene antecedentes de civil o de familiar? los excentamos si no delincuente
+                    print("Tiene antecedentes civiles o familiares")
+                    print("Checamos el historial")
+                    #evaluar el historial crediticio  
+                    if tipo_score_pp == "Malo":
+                        print("rechazado")
+                        conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                        status = "Declinado"
+                    
+                    elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
+                        print("aprobado")
+                        conclusion = f"Nos complace informar que el prospecto {info.inquilino.nombre} {info.inquilino.apellido} {info.inquilino.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
+                        status = "Aprobado"
+                            
+                    elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Malo":
+                        print("a considerar")
+                        conclusion = "Nos complace informar que el candidato ha sido aprobado tras una rigurosa investigación llevada a cabo por ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa, confirmando así que el candidato cumple con los requisitos exigidos. \n \n No obstante, es importante considerar que la investigación ha revelado ciertos puntos que deben tomarse en cuenta, los cuales se detallado en lo expuesto anteriormente respecto a:"
+                        status = "Aprobado_pe"
+                    
+                    else:
+                        print("rechazado")
+                        conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                        status = "Declinado"
+                else:
+                    print("eres un delincuente")
+                    conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                    status = "Declinado"
+            else:
+                #evaluar el historial crediticio  
+                if tipo_score_pp == "Malo":
+                    print("rechazado")
+                    conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                    status = "Declinado"
+                
+                elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
+                    print("aprobado")
+                    conclusion = f"Nos complace informar que el prospecto {info.inquilino.nombre} {info.inquilino.apellido} {info.inquilino.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
+                    status = "Aprobado"
+                        
+                elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Malo":
+                    print("a considerar")
+                    conclusion = "Nos complace informar que el candidato ha sido aprobado tras una rigurosa investigación llevada a cabo por ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa, confirmando así que el candidato cumple con los requisitos exigidos. \n \n No obstante, es importante considerar que la investigación ha revelado ciertos puntos que deben tomarse en cuenta, los cuales se detallado en lo expuesto anteriormente respecto a:"
+                    status = "Aprobado_pe"
+                
+                else:
+                    print("rechazado")
+                    conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                    status = "Declinado"
+                    
+            context = {'info': info, 'aval':aval, "fecha_consulta":today, 'datos':req_dat, 'tsi':tsi, 'tspp':tspp, 'tsc':tsc, 
+                       "redes_comentarios":redes_comentarios, 'referencias':referencias, 'antecedentes':antecedentes,'status':status, 'conclusion':conclusion,}
             
-            
-            context = {'info': info, "fecha_consulta":today, 'x':x, 'y':y, 'datos':req_dat, 'tsi':tsi, 'tspp':tspp, 'tsc':tsc}
-            
-            #template = 'home/resultado_investigacion_new.html'
             template = 'home/report.html'
             html_string = render_to_string(template, context)
 
             # Genera el PDF utilizando weasyprint
+            print("Generando el pdf")
             pdf_file = HTML(string=html_string).write_pdf()
-
-            # Devuelve el PDF como respuesta
-            response = HttpResponse(content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
-            response.write(pdf_file)
-            print("Finalizamos el proceso de aprobado") 
-            return HttpResponse(response, content_type='application/pdf')
+            #aqui hacia abajo es para enviar por email
+            archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+        
+            print("antes de enviar_archivo",context)
+            self.enviar_archivo(archivo, context["info"].inquilino, context["status"])
+            # Aprobar o desaprobar
+            if status == "Aprobado_pe" or status == "Aprobado":  
+                inquilino.status = "1"
+                inquilino.save()
+                info.status = "Aprobado"
+                info.save()
+            else:
+                inquilino.status = "0"
+                inquilino.save()
+                info.status = "Rechazado"
+                info.save()
+            
+            print("PDF ENVIADO")
+            
+            return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = "200")
+           
+            # de aqui hacia abajo Devuelve el PDF como respuesta
+            # response = HttpResponse(content_type='application/pdf')
+            # response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+            # response.write(pdf_file)
+            # print("Finalizamos el proceso de aprobado") 
+            # return HttpResponse(response, content_type='application/pdf')
         
         except Exception as e:
             print(f"el error es: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
-            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
+            return Response({'error': str(e)}, status = "404") 
+
+    
 
 # ----------------------------------Cotizador---------------------------------- #        
 class Arrendador_Cotizador(viewsets.ModelViewSet):
@@ -2178,7 +2461,7 @@ class RecuperarPassword(viewsets.ViewSet):
             token.save()
             
             # switch server
-            #server = "'http://192.168.1.187:8000'"
+            #server = "'http://192.168.1.192:8000'"
             #server = "http://192.168.3.2:8000"
             server = "https://arrendify.app"
             
@@ -2282,7 +2565,7 @@ class Comentario(viewsets.ModelViewSet):
             comentario_serializer = self.serializer_class(data=request.data)
             if comentario_serializer.is_valid(raise_exception=True):
                 comentario_serializer.save(user = user_session)
-                return Response({'comentario': comentario_serializer.data}, status=status.HTTP_201_CREATED)
+                return Response(comentario_serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response({'errors': comentario_serializer.errors})
         except Exception as e:
@@ -2637,34 +2920,6 @@ class Paks(viewsets.ModelViewSet):
 
         return HttpResponse(response, content_type='application/pdf')
     
-    
-# class Pagares(viewsets.ModelViewSet):
-#     queryset = Cotizacion.objects.all()
-#     serializer_class = CotizacionSerializerPagares
-
-#     def create(self, request, *args, **kwargs):
-    
-#         info = self.queryset.filter(id=1).first()
-#         serializer = self.get_serializer(info)
-#         template = 'home/plan.html'
-#         data = serializer.data
-#         fecha_cotizacion = str(date.today())
-#         # Convert the fecha_cotizacion string to a datetime object
-#         fecha_cotizacion_datetime = datetime.strptime(fecha_cotizacion, '%Y-%m-%d')
-
-#         # Extraer el día y el año del objeto de fecha y hora
-#         dia = fecha_cotizacion_datetime.day
-#         anio = fecha_cotizacion_datetime.year
-#         context = {'info': data, 'dia':dia, 'anio':anio} 
-#         html_string = render_to_string(template, context)
-#         pdf_file = HTML(string=html_string).write_pdf(target=None)
-        
-#         response = HttpResponse(content_type='application/pdf')
-#         response['Content-Disposition'] = 'attachment; filename="mi_pdf.pdf"'
-#         response.write(pdf_file)
-#         # agregar logica extra para el pagare, se le tenen que enviar al arrendador ya firmados
-#         return response
-    
 class Amigos(viewsets.ModelViewSet):
     queryset = Friends.objects.all()
     def send_friend_request(self, request, *args, **kwargs):
@@ -2897,10 +3152,164 @@ class Inventario_fotografico(viewsets.ModelViewSet):
             else:
                 print("eres igual a cero aun hay archivos")
                 return Response( {"0 archivos":"no hay compresiones restantes"}, status=status.HTTP_204_NO_CONTENT)
-                
-           
-                        
-                                
             
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# ---------------------------------- Notificaciones ---------------------------------- #
+
+
+class notis_prueba(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+   
+    def list(self, request, *args, **kwargs):
+        print("entramos a list de notificaiones")
+        user_session = request.user       
+        Notify = load_model("api","Notification")
+        post_con = Post.objects.all().filter(user_id = user_session)
+        print("post con",post_con)
+        consulta = Notification.objects.all().filter(destiny_id = user_session).order_by('-id')
+        consulta2 = Notify.objects.all().filter(destiny_id = user_session)
+        print("soy notify",Notify)
+        print("Consulta",consulta)
+        print("Consulta2",consulta2)
+        print("")
+        serializer2 = PostSerializer(post_con,many=True)
+      
+        try:
+           if user_session.is_staff:
+                print("Estamos entrando a listar todas las notificaciones")
+                notificaciones =  self.get_queryset().order_by('-id')
+                serializer = self.get_serializer(notificaciones, many=True)  
+                
+           else:
+                print("Estamos entrando a listar todas las notificaciones de un usuario en concreto")
+                serializer = self.get_serializer(consulta, many=True)
+           return Response(serializer.data, status= status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+    def notificaiones_por_usuario(self, request, *args, **kwargs):
+        print("entramos a prueba notis")
+        user_session = request.user       
+        try:
+            user = User.objects.get(id=user_session.id)
+            posts = Post.objects.filter(user=user).order_by('-id')[:7]
+            notificaciones = Notification.objects.filter(destiny=user).order_by('-id')[:7]
+
+            data = {
+                'posts': PostSerializer(posts, many=True).data,
+                'notificaciones': NotificationSerializer(notificaciones, many=True).data
+            }
+
+            return Response(data)
+        
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"el error es: {e} en la linea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+
+    def send_noti(self, request, *args, **kwargs):
+        try:
+            #Sumar dos días a la fecha actual
+            now = date.today()
+            #now = datetime(2024, 7, 14) 
+            rango1 = now - timedelta(days=11)
+            rango2 = now - timedelta(days=4)
+            print(rango1)
+            print(rango2)
+            print(f"el rango de fechas es del {rango1} al {rango2}")
+                
+        
+            posts = Post.objects.filter(timestamp__range=[rango1, rango2])
+            notificaciones = Notification.objects.filter(timestamp__range=[rango1, rango2])
+            print('post',posts)
+            posts.delete()
+            notificaciones.delete()
+            print('post',posts)
+            # print('notificaiones',notificaciones)
+            
+            return Response({'notificaciones y posts eliminados': "simon" }, status=status.HTTP_400_BAD_REQUEST)  
+        
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"el error es: {e} en la linea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+
+
+      
+    
+        
+    
+    # def send_noti(self, request, *args, **kwargs):
+    #     user_session = request.user
+        
+    #     print("el que envia es: ", user_session)
+    #     print("request",request.data)
+    #     destinatarios = User.objects.all().filter(pertenece_a = 'Arrendify')
+    #     destinies = list[destinatarios]
+    #     print(destinies)
+    #     destinatarios2 = User.objects.all().filter(username = 'AndresMtzO')
+    #     print("destinatarios",destinatarios)
+    #     print("destinatarios2",destinatarios2)
+    #     print("request verbo",request.data['title'])
+    #     try:
+    #         print("entramos en el tri")
+    #         user_session = request.user
+    #         print("user",user_session)
+    #         actor = destinatarios2.first()
+    #         print("actor",actor)
+    #         request.data._mutable=True
+    #         request.data['user'] = user_session.id
+            
+          
+    #         print(request.data)
+    #         print("Llegando a create de post")
+    #         post_serializer = PostSerializer(data=request.data) #Usa el serializer_class
+    #         if post_serializer.is_valid(raise_exception=True):
+    #             for destiny in destinatarios:
+    #                 print("hola")
+    #                 print("destinyes",destiny)
+    #                 datos = post_serializer.save(user = actor)
+    #                 print("Guardado residente")
+    #                 print('datos',datos)
+    #             # notify_post(Post, datos, created=True, actor=actor)
+    #             return Response({'Post': post_serializer.data}, status=status.HTTP_201_CREATED)
+    #         else:
+    #             print("Error en validacion")
+    #             return Response({'errors': post_serializer.errors})
+            
+    #     except Exception as e:
+    #         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def leer_todas(self, request, *args, **kwargs):
+        print("entramos a leer todo")
+        user_session = request.user  
+        try:
+            notificaciones = Notification.objects.filter(destiny=user_session, read = False)
+            print("notificaiones mias papi",notificaciones)
+            if notificaciones:
+                print("vamos a leer")
+                for noti in notificaciones:
+                    print("noti.read",noti.read)
+                    noti.read = True
+                    noti.save()
+                return Response({'leidas':'leidas'})
+
+            return Response({'No hay notis nueva':'No hay notis nueva'})
+        
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"el error es: {e} en la linea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    
+        

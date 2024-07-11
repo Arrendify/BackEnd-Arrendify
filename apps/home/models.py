@@ -967,7 +967,7 @@ class Residentes(models.Model):
     correo_arrendatario=models.EmailField(null=True, blank=True)
     empleo=models.CharField(max_length = 100, null = True, blank = True)
     domicilio_empleo=models.CharField(max_length = 100, null = True, blank = True)
-    direccion_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    direccion_arrendatario=models.CharField(max_length = 250, null = True, blank = True)
     curp=models.CharField(max_length=100, null=True, blank=True)
     estado_civil=models.CharField(max_length=100, null=True, blank=True, default="Soltero")
     
@@ -981,21 +981,21 @@ class Residentes(models.Model):
     edad=models.CharField(max_length = 100, null = True, blank = True)
     celular_residente=models.CharField(max_length = 100, null = True, blank = True)
     correo_residente=models.EmailField(null=True, blank=True)
-    direccion_residente=models.CharField(max_length = 100, null = True, blank = True)
+    direccion_residente=models.CharField(max_length = 250, null = True, blank = True)
     aval=models.CharField(max_length = 100, null = True, blank = True)
     
-    ciudad_origen=models.CharField(max_length = 100, null = True, blank = True)
-    escuela_origen=models.CharField(max_length = 100, null = True, blank = True)
-    carrera=models.CharField(max_length = 100, null = True, blank = True)
-    semestre=models.CharField(max_length = 100, null = True, blank = True)
+    # ciudad_origen=models.CharField(max_length = 100, null = True, blank = True)
+    # escuela_origen=models.CharField(max_length = 100, null = True, blank = True)
+    # carrera=models.CharField(max_length = 100, null = True, blank = True)
+    # semestre=models.CharField(max_length = 100, null = True, blank = True)
     
-    #Info personal
-    fumas=models.CharField(max_length=100, null=True, blank=True)
-    tomas=models.CharField(max_length=100, null=True, blank=True)
-    aseo=models.CharField(max_length=100, null=True, blank=True)
-    musica=models.CharField(max_length=100, null=True, blank=True)
-    tipo_musica=models.CharField(max_length=100, null=True, blank=True)
-    pasatiempos=models.CharField(max_length=255, null=True, blank=True)
+    # #Info personal
+    # fumas=models.CharField(max_length=100, null=True, blank=True)
+    # tomas=models.CharField(max_length=100, null=True, blank=True)
+    # aseo=models.CharField(max_length=100, null=True, blank=True)
+    # musica=models.CharField(max_length=100, null=True, blank=True)
+    # tipo_musica=models.CharField(max_length=100, null=True, blank=True)
+    # pasatiempos=models.CharField(max_length=255, null=True, blank=True)
     
     # Referencias Personales
     n_ref1=models.CharField(max_length=100, null=True, blank=True)
@@ -1008,12 +1008,12 @@ class Residentes(models.Model):
     p_ref3=models.CharField(max_length=100, null=True, blank=True)
     tel_ref3=models.BigIntegerField(null=True, blank=True)
     
-    #info de emergencia
-    nombre_emergencia=models.CharField(max_length=100, null=True, blank=True)
-    parentesco_emergencia=models.CharField(max_length=100, null=True, blank=True)
-    telefono_emergencia=models.CharField(max_length=100, null=True, blank=True)
-    celular_emergencia=models.CharField(max_length=100, null=True, blank=True)
-    correo_emergencia=models.EmailField(null=True, blank=True)
+    # #info de emergencia
+    # nombre_emergencia=models.CharField(max_length=100, null=True, blank=True)
+    # parentesco_emergencia=models.CharField(max_length=100, null=True, blank=True)
+    # telefono_emergencia=models.CharField(max_length=100, null=True, blank=True)
+    # celular_emergencia=models.CharField(max_length=100, null=True, blank=True)
+    # correo_emergencia=models.EmailField(null=True, blank=True)
     
     class Meta:
         db_table = 'residentes'
