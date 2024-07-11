@@ -249,7 +249,7 @@ USE_L10N = True
 USE_TZ = True
 
 # ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = ['192.168.3.2']
+
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
