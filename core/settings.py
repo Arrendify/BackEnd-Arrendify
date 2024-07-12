@@ -45,7 +45,7 @@ LOGGING = {
 }
 
 # load production server
-ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1')]
+ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1'), "192.168.2.24","192.168.3.2"]
 
 # Application definition
 
@@ -104,7 +104,7 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = (
     'https://arrendify.app',
-    'http://192.168.0.222:8000',
+    'http://192.168.2.24:8000',
     'http://192.168.1.187:8080',
     'http://192.168.3.2:8001',
     'http://192.168.3.2:8000',
@@ -114,7 +114,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://10.104.109.84:47626',
     'http://localhost',
 )
-CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ORIGIN_ALLOW_ALL = True
 # CORS_ALLOW_METHODS = (
 #     'GET',
 #     'POST',
