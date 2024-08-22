@@ -1454,7 +1454,8 @@ class investigaciones(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)             
         
     def enviar_archivo(self, archivo, info, estatus):
-        francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
+        #cuando francis este registrado regresar todo como estaba
+        # francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
         print("soy pdf content",archivo)
         print("soy status",estatus)
         print("soy info de investigacion",info.__dict__)
@@ -1464,16 +1465,16 @@ class investigaciones(viewsets.ModelViewSet):
         try:
             remitente = 'notificaciones_arrendify@outlook.com'
             destinatario2 = 'juridico.arrendify1@gmail.com'
-            if info.user_id == francis.id:
-                print("Es el mismo usuaio, envialo a francis calete")
-                # destinatario = 'el que meden @francis o algo asi'
-                pdf_html = contenido_pdf_aprobado_francis(info,estatus)
-                print("destinatario Francis", destinatario)
-            else:
-                #destinatario = 'jsepulvedaarrendify@gmail.com'
-                destinatario = info.email
-                pdf_html = contenido_pdf_aprobado(info,estatus)
-                print("destinatario normalito",destinatario)
+            # if info.user_id == francis.id:
+            #     print("Es el mismo usuaio, envialo a francis calete")
+            #     # destinatario = 'el que meden @francis o algo asi'
+            #     pdf_html = contenido_pdf_aprobado_francis(info,estatus)
+            #     print("destinatario Francis", destinatario)
+            # else:
+            #destinatario = 'jsepulvedaarrendify@gmail.com'
+            destinatario = info.email
+            pdf_html = contenido_pdf_aprobado(info,estatus)
+            print("destinatario normalito",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
             Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com']
