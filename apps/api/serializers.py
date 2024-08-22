@@ -223,6 +223,7 @@ class ContratoFraternaSerializer(serializers.ModelSerializer):
         model = FraternaContratos
         fields = '__all__' 
 
+# Notificaciones
 class PostSerializer(serializers.ModelSerializer):    
 
     class Meta:
@@ -238,16 +239,35 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = '__all__'  # O especifica los campos que deseas serializar, por ejemplo: ['field1', 'field2']
 
-# class NotiSerializer(serializers.ModelSerializer):
-#     usuario_post = PostSerializer(many=True, read_only=True)
-#     notificaciones = NotificationSerializer(many = True, read_only = True)
-
-#     class Meta:
-#         model = CustomUser
-#         fields = ['usuario_post','notificaciones']  # O especifica los campos que deseas serializar, por ejemplo: ['field1', 'field2']
-
-
+#FRATERNA SEMILLERO PURISIMA
+class DASSerializer(serializers.ModelSerializer):
     
+    class Meta:
+        model = DocumentosArrendatarios_semilleros
+        fields = '__all__'
+
+class Arrentarios_semilleroSerializers(serializers.ModelSerializer):
+    archivos = DASSerializer(many=True, read_only=True)
+    user =  User2Serializer(read_only=True)
+    
+    class Meta:
+        model = Arrendatarios_semillero
+        fields = '__all__'
+
+#Semillero Contratos  
+class ProcesoSemilleroSerializers(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ProcesoContrato_semillero
+        fields = '__all__'
+        
+class ContratoSemilleroSerializer(serializers.ModelSerializer):
+    arrendatario_contrato = Arrentarios_semilleroSerializers(read_only=True, source='arrendatario')
+    proceso = ProcesoSemilleroSerializers(many=True, read_only=True, source ='contrato')
+    
+    class Meta:
+        model = SemilleroContratos
+        fields = '__all__' 
    
         
 

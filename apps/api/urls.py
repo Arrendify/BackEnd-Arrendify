@@ -40,7 +40,15 @@ urlpatterns = [
     path('fraterna/generar_pagare/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_pagare'}), name='generar_pagare_frat'),
     path('fraterna/generar_poliza/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_poliza'}), name='generar_poliza_frat'),
     path('fraterna/generar_contrato/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_contrato'}), name='generar_contrato_frat'),
-    path('fraterna/generar_comodato/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_comodato'}), name='generar_comodato_frat'),
+
+    
+    #contrato semillero purisima
+    path('semillero/aprobar_contrato/', fraterna_views.Contratos_semillero.as_view({'put': 'aprobar_contrato_semillero'}), name='aprobar_contrato_semillero'),
+    path('semillero/desaprobar_contrato/', fraterna_views.Contratos_semillero.as_view({'put': 'desaprobar_contrato_semillero'}), name='desaprobar_contrato_frat'),
+    path('semillero/generar_pagare/', fraterna_views.Contratos_semillero.as_view({'post': 'generar_pagare_semillero'}), name='generar_pagare_semillero'),
+    path('semillero/generar_poliza/', fraterna_views.Contratos_semillero.as_view({'post': 'generar_poliza_semillero'}), name='generar_poliza_semillero'),
+    path('semillero/generar_contrato/', fraterna_views.Contratos_semillero.as_view({'post': 'generar_contrato_semillero'}), name='generar_contrato_semillero'),
+    path('semillero/generar_comodato/', fraterna_views.Contratos_semillero.as_view({'post': 'generar_comodato_semillero'}), name='generar_comodato_semillero'),
     
     #notificaiones por usuario
     path('notificaciones_usuario/',notis_prueba.as_view({'get': 'notificaiones_por_usuario'}), name='notificaiones_por_usuario'),

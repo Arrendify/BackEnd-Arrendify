@@ -43,9 +43,13 @@ router.register(r'inventario_fotografico', Inventario_fotografico, basename='inv
 
 #FRATERNA
 router.register(r'residentes', fraterna_views.ResidenteViewSet, basename='residentes')
-
 router.register(r'documentos_residentes', fraterna_views.DocumentosRes, basename='documentos_residentes')
 router.register(r'contratos_fraterna', fraterna_views.Contratos_fraterna, basename='contratos_fraterna')
+
+#SEMILLERO PURISIMA
+router.register(r'arrendatarios_semillero', fraterna_views.Arrendatarios_semilleroViewSet, basename='arrendatarios_semillero')
+router.register(r'documentos_arrendatarios_semillero', fraterna_views.DocumentosArrendatario_semillero, basename='documentos_arrendatarios_semillero')
+router.register(r'contratos_semillero', fraterna_views.Contratos_semillero, basename='contratos_semillero')
 
 # si descomentamos la linea de abajo nos da el create con post de notificacion directo con el metodo notify_signals.
 

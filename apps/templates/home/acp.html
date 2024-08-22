@@ -1,3 +1,4 @@
+{% load humanize %}
 <!DOCTYPE html>
 
 <html>
@@ -213,10 +214,10 @@
 	</tr>
 	<tr>
 		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000; color:#7860B4;  height:17; text-align:center; font-weight:bold; vertical-align:bottom;" colspan=2 class="impar">Póliza Plata</td>
-		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000; text-align:center; vertical-align:bottom;" class="impar">${{info.renta}}</td>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000; text-align:center; vertical-align:bottom;" class="impar">${{info.renta | intcomma}}</td>
 		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000; text-align:center; vertical-align:bottom;" class="impar">{{info.años_cobertura}}</td>
 		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000; text-align:center; vertical-align:bottom;" class="impar"> </td>
-		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000; text-align:right; vertical-align:bottom;" class="impar">${{info.monto}}</td>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000; text-align:right; vertical-align:bottom;" class="impar">${{info.monto | intcomma}}</td>
 	</tr>
 	<tr>
 		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" colspan=2 height="17" align="left" valign=bottom><font color="#000000">•Investigación Buró de crédito del arrendatario</font></td>
@@ -329,14 +330,14 @@
 		<td style="border-top: 1px solid #000000" align="left" valign=bottom><font color="#000000"><br></font></td>
 		<td style="border-top: 1px solid #000000" align="left" valign=bottom><font color="#FFFFFF"></font></td>
 		<td style="border-top: 1px solid #000000" align="left" valign=bottom><font color="#000000">Subtotal</font></td>
-		<td style="border-top: 1px solid #000000; border-right: 1px solid #000000; text-align:right;" valign=bottom ><font color="#000000">${{info.monto}}</font></td>
+		<td style="border-top: 1px solid #000000; border-right: 1px solid #000000; text-align:right;" valign=bottom ><font color="#000000">${{info.monto | intcomma}}</font></td>
 	</tr>
 	<tr>
 		<td style="border-top: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; vertical-align: middle; text-align: left; " colspan=3 class="table_headers2">TÉRMINOS Y CONDICIONES</td>
 		<td align="left" valign=bottom><font color="#FFFFFF"><br></font></td>
 		<td align="left" valign=bottom><font color="#000000">IVA</font></td>
 		{% if info.impuesto == "Si" %}
-		<td style="border-right: 1px solid #000000; text-align:right" valign=bottom ><font color="#000000"> ${{info.monto}}</font></td>
+		<td style="border-right: 1px solid #000000; text-align:right" valign=bottom ><font color="#000000"> ${{info.monto | intcomma}}</font></td>
 		{% else %}
 		<td style="border-right: 1px solid #000000; text-align:right" valign=bottom ><font color="#000000"> -</font></td>
 		{% endif %}
@@ -352,7 +353,7 @@
 		<td align="left" valign=bottom><font color="#000000"><br></font></td>
 		<td align="left" valign=bottom><font color="#000000">Total Impuesto </font></td>
 		{% if info.impuesto == "Si" %}
-		<td style="border-right: 1px solid #000000; text-align:right" valign=bottom ><font color="#000000"> ${{info.monto_impuesto}}</font></td>
+		<td style="border-right: 1px solid #000000; text-align:right" valign=bottom ><font color="#000000"> ${{info.monto_impuesto | intcomma}}</font></td>
 		{% else %}
 		<td style="border-right: 1px solid #000000; text-align:right" valign=bottom ><font color="#000000"> -</font></td>
 		{% endif %}
@@ -362,7 +363,7 @@
 		<td align="left" valign=bottom><font color="#000000"><br></font></td>
 		<td style="border-bottom: 1px double #000000" align="left" valign=bottom><font color="#000000">Otros</font></td>
 		{% if info.costos_extra %}
-		<td style="border-top: 1px solid #000000; border-bottom: 1px double #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align:right" valign=bottom ><font color="#000000"> {{info.costos_extra}} </font></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px double #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align:right" valign=bottom ><font color="#000000"> {{info.costos_extra | intcomma}} </font></td>
 		{% else %}
 		<td style="border-top: 1px solid #000000; border-bottom: 1px double #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align:right" valign=bottom ><font color="#000000"> -</font></td>
 		{% endif %}

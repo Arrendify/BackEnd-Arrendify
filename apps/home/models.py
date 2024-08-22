@@ -1120,3 +1120,249 @@ class ProcesoContrato(models.Model):
         class Meta:
             db_table = 'fraterna_proceso'
     
+
+#FRATERNA SEMILLERO PURISIMA
+class Arrendatarios_semillero(models.Model):
+    # datos personales de arrendatario
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    
+    #datos arrendatario y representante legal
+    regimen_arrendatario=models.CharField(max_length = 250, null = True, blank = True)
+    nombre_arrendatario=models.CharField(max_length=100, blank=True)
+    nacionalidad_arrendatario=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
+    rfc_arrendatario=models.CharField(max_length=13, null=True, blank=True)
+    identificacion_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    no_ide_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    sexo_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    celular_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
+    correo_arrendatario=models.EmailField(null=True, blank=True)
+    empleo=models.CharField(max_length = 100, null = True, blank = True)
+    domicilio_empleo=models.CharField(max_length = 100, null = True, blank = True)
+    direccion_arrendatario=models.CharField(max_length = 250, null = True, blank = True)
+    curp=models.CharField(max_length=100, null=True, blank=True)
+    estado_civil=models.CharField(max_length=100, null=True, blank=True, default="Soltero")
+    
+    # arrendatario persona moral
+    arr_nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
+    arr_direccion_fiscal = models.CharField(max_length=250, null=True, blank=True)
+    arr_escritura_publica=models.CharField(max_length=100, null=True, blank=True)
+    arr_fecha_acta = models.DateField(null=True, blank=True)
+    arr_nombre_notario=models.CharField(max_length=100, null=True, blank=True)
+    arr_numero_notario=models.BigIntegerField(null=True, blank=True)
+    arr_estado_acta = models.CharField(max_length=100, null=True, blank=True)
+    arr_folio_mercantil = models.CharField(max_length=100, null=True, blank=True)
+    
+    # datos de obligado
+    aval=models.CharField(max_length = 100, null = True, blank = True)
+    regimen_obligado=models.CharField(max_length = 250, null = True, blank = True)
+    
+    nombre_obligado=models.CharField(max_length=100, blank=True)
+    nacionalidad_obligado=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
+    identificacion_obligado=models.CharField(max_length = 100, null = True, blank = True)
+    no_ide_obligado=models.CharField(max_length = 100, null = True, blank = True)
+  
+    celular_obligado=models.CharField(max_length = 100, null = True, blank = True)
+    correo_obligado=models.EmailField(null=True, blank=True)
+    direccion_obligado=models.CharField(max_length = 250, null = True, blank = True)
+    
+    # obligado persona moral
+    obligado_nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
+    obligado_direccion_fiscal = models.CharField(max_length=250, null=True, blank=True)
+    obligado_escritura_publica=models.CharField(max_length=100, null=True, blank=True)
+    obligado_fecha_acta = models.DateField(null=True, blank=True)
+    obligado_nombre_notario=models.CharField(max_length=100, null=True, blank=True)
+    obligado_numero_notario=models.BigIntegerField(null=True, blank=True)
+    obligado_estado_acta = models.CharField(max_length=100, null=True, blank=True)
+    obligado_folio_mercantil = models.CharField(max_length=100, null=True, blank=True)
+    
+    
+    #Representante legal obligado pm
+    obligado_nombre_rl=models.CharField(max_length=100, blank=True)
+    obligado_nacionalidad_rl=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
+    obligado_curp_rl=models.CharField(max_length=100, null=True, blank=True)
+    obligado_rfc_rl=models.CharField(max_length=13, null=True, blank=True)
+    obligado_identificacion_rl=models.CharField(max_length = 100, null = True, blank = True)
+    obligado_no_ide_rl=models.CharField(max_length = 100, null = True, blank = True)
+    obligado_sexo_rl=models.CharField(max_length = 100, null = True, blank = True)
+    obligado_celular_rl=models.CharField(max_length = 100, null = True, blank = True)
+    obligado_correo_rl=models.EmailField(null=True, blank=True)
+    
+    obligado_direccion_rl=models.CharField(max_length = 250, null = True, blank = True)
+    obligado_estado_civil_rl=models.CharField(max_length=100, null=True, blank=True, default="Soltero")
+    
+    # Referencias Personales
+    n_ref1=models.CharField(max_length=100, null=True, blank=True)
+    p_ref1=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref1=models.BigIntegerField(null=True, blank=True)
+    n_ref2=models.CharField(max_length=100, null=True, blank=True)
+    p_ref2=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref2=models.BigIntegerField(null=True, blank=True)
+    n_ref3=models.CharField(max_length=100, null=True, blank=True)
+    p_ref3=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref3=models.BigIntegerField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'semillero_arrendatarios'
+    
+class DocumentosArrendatarios_semilleros(models.Model):
+    def get_ine_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/INE/{filename}'
+    
+    def get_ine_ob_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/INE/ob_{filename}'
+    
+    def get_dom_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/Comprobante_de_domicilio/{filename}'
+    
+    def get_dom_ob_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/Comprobante_de_domicilio/ob_{filename}'
+    
+    def get_rfc_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/RFC/{filename}'
+   
+    def get_ingresos_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/Ingresos/{filename}'
+    
+    def get_ingresos_ob_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/Ingresos/ob_{filename}'
+   
+    def get_extras_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/Documentos_extras/{filename}'
+   
+    def get_rl_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/Recomendacion_laboral/{filename}'
+    
+    def get_acta_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/Acta_constitutiva/{filename}'
+    
+    def get_acta_ob_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.arr_nombre_empresa)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'Semillero/arrendatario/{ip}/Recomendacion_laboral/ob_{filename}'
+    
+    id = models.AutoField(primary_key=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    arrendatario = models.ForeignKey(Arrendatarios_semillero, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
+    
+    Ine_arrendatario = models.FileField(upload_to=get_ine_upload_path, max_length=255)
+    Ine_obligado = models.FileField(null=True, blank=True, upload_to=get_ine_ob_upload_path, max_length=255)
+    
+    Comp_dom_arrendatario = models.FileField(upload_to =get_dom_upload_path, max_length=255)
+    Comp_dom_obligado = models.FileField(null=True, blank=True, upload_to =get_dom_ob_upload_path, max_length=255)
+    Rfc_arrendatario = models.FileField(upload_to = get_rfc_upload_path, max_length=255)
+    
+    Ingresos_arrendatario = models.FileField(null=True, blank=True,upload_to = get_ingresos_upload_path, max_length=255)
+    Ingresos2_arrendatario = models.FileField(null=True, blank=True,upload_to = get_ingresos_upload_path, max_length=255)
+    Ingresos3_arrendatario = models.FileField(null=True, blank=True,upload_to = get_ingresos_upload_path, max_length=255)
+
+    Ingresos_obligado = models.FileField(null=True, blank=True,upload_to = get_ingresos_ob_upload_path, max_length=255)
+    Ingresos2_obligado = models.FileField(null=True, blank=True,upload_to = get_ingresos_ob_upload_path, max_length=255)
+    Ingresos3_obligado = models.FileField(null=True, blank=True,upload_to = get_ingresos_ob_upload_path, max_length=255)
+    
+    Acta_arrendatario = models.FileField(null=True, blank=True,upload_to = get_acta_upload_path, max_length=255)
+    Acta_obligado = models.FileField(null=True, blank=True,upload_to = get_acta_ob_upload_path, max_length=255)
+    
+    
+    Extras = models.FileField(null=True, blank=True,upload_to = get_extras_upload_path, max_length=255)
+    Recomendacion_laboral = models.FileField(null=True, blank=True,upload_to = get_rl_upload_path, max_length=255)
+    
+    #come
+    dateTimeOfUpload = models.DateTimeField(auto_now = True)
+    class Meta:
+        db_table = 'documentos_arrendatarios_semilleros'
+        
+        
+    #Datos De contrato SEMILLERO
+class SemilleroContratos(models.Model):
+     
+    id = models.AutoField(primary_key=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    arrendatario = models.ForeignKey(Arrendatarios_semillero, null=True, blank=True, on_delete=models.CASCADE, related_name="arrendario_contrato")
+    no_depa=models.CharField(max_length = 100, null = True, blank = True)
+    renta=models.CharField(max_length = 100, null = True, blank = True)
+        
+    duracion=models.CharField(max_length = 100, null = True, blank = True)
+    
+    fecha_celebracion = models.DateField(null=True, blank=True)
+    fecha_terminacion=models.DateField(null=True, blank=True)
+
+    class Meta:
+            db_table = 'semillero_contrato'
+    
+    
+class ProcesoContrato_semillero(models.Model):
+       
+        usuario = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
+        contrato = models.ForeignKey(SemilleroContratos, null=True, blank=True, on_delete=models.CASCADE,related_name="contrato")
+        fecha = models.DateField(null=True, blank=True)
+        status_proceso=models.CharField(max_length = 100, null = True, blank = True)
+        contador = models.IntegerField(null=True, blank=True, default = 2)
+        
+        class Meta:
+            db_table = 'semillero_proceso'

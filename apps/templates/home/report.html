@@ -801,51 +801,51 @@
         <table class="table">
           <thead>
             <tr>
-              <th style="background:#5e87c5; color:white; text-align:center;" scope="col">Materia Y Tipo</th>
-              <th style="background:#5e87c5; color:white;" scope="col">Actor</th>
-              <th style="background:#5e87c5; color:white;" scope="col">Demandado</th>
+              <th style="background:#483285; color:white; text-align:center;" scope="col">Materia Y Tipo</th>
+              <th style="background:#483285; color:white;" scope="col">Actor</th>
+              <th style="background:#483285; color:white;" scope="col">Demandado</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Extinción De Dominio</td>
-              <td style="width:30px; background:#e4ecef; text-align:center;">{% if datos.extincion_de_dominio_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
-              <td style="width:30px; background:#e4ecef; text-align:center;">{% if datos.antecedentes.extincion_de_dominio_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
+              <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Extinción De Dominio</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.extincion_de_dominio_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.extincion_de_dominio_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>
             <tr>
               <td style="border-right:1px solid #B2AFBD;">Oral Mercantil-Civil - Mercantil</td>
-              <td style="text-align:center;">{% if datos.omc_mercantil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
-              <td style="text-align:center;">{% if datos.antecedentes.omc_mercantil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.omc_mercantil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.antecedentes.omc_mercantil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>
             <tr>
-              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Mercantil - Ejecutivo Mercantil-Civil - Ejecutivo Mercantil</td>
-              <td style="width:30px; background:#e4ecef; text-align:center;">{% if datos.mem_civil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
-              <td style="width:30px; background:#e4ecef; text-align:center;">{% if datos.antecedentes.mem_civil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
+              <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Mercantil - Ejecutivo Mercantil-Civil - Ejecutivo Mercantil</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.mem_civil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.mem_civil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>
             <tr>
               <td style="border-right:1px solid #B2AFBD;">Civil - Juicio Hipotecario-Civil - Especial Hipotecario</td>
-              <td style="text-align:center;">{% if datos.cjhc_especial_hipotecario_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
-              <td style="text-align:center;">{% if datos.antecedentes.cjhc_especial_hipotecario_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.cjhc_especial_hipotecario_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.antecedentes.cjhc_especial_hipotecario_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>
             <tr>
-              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Civil, Mercantil - Ejecutivo Mercantil</td>
-              <td style="width:30px; background:#e4ecef; text-align:center;">{% if datos.cmf_em_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
-              <td style="width:30px; background:#e4ecef; text-align:center;">{% if datos.antecedentes.cmf_em_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
+              <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Civil, Mercantil - Ejecutivo Mercantil</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.cmf_em_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.cmf_em_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>
             <tr>
               <td style="border-right:1px solid #B2AFBD;">Penal - Lesiones,Homicidio</td>
-              <td style="text-align:center;">{% if datos.penal_lesiones_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
-              <td style="text-align:center;">{% if datos.antecedentes.penal_lesiones_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.penal_lesiones_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.antecedentes.penal_lesiones_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>
             <tr>
-              <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Penal - Robo Calificado</td>
-              <td style="width:30px; background:#e4ecef; text-align:center;">{% if datos.robo_calificado_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
-              <td style="width:30px; background:#e4ecef; text-align:center;">{% if datos.antecedentes.robo_calificado_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
+              <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Penal - Robo Calificado</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.robo_calificado_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.robo_calificado_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>
             <tr>
               <td style="border-right:1px solid #B2AFBD;">Civil o Familiar</td>
-              <td style="text-align:center;">{% if datos.civil_mercantil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
-              <td style="text-align:center;">{% if datos.antecedentes.civil_mercantil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.civil_mercantil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.antecedentes.civil_mercantil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>
            
           </tbody>
@@ -863,27 +863,27 @@
           <table class="table">
             <thead>
               <tr>
-                <th style="background:#5e87c5; color:white; text-align:center;" colspan="4">Investigaciones Internacionales</th>
+                <th style="background:#483285; color:white; text-align:center;" colspan="4">Investigaciones Internacionales</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <th style="width:15px; background:#e4ecef;" scope="row">{% if datos.antecedentes.fbi == "Si" %}✔️{% else %}⬜{% endif %}</th>
-                <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">FBI</td>
-                <td style="width:15px; background:#e4ecef;">{% if datos.antecedentes.onu == "Si" %}✔️{% else %}⬜{% endif %}</td>
-                <td style="background:#e4ecef;">ONU</td>
+                <th style="width:15px; background:#D2CCE1;" scope="row">{% if datos.antecedentes.fbi == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">FBI</td>
+                <td style="width:15px; background:#D2CCE1;">{% if datos.antecedentes.onu == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td style="background:#D2CCE1;">ONU</td>
               </tr>
               <tr>
-                <th scope="row">{% if datos.antecedentes.sec == "Si" %}✔️{% else %}⬜{% endif %}</th>
+                <th scope="row">{% if datos.antecedentes.sec == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
                 <td style="border-right:1px solid #B2AFBD;">Sec</td>
-                <td>{% if datos.antecedentes.ofac == "Si" %}✔️{% else %}⬜{% endif %}</td>
+                <td>{% if datos.antecedentes.ofac == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
                 <td>OFAC</td>
               </tr>
               <tr>
-                <th style="background:#e4ecef;" scope="row">{% if datos.antecedentes.terroristas_union == "Si" %}✔️{% else %}⬜{% endif %}</th>
-                <td style="border-right:1px solid #B2AFBD; background:#e4ecef">Lista de Terroristas de la Union Europea</td>
-                <td style="width:15px; background:#e4ecef;"></td>
-                <td style="background:#e4ecef;"></td>
+                <th style="background:#D2CCE1;" scope="row">{% if datos.antecedentes.terroristas_union == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1">Lista de Terroristas de la Union Europea</td>
+                <td style="width:15px; background:#D2CCE1;"></td>
+                <td style="background:#D2CCE1;"></td>
               </tr>             
             </tbody>
           </table>
@@ -895,63 +895,63 @@
           <table class="table">
             <thead>
               <tr>
-                <th style="background:#5e87c5; color:white; text-align:center;"  colspan="4">Interpol</th>
+                <th style="background:#483285; color:white; text-align:center;"  colspan="4">Interpol</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <th style="width:15px; background:#e4ecef;" scope="row">{% if datos.antecedentes.alertas_terroristas == "Si" %}✔️{% else %}⬜{% endif %}</th>
-                <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Alertas terroristas y criminales</td>
-                <td style="width:15px; background:#e4ecef;">{% if datos.antecedentes.trafico_armas == "Si" %}✔️{% else %}⬜{% endif %}</td>
-                <td style="background:#e4ecef;">Tráfico de armas de fuego</td>
+                <th style="width:15px; background:#D2CCE1;" scope="row">{% if datos.antecedentes.alertas_terroristas == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Alertas terroristas y criminales</td>
+                <td style="width:15px; background:#D2CCE1;">{% if datos.antecedentes.trafico_armas == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td style="background:#D2CCE1;">Tráfico de armas de fuego</td>
               </tr>
               <tr>
-                <th scope="row">{% if datos.antecedentes.financiamieto_terrorista == "Si" %}✔️{% else %}⬜{% endif %}</th>
+                <th scope="row">{% if datos.antecedentes.financiamieto_terrorista == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
                 <td style="border-right:1px solid #B2AFBD;">Financiamieto Terrorista</td>
-                <td>{% if datos.antecedentes.trata_personas == "Si" %}✔️{% else %}⬜{% endif %}</td>
+                <td>{% if datos.antecedentes.trata_personas == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
                 <td>Trata de personas y tráfico ilícito de migrantes</td>
               </tr>
               <tr>
-                <th style="background:#e4ecef;" scope="row">{% if datos.antecedentes.lavado_dinero == "Si" %}✔️{% else %}⬜{% endif %}</th>
-                <td style="border-right:1px solid #B2AFBD; background:#e4ecef">Lavado de dinero</td>
-                <td style="background:#e4ecef;">{% if datos.antecedentes.productos_ilegales == "Si" %}✔️{% else %}⬜{% endif %}</td>
-                <td style="background:#e4ecef;">Productos Ilegales</td>
+                <th style="background:#D2CCE1;" scope="row">{% if datos.antecedentes.lavado_dinero == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1">Lavado de dinero</td>
+                <td style="background:#D2CCE1;">{% if datos.antecedentes.productos_ilegales == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td style="background:#D2CCE1;">Productos Ilegales</td>
               </tr>
               <tr>
-                <th scope="row">{% if datos.antecedentes.falsificacion_moneda == "Si" %}✔️{% else %}⬜{% endif %}</th>
+                <th scope="row">{% if datos.antecedentes.falsificacion_moneda == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
                 <td style="border-right:1px solid #B2AFBD;">Falsificacion de monedas o documentos de seguridad</td>
-                <td>{% if datos.antecedentes.delitos_maritimos == "Si" %}✔️{% else %}⬜{% endif %}</td>
+                <td>{% if datos.antecedentes.delitos_maritimos == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
                 <td>Delitos Marítimos</td>
               </tr>
               <tr>
-                <th style="background:#e4ecef;" scope="row">{% if datos.antecedentes.delito_contra_menores == "Si" %}✔️{% else %}⬜{% endif %}</th>
-                <td style="border-right:1px solid #B2AFBD; background:#e4ecef">Delitos contra menores de edad</td>
-                <td style="background:#e4ecef;">{% if datos.antecedentes.delincuencia_organizada == "Si" %}✔️{% else %}⬜{% endif %}</td>
-                <td style="background:#e4ecef;">Delincuencia Organizada</td>
+                <th style="background:#D2CCE1;" scope="row">{% if datos.antecedentes.delito_contra_menores == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1">Delitos contra menores de edad</td>
+                <td style="background:#D2CCE1;">{% if datos.antecedentes.delincuencia_organizada == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td style="background:#D2CCE1;">Delincuencia Organizada</td>
               </tr>
               <tr>
-                <th scope="row">{% if datos.antecedentes.delito_contra_patrimonio == "Si" %}✔️{% else %}⬜{% endif %}</th>
+                <th scope="row">{% if datos.antecedentes.delito_contra_patrimonio == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
                 <td style="border-right:1px solid #B2AFBD;">Delitos contra el patrimonio cultural</td>
-                <td>{% if datos.antecedentes.terrorismo == "Si" %}✔️{% else %}⬜{% endif %}</td>
+                <td>{% if datos.antecedentes.terrorismo == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
                 <td>Terrorismo</td>
               </tr>
               <tr>
-                <th style="background:#e4ecef;" scope="row">{% if datos.antecedentes.ciberdelincuente == "Si" %}✔️{% else %}⬜{% endif %}</th>
-                <td style="border-right:1px solid #B2AFBD; background:#e4ecef">Ciberdelincuente</td>
-                <td style="background:#e4ecef;">{% if datos.antecedentes.delincuencia_vehiculos == "Si" %}✔️{% else %}⬜{% endif %}</td>
-                <td style="background:#e4ecef;">Delincuencia relacionada con vehículos</td>
+                <th style="background:#D2CCE1;" scope="row">{% if datos.antecedentes.ciberdelincuente == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1">Ciberdelincuente</td>
+                <td style="background:#D2CCE1;">{% if datos.antecedentes.delincuencia_vehiculos == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td style="background:#D2CCE1;">Delincuencia relacionada con vehículos</td>
               </tr>
               <tr>
-                <th scope="row">{% if datos.antecedentes.trafico_drogas == "Si" %}✔️{% else %}⬜{% endif %}</th>
+                <th scope="row">{% if datos.antecedentes.trafico_drogas == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
                 <td style="border-right:1px solid #B2AFBD;">Tráfico de drogas</td>
-                <td>{% if datos.antecedentes.crimenes_guerra == "Si" %}✔️{% else %}⬜{% endif %}</td>
+                <td>{% if datos.antecedentes.crimenes_guerra == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
                 <td>Crimenes de guerra</td>
               </tr>
               <tr>
-                <th style="background:#e4ecef;" scope="row">{% if datos.antecedentes.delincuencia_financiera == "Si" %}✔️{% else %}⬜{% endif %}</th>
-                <td style="border-right:1px solid #B2AFBD; background:#e4ecef;">Delincuencia financiera</td>
-                <td style="background:#e4ecef;"></td>
-                <td style="background:#e4ecef;"></td>
+                <th style="background:#D2CCE1;" scope="row">{% if datos.antecedentes.delincuencia_financiera == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Delincuencia financiera</td>
+                <td style="background:#D2CCE1;"></td>
+                <td style="background:#D2CCE1;"></td>
               </tr>
             </tbody>
           </table>

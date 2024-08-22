@@ -208,7 +208,6 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             if serializer.is_valid(raise_exception=True):
                 self.perform_update(serializer)
                 print("edito residente")
-                # return redirect('myapp:my-url')
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response({'errors': serializer.errors})
@@ -476,7 +475,7 @@ class DocumentosRes(viewsets.ModelViewSet):
             
             if 'Ingresos' in request.data:
                 Ingresos = request.data['Ingresos']
-                Ingresos = request.data['Ingresos']
+                eliminar_archivo_s3(archivo)
                 instance.Ingresos = Ingresos  # Actualizar el archivo adjunto sin eliminar el anterior
             
             if 'Recomendacion_laboral' in request.data:
@@ -509,7 +508,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         try:
            user_session = request.user       
            if user_session.is_staff:
-               print("Esta entrando a listar cotizacion")
+               print("Esta entrando a listar contratos semullero")
                contratos =  FraternaContratos.objects.all().order_by('-id')
                serializer = self.get_serializer(contratos, many=True)
                serialized_data = serializer.data
@@ -614,8 +613,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 serializer = self.get_serializer(instance, data=request.data, partial=partial)
                 if serializer.is_valid(raise_exception=True):
                     self.perform_update(serializer)
-                    proceso.contador = proceso.contador - 1
-                    proceso.save()
+                    # proceso.contador = proceso.contador - 1
+                    # proceso.save()
                     print("edito proceso contrato")
                     send_noti_varios(FraternaContratos, request, title="Se a modificado el contrato de:", text=f"FRATERNA VS {instance.residente.nombre_arrendatario} - {instance.residente.nombre_residente}".upper(), url = f"fraterna/contrato/#{instance.residente.id}_{instance.cama}_{instance.no_depa}")
                     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -915,4 +914,719 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
         
+
+#////////////////////////////////////SEMILLERO PURISIMA////////////////////////////////////////////
+class Arrendatarios_semilleroViewSet(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = Arrendatarios_semillero.objects.all()
+    serializer_class = Arrentarios_semilleroSerializers
+    
+    def list(self, request, *args, **kwargs):
+        user_session = request.user       
+        try:
+           if user_session.is_staff:
+                print("Esta entrando a listar Residentes")
+                arrendatarios =  self.get_queryset().order_by('-id')
+                serializer = self.get_serializer(arrendatarios, many=True)
+                return Response(serializer.data, status= status.HTTP_200_OK)
+            
+           elif user_session.rol == "Inmobiliaria":
+                #tengo que busca a los inquilinos que tiene a un agente vinculado
+                print("soy inmobiliaria", user_session.name_inmobiliaria)
+                agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+                
+                #busqueda de Residentes propios y registrados por mis agentes
+                inquilinos_a_cargo = self.get_queryset().filter(user_id__in = agentes)
+                inquilinos_mios = self.get_queryset().filter(user_id = user_session)
+                mios = inquilinos_a_cargo.union(inquilinos_mios)
+                mios = mios.order_by('-id')
+               
+                serializer = self.get_serializer(mios, many=True)
+                serialized_data = serializer.data
+                
+                if not serialized_data:
+                    print("no hay datos mi carnal")
+                    return Response({"message": "No hay datos disponibles",'asunto' :'1'})
+                
+                # Agregar el campo 'is_staff'
+                for item in serialized_data:
+                    item['inmobiliaria'] = True
+                    
+                return Response(serialized_data)      
+            
+           elif user_session.rol == "Agente":  
+                print("soy Agente", user_session.first_name)
+                #obtengo mis inquilinos
+                residentes_ag = self.get_queryset().filter(user_id = user_session).order_by('-id')
+              
+                #tengo que obtener a mis inquilinos vinculados
+              
+                serializer = self.get_serializer(residentes_ag, many=True)
+                serialized_data = serializer.data
+                
+                if not serialized_data:
+                    print("no hay datos mi carnal")
+                    return Response({"message": "No hay datos disponibles",'asunto' :'2'})
+
+                for item in serialized_data:
+                    item['agente'] = True
+                    
+                return Response(serialized_data)
+         
+           return Response(serializer.data, status= status.HTTP_200_OK)
         
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def create(self, request, *args, **kwargs):
+        try:
+            user_session = request.user
+            print("Llegando a create de arrendatarios semillero")
+            print(request.data)
+            arrendatarios_semillero_serializer = self.serializer_class(data=request.data) #Usa el serializer_class
+            print(arrendatarios_semillero_serializer)
+            if arrendatarios_semillero_serializer.is_valid(raise_exception=True):
+                arrendatarios_semillero_serializer.save(user = user_session)
+                print("Guardado arrendatarios_semillero")
+                return Response({'arrendatarios_semilleros': arrendatarios_semillero_serializer.data}, status=status.HTTP_201_CREATED)
+            else:
+                print("Error en validacion")
+                return Response({'errors': arrendatarios_semillero_serializer.errors})
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+
+    def update(self, request, *args, **kwargs):
+        try:
+            print("Esta entrando a actualizar Residentes")
+            partial = kwargs.pop('partial', False)
+            print("partials",partial)
+            print(request.data)
+            instance = self.get_object()
+            print("instance",instance)
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            print(serializer)
+            if serializer.is_valid(raise_exception=True):
+                self.perform_update(serializer)
+                print("edito residente")
+                # return redirect('myapp:my-url')
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'errors': serializer.errors})
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def retrieve(self, request, slug=None, *args, **kwargs):
+        try:
+            user_session = request.user
+            print("Entrando a retrieve")
+            modelos = Residentes.objects.all().filter(user_id = user_session) #Toma los datos de Inmuebles.objects.all() que esta al inicio de la clase viewset
+            Residentes = modelos.filter(slug=slug)
+            if Residentes:
+                serializer_Residentes = ResidenteSerializers(Residentes, many=True)
+                return Response(serializer_Residentes.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'No hay persona fisica con esos datos'}, status = status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def destroy (self,request, *args, **kwargs):
+        try:
+            print("LLegando a eliminar residente")
+            Residentes = self.get_object()
+            if Residentes:
+                Residentes.delete()
+                return Response({'message': 'Fiador obligado eliminado'}, status=204)
+            return Response({'message': 'Error al eliminar'}, status=400)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+  
+    def mandar_aprobado(self, request, *args, **kwargs):  
+        try:
+            print("Aprobar al residente")
+            info = request.data
+            print("el id que llega", info )
+            print("accediendo a informacion", info["estado_civil"])
+            today = date.today().strftime('%d/%m/%Y')
+            ingreso = int(info["ingreso"])
+            ingreso_texto = num2words(ingreso, lang='es').capitalize()
+            context = {'info': info, "fecha_consulta":today, 'ingreso':ingreso, 'ingreso_texto':ingreso_texto}
+        
+            # Renderiza el template HTML  
+            template = 'home/aprobado_fraterna.html'
+    
+            html_string = render_to_string(template, context)# lo comvertimos a string
+            pdf_file = HTML(string=html_string).write_pdf(target=None) # Genera el PDF utilizando weasyprint para descargar del usuario
+            print("pdf realizado")
+            
+            archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+            print("antes de enviar_archivo",context)
+            self.enviar_archivo(archivo, info)
+            print("PDF ENVIADO")
+            return Response({'Mensaje': 'Todo Bien'},status= status.HTTP_200_OK)
+        
+           
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+                  
+    def enviar_archivo(self, archivo, info, comentario="nada"):
+        print("")
+        print("entrando a enviar archivo")
+        print("soy pdf content",archivo)
+        print("soy comentario",comentario)
+        arrendatario = info["nombre_arrendatario"]
+        # Configura los detalles del correo electrónico
+        try:
+            remitente = 'notificaciones_arrendify@outlook.com'
+            # destinatario = 'jsepulvedaarrendify@gmail.com'
+            destinatario = 'jcasados@fraterna.mx'
+            # destinatario2 = 'juridico.arrendify1@gmail.com'
+            destinatario2 = 'smosqueda@fraterna.mx'
+            
+            
+            asunto = f"Resultado Investigación Arrendatario {arrendatario}"
+            
+            destinatarios = [destinatario,destinatario2]
+            # Crea un objeto MIMEMultipart para el correo electrónico
+            msg = MIMEMultipart()
+            msg['From'] = remitente
+            msg['To'] = destinatario
+            msg['Cc'] = destinatario2
+            msg['Subject'] = asunto
+            print("paso objeto mime")
+           
+            # Estilo del mensaje
+            #variable resultado_html_fraterna
+            pdf_html = aprobado_fraterna(info)
+          
+            # Adjuntar el contenido HTML al mensaje
+            msg.attach(MIMEText(pdf_html, 'html'))
+            print("pase el msg attach 1")
+            # Adjunta el PDF al correo electrónico
+            pdf_part = MIMEBase('application', 'octet-stream')
+            pdf_part.set_payload(archivo.read())  # Lee los bytes del archivo
+            encoders.encode_base64(pdf_part)
+            pdf_part.add_header('Content-Disposition', 'attachment', filename='Resultado_investigación.pdf')
+            msg.attach(pdf_part)
+            print("pase el msg attach 2")
+            
+            # Establece la conexión SMTP y envía el correo electrónico
+            smtp_server = 'smtp.office365.com'
+            smtp_port = 587
+            smtp_username = config('smtp_u')
+            smtp_password = config('smtp_pw')
+            with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
+                server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
+                server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
+                server.sendmail(remitente, destinatarios, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
+            return Response({'message': 'Correo electrónico enviado correctamente.'})
+        except SMTPException as e:
+            print("Error al enviar el correo electrónico:", str(e))
+            return Response({'message': 'Error al enviar el correo electrónico.'})
+        
+class DocumentosArrendatario_semillero(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    queryset = DocumentosArrendatarios_semilleros.objects.all()
+    serializer_class = DASSerializer
+   
+    def list(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            ResidenteSerializers = self.get_serializer(queryset, many=True)
+            return Response(ResidenteSerializers.data ,status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+    def create (self, request, *args,**kwargs):
+        try: 
+            user_session = str(request.user.id)
+            data = request.data
+            data = {
+                    "Ine_arrendatario": request.FILES.get('Ine_arrendatario', None),
+                    "Ine_obligado": request.FILES.get('Ine_obligado', None),
+                    "Comp_dom_arrendatario": request.FILES.get('Comp_dom_arrendatario', None),
+                    "Comp_dom_obligado": request.FILES.get('Comp_dom_obligado', None),
+                    "Rfc_arrendatario": request.FILES.get('Rfc_arrendatario', None),
+                    "Ingresos_arrendatario": request.FILES.get('Ingresos_arrendatario', None),
+                    "Ingresos2_arrendatario": request.FILES.get('Ingresos2_arrendatario', None),
+                    "Ingresos3_arrendatario": request.FILES.get('Ingresos3_arrendatario', None),
+                    "Ingresos_obligado": request.FILES.get('Ingresos_obligado', None),
+                    "Ingresos2_obligado": request.FILES.get('Ingresos_obligado2', None),
+                    "Ingresos3_obligado": request.FILES.get('Ingresos_obligado3', None),
+                    "Extras": request.FILES.get('Extras', None),
+                    "Recomendacion_laboral": request.FILES.get('Recomendacion_laboral', None),
+                    "arrendatario":request.data['arrendatario'],
+                    "user":user_session
+                }
+          
+            if data:
+                documentos_serializer = self.get_serializer(data=data)
+                documentos_serializer.is_valid(raise_exception=True)
+                documentos_serializer.save()
+                return Response(documentos_serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+
+    def destroy(self, request, pk=None, *args, **kwargs):
+        try:
+            documentos_inquilinos = self.get_object()
+            documento_inquilino_serializer = self.serializer_class(documentos_inquilinos)
+            print("Soy ine", documento_inquilino_serializer.data['ine'])
+            print("1")
+            if documentos_inquilinos:
+                ine = documento_inquilino_serializer.data['ine']
+                print("Soy ine 2", ine)
+                comp_dom= documento_inquilino_serializer.data['comp_dom']
+                rfc= documento_inquilino_serializer.data['escrituras_titulo']
+                print("Soy RFC", rfc)
+                ruta_ine = 'apps/static'+ ine
+                print("Ruta ine", ruta_ine)
+                ruta_comprobante_domicilio = 'apps/static'+ comp_dom
+                ruta_rfc = 'apps/static'+ rfc
+                print("Ruta com", ruta_comprobante_domicilio)
+                print("Ruta RFC", ruta_rfc)
+            
+                # self.perform_destroy(documentos_arrendador)  #Tambien se puede eliminar asi
+                documentos_inquilinos.delete()
+                return Response({'message': 'Archivo eliminado correctamente'}, status=204)
+            else:
+                return Response({'message': 'Error al eliminar archivo'}, status=400)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+        
+    def retrieve(self, request, pk=None):
+        try:
+            documentos = self.queryset #Toma los datos de Inmuebles.objects.all() que esta al inicio de la clase viewset
+            inquilino = documentos.filter(id=pk)
+            serializer_inquilino = DISerializer(inquilino, many=True)
+            print(serializer_inquilino.data)
+            ine = serializer_inquilino.data[0]['ine']
+            print(ine)
+            # documentos_arrendador = self.get_object()
+            # print(documentos_arrendador)
+            return Response(serializer_inquilino.data)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+   
+    def update(self, request, *args, **kwargs):
+        try:
+            print("Entre en el update")
+            instance = self.get_object()
+            print("paso instance")
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            print(request.data)
+            
+            # Verificar si se proporciona un nuevo archivo adjunto
+            keys = request.data.keys()
+    
+            # Convertir las llaves a una lista y obtener la primera
+            first_key = list(keys)[0]
+            #first_key = str(first_key)
+            print(first_key)
+            
+            # Acceder dinámicamente al atributo de instance usando first_key
+            if hasattr(instance, first_key):
+                archivo_anterior = getattr(instance, first_key)
+                print("arc", archivo_anterior)
+                eliminar_archivo_s3(archivo_anterior)
+            else:
+                print(f"El atributo '{first_key}' no existe en la instancia.")
+            
+            print("archivo",archivo_anterior)
+            serializer.update(instance, serializer.validated_data)
+            print("finalizado")
+            return Response(serializer.data)
+
+        
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+#////////////////////////CONTRATOS SEMILLERO///////////////////////////////
+class Contratos_semillero(viewsets.ModelViewSet):
+    # authentication_classes = [TokenAuthentication, SessionAuthentication]
+    # permission_classes = [IsAuthenticated]
+    queryset = SemilleroContratos.objects.all()
+    serializer_class = ContratoSemilleroSerializer
+    
+    def list(self, request, *args, **kwargs):
+        try:
+           user_session = request.user       
+           if user_session.is_staff:
+               print("Esta entrando a listar cotizacion")
+               contratos =  SemilleroContratos.objects.all().order_by('-id')
+               serializer = self.get_serializer(contratos, many=True)
+               serialized_data = serializer.data
+                
+               # Agregar el campo 'is_staff' en el arreglo de user
+               for item in serialized_data:
+                 item['is_staff'] = True
+                
+               return Response(serialized_data)
+           
+           elif user_session.rol == "Inmobiliaria":
+               #primero obtenemos mis agentes.
+               print("soy inmobiliaria en listar contratos", user_session.name_inmobiliaria)
+               agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+               #obtenemos los contratos
+               contratos_mios = SemilleroContratos.objects.filter(user_id = user_session.id)
+               contratos_agentes = SemilleroContratos.objects.filter(user_id__in = agentes.values("id"))
+               contratos_all = contratos_mios.union(contratos_agentes)
+               contratos_all = contratos_all.order_by('-id')
+               
+               print("es posible hacer esto:", contratos_all)
+               
+               serializer = self.get_serializer(contratos_all, many=True)
+               return Response(serializer.data, status= status.HTTP_200_OK)
+               
+           elif user_session.rol == "Agente":
+               print(f"soy Agente: {user_session.first_name} en listar contrato")
+               residentes_ag = SemilleroContratos.objects.filter(user_id = user_session).order_by('-id')
+              
+               serializer = self.get_serializer(residentes_ag, many=True)
+               return Response(serializer.data, status= status.HTTP_200_OK)
+           
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def create(self, request, *args, **kwargs):
+        try:
+            user_session = request.user
+            print(user_session)
+            print("RD",request.data)
+            print("Request",request)
+            print("Llegando a create de contrato para fraterna")
+            
+            fecha_actual = date.today()
+            contrato_serializer = self.serializer_class(data = request.data) #Usa el serializer_class
+            if contrato_serializer.is_valid():
+                nuevo_proceso = ProcesoContrato_semillero.objects.create(usuario = user_session, fecha = fecha_actual, status_proceso = "En Revisión")
+                if nuevo_proceso:
+                    print("ya la armamos")
+                    print(nuevo_proceso.id)
+                    info = contrato_serializer.save(user = user_session)
+                    nuevo_proceso.contrato = info
+                    nuevo_proceso.save()
+                    #send_noti_varios(FraternaContratos, request, title="Nueva solicitud de contrato en Fraterna", text=f"A nombre del Arrendatario {info.residente.nombre_arrendatario}", url = f"fraterna/contrato/#{info.residente.id}_{info.cama}_{info.no_depa}")
+                    print("despues de metodo send_noti")
+                    print("Se Guardado solicitud")
+                    return Response({'Semillero': contrato_serializer.data}, status=status.HTTP_201_CREATED)
+                else:
+                    print("no se creo el proceso")
+                    return Response({'msj':'no se creo el proceso'}, status=status.HTTP_204_NO_CONTENT) 
+            
+            else:
+                print("serializer no valido")
+                return Response({'msj':'no es valido el serializer'}, status=status.HTTP_204_NO_CONTENT)     
+            
+        
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+    def update(self, request, *args, **kwargs):
+        try:
+            #primero verificamos que tenga contadores activos
+            print("Esta entrando a actualizar Contratos Semillero")
+            partial = kwargs.pop('partial', False)
+            instance = self.get_object()
+           
+                        
+            proceso = ProcesoContrato_semillero.objects.all().get(contrato_id = instance.id)
+            print("el contador es: ",proceso.contador)
+            if (proceso.contador > 0 ):
+                serializer = self.get_serializer(instance, data=request.data, partial=partial)
+                if serializer.is_valid(raise_exception=True):
+                    self.perform_update(serializer)
+                    #proceso.contador = proceso.contador - 1
+                    #proceso.save()
+                    print("edito proceso contrato")
+                    #send_noti_varios(SemilleroContratos, request, title="Se a modificado el contrato de:", text=f"FRATERNA VS {instance.residente.nombre_arrendatario} - {instance.residente.nombre_residente}".upper(), url = f"fraterna/contrato/#{instance.residente.id}_{instance.cama}_{instance.no_depa}")
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else:
+                    return Response({'errors': serializer.errors})
+            else:
+                return Response({'msj': 'LLegaste al limite de tus modificaciones en el proceso'}, status=status.HTTP_205_RESET_CONTENT)
+      
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def destroy(self,request, *args, **kwargs):
+        try:
+            residente = self.get_object()
+            if residente:
+                residente.delete()
+                return Response({'message': 'residente eliminado'}, status=204)
+            return Response({'message': 'Error al eliminar'}, status=400)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def aprobar_contrato_semillero(self, request, *args, **kwargs):
+        try:
+            print("update status contrato")
+            print("Request",request.data)
+            instance = self.queryset.get(id = request.data["id"])
+            print("mi id es: ",instance.id)
+            print(instance.__dict__)
+            #se utiliza el "get" en lugar del filter para obtener el objeto y no un queryset
+            proceso = ProcesoContrato_semillero.objects.all().get(contrato_id = instance.id)
+            print("proceso",proceso.__dict__)
+            proceso.status_proceso = request.data["status"]
+            proceso.save()
+            return Response({'Exito': 'Se cambio el estatus a aprobado'}, status= status.HTTP_200_OK)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def desaprobar_contrato_semillero(self, request, *args, **kwargs):
+        try:
+            print("desaprobar Contrato")
+            instance = self.queryset.get(id = request.data["id"])
+            #se utiliza el "get" en lugar del filter para obtener el objeto y no un queryset
+            proceso = ProcesoContrato_semillero.objects.all().get(contrato_id = instance.id)
+            print("proceso",proceso.__dict__)
+            proceso.status_proceso = "En Revisión"
+            # proceso.contador = 2 # en vista que me indiquen lo contrario lo dejamos asi
+            proceso.save()
+            return Response({'Exito': 'Se cambio el estatus a desaprobado'}, status= status.HTTP_200_OK)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def generar_pagare_semillero(self, request, *args, **kwargs):
+        try:
+            #activamos la libreri de locale para obtener el mes en español
+            print("Generar Pagare Semillero")
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            id_paq = request.data
+            print("el id que llega", id_paq)
+            info = self.queryset.filter(id = id_paq).first()
+            print(info.__dict__)       
+            # Definir la fecha inicial
+            fecha_inicial = info.fecha_celebracion
+            print(fecha_inicial)
+            #fecha_inicial = datetime(2024, 3, 20)
+            #checar si cambiar el primer dia o algo asi
+            # fecha inicial move in
+            dia = fecha_inicial.day
+            
+            # Definir la duración en meses
+            duracion_meses = info.duracion.split()
+            duracion_meses = int(duracion_meses[0])
+            print("duracion en meses",duracion_meses)
+            # Calcular la fecha final
+            fecha_final = fecha_inicial + relativedelta(months=duracion_meses)
+            # Lista para almacenar las fechas iteradas (solo meses y años)
+            fechas_iteradas = []
+            # Iterar sobre todos los meses entre la fecha inicial y la fecha final
+            while fecha_inicial < fecha_final:
+                nombre_mes = fecha_inicial.strftime("%B")  # %B da el nombre completo del mes
+                print("fecha",fecha_inicial.year)
+                fechas_iteradas.append((nombre_mes.capitalize(),fecha_inicial.year))      
+                fecha_inicial += relativedelta(months=1)
+            
+            print("fechas_iteradas",fechas_iteradas)
+            # Imprimir la lista de fechas iteradas
+            for month, year in fechas_iteradas:
+                print(f"Año: {year}, Mes: {month}")
+            
+            #obtenermos la renta para pasarla a letra
+            number = info.renta
+            number = int(number)
+            text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+            text_representation = text_representation.capitalize()
+            
+            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses}
+            
+            template = 'home/pagare_semillero.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+            response.write(pdf_file)
+
+            return HttpResponse(response, content_type='application/pdf')
+    
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+    def generar_poliza_semillero(self, request, *args, **kwargs):
+        try:
+            print("Generar Poliza Semillero")
+            id_paq = request.data
+            print("el id que llega", id_paq)
+            info = self.queryset.filter(id = id_paq).first()
+            print(info.__dict__)
+            
+            print("vamos a generar el codigo")    
+            na = str(info.arrendatario.nombre_arrendatario)[0:1] + str(info.arrendatario.nombre_arrendatario)[-1]
+            fec = str(info.fecha_celebracion).split("-")
+            if info.id < 9:
+                info.id = f"0{info.id}"
+                print("")
+            print("fec",fec)
+        
+            dia = fec[2]
+            mes = fec[1]
+            anio = fec[0][2:4]
+            nom_paquete = "AFY" + dia + mes + anio + "CX" + "24" +  f"{info.id}" + "CA" +  na 
+            print("paqueton",nom_paquete.upper())    
+            #obtenemos renta y costo poliza para letra
+            renta = int(info.renta)
+            renta_texto = num2words(renta, lang='es').capitalize()
+            
+       
+            context = {'info': info, 'renta_texto':renta_texto, 'nom_paquete':nom_paquete,}
+            template = 'home/poliza_semillero.html'
+            html_string = render_to_string(template,context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
+            response.write(pdf_file)
+            print("TERMINANDO PROCESO CONTRATO")
+            return HttpResponse(response, content_type='application/pdf')
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+    def generar_contrato_semillero(self, request, *args, **kwargs):
+        try:
+            print("Generar contrato Semillero")
+            id_paq = request.data
+            print("el id que llega", id_paq)
+            info = self.queryset.filter(id = id_paq).first()
+            print(info.__dict__)    
+            #obtenemos renta y costo poliza para letra
+            renta = int(info.renta)
+            renta_texto = num2words(renta, lang='es').capitalize()
+            #obtener los datos de la vigencia
+            vigencia = info.duracion.split(" ")
+            num_vigencia = vigencia[0] 
+            print(num_vigencia)
+            
+            print("vamos agenerar el codigo")    
+            na = str(info.arrendatario.nombre_arrendatario)[0:1] + str(info.arrendatario.nombre_arrendatario)[-1]
+            fec = str(info.fecha_celebracion).split("-")
+            if info.id < 9:
+                info.id = f"0{info.id}"
+                print("")
+            print("fec",fec)
+        
+            dia = fec[2]
+            mes = fec[1]
+            anio = fec[0][2:4]
+            print("dia",dia)
+            print("mes",mes)
+            print("año",anio)
+            nom_paquete = "AFY" + dia + mes + anio + "CX" + "24" +  f"{info.id}" + "CA" +  na 
+            print("paqueton",nom_paquete.upper())
+        
+            context = {'info': info, 'renta_texto':renta_texto, 'num_vigencia':num_vigencia, 'nom_paquete':nom_paquete}
+            
+            template = 'home/contrato_arr_frat.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
+            response.write(pdf_file)
+            print("finalizado")
+
+            return HttpResponse(response, content_type='application/pdf')
+        
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
+        
+    def renovar_contrato_semillero(self, request, *args, **kwargs):
+        try:
+            print("Renovar el contrato pa")
+            print("Request",request.data)
+            instance = self.queryset.get(id = request.data["id"])
+            print("mi id es: ",instance.id)
+            print(instance.__dict__)
+            #Mandar Whats con lo datos del contrato a Miri
+            
+            #se utiliza el "get" en lugar del filter para obtener el objeto y no un queryset
+            proceso = ProcesoContrato_semillero.objects.all().get(contrato_id = instance.id)
+            print("proceso",proceso.__dict__)
+            proceso.status_proceso = request.data["status"]
+            proceso.save()
+            return Response({'Exito': 'Se cambio el estatus a aprobado'}, status= status.HTTP_200_OK)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+   

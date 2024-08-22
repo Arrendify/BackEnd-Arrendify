@@ -76,7 +76,7 @@
 	</tr>
 	{% comment %} meter un if si tiene centavos {% endcomment %}
 	<tr>
-		<td height="21" align="justify" valign = middle><b><div class="fuente">Renta: ${{info.renta | intcomma}} ({{renta_texto}} Pesos 00/100 M.N.).</div></b></td>
+		<td height="21" align="justify" valign = middle><b><div class="fuente">Renta: ${{info.renta | intcomma}}.00 ({{renta_texto}} Pesos 00/100 M.N.).</div></b></td>
 	</tr>
 	<tr>
 		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
@@ -205,7 +205,7 @@
 		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>5.</b>     La <b>RENTA</b>: La estipulada en el <b>“CONTRATO DE ARRENDAMIENTO”</b>, misma que es por la cantidad de:</div></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>${{info.renta}} ({{renta_texto}} Pesos 00/100 M.N.).</b></div></td>
+		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>${{info.renta | intcomma}}.00 ({{renta_texto}} Pesos 00/100 M.N.).</b></div></td>
 	</tr>
 	<tr>
 		<td height="21"  valign=middle><div class="fuente"><div class="fuente"><b>c.</b>   Que es su deseo formalizar el presente contrato de Prestación de Servicios Especializados en Materia de Arrendamiento Inmobiliario, comprometiéndose en términos de las siguientes:

@@ -12,7 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadReque
 from django.template import loader
 from django.urls import reverse
 from requests import get
-from .models import FraternaContratos, Inmuebles, InmueblesInmobiliario, Inquilino, Arrendador, ImagenInmueble, DocumentosInquilino, Fiador_obligado,Cotizacion,Investigacion,Paquetes
+from .models import FraternaContratos, Inmuebles, InmueblesInmobiliario, Inquilino, Arrendador, ImagenInmueble, DocumentosInquilino, Fiador_obligado,Cotizacion,Investigacion,Paquetes, SemilleroContratos
 from django.shortcuts import redirect, render, get_object_or_404
 from .forms import InquilinosForm, InmueblesForm, ArrendadorForm, ImagenInmuelbeForm, FiadorForm
 from time import sleep
@@ -31,6 +31,94 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 #Libreria para obtener el lenguaje en español
 import locale
+#Renovacion de contratos
+from django.utils import timezone
+from ..home.models import FraternaContratos
+from ..api.variables import renovacion_fraterna
+#Correo
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+from django.core.mail import send_mail
+from smtplib import SMTPException
+from django.core.files.base import ContentFile
+from decouple import config
+
+from rest_framework.response import Response
+
+
+def renovar_contrato(request):
+    print("Ejecutando Prueba Renovacion")
+    fecha_actual = timezone.now().date()
+    print("fecha actual", fecha_actual)
+    mes = fecha_actual.month + 1
+    #fecha_vigencia = date(2022, 8, 27)  # Utiliza la fecha de referencia para la comparación
+    vencidos = FraternaContratos.objects.all().filter(fecha_vigencia__icontains = mes)
+    print("vencidos mes", vencidos )
+    contratos_a_renovar = []
+    for vfec in vencidos:
+        print("fev.fecha.actual",vfec.fecha_vigencia)
+        diference = vfec.fecha_vigencia - fecha_actual
+
+        print(f"diference: {diference} vfec:{vfec.id}", diference)
+    
+        if diference.days == 31:
+            print(f" yo ya me voy a vencer ----- diference: {diference} vfec:{vfec}", diference)
+            print("Tienes 30 dias para renovar tu contrato Bro")
+            contratos_a_renovar.append(vfec)
+            print("soy contratos",contratos_a_renovar)
+
+    for con_ren in contratos_a_renovar:
+        # Configura los detalles del correo electrónico
+        try:
+            remitente = 'pruebas_arrendify@hotmail.com'
+            destino = "desarrolloarrendify@gmail.com"
+            pdf_html = renovacion_fraterna(con_ren)
+            print(destino)
+
+            
+            #hacemos una lista destinatarios para enviar el correo
+            asunto = f"Recordatorio Renovacion de Poliza {con_ren.residente.nombre_arrendatario}"
+            
+            # Crea un objeto MIMEMultipart para el correo electrónico
+            msg = MIMEMultipart()
+            msg['From'] = remitente
+            msg['To'] = destino
+            msg['Subject'] = asunto
+            print("paso objeto mime")
+            
+            #Evalua si tiene este atributo
+            # if hasattr(info, 'fiador'):
+            #     print("SOY info.fiador",info.fiador)
+            
+            # Adjuntar el contenido HTML al mensaje
+            msg.attach(MIMEText(pdf_html, 'html'))
+            print("pase el msg attach 1")
+            # Adjunta el PDF al correo electrónico
+            
+            # Establece la conexión SMTP y envía el correo electrónico
+            smtp_server = 'smtp-mail.outlook.com'
+            smtp_port = 587
+            smtp_username = config('smtp_u')
+            smtp_password = config('smtp_pw')
+            with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
+                server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
+                print("paso1")
+                
+                server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
+                print("paso2")
+                
+                server.sendmail(remitente,destino, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
+            print("se envio el correo")
+            
+        except SMTPException as e:
+            print("Error al enviar el correo electrónico:", str(e))
+               
+        
+           
+    return HttpResponse(vencidos, content_type='application/pdf')
 
 
 def generate_pdf(request):
@@ -387,7 +475,7 @@ def contrato_pdf(request):
     text_representation = text_representation.capitalize()
     #obtenermos el precio de la poliza para pasarla a letra
     precio = info.cotizacion.monto
-    precio = int(precio)
+    precio = float(precio)
     print(precio)
     precio_texto = num2words(precio, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
     precio_texto = precio_texto.capitalize()
@@ -483,6 +571,52 @@ def contrato_fraterna_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
     response.write(pdf_file)
+
+    return HttpResponse(response, content_type='application/pdf')
+
+import random
+def contrato_arrendify_fraterna_pdf(request):
+    info = SemilleroContratos.objects.filter(id = 2).first()
+    print(info.__dict__)
+    #obtenemos renta y costo poliza para letra
+    renta = int(info.renta)
+    renta_texto = num2words(renta, lang='es').capitalize()
+    #obtener los datos de la vigencia
+    vigencia = info.duracion.split(" ")
+    num_vigencia = vigencia[0] 
+    print(num_vigencia)
+    
+    print("vamos agenerar el codigo")    
+    
+    na = str(info.arrendatario.nombre_arrendatario)[0:1] + str(info.arrendatario.nombre_arrendatario)[-1]
+    fec = str(info.fecha_celebracion).split("-")
+    if info.id < 9:
+        info.id = f"0{info.id}"
+        print("")
+    print("fec",fec)
+  
+    dia = fec[2]
+    mes = fec[1]
+    anio = fec[0][2:4]
+    print("dia",dia)
+    print("mes",mes)
+    print("año",anio)
+    nom_paquete = "AFY" + dia + mes + anio + "CX" + "24" +  f"{info.id}" + "CA" +  na 
+    print("paqueton",nom_paquete.upper())
+ 
+    context = {'info': info, 'renta_texto':renta_texto, 'num_vigencia':num_vigencia, 'nom_paquete':nom_paquete}
+    
+    template = 'home/contrato_arr_frat.html'
+    html_string = render_to_string(template, context)
+
+    # Genera el PDF utilizando weasyprint
+    pdf_file = HTML(string=html_string).write_pdf()
+
+    # Devuelve el PDF como respuesta
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
+    response.write(pdf_file)
+    print("finalizado")
 
     return HttpResponse(response, content_type='application/pdf')
 

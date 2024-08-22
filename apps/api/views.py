@@ -211,6 +211,7 @@ class inquilino_registro(APIView):
                     #serializer3.save(user = user_session)
                     serializer_check.validated_data['inquilino'] = id
                     serializer_check.save()
+                    print("serializer check",serializer_check)
                     return Response(serializer3.data, status=status.HTTP_201_CREATED)
                 else:
                     print("Nombre no valido")
@@ -1188,12 +1189,14 @@ class investigaciones(viewsets.ModelViewSet):
             qs = request.GET.get('nombre')     
             try:
                 if qs:
+                    
                     inquilino = Inquilino.objects.all().filter(nombre__icontains = qs)
                     id_inq = []
                     for inq in inquilino:
                         id_inq.append(inq.id)
                     investigar = Investigacion.objects.all().filter(inquilino__in = id_inq)
                     serializer = self.get_serializer(investigar, many=True)
+                    
                     return Response(serializer.data)
                     
                 else:
@@ -1211,7 +1214,10 @@ class investigaciones(viewsets.ModelViewSet):
                 
                 #    return Response(serializer.data, status= status.HTTP_200_OK)
             except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                print(f"el error es: {e}")
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+                return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'No estas autorizado'}, status=status.HTTP_401_UNAUTHORIZED)
     
@@ -1500,8 +1506,11 @@ class investigaciones(viewsets.ModelViewSet):
             smtp_password = config('smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
+                print("tls")
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
+                print("login")
                 server.sendmail(remitente, Destino, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
+                print("sendmail")
             return Response({'message': 'Correo electrónico enviado correctamente.'})
         except SMTPException as e:
             print("Error al enviar el correo electrónico:", str(e))
@@ -2662,7 +2671,6 @@ class Paks(viewsets.ModelViewSet):
                 print("entro al IF")
                 paquete_serializer.save(user = user_session)
                 print("Ya Guarde")
-    
                 return Response(paquete_serializer.data, status= status.HTTP_200_OK)     
             else:
                 print("Error en validacion")
@@ -2829,97 +2837,102 @@ class Paks(viewsets.ModelViewSet):
         return response
     
     def generar_contrato(self, request, *args, **kwargs):
-        id_paq = request.data['id']
-        info = self.queryset.filter(id = id_paq).first()
-        meses={1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
-        
-        #estabelcemos la fecha de inicio 
-        fecha_inicio = info.datos_arrendamiento['fecha_inicio_contrato']
-        
-        fecha_inicio_datetime = datetime.strptime(fecha_inicio, '%Y-%m-%d')
-        dia = fecha_inicio_datetime.day
-        mes = fecha_inicio_datetime.month
-        mes_inicio = meses[mes]
-        anio = fecha_inicio_datetime.year
-        datos_inicio = {'dia':dia, 'anio':anio ,'mes':mes_inicio}
-        
-        #estabelcemos la fecha de fin
-        fecha_fin = info.datos_arrendamiento['fecha_fin_contrato']
-        fecha_fin_datetime = datetime.strptime(fecha_fin, '%Y-%m-%d')
-        dia_fin = fecha_fin_datetime.day
-        mes2 = fecha_fin_datetime.month
-        mes_fin = meses[mes2]
-        anio_fin = fecha_fin_datetime.year
-        datos_fin = {'dia':dia_fin, 'anio':anio_fin ,'mes':mes_fin}
-        
-        #estabelcemos la fecha de fin
-        fecha_firma = info.datos_arrendamiento['fecha_firma']
-        fecha_firma_datetime = datetime.strptime(fecha_firma, '%Y-%m-%d')
-        dia_firma = fecha_firma_datetime.day
-        mes3 = fecha_firma_datetime.month
-        mes_firma = meses[mes3]
-        anio_firma = fecha_firma_datetime.year
-        datos_firma = {'dia':dia_firma, 'anio':anio_firma ,'mes':mes_firma}
+        try:   
+            print("Generando el contrato")
+            id_paq = request.data['id']
+            info = self.queryset.filter(id = id_paq).first()
+            meses={1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
             
-        datos = info.inmueble
-      
-        #obtenermos la renta para pasarla a letra
-        number = datos.renta
-        number = int(number)
-        text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-        text_representation = text_representation.capitalize()
-        #obtenermos el precio de la poliza para pasarla a letra
-        precio = info.cotizacion.monto
-        precio = int(precio)
-    
-        precio_texto = num2words(precio, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-        precio_texto = precio_texto.capitalize()
+            #estabelcemos la fecha de inicio 
+            fecha_inicio = info.datos_arrendamiento['fecha_inicio_contrato']
+            
+            fecha_inicio_datetime = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+            dia = fecha_inicio_datetime.day
+            mes = fecha_inicio_datetime.month
+            mes_inicio = meses[mes]
+            anio = fecha_inicio_datetime.year
+            datos_inicio = {'dia':dia, 'anio':anio ,'mes':mes_inicio}
+            
+            #estabelcemos la fecha de fin
+            fecha_fin = info.datos_arrendamiento['fecha_fin_contrato']
+            fecha_fin_datetime = datetime.strptime(fecha_fin, '%Y-%m-%d')
+            dia_fin = fecha_fin_datetime.day
+            mes2 = fecha_fin_datetime.month
+            mes_fin = meses[mes2]
+            anio_fin = fecha_fin_datetime.year
+            datos_fin = {'dia':dia_fin, 'anio':anio_fin ,'mes':mes_fin}
+            
+            #estabelcemos la fecha de fin
+            fecha_firma = info.datos_arrendamiento['fecha_firma']
+            fecha_firma_datetime = datetime.strptime(fecha_firma, '%Y-%m-%d')
+            dia_firma = fecha_firma_datetime.day
+            mes3 = fecha_firma_datetime.month
+            mes_firma = meses[mes3]
+            anio_firma = fecha_firma_datetime.year
+            datos_firma = {'dia':dia_firma, 'anio':anio_firma ,'mes':mes_firma}
+                
+            datos = info.inmueble
         
-        #Comprobacion de mobiliario
-        mobiliario = InmueblesInmobiliario.objects.all().filter(inmuebles = info.inmueble.id)
-       
-        # obtenemos la fecha de pago y extraemos el dia
-        dia_pago = datetime.strptime(info.datos_arrendamiento['fecha_de_pago'], '%Y-%m-%d')
-        dia_pago = dia_pago.day
-    
-        #variables de informacion arrendador
-        tipo_documento_arrendador = info.ides['ides_arrendador']
-        no_doc_arrendador = info.ides['no_ide_arrendador']
+            #obtenermos la renta para pasarla a letra
+            number = datos.renta
+            number = int(number)
+            text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+            text_representation = text_representation.capitalize()
+            #obtenermos el precio de la poliza para pasarla a letra
+            precio = info.cotizacion.monto
+            print(precio)
+            precio = float(precio)
         
-        #variables de informacion arrendatario
-        tipo_documento_arrendatario = info.ides['ides_arrendatario']
-        no_doc_arrendatario = info.ides['no_ide_arrendatario']
+            precio_texto = num2words(precio, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+            precio_texto = precio_texto.capitalize()
+            
+            #Comprobacion de mobiliario
+            mobiliario = InmueblesInmobiliario.objects.all().filter(inmuebles = info.inmueble.id)
         
-        #variables de informacion fiador
-        tipo_documento_fiador = info.ides['ides_fiador']
-        no_doc_fiador = info.ides['no_ide_fiador']
-        doc_indentificacion = {'tipo_documento_arrendador':tipo_documento_arrendador, 'no_doc_arrendador':no_doc_arrendador,
-                            'tipo_documento_arrendatario':tipo_documento_arrendatario, 'no_doc_arrendatario':no_doc_arrendatario,
-                            'tipo_documento_fiador':tipo_documento_fiador, 'no_doc_fiador':no_doc_fiador}
-    
-        #variables que selecciona el inquilino        
-        #plazos
-        vig_c3 = request.data['plazos']['vig_c3']#tiene que ser de 15 o 30
-        vig_c15 = request.data['plazos']['vig_c15'] #tiene que ser de 30 con inclementos de 5 en 5 hasta 60
-        vig_c23 = request.data['plazos']['vig_c23'] # tiene que ser 15, 30 o 60
-        vig_c25 = request.data['plazos']['vig_c25'] #tiene que ser de 30 con inclementos de 5 en 5 hasta 60
-        vig = {'vig_c3':vig_c3, 'vig_c15':vig_c15, 'vig_c23':vig_c23, 'vig_c25':vig_c25}
+            # obtenemos la fecha de pago y extraemos el dia
+            dia_pago = datetime.strptime(info.datos_arrendamiento['fecha_de_pago'], '%Y-%m-%d')
+            dia_pago = dia_pago.day
         
-        context = {'info': info, 'datos_inicio':datos_inicio, 'datos_fin':datos_fin,'datos_firma':datos_firma, 'text_representation':text_representation,'precio_texto':precio_texto, 'doc_indentificacion':doc_indentificacion, "dia_pago":dia_pago, 'vig':vig, 'mobiliario':mobiliario}
+            #variables de informacion arrendador
+            tipo_documento_arrendador = info.ides['ides_arrendador']
+            no_doc_arrendador = info.ides['no_ide_arrendador']
+            
+            #variables de informacion arrendatario
+            tipo_documento_arrendatario = info.ides['ides_arrendatario']
+            no_doc_arrendatario = info.ides['no_ide_arrendatario']
+            
+            #variables de informacion fiador
+            tipo_documento_fiador = info.ides['ides_fiador']
+            no_doc_fiador = info.ides['no_ide_fiador']
+            doc_indentificacion = {'tipo_documento_arrendador':tipo_documento_arrendador, 'no_doc_arrendador':no_doc_arrendador,
+                                'tipo_documento_arrendatario':tipo_documento_arrendatario, 'no_doc_arrendatario':no_doc_arrendatario,
+                                'tipo_documento_fiador':tipo_documento_fiador, 'no_doc_fiador':no_doc_fiador}
         
-        template = 'home/contrato.html'
-        html_string = render_to_string(template, context)
+            #variables que selecciona el inquilino        
+            #plazos
+            vig_c3 = request.data['plazos']['vig_c3']#tiene que ser de 15 o 30
+            vig_c15 = request.data['plazos']['vig_c15'] #tiene que ser de 30 con inclementos de 5 en 5 hasta 60
+            vig_c23 = request.data['plazos']['vig_c23'] # tiene que ser 15, 30 o 60
+            vig_c25 = request.data['plazos']['vig_c25'] #tiene que ser de 30 con inclementos de 5 en 5 hasta 60
+            vig = {'vig_c3':vig_c3, 'vig_c15':vig_c15, 'vig_c23':vig_c23, 'vig_c25':vig_c25}
+            
+            context = {'info': info, 'datos_inicio':datos_inicio, 'datos_fin':datos_fin,'datos_firma':datos_firma, 'text_representation':text_representation,'precio_texto':precio_texto, 'doc_indentificacion':doc_indentificacion, "dia_pago":dia_pago, 'vig':vig, 'mobiliario':mobiliario}
+            
+            template = 'home/contrato.html'
+            html_string = render_to_string(template, context)
 
-        # Genera el PDF utilizando weasyprint
-        pdf_file = HTML(string=html_string).write_pdf()
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
 
-        # Devuelve el PDF como respuesta
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
-        response.write(pdf_file)
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
+            response.write(pdf_file)
 
-        return HttpResponse(response, content_type='application/pdf')
-    
+            return HttpResponse(response, content_type='application/pdf')
+        except Exception as e:
+            print("error es:",e)
+            
 class Amigos(viewsets.ModelViewSet):
     queryset = Friends.objects.all()
     def send_friend_request(self, request, *args, **kwargs):

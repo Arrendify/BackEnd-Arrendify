@@ -17,8 +17,8 @@ CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
-#DEBUG = True
+#DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = True
 
 LOGGING = {
     'version': 1,
@@ -45,7 +45,7 @@ LOGGING = {
 }
 
 # load production server
-ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1'), "192.168.2.24","192.168.3.2"]
+ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1'), config('SERVER2', default='127.0.0.1'), "192.168.2.24","192.168.3.2","192.168.0.233",]
 
 # Application definition
 
@@ -104,6 +104,7 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = (
     'https://arrendify.app',
+    'http://192.168.0.233:8000',
     'http://192.168.2.24:8000',
     'http://192.168.1.187:8080',
     'http://192.168.3.2:8001',
