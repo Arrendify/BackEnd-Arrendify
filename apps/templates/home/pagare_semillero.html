@@ -202,8 +202,7 @@
                      
                 {% endif %}
          
-            {% comment %} agregar una variable cuando el arrentarop sea el mismo que el residente {% endcomment %}
-            {% if info.residente.aval == "Si" %}
+            {% if info.arrendatario.aval == "Si" %}
                 {% if info.arrendatario.regimen_obligado == "Persona Fisica" %}
                     <br> 
                     <div class="col-md-8">
