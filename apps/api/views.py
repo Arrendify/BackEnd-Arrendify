@@ -1202,13 +1202,15 @@ class investigaciones(viewsets.ModelViewSet):
                 else:
                         print("Esta entrando a listar inquilino desde invetigacion")
                         print("sin barra de busqueda")
-                        francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
-                        inquilino = Inquilino.objects.all().filter(user_id = francis.id)
-                        print("excluimos el resultado:",inquilino)
-                        id_inq = []
-                        for inq in inquilino:
-                            id_inq.append(inq.id)
-                        investigar = Investigacion.objects.all().exclude(inquilino__in = id_inq)
+                        #todo el codigo comentado es el filtro para separar las investigaciones de francis con las demas que haya 
+                        # francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
+                        # inquilino = Inquilino.objects.all().filter(user_id = francis.id)
+                        # print("excluimos el resultado:",inquilino)
+                        # id_inq = []
+                        # for inq in inquilino:
+                        #     id_inq.append(inq.id)
+                        # investigar = Investigacion.objects.all().exclude(inquilino__in = id_inq)
+                        investigar = Investigacion.objects.all()
                         serializer = self.get_serializer(investigar, many=True)
                         return Response(serializer.data)
                 
