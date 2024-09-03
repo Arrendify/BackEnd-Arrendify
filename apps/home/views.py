@@ -115,8 +115,6 @@ def renovar_contrato(request):
             
         except SMTPException as e:
             print("Error al enviar el correo electrónico:", str(e))
-               
-        
            
     return HttpResponse(vencidos, content_type='application/pdf')
 

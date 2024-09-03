@@ -35,7 +35,7 @@ import sys
 logger = logging.getLogger(__name__)
 
 #variables para el correo
-from ..variables import aprobado_fraterna
+from ..variables import aprobado_fraterna, renovacion_aviso_fraterna
 
 #enviar por correo
 import smtplib
@@ -46,6 +46,7 @@ from email import encoders
 from smtplib import SMTPException
 from django.core.files.base import ContentFile
 from decouple import config
+#variable para correo HTMl
 
 
 
@@ -913,6 +914,58 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
+    
+    def renovar_contrato_fraterna(self, request, *args, **kwargs):
+        try:
+            print("Renovar el contrato pa")
+            print("Request",request.data)
+            instance = self.queryset.get(id = request.data["id"])
+            print("mi id es: ",instance.id)
+            print(instance.__dict__)
+            #Mandar Whats con lo datos del contrato a Miri
+            remitente = 'notificaciones_arrendify@outlook.com'
+            destinatario = 'desarrolloarrendify@gmail.com'
+
+            print(instance.residente.nombre_residente)
+            asunto = f"Renovacion de Contrato del arrendatario {instance.residente.nombre_arrendatario}"
+            
+           
+            # Crea un objeto MIMEMultipart para el correo electrónico
+            msg = MIMEMultipart()
+            msg['From'] = remitente
+            msg['To'] = destinatario
+            msg['Subject'] = asunto
+            print("paso objeto mime")
+
+            pdf_html = renovacion_aviso_fraterna(instance)
+
+            msg.attach(MIMEText(pdf_html, 'html'))
+            print("pase el msg attach 1")
+        
+            smtp_server = 'smtp.office365.com'
+            smtp_port = 587
+            smtp_username = config('smtp_u')
+            smtp_password = config('smtp_pw')
+            with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
+                server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
+                server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
+                server.sendmail(remitente, destinatario, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
+            return Response({'message': 'Correo electrónico enviado correctamente.'})
+        except SMTPException as e:
+            print("Error al enviar el correo electrónico:", str(e))
+            return Response({'message': 'Error al enviar el correo electrónico.'})
+            #se utiliza el "get" en lugar del filter para obtener el objeto y no un queryset
+            # proceso = ProcesoContrato_semillero.objects.all().get(contrato_id = instance.id)
+            # print("proceso",proceso.__dict__)
+            # proceso.status_proceso = request.data["status"]
+            # proceso.save()
+            
+            return Response({'Exito': 'Se cambio el estatus a aprobado'}, status= status.HTTP_200_OK)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
 
 #////////////////////////////////////SEMILLERO PURISIMA////////////////////////////////////////////
@@ -1512,7 +1565,10 @@ class Contratos_semillero(viewsets.ModelViewSet):
     def generar_poliza_semillero(self, request, *args, **kwargs):
         try:
             print("Generar Poliza Semillero")
-            id_paq = request.data
+            print("rd",request.data)
+            id_paq = request.data["id"]
+            testigo = request.data["testigo"]
+            print(testigo)
             print("el id que llega", id_paq)
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)
@@ -1533,9 +1589,14 @@ class Contratos_semillero(viewsets.ModelViewSet):
             #obtenemos renta y costo poliza para letra
             renta = int(info.renta)
             renta_texto = num2words(renta, lang='es').capitalize()
+            if renta > 14999:
+                valor_poliza = renta * 0.17
+            else:
+                valor_poliza = 2500
+            poliza_texto = num2words(valor_poliza, lang='es').capitalize()
             
        
-            context = {'info': info, 'renta_texto':renta_texto, 'nom_paquete':nom_paquete,}
+            context = {'info': info, 'renta_texto':renta_texto, 'nom_paquete':nom_paquete, 'valor_poliza':valor_poliza, 'poliza_texto':poliza_texto, "testigo":testigo}
             template = 'home/poliza_semillero.html'
             html_string = render_to_string(template,context)
 
@@ -1557,7 +1618,9 @@ class Contratos_semillero(viewsets.ModelViewSet):
     def generar_contrato_semillero(self, request, *args, **kwargs):
         try:
             print("Generar contrato Semillero")
-            id_paq = request.data
+            print("rd",request.data)
+            id_paq = request.data["id"]
+            testigo = request.data["testigo"]
             print("el id que llega", id_paq)
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)    
@@ -1586,7 +1649,7 @@ class Contratos_semillero(viewsets.ModelViewSet):
             nom_paquete = "AFY" + dia + mes + anio + "CX" + "24" +  f"{info.id}" + "CA" +  na 
             print("paqueton",nom_paquete.upper())
         
-            context = {'info': info, 'renta_texto':renta_texto, 'num_vigencia':num_vigencia, 'nom_paquete':nom_paquete}
+            context = {'info': info, 'renta_texto':renta_texto, 'num_vigencia':num_vigencia, 'nom_paquete':nom_paquete, 'testigo':testigo}
             
             template = 'home/contrato_arr_frat.html'
             html_string = render_to_string(template, context)

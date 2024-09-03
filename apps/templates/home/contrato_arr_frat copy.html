@@ -81,9 +81,6 @@
 	  .firmapm *{
 		font-size:12px;
 	  }
-  .espaciado {
-    letter-spacing: 2px; /* Ajusta el valor según tus necesidades */
-  }
 	</style>
 	
 </head>
@@ -828,7 +825,7 @@
 				<div style="text-align: center;">
 					<b>
 						<h4>"EL ARRENDADOR"</h4>
-						<div style="height:11px;"></div>
+						<div style="height:15px;"></div>
 						
 					
 						______________________________________<br>
@@ -843,7 +840,7 @@
 				<div style="text-align: center;">
 					<b>
 						<h4>"EL ARRENDATARIO"</h4>
-						<div style="height:11px;"></div>
+						<div style="height:15px;"></div>
 						
 						
 						______________________________________<br>
@@ -856,12 +853,11 @@
 				
 				</article>
 			</section>
-			<section class="firmapm" style="margin-top: -35px;">
-				<article>
-			    	<div style="text-align: center;">
+			<div class="firmapm" style="margin-top:-35px;">
+					<div style="text-align: center;">
 						<b>
-							<b>"EL OBLIGADO"</b>
-							<div style="height:12px;"></div>
+							<h4>"EL OBLIGADO"</h4>
+							<div style="height:15px;"></div>
 						
 
 							______________________________________<br>
@@ -869,27 +865,9 @@
 							<br>
 							{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
 						</b>
-					
-				
 					</div>
-				</article>
-
-				<article>
-			    	<div style="text-align: center;">
-						<b>
-							<b>"EL TESTIGO"</b>
-							<div style="height:12px;"></div>
-						
-
-							______________________________________<br>
-							EJPM.{{testigo}}
-						</b>
-					
 				
-					</div>
-				</article>
-
-			</section>
+			</div>
 	{% elif info.arrendatario.regimen_obligado == "Persona Moral" %}
 	<div style="margin-top:-70px;">
 		<section>
@@ -925,36 +903,22 @@
 			
 			</article>
 		</section>
-		<section class="firmapm"  style="margin-top:-25px;" >
-			<article>
-						<div style="text-align: center;">
-							<b>
-								<b>"EL OBLIGADO"</b>
-								<div style="height:20px;"></div>
-							
+		<div style="margin-top:-20px;">
+				<div style="text-align: center;">
+					<b>
+						<h4>"EL OBLIGADO"</h4>
+						<div style="height:20px;"></div>
+					
 
-								______________________________________<br>
-								{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
-								<br>
-								{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
-							</b>
-						</div>
-			</article>
-			<article>
-			    	<div style="text-align: center;">
-						<b>
-							<b>"EL TESTIGO"</b>
-							<div style="height:20px;"></div>
-						
-
-							______________________________________<br>
-							EJPM.{{testigo}}
-						</b>
-					</div>
-			</article>
-		</section>
+						______________________________________<br>
+						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
+						<br>
+						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
+					</b>
+				</div>
+		</div>
 	</div>
-	
+		
 	{% else %}
 		<div style="margin-top:-70px;">
 			<section>
@@ -990,15 +954,17 @@
 				
 				</article>
 			</section>
-			<section style="margin-top:-25px;" >
+			<section>
+				<article></article>
+
 				<article>
 					<div style="text-align: center;">
 						<b>
-							<b>"EL OBLIGADO"</b>
+							<h4>"EL OBLIGADO"</h4>
 							<div style="height:20px;"></div>
 						
 
-							______________________________________<br>
+							______________________________________
 							{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
 							<br>
 							{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
@@ -1007,20 +973,7 @@
 
 				</article>
 
-				<article>
-
-					<div style="text-align: center;">
-						<b>
-							<b>"EL TESTIGO"</b>
-							<div style="height:20px;"></div>
-						
-
-							______________________________________<br>
-							EJPFSO. {{testigo}}
-						</b>
-					</div>
-				
-				</article>
+				<article></article>
 			</section>
 		</div>
 	
@@ -1060,21 +1013,6 @@
 				</b>
 			</div>
 			
-			</article>
-		</section>
-		<section>
-			<article>
-			<div style="text-align: center;">
-				<b>
-					<h4>"EL TESTIGO"</h4>
-					<div style="height:25px;"></div>
-					
-				
-					______________________________________<br>
-					EJPMCO.{{testigo}}
-					<br>
-				</b>|ewd
-			</div>
 			</article>
 		</section>
 	</div>

@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Resultado de investigacion</title>
+    <title>Resultado de investigación</title>
     <meta name="description" content="Report example">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous"> 
@@ -505,7 +505,10 @@
         <h3 class="mb-2 mt-2">Datos del empleo</h2>
       <hr class="hr" >
       <div class="mb-2" style="font-size: 10px; margin-top:-12px;">
-        Basado en la información proporcionada por el solicitante.
+        Basado en la información proporcionada por el solicitante. 
+      </div>
+      <div class="mb-1" style="font-size: 10px; margin-top:-12px;">
+        Ingreso mensual declarado es diferente al ingreso comprobado. 
       </div>
 
       <div class="row" >
@@ -533,8 +536,8 @@
             <input class="input-chido" type="text" value="{{info.inquilino.nombre_empresa}}">
         </div>
         <div class="col">
-          <label style="color:#8082a0;"><b>Ingreso mensual:</b></label>
-          <input class="input-chido" type="text"  value="${{info.inquilino.ingreso_men | intcomma}}">
+          <label style="color:#8082a0;"><b>Ingreso mensual comprobado:</b></label>
+          <input class="input-chido" type="text"  value="${{datos.ingreso_comprobado | intcomma}}.00">
         </div>
       </div>  
 
@@ -745,13 +748,12 @@
       {% endif %}
     </div>
 
-    {% comment %} <br> {% endcomment %}
-
+    {% comment %} Contenido {% endcomment %}
     <article id="pagina-3">
       <hr class="hr">  
         <h3 class="mb-2 mt-2">Referencias Personales, Laborales</h2>
       <hr class="hr">
-      <p>Como parte del proceso de investigacion, se ha solicitado se nos proporcionen referencias personales del prospecto a fin de poder corroborar diversos ámbitos personales que nos permitan conocer el entorno social del investigado.
+      <p>Como parte del proceso de investigación, se ha solicitado se nos proporcionen referencias personales del prospecto a fin de poder corroborar diversos ámbitos personales que nos permitan conocer el entorno social del investigado.
         Derivado a lo anterior una vez corroborado las referencias proporcionadas, podemos referir que el prospecto cuenta con # referencias verificadas siendo estas las siguientes:
         </p>
       <table class="table">
@@ -777,8 +779,42 @@
 
       {% comment %} <br>  {% endcomment %}
       {% if aval and aval.fiador_obligado == "Obligado Solidario Persona Fisica" %}<br><br><br><br><br><br><br><br><br><br><br>{% else %}{% endif %}
-      
-      
+
+      <article id="nueva_pag_4">
+        <div style="width:100%" id="conclusion_final">
+          <h2 class="mb-2 mt-2">Resultado de Investigación</h2>
+          <hr class="hr">  
+            <h3 class="mb-2 mt-2"><b>{% if status == "Declinado" %}RECHAZADO{% elif status == "Aprobado_pe" %}APROBADO CON PUNTOS A TOMAR EN CUENTA{% else %}APROBADO{% endif %}</b></h2>
+          <hr class="hr">
+          <br>
+          {% if status == "Declinado" or status == "Aprobado_pe" %}
+            <p style="font-size:14px">{{conclusion}}</p>
+            <br>
+            <p style="font-size:20px">{{motivo | linebreaksbr}}</p>
+          {% else %}
+            <p style="font-size:14px">{{conclusion}}</p>
+            <br>
+          {% endif %}
+        </div>
+    
+        <br> <br> <br> <br> <br> <br>
+        <br> <br> <br> <br> <br> <br>
+        {% comment %} Firmas {% endcomment %}
+  
+        <p style="font-size:14px">La información descrita en el resultado se detalla en los apartados siguientes de este reporte, los cuales ofrecen un análisis exhaustivo y minucioso de cada elemento relevante. </p>
+        <p style="font-size:14px">Cada apartado está diseñado para abordar de manera específica los distintos aspectos y hallazgos derivados del estudio, proporcionando una visión integral de los datos obtenidos. En los siguientes apartados, se explorarán los detalles técnicos y las interpretaciones clave que permiten comprender en profundidad los resultados presentados. </p>
+        <p style="font-size:14px">Se incluirán Información de las metodologías empleadas, las variables analizadas, y los resultados obtenidos en cada etapa del proceso. Además, se discutirán las implicaciones de los hallazgos y se ofrecerán recomendaciones basadas en el análisis realizado, con esto se busca que el reporte ofrezca una visión clara y completa del resultado de investigación, facilitando la comprensión y evaluación de la información presentada.</p><br>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p><br>
+        <p></p><br>  
+        <p></p><br>  
+        <br>  
+       
+      </article>
+
+
       <hr class="hr">  
         <h3 class="mb-2 mt-2">Antecedentes Legales Nacionales</h2>
       <hr class="hr">
@@ -789,9 +825,9 @@
           quedaran anexados a este resultado a fin de corrobora lo anteriormente indicado, motivo por el cual se puede determinar que el prospecto no cumple con los criterios de evaluación de ARRENDIFY S.A.P.I. de C.V., por lo tanto, 
           se estima que el prospecto presume no ser un bien candidato para el proceso de arrendamiento.</p>
       {% else %}
-        <p>Es de nuestro agrado, informar que el prospecto cumple cabalmente con lo requisitado por ARRENDIFY S.A.P.I. de C.V., toda vez que derivado a la investigacion de antecedentes legales a la cual el prospecto se adhiere, 
+        <p>Es de nuestro agrado, informar que el prospecto cumple cabalmente con lo requisitado por ARRENDIFY S.A.P.I. de C.V., toda vez que derivado a la investigación de antecedentes legales a la cual el prospecto se adhiere, 
           podemos aseverar que no existen impedimentos en el ámbito legal, que supongan una incapacidad en cuanto a su capacidad moral, por lo tanto, se estima que el prospecto presume ser un buen candidato para el proceso de arrendamiento.
-        Aunado a lo anterior se anexa los criterios de investigacion a los cuales el prospecto ha sido sometido.
+        Aunado a lo anterior se anexa los criterios de investigación a los cuales el prospecto ha sido sometido.
         </p>
       
       {% endif %}
@@ -809,7 +845,7 @@
           <tbody>
             <tr>
               <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Extinción De Dominio</td>
-              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.extincion_de_dominio_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.extincion_de_dominio_actor == "Si" %}<b style="color:green; border-color:black">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
               <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.extincion_de_dominio_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>
             <tr>
@@ -965,7 +1001,79 @@
     </article>
 
 
-{% comment %} Pagina 4 {% endcomment %}
+  {% comment %} Pagina 4 {% endcomment %}
+  {% if datos.record_rs == "Negativo" %}
+  <div class="mt-3" style="width:100%" id="redes">
+    <hr class="hr">  
+    <h3 class="mb-2 mt-2">Redes sociales</h2>
+    <hr class="hr">
+
+    <p>Lamentamos informarle que, tras una cuidadosa revisión del perfil en redes sociales, hemos encontrado que {{info.inquilino.nombre}} {{info.inquilino.apellido}} {{info.inquilino.apellido1}} cumple con varios criterios que consideramos inaceptables para la convivencia armónica en sociedad. A continuación, se detallan los criterios específicos y los comportamientos observados:</p>
+    {% for clave in redes_comentarios  %}
+    <p><b>{{forloop.counter}}.    {{clave}}</b></p>
+    {% endfor %}
+    <p>Estos comportamientos y contenidos son incompatibles con los valores y principios de nuestra organización, y consideramos que podrían afectar negativamente a la comunidad que se busca atraer.</p>
+    
+    {% comment %} Links redes sociales {% endcomment %}
+    <p>Facebook: {{info.inquilino.credito.rs_facebook}}.<p>
+    <p>Instagram: {{info.inquilino.credito.rs_instagram}}.<p>
+    <p>X: {{info.inquilino.credito.rs_x}}.<p>
+  </div>
+
+  {% elif datos.record_rs == "Positivo" %}
+  <div class="mt-3" style="width:100%" id="redes">
+    <hr class="hr">  
+    <h3 class="mb-2 mt-2">Redes sociales</h2>
+    <hr class="hr">
+
+    <p>Nos complace informarle que, tras una cuidadosa revisión de su perfil en redes sociales, hemos decidido avanzar con su candidatura. 
+      Durante nuestra evaluación, hemos observado que su conducta en redes sociales es ejemplar y consistente con los valores para la convivencia armónica en sociedad. Sus publicaciones son respetuosas, profesionales y positivas, sin ningún indicio de comportamiento inapropiado, discriminatorio u ofensivo. Apreciamos su integridad y la forma en que interactúa con otros usuarios de manera constructiva y respetuosa.
+      Estamos convencidos de que su presencia en redes sociales refleja una actitud acorde con el ambiente que se promueve dentro de un arrendamiento.
+      </p>
+    
+    {% comment %} Links redes sociales {% endcomment %}
+    <p>Facebook: {{info.inquilino.credito.rs_facebook}}.<p>
+    <p>Instagram: {{info.inquilino.credito.rs_instagram}}.<p>
+    <p>X: {{info.inquilino.credito.rs_x}}.<p>
+  </div>
+
+  {% elif datos.record_rs == "Nulo" %}
+  <div class="mt-3" style="width:100%" id="redes">
+    <hr class="hr">  
+    <h3 class="mb-2 mt-2">Redes sociales</h2>
+    <hr class="hr">
+
+    <p>Tras una cuidadosa revisión de su perfil en redes sociales, hemos observado que el prospecto tiene nula o poca actividad en estas plataformas. 
+      Debido a esta limitada actividad, no es posible obtener un perfil detallado de su presencia en redes sociales. Sin embargo, entendemos que no todos 
+      los profesionales eligen utilizar estas plataformas de manera activa y esto no representa ningún inconveniente para nuestra organización en tanto a la evaluación de su perfil en redes sociales.</p>
+    
+    {% comment %} Links redes sociales {% endcomment %}
+    <p>Facebook: {{info.inquilino.credito.rs_facebook}}.<p>
+    <p>Instagram: {{info.inquilino.credito.rs_instagram}}.<p>
+    <p>X: {{info.inquilino.credito.rs_x}}.<p>
+  </div>
+
+  {% elif datos.record_rs == "En_cuenta" %}
+  <div class="mt-3" style="width:100%" id="redes">
+    <hr class="hr">  
+    <h3 class="mb-2 mt-2">Redes sociales</h2>
+    <hr class="hr">
+
+    <p>Al evaluar a {{info.inquilino.nombre}} {{info.inquilino.apellido}} {{info.inquilino.apellido1}} a través de su perfil en redes sociales, es fundamental tomar en cuenta una serie de criterios adicionales que pueden influir negativamente en su idoneidad 
+      para la convivencia armónica en sociedad. A continuación, se detallan los puntos a considerar:</p>
+    
+    {% for clave in redes_comentarios  %}
+    <p><b>{{forloop.counter}}.    {{clave}}</b></p>
+    {% endfor %}
+    <p>Tomar en cuenta estos puntos es crucial para evaluar si los candidatos podrían mantener un ambiente respetuoso, profesional y positivo dentro del inmueble arrendado.</p>
+    
+    {% comment %} Links redes sociales {% endcomment %}
+    <p>Facebook: {{info.inquilino.credito.rs_facebook}}.<p>
+    <p>Instagram: {{info.inquilino.credito.rs_instagram}}.<p>
+    <p>X: {{info.inquilino.credito.rs_x}}.<p>
+  </div>
+  {% else %}{% endif %}
+
     <article id="offers">
       <div class="row mt-2" style="width:100%">
         <h2 class="mt-3">Análisis Créditicio</h2>
@@ -1080,125 +1188,14 @@
         
         {% endif %}
         </ul>
+        
       </section>
-
+      
       <br><br><br>
-
+      
     </article>
-    
-    {% if datos.record_rs == "Negativo" %}
-      <div class="mt-3" style="width:100%" id="redes">
-        <hr class="hr">  
-         <h3 class="mb-2 mt-2">Redes sociales</h2>
-        <hr class="hr">
-
-        <p>Lamentamos informarle que, tras una cuidadosa revisión del perfil en redes sociales, hemos encontrado que {{info.inquilino.nombre}} {{info.inquilino.apellido}} {{info.inquilino.apellido1}} cumple con varios criterios que consideramos inaceptables para la convivencia armónica en sociedad. A continuación, se detallan los criterios específicos y los comportamientos observados:</p>
-        {% for clave in redes_comentarios  %}
-         <p><b>{{forloop.counter}}.    {{clave}}</b></p>
-        {% endfor %}
-        <p>Estos comportamientos y contenidos son incompatibles con los valores y principios de nuestra organización, y consideramos que podrían afectar negativamente a la comunidad que se busca atraer.</p>
-        
-        {% comment %} Links redes sociales {% endcomment %}
-        <p>Facebook: {{info.inquilino.credito.rs_facebook}}.<p>
-        <p>Instagram: {{info.inquilino.credito.rs_instagram}}.<p>
-        <p>X: {{info.inquilino.credito.rs_x}}.<p>
-      </div>
-      
-    {% elif datos.record_rs == "Positivo" %}
-      <div class="mt-3" style="width:100%" id="redes">
-        <hr class="hr">  
-        <h3 class="mb-2 mt-2">Redes sociales</h2>
-        <hr class="hr">
-
-        <p>Nos complace informarle que, tras una cuidadosa revisión de su perfil en redes sociales, hemos decidido avanzar con su candidatura. 
-          Durante nuestra evaluación, hemos observado que su conducta en redes sociales es ejemplar y consistente con los valores para la convivencia armónica en sociedad. Sus publicaciones son respetuosas, profesionales y positivas, sin ningún indicio de comportamiento inapropiado, discriminatorio u ofensivo. Apreciamos su integridad y la forma en que interactúa con otros usuarios de manera constructiva y respetuosa.
-          Estamos convencidos de que su presencia en redes sociales refleja una actitud acorde con el ambiente que se promueve dentro de un arrendamiento.
-          </p>
-        
-        {% comment %} Links redes sociales {% endcomment %}
-        <p>Facebook: {{info.inquilino.credito.rs_facebook}}.<p>
-        <p>Instagram: {{info.inquilino.credito.rs_instagram}}.<p>
-        <p>X: {{info.inquilino.credito.rs_x}}.<p>
-      </div>
-
-    {% elif datos.record_rs == "Nulo" %}
-      <div class="mt-3" style="width:100%" id="redes">
-        <hr class="hr">  
-        <h3 class="mb-2 mt-2">Redes sociales</h2>
-        <hr class="hr">
-
-        <p>Tras una cuidadosa revisión de su perfil en redes sociales, hemos observado que el prospecto tiene nula o poca actividad en estas plataformas. 
-          Debido a esta limitada actividad, no es posible obtener un perfil detallado de su presencia en redes sociales. Sin embargo, entendemos que no todos 
-          los profesionales eligen utilizar estas plataformas de manera activa y esto no representa ningún inconveniente para nuestra organización en tanto a la evaluación de su perfil en redes sociales.</p>
-        
-        {% comment %} Links redes sociales {% endcomment %}
-        <p>Facebook: {{info.inquilino.credito.rs_facebook}}.<p>
-        <p>Instagram: {{info.inquilino.credito.rs_instagram}}.<p>
-        <p>X: {{info.inquilino.credito.rs_x}}.<p>
-      </div>
-
-    {% elif datos.record_rs == "En_cuenta" %}
-      <div class="mt-3" style="width:100%" id="redes">
-        <hr class="hr">  
-        <h3 class="mb-2 mt-2">Redes sociales</h2>
-        <hr class="hr">
-
-        <p>Al evaluar a {{info.inquilino.nombre}} {{info.inquilino.apellido}} {{info.inquilino.apellido1}} a través de su perfil en redes sociales, es fundamental tomar en cuenta una serie de criterios adicionales que pueden influir negativamente en su idoneidad 
-          para la convivencia armónica en sociedad. A continuación, se detallan los puntos a considerar:</p>
-        
-        {% for clave in redes_comentarios  %}
-        <p><b>{{forloop.counter}}.    {{clave}}</b></p>
-        {% endfor %}
-        <p>Tomar en cuenta estos puntos es crucial para evaluar si los candidatos podrían mantener un ambiente respetuoso, profesional y positivo dentro del inmueble arrendado.</p>
-        
-        {% comment %} Links redes sociales {% endcomment %}
-        <p>Facebook: {{info.inquilino.credito.rs_facebook}}.<p>
-        <p>Instagram: {{info.inquilino.credito.rs_instagram}}.<p>
-        <p>X: {{info.inquilino.credito.rs_x}}.<p>
-      </div>
-    {% else %}{% endif %}
-    
-   <article>
-    <div style="width:100%" id="conclusion_final">
-      <h2 class="mb-2 mt-2">Resultado de Investigación</h2>
-      <hr class="hr">  
-        <h3 class="mb-2 mt-2"><b>{% if status == "Declinado" %}RECHAZADO{% elif status == "Aprobado_pe" %}APROBADO CON PUNTOS A TOMAR EN CUENTA{% else %}APROBADO{% endif %}</b></h2>
-      <hr class="hr">
-      <br>
-      {% if status == "Declinado" %}
-        <p>{{conclusion}}</p>
-        <br>
-        
-        {% if datos.tipo_score_pp == "Malo" or datos.score_ingreso <= "50" %}
-            <p>1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente.</p>
-        {% elif datos.antecedentes %}
-            <p>1.- Antecedentes: Se cuenta con antecedentes legales, que se detallan en el apartado correspondiente.</p>
-        {% elif datos.tipo_score_pp == "malo" or datos.score_ingreso <= "50" and datos.antecedentes %}
-            <p>1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente.</p>
-            <p>2.- Antecedentes: Se cuenta con antecedentes legales, que se detallan en el apartado correspondiente.</p>
-        {% else %}{% endif %}
-        
-      {% elif status == "Aprobado_pe" %}
-        <p>{{conclusion}}</p>
-        <br>
-         {% comment %} agregar un if else para el escore y el buro {% endcomment %}
-          {% if datos.score_pp <= "50" or datos.score_ingreso <= "50" %}
-            <p>1.- Buro: Historial crediticio con algunas áreas que podrían mejorarse.</p>
-          {% elif datos.antecedentes %}
-            <p>1.- Antecedentes: Se cuenta con demanda en materia civil o familiar.</p>
-          {% elif datos.score_pp <= "50" or datos.score_ingreso <= "50" and datos.antecedentes %}
-            <p>1.- Buro: Historial crediticio con algunas áreas que podrían mejorarse.</p>
-            <p>2.- Antecedentes: Se cuenta con demanda en materia civil o familiar.</p>
-          {% else %}{% endif %}
-      
-      {% else %}
-        <p>{{conclusion}}</p>
-        <br>
-      {% endif %}
-    </div>
-
-    <br> <br> <br> <br> <br> <br>
-    {% comment %} Firmas {% endcomment %}
+    {% comment %} Firmas Final {% endcomment %}
+    <br><br><br>
 
     <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
       <div class="col" style="text-align: center;"><b>ELABORÓ</b></div>
@@ -1222,8 +1219,8 @@
         Teléfono: 01 55 7258 9136
       </div>
     </div>
-   </article>
-
+    
+   
     
 
 

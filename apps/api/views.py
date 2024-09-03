@@ -1527,8 +1527,7 @@ class investigaciones(viewsets.ModelViewSet):
             today = date.today().strftime('%d/%m/%Y')
             req_dat = request.data
             info = self.queryset.filter(id = req_dat["id"]).first()
-            inquilino = info.inquilino
-            
+            inquilino = info.inquilino            
             
             aval = info.inquilino.aval.all().first()
             redes_negativo = req_dat.get("redes_negativo")
@@ -1606,9 +1605,9 @@ class investigaciones(viewsets.ModelViewSet):
                 tsi = opciones[tipo_score_ingreso]
                 tspp = opciones[tipo_score_pp]
                 tsc = opciones[tipo_score_credito]
-                print(f"Tu Tipo de score es: {tipo_score_ingreso}, URL: {tsi}")
-                print(f"Tu Tipo de score es: {tipo_score_pp}, URL: {tspp}")
-                print(f"Tu Tipo de score es: {tipo_score_credito}, URL: {tsc}")
+                print(f"Tu Tipo de score ingresos es: {tipo_score_ingreso}, URL: {tsi}")
+                print(f"Tu Tipo de score de pagos puntuales es: {tipo_score_pp}, URL: {tspp}")
+                print(f"Tu Tipo de score de credito es: {tipo_score_credito}, URL: {tsc}")
             
             #evaluar el historial crediticio
             # if tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente":
@@ -1637,7 +1636,7 @@ class investigaciones(viewsets.ModelViewSet):
                
             #Dar conclusion dinamica
             antecedentes = request.data.get('antecedentes') # Obtenemos todos los antecedentes del prospecto
-            print("antecedentes",antecedentes)
+            print("ANTECEDENTES",antecedentes)
             if antecedentes:
                 # del antecedentes["civil_mercantil_demandado"] 
                 print("tienes antecedences, vamos a ver si es civil o familiar",antecedentes)
@@ -1645,53 +1644,61 @@ class investigaciones(viewsets.ModelViewSet):
                     print("Tiene antecedentes civiles o familiares")
                     print("Checamos el historial")
                     #evaluar el historial crediticio  
-                    if tipo_score_pp == "Malo":
+                    
+                    if tipo_score_pp == "Malo" or tipo_score_ingreso == "Malo":
                         print("rechazado")
                         conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                         status = "Declinado"
+                        motivo = "1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente."
                     
                     elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
                         print("aprobado")
                         conclusion = f"Nos complace informar que el prospecto {info.inquilino.nombre} {info.inquilino.apellido} {info.inquilino.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
                         status = "Aprobado"
-                            
+                        motivo = "No hay motivo de rechazo"
+                    
                     elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Malo":
                         print("a considerar")
                         conclusion = "Nos complace informar que el candidato ha sido aprobado tras una rigurosa investigación llevada a cabo por ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa, confirmando así que el candidato cumple con los requisitos exigidos. \n \n No obstante, es importante considerar que la investigación ha revelado ciertos puntos que deben tomarse en cuenta, los cuales se detallado en lo expuesto anteriormente respecto a:"
                         status = "Aprobado_pe"
+                        motivo = "1.- Antecedentes: Se cuenta con demanda en materia civil o familiar.\n2.- Buro: Historial crediticio con algunas áreas que podrían mejorarse."
                     
-                    else:
+                elif antecedentes and tipo_score_pp == "Malo" or antecedentes and tipo_score_ingreso == "Malo":
                         print("rechazado")
                         conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                         status = "Declinado"
+                        motivo = "1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente.\n2.- Antecedentes: Se cuenta con antecedentes legales, que se detallan en el apartado correspondiente."    
+                        
                 else:
                     print("eres un delincuente")
                     conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                     status = "Declinado"
-            else:
+                    motivo = "1.- Antecedentes: Se cuenta con antecedentes legales, que se detallan en el apartado correspondiente."
+            else: #No tiene Antecedentes
+                
                 #evaluar el historial crediticio  
-                if tipo_score_pp == "Malo":
+                if tipo_score_pp == "Malo" or tipo_score_ingreso == "Malo":
                     print("rechazado")
                     conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                     status = "Declinado"
+                    motivo = "1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente."
                 
                 elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
                     print("aprobado")
                     conclusion = f"Nos complace informar que el prospecto {info.inquilino.nombre} {info.inquilino.apellido} {info.inquilino.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
                     status = "Aprobado"
-                        
+                    motivo = "hola"   
+                
                 elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Malo":
                     print("a considerar")
                     conclusion = "Nos complace informar que el candidato ha sido aprobado tras una rigurosa investigación llevada a cabo por ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa, confirmando así que el candidato cumple con los requisitos exigidos. \n \n No obstante, es importante considerar que la investigación ha revelado ciertos puntos que deben tomarse en cuenta, los cuales se detallado en lo expuesto anteriormente respecto a:"
                     status = "Aprobado_pe"
+                    motivo = "1.- Buro: Historial crediticio con algunas áreas que podrían mejorarse."
                 
-                else:
-                    print("rechazado")
-                    conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
-                    status = "Declinado"
+                 
                     
             context = {'info': info, 'aval':aval, "fecha_consulta":today, 'datos':req_dat, 'tsi':tsi, 'tspp':tspp, 'tsc':tsc, 
-                       "redes_comentarios":redes_comentarios, 'referencias':referencias, 'antecedentes':antecedentes,'status':status, 'conclusion':conclusion,}
+                       "redes_comentarios":redes_comentarios, 'referencias':referencias, 'antecedentes':antecedentes,'status':status, 'conclusion':conclusion, 'motivo':motivo}
             
             template = 'home/report.html'
             html_string = render_to_string(template, context)

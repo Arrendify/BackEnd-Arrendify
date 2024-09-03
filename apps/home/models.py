@@ -1145,6 +1145,7 @@ class Arrendatarios_semillero(models.Model):
     
     # arrendatario persona moral
     arr_nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
+    arr_telefono_empresa=models.CharField(max_length = 250, null = True, blank = True)
     arr_direccion_fiscal = models.CharField(max_length=250, null=True, blank=True)
     arr_escritura_publica=models.CharField(max_length=100, null=True, blank=True)
     arr_fecha_acta = models.DateField(null=True, blank=True)
