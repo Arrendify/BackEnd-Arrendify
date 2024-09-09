@@ -526,13 +526,13 @@
 		</div>	
 		{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}
 			<div class="row">
-				<div class="col fuente" style="font-size:11px; text-align:center;">EJPF. {{testigo}}</div>
+				<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo}}</div>
 				<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.nombre_arrendatario}}</div>
 			</div>	
 		
 		{% else %}
 			<div class="row">
-				<div class="col fuente" style="font-size:11px; text-align:center;">EJPM. {{testigo}}</div>
+				<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo}}</div>
 				<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.arr_nombre_empresa | upper}}</div>
 			</div>	
 			<div class="row">
@@ -584,13 +584,13 @@
 	</div>	
 	{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}
 		<div class="row">
-			<div class="col fuente" style="font-size:11px; text-align:center;">EJ. {{testigo}}</div>
+			<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo}}</div>
 			<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.nombre_arrendatario}}</div>
 		</div>	
 	
 	{% else %}
 		<div class="row">
-			<div class="col fuente" style="font-size:11px; text-align:center;">EJ. {{testigo}}</div>
+			<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo}}</div>
 			<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.arr_nombre_empresa | upper}}</div>
 		</div>	
 		<div class="row">

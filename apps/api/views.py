@@ -1527,12 +1527,12 @@ class investigaciones(viewsets.ModelViewSet):
             today = date.today().strftime('%d/%m/%Y')
             req_dat = request.data
             info = self.queryset.filter(id = req_dat["id"]).first()
-            inquilino = info.inquilino            
-            
+            print("soy INFO",info.__dict__)   
+            inquilino = info.inquilino       
+                 
             aval = info.inquilino.aval.all().first()
             redes_negativo = req_dat.get("redes_negativo")
             print("request.data",req_dat)
-            print("soy INFO",info.__dict__)   
             print("el id que llega", req_dat["id"])
             print("")
             print("soy la info del",info.inquilino.nombre)       
