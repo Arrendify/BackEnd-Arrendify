@@ -7,7 +7,8 @@ from rest_framework.authentication import TokenAuthentication,SessionAuthenticat
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 #modelos
-from ...home.models import inquilino_personafisica, inquilino_personamoral, Inquilino
+from ...home.models import Inquilino
+# from ...home.models import inquilino_personafisica, inquilino_personamoral, Inquilino
 from ..serializers import *
 from ...accounts.models import CustomUser
 User = CustomUser
@@ -217,45 +218,45 @@ class inquilinos_nuevo(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-    def registro_ipf(self, request, *args, **kwargs):
-        user_session = request.user
-        try:
-            print("Registro Persona Fisica Inquilino")
-            print("Datos recibidos",request.data)
-            ipf_serializer = IPF_Serializer(data=request.data)
+    # def registro_ipf(self, request, *args, **kwargs):
+    #     user_session = request.user
+    #     try:
+    #         print("Registro Persona Fisica Inquilino")
+    #         print("Datos recibidos",request.data)
+    #         ipf_serializer = IPF_Serializer(data=request.data)
            
-            if ipf_serializer.is_valid(raise_exception=True):
-                ipf_serializer.save( user = user_session)
-                print("Guardado Al inquilino")
-                return Response({'inquilino_pf': ipf_serializer.data}, status=status.HTTP_201_CREATED)
-            else:
-                print("Error en validacion")
-                return Response({'errors': ipf_serializer.errors})
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    #         if ipf_serializer.is_valid(raise_exception=True):
+    #             ipf_serializer.save( user = user_session)
+    #             print("Guardado Al inquilino")
+    #             return Response({'inquilino_pf': ipf_serializer.data}, status=status.HTTP_201_CREATED)
+    #         else:
+    #             print("Error en validacion")
+    #             return Response({'errors': ipf_serializer.errors})
+    #     except Exception as e:
+    #         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     #Ver como lo implemento
-    def retomar_registro_ipf(self, request, *args, **kwargs):
-        try:
-            print("Esta entrando retomar registo ipf")
-            partial = kwargs.pop('partial', False)
-            print("partials",partial)
-            print(request.data)
-            #analizar como funciona esto
-            instance = self.get_object()
-            print("instance",instance)
+    # def retomar_registro_ipf(self, request, *args, **kwargs):
+    #     try:
+    #         print("Esta entrando retomar registo ipf")
+    #         partial = kwargs.pop('partial', False)
+    #         print("partials",partial)
+    #         print(request.data)
+    #         #analizar como funciona esto
+    #         instance = self.get_object()
+    #         print("instance",instance)
             
-            serializer = self.get_serializer(instance, data=request.data, partial=partial)
-            print(serializer)
-            if serializer.is_valid(raise_exception=True):
-                self.perform_update(serializer)
-                print("edito fiador obligado")
-                # return redirect('myapp:my-url')
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({'errors': serializer.errors})
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    #         serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    #         print(serializer)
+    #         if serializer.is_valid(raise_exception=True):
+    #             self.perform_update(serializer)
+    #             print("edito fiador obligado")
+    #             # return redirect('myapp:my-url')
+    #             return Response(serializer.data, status=status.HTTP_200_OK)
+    #         else:
+    #             return Response({'errors': serializer.errors})
+    #     except Exception as e:
+    #         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     
     def update(self, request, *args, **kwargs):
