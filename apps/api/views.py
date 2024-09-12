@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 
 #intento de factorizacion 1
-from.Views.Inquilinos.inquilinos_view import * 
+from.Views.inquilinos_view import * 
 from.Views import fraterna_views 
 
 from ..home.models import *

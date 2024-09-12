@@ -774,7 +774,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
             response.write(pdf_file)
-            print("TERMINANDO PROCESO CONTRATO")
+            print("TERMINANDO PROCESO POLIZA")
             return HttpResponse(response, content_type='application/pdf')
         except Exception as e:
             print(f"el error es: {e}")
@@ -1567,8 +1567,10 @@ class Contratos_semillero(viewsets.ModelViewSet):
             print("Generar Poliza Semillero")
             print("rd",request.data)
             id_paq = request.data["id"]
-            testigo = request.data["testigo"]
-            print(testigo)
+            testigo1 = request.data["testigo1"]
+            testigo2 = request.data["testigo2"]
+            print(testigo1)
+            print(testigo2)
             print("el id que llega", id_paq)
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)
@@ -1596,7 +1598,7 @@ class Contratos_semillero(viewsets.ModelViewSet):
             poliza_texto = num2words(valor_poliza, lang='es').capitalize()
             
        
-            context = {'info': info, 'renta_texto':renta_texto, 'nom_paquete':nom_paquete, 'valor_poliza':valor_poliza, 'poliza_texto':poliza_texto, "testigo":testigo}
+            context = {'info': info, 'renta_texto':renta_texto, 'nom_paquete':nom_paquete, 'valor_poliza':valor_poliza, 'poliza_texto':poliza_texto, "testigo1":testigo1, "testigo2":testigo2}
             template = 'home/poliza_semillero.html'
             html_string = render_to_string(template,context)
 
@@ -1607,7 +1609,7 @@ class Contratos_semillero(viewsets.ModelViewSet):
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
             response.write(pdf_file)
-            print("TERMINANDO PROCESO CONTRATO")
+            print("TERMINANDO PROCESO POLIZA")
             return HttpResponse(response, content_type='application/pdf')
         except Exception as e:
             print(f"el error es: {e}")
@@ -1620,8 +1622,11 @@ class Contratos_semillero(viewsets.ModelViewSet):
             print("Generar contrato Semillero")
             print("rd",request.data)
             id_paq = request.data["id"]
-            testigo = request.data["testigo"]
             print("el id que llega", id_paq)
+            testigo1 = request.data["testigo1"]
+            testigo2 = request.data["testigo2"]
+            print(testigo1)
+            print(testigo2)
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)    
             #obtenemos renta y costo poliza para letra
@@ -1649,7 +1654,7 @@ class Contratos_semillero(viewsets.ModelViewSet):
             nom_paquete = "AFY" + dia + mes + anio + "CX" + "24" +  f"{info.id}" + "CA" +  na 
             print("paqueton",nom_paquete.upper())
         
-            context = {'info': info, 'renta_texto':renta_texto, 'num_vigencia':num_vigencia, 'nom_paquete':nom_paquete, 'testigo':testigo}
+            context = {'info': info, 'renta_texto':renta_texto, 'num_vigencia':num_vigencia, 'nom_paquete':nom_paquete, "testigo1":testigo1, "testigo2":testigo2}
             
             template = 'home/contrato_arr_frat.html'
             html_string = render_to_string(template, context)

@@ -8,6 +8,12 @@ from .Views.arrendador.arrendadorView import ArrendadorViewSet, Arrendador_inmue
 # urlpatterns += router.urls
 
 router = DefaultRouter()
+
+#inquilino nuevo metodo
+router.register(r'inquilinos_nuevo', inquilinos_nuevo, basename='inquilinos_nuevo')
+
+
+
 #inquilinos
 router.register(r'inquilino_fiador_obligado', InquilinoFiadorObligadoViewSet, basename='inquilino_fiador_obligado')
 router.register(r'inquilinos_fiadores', Inquilinos_fiadores, basename='inquilino_fiadores')

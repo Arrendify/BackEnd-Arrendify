@@ -28,7 +28,7 @@
 
 	  body,div,table,thead,tbody,tfoot,tr,th,td,p {
       font-family:Times New Roman; 
-      font-size:14px;
+      font-size:14.15px;
 	  text-align:justify;
 	  display: block;
 	
@@ -94,6 +94,11 @@
 	<tr>
 		<td height="21" valign=middle style="font-size:15px; text-align: right;">Contrato No. {{nom_paquete | upper}}</td>
 	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle>
+			<br><br><br><br><br>
+		</td>
+  </tr>
 		{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}
 			<tr>
 				<td height="21"  valign=middle style="font-size:15px"><b>CONTRATO DE ARRENDAMIENTO QUE EN TÉRMINOS DE LO QUE DISPONE EL CÓDIGO CIVIL VIGENTE PARA EL ESTADO DE NUEVO LEÓN, 
@@ -755,7 +760,7 @@
 	<tr>
 		<td height="21" valign="middle"><b>VIGÉSIMA SEXTA.- RENUNCIAS DEL ARRENDATARIO.- '' EL ARRENDATARIO''</b> renuncia expresamente a: <br>
 			1. Los Derechos de Preferencia establecidos en el Código Civil para <b>LA CIUDAD DE MONTERREY</b>, NUEVO LEÓN, para el caso de que <b>'' EL ARRENDADOR''</b>, deseé volver a arrendar o vender el inmueble a un tercero.<br>
-			2. El Derecho a pedir la modificación del Contrato en los supuestos señalados en el Código Civil para <b>LA CIUDAD DE MONTERREY, NUEVO LEÓN</b>.<br>
+			2. El Derecho a pedir la modificación del Contrato en los supuestos señalados en el Código Civil para <b>LA CIUDAD DE MONTERREY, NUEVO LEÓN</b>.<br><br>
 			Las partes se someten expresamente a las disposiciones del Código Civil para <b>LA CIUDAD DE MONTERREY, NUEVO LEÓN</b> y para regular todo lo relativo a este instrumento y para su interpretación y cumplimiento se someten a la
 			jurisdicción de los tribunales en <b>LA CIUDAD DE MONTERREY, NUEVO LEÓN</b>, razón por la cual ambos contratantes renuncian expresamente al fuero que por razón de su domicilio presente o futuro pudiera corresponderles.<br>
 			{% if info.arrendatario.aval == "No" %}
@@ -774,7 +779,7 @@
 
 	{% if info.arrendatario.aval == "Si" %} 
 	<tr>
-		<td height="21" valign=middle><br></td>
+		<td height="21" valign=middle><br><br></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle"><b>VIGÉSIMA SÉPTIMA.- ''EL OBLIGADO SOLIDARIO'' </b></td>
@@ -785,27 +790,28 @@
 			presenté contrato y que este pagará la renta y los servicios con los recursos lícitos que obtiene de su actividad lícita
 			a la que se dedica así como también garantiza que dentro del inmueble arrendado no se realizaran conductas
 			sospechosas e/o inadecuadas ante terceros, ni actos ilícitos, ni mucho menos incurrir en algún delito del orden
-			común o federal.<br>
+			común o federal.<br><br>
 			<b>''EL OBLIGADO SOLIDARIO''</b> garantizará que las rentas serán pagadas con sus respectivos aumentos y en caso de que por algún motivo el arrendatario no pudiera cubrirlas asimismo <b>''EL OBLIGADO SOLIDARIO''</b> renuncia expresamente a los beneficios de orden y de excusión, lo que significa que en su
 			momento podremos requerir el pago tanto a <b>''EL OBLIGADO SOLIDARIO''</b> como a <b>“EL ARRENDATARIO”</b> de forma conjunta o separada.
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><br></td>
+		<td height="21" valign=middle><br><br></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle"><b>VIGÉSIMA OCTAVA.- “EL ARRENDATARIO”</b> autoriza a <b>''EL OBLIGADO SOLIDARIO'' </b> para que entregue la localidad cuando el por ausencia o negligencia no lo haga, designándolo representante de su
-			sucesión únicamente en relación con este contrato, afín de que en caso de que fallezca durante su vigencia el garante esté en posibilidades de reintegrar el inmueble arrendado y quedar liberado de su obligación.<br>
+			sucesión únicamente en relación con este contrato, afín de que en caso de que fallezca durante su vigencia el garante esté en posibilidades de reintegrar el inmueble arrendado y quedar liberado de su obligación.<br><br>
 
 			<b>''EL OBLIGADO SOLIDARIO''</b>, para garantizar las obligaciones contraídas en el presente contrato y en particular para garantizar el pago de las rentas pactadas durante el término del arrendamiento, se constituye
-			como <b>OBLIGADO SOLIDARIO</b> y mancomunado de <b>''EL ARRENDATARIO''</b> garantizando todas sus obligaciones y renuncia además a los beneficios de orden y excusión que le concede la ley.<br>
-			
+			como <b>OBLIGADO SOLIDARIO</b> y mancomunado de <b>''EL ARRENDATARIO''</b> garantizando todas sus obligaciones y renuncia además a los beneficios de orden y excusión que le concede la ley.
+			<br><br><br><br>
 			Asimismo, <b>''EL OBLIGADO SOLIDARIO''</b> y <b>''EL ARRENDATARIO''</b> responderán ante <b>''EL ARRENDADOR''</b> de cualquier acción de la autoridad competente en aplicación de la Ley Nacional de
 			Extinción de Dominio reglamentaria del artículo 22 de la Constitución Política de los Estados Unidos Mexicanos o de cualquier otra de naturaleza similar, por el uso indebido que se hiciere del inmueble arrendado</td>
 	</tr>
-
+		{% comment %} espacios para que los pm queden bien {% endcomment %}
 		{% if info.arrendatario.regimen_obligado == "Persona Moral" and info.arrendatario.regimen_arrendatario == "Persona Moral" %}
 		{% else %}
+		
 		<tr>
 			<td height="21" valign=middle><br></td>
 		</tr>
@@ -823,12 +829,13 @@
 {% comment %} FIRMAS {% endcomment %}
 {% if info.arrendatario.aval == "Si" %}
 	{% if info.arrendatario.regimen_obligado == "Persona Moral" and info.arrendatario.regimen_arrendatario == "Persona Moral" %}
-			<section class="firmapm" style="margin-top:-38px;">
+	{% comment %} persona moral con obligado persona moral {% endcomment %}
+			<section style="margin-top:-10px;">
 				<article>
 				<div style="text-align: center;">
 					<b>
 						<h4>"EL ARRENDADOR"</h4>
-						<div style="height:11px;"></div>
+						<div style="height:20px;"></div>
 						
 					
 						______________________________________<br>
@@ -843,7 +850,7 @@
 				<div style="text-align: center;">
 					<b>
 						<h4>"EL ARRENDATARIO"</h4>
-						<div style="height:11px;"></div>
+						<div style="height:20px;"></div>
 						
 						
 						______________________________________<br>
@@ -856,43 +863,68 @@
 				
 				</article>
 			</section>
-			<section class="firmapm" style="margin-top: -35px;">
+
+
+
+			<section style="margin-top:-10px;">
 				<article>
-			    	<div style="text-align: center;">
-						<b>
-							<b>"EL OBLIGADO"</b>
-							<div style="height:12px;"></div>
+				<div style="text-align: center;">
+					<b>
+						<h4>"EL OBLIGADO"</h4>
+						<div style="height:20px;"></div>
 						
-
-							______________________________________<br>
-							{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
-							<br>
-							{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
-						</b>
 					
-				
-					</div>
+						______________________________________<br>
+						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
+						<br>
+						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
+					</b>
+				</div>
 				</article>
-
+			
 				<article>
-			    	<div style="text-align: center;">
-						<b>
-							<b>"EL TESTIGO"</b>
-							<div style="height:12px;"></div>
+				<div style="text-align: center;">
+					<b>
+						<h4>"EL TESTIGO"</h4>
+						<div style="height:20px;"></div>
 						
-
-							______________________________________<br>
-							{{testigo}}
-						</b>
-					
+						
+						______________________________________<br>
+						{{testigo1 | upper}}
+			
+					</b>
+				</div>
 				
-					</div>
 				</article>
-
 			</section>
+
+			<section style="margin-top:-10px;">
+				<article>
+					<div style="text-align: center;">
+						
+					</div>
+				</article>
+			
+				<article>
+					<div style="text-align: center;">
+						<b>
+							<h4>"EL TESTIGO"</h4>
+							<div style="height:20px;"></div>
+							
+							
+							______________________________________<br>
+							{{testigo2 | upper}}
+				
+						</b>
+					</div>
+				</article>
+			</section>
+			
 	{% elif info.arrendatario.regimen_obligado == "Persona Moral" %}
-	<div style="margin-top:-70px;">
+	{% comment %} persona fisica con obligado persona moral {% endcomment %}
+	<div style="margin-top:-60px;">
 		<section>
+			
 			<article>
 			<div style="text-align: center;">
 				<b>
@@ -925,38 +957,65 @@
 			
 			</article>
 		</section>
-		<section class="firmapm"  style="margin-top:-25px;" >
-			<article>
-						<div style="text-align: center;">
-							<b>
-								<b>"EL OBLIGADO"</b>
-								<div style="height:20px;"></div>
-							
 
-								______________________________________<br>
-								{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
-								<br>
-								{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
-							</b>
-						</div>
-			</article>
-			<article>
-			    	<div style="text-align: center;">
-						<b>
-							<b>"EL TESTIGO"</b>
-							<div style="height:20px;"></div>
+			<section style="margin-top:-10px;">
+				<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>"EL OBLIGADO"</h4>
+						<div style="height:20px;"></div>
 						
+					
+						______________________________________<br>
+						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
+						<br>
+						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
+					</b>
+				</div>
+				</article>
+			
+				<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>"EL TESTIGO"</h4>
+						<div style="height:20px;"></div>
+						
+						
+						______________________________________<br>
+						{{testigo1 | upper}}
+			
+					</b>
+				</div>
+				
+				</article>
+			</section>
 
+			<section style="margin-top:-10px;">
+				<article>
+					<div style="text-align: center;">
+						
+					</div>
+				</article>
+			
+				<article>
+					<div style="text-align: center;">
+						<b>
+							<h4>"EL TESTIGO"</h4>
+							<div style="height:20px;"></div>
+							
+							
 							______________________________________<br>
-							{{testigo}}
+							{{testigo2 | upper}}
+				
 						</b>
 					</div>
-			</article>
-		</section>
+				</article>
+			</section>
 	</div>
 	
 	{% else %}
-		<div style="margin-top:-70px;">
+		{% comment %} persona fisica con obligado fisico {% endcomment %}
+		<div style="margin-top:-60px;">
 			<section>
 				<article>
 				<div style="text-align: center;">
@@ -990,36 +1049,57 @@
 				
 				</article>
 			</section>
-			<section style="margin-top:-25px;" >
+			<section style="margin-top:-10px;">
 				<article>
-					<div style="text-align: center;">
-						<b>
-							<b>"EL OBLIGADO"</b>
-							<div style="height:20px;"></div>
+				<div style="text-align: center;">
+					<b>
+						<h4>"EL OBLIGADO"</h4>
+						<div style="height:20px;"></div>
 						
-
-							______________________________________<br>
-							{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
-							<br>
-							{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
-						</b>
-					</div>
-
+					
+						______________________________________<br>
+						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
+						<br>
+						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
+					</b>
+				</div>
 				</article>
-
+			
 				<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>"EL TESTIGO"</h4>
+						<div style="height:20px;"></div>
+						
+						
+						______________________________________<br>
+						{{testigo1 | upper}}
+			
+					</b>
+				</div>
+				
+				</article>
+			</section>
 
+			<section style="margin-top:-10px;">
+				<article>
+					<div style="text-align: center;">
+						
+					</div>
+				</article>
+			
+				<article>
 					<div style="text-align: center;">
 						<b>
-							<b>"EL TESTIGO"</b>
+							<h4>"EL TESTIGO"</h4>
 							<div style="height:20px;"></div>
-						
-
+							
+							
 							______________________________________<br>
-							{{testigo}}
+							{{testigo2 | upper}}
+				
 						</b>
 					</div>
-				
 				</article>
 			</section>
 		</div>
@@ -1028,13 +1108,14 @@
 	
 	
 {% else %}
+{% comment %} sin obligado {% endcomment %}
 	<div>
 		<section>
 			<article>
 			<div style="text-align: center;">
 				<b>
 					<h4>"EL ARRENDADOR"</h4>
-					<div style="height:25px;"></div>
+					<div style="height:20px;"></div>
 					
 				
 					______________________________________
@@ -1049,7 +1130,7 @@
 			<div style="text-align: center;">
 				<b>
 					<h4>"EL ARRENDATARIO"</h4>
-					<div style="height:25px;"></div>
+					<div style="height:20px;"></div>
 					
 				
 					______________________________________
@@ -1067,15 +1148,28 @@
 			<div style="text-align: center;">
 				<b>
 					<h4>"EL TESTIGO"</h4>
-					<div style="height:25px;"></div>
+					<div style="height:20px;"></div>
 					
 				
 					______________________________________<br>
-					{{testigo}}
+					{{testigo1}}
 					<br>
 				</b>
 			</div>
 			</article>
+			<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>"EL TESTIGO"</h4>
+						<div style="height:20px;"></div>
+						
+					
+						______________________________________<br>
+						{{testigo2}}
+						<br>
+					</b>
+				</div>
+				</article>
 		</section>
 	</div>
 

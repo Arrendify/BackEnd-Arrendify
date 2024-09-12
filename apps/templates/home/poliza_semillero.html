@@ -407,7 +407,7 @@
 	</tr>
 	{% comment %} <td height="21"  valign=middle><b><font face="Times New Roman" size=3 color="#000000"><br></div></b></td> {% endcomment %}
 	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+		<td height="20" align="left" valign=middle><font color="#000000"><div style="height:14px;"></div></td>
   </tr>
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">EL <b>"CLIENTE"</b></div></td>
@@ -425,7 +425,7 @@
 		<td height="21"  valign=middle><div class="fuente">Celular: 8118322600</div></td>
 	</tr>
 	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+		<td height="20" align="left" valign=middle><font color="#000000"><div style="height:14px;"></div></td>
 	</tr>
 
 	<tr>
@@ -460,7 +460,7 @@
 	{% endif %}
 	
 	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+		<td height="20" align="left" valign=middle><font color="#000000"><div style="height:14px;"></div></td>
 	</tr>
 	<tr>
 		<td height="21"  valign=middle><div class="fuente"><b>EL "PRESTADOR"</b></div></td>
@@ -475,7 +475,7 @@
 		<td height="21"  valign=middle><div class="fuente">Oficina: 5572589136</div></td>
 	</tr>
 	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></div></td>
+		<td height="20" align="left" valign=middle><font color="#000000"><div style="height:14px;"></div></td>
 	</tr>
 	<tr>
 		<td height="21"  valign=middle><div class="fuente"><b>DÉCIMA PRIMERA</b>.- Jurisdicción y Ley aplicable. Las <b>“PARTES”</b> se sujetan al contenido del presente Contrato de Servicios Especializados en materia de Arrendamiento Inmobiliario al Código Civil para la Ciudad de México y se someten expresamente a la jurisdicción de los tribunales competentes de la Ciudad de México, respecto del procedimiento, ejecución y cumplimiento del presente contrato.</div></td>
@@ -488,68 +488,79 @@
 	</tr>
 	{% comment %} FIRMAS {% endcomment %}
 	{% if info.arrendatario.aval == "Si" %}
+		{% comment %} Si tiene aval {% endcomment %}
 		<tr>
-			<td style="height:20px" align="center" valign=middle></td>
+			<td style="height:25px" align="center" valign=middle></td>
 		</tr>	
-	</table>
+		</table>
 		<div class="row">
 			<div class="col fuente" style="text-align:center;">____________________________________</div>
 			<div class="col fuente" style="text-align:center;">____________________________________</div>
 		</div>
+
 		<div class="row">
 			<div class="col fuente" style="text-align:center;"><b>“EL CLIENTE”</b></div>
 			<div class="col fuente" style="text-align:center;"><b>EL PRESTADOR</b></div>	
 		</div>	
+
 		<div class="row">
 			<div class="col fuente" style="font-size:11px; text-align:center;">“FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. de C.V.”</div>
 			<div class="col fuente" style="font-size:11px; text-align:center;">"ARRENDIFY S.A.P.I. DE C.V."</div>
 		</div>	
+
 		<div class="row">
 			<div class="col fuente" style="font-size:11px; text-align:center;">REPRESENTADA POR</div>
 			<div class="col fuente" style="font-size:11px; text-align:center;"></div>
 		</div>
 
 		<div class="row">
-			<div class="col fuente" style="font-size:11px; text-align:center;">Carlos Manuel Padilla Silva</div>
+			<div class="col fuente" style="font-size:11px; text-align:center;">CARLOS MANUEL PADILLA SILVA</div>
 			<div class="col fuente" style="font-size:11px; text-align:center;">JONATHAN GUADARRAMA SALGADO</div>
 		</div>
 
 		{% comment %} obligado {% endcomment %}
-		<div style="height:20px"></div>
+		<div style="height:50px"></div>
 		<div class="row">
+			<div class="col fuente" style="text-align:center;">____________________________________</div>
 			<div class="col fuente" style="text-align:center;">____________________________________</div>
 			<div class="col fuente" style="text-align:center;">____________________________________</div>
 		</div>
 		<div class="row">
-			<div class="col fuente" style="text-align:center;"><b>EL TESTIGO</b></div>
 			<div class="col fuente" style="text-align:center;"><b>EL CLIENTE</b></div>
+			<div class="col fuente" style="text-align:center;"><b>EL TESTIGO</b></div>
+			<div class="col fuente" style="text-align:center;"><b>EL TESTIGO</b></div>
 		</div>	
 		{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}
 			<div class="row">
-				<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo}}</div>
-				<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.nombre_arrendatario}}</div>
+				<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.nombre_arrendatario | upper}}</div>
+				<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo1 | upper}}</div>
+				<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo2 | upper}}</div>
 			</div>	
 		
 		{% else %}
 			<div class="row">
-				<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo}}</div>
 				<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.arr_nombre_empresa | upper}}</div>
+				<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo1 | upper}}</div>
+				<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo2 | upper}}</div>
 			</div>	
 			<div class="row">
-				<div class="col fuente" style="font-size:11px; text-align:center;"></div>
 				<div class="col fuente" style="font-size:11px; text-align:center;">REPRESENTADA POR</div>
+				<div class="col fuente" style="font-size:11px; text-align:center;"></div>
+				<div class="col fuente" style="font-size:11px; text-align:center;"></div>
 			</div>	
 			<div class="row">
-				<div class="col fuente" style="font-size:11px; text-align:center;"></div>
 				<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.nombre_arrendatario | upper}}</div>
+				<div class="col fuente" style="font-size:11px; text-align:center;"></div>
+				<div class="col fuente" style="font-size:11px; text-align:center;"></div>
 			</div>	
 		{% endif %}
+		
 	
 	{% else %}
 	<tr>
 		<td style="height:63px" align="center" valign=middle></td>
 	</tr>	
-</table>
+	</table>
 	<div class="row">
 		<div class="col fuente" style="text-align:center;">____________________________________</div>
 		<div class="col fuente" style="text-align:center;">____________________________________</div>
@@ -568,7 +579,7 @@
 	</div>
 
 	<div class="row">
-		<div class="col fuente" style="font-size:11px; text-align:center;">Carlos Manuel Padilla Silva</div>
+		<div class="col fuente" style="font-size:11px; text-align:center;">CARLOS MANUEL PADILLA SILVA</div>
 		<div class="col fuente" style="font-size:11px; text-align:center;">JONATHAN GUADARRAMA SALGADO</div>
 	</div>
 
@@ -577,29 +588,35 @@
 	<div class="row">
 		<div class="col fuente" style="text-align:center;">____________________________________</div>
 		<div class="col fuente" style="text-align:center;">____________________________________</div>
+		<div class="col fuente" style="text-align:center;">____________________________________</div>
 	</div>
 	<div class="row">
-		<div class="col fuente" style="text-align:center;"><b>EL TESTIGO</b></div>
 		<div class="col fuente" style="text-align:center;"><b>EL CLIENTE</b></div>
+		<div class="col fuente" style="text-align:center;"><b>EL TESTIGO</b></div>
+		<div class="col fuente" style="text-align:center;"><b>EL TESTIGO</b></div>
 	</div>	
 	{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}
 		<div class="row">
-			<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo}}</div>
-			<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.nombre_arrendatario}}</div>
+			<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.nombre_arrendatario | upper}}</div>
+			<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo1}}</div>
+			<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo2}}</div>
 		</div>	
 	
 	{% else %}
 		<div class="row">
-			<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo}}</div>
 			<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.arr_nombre_empresa | upper}}</div>
+			<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo1}}</div>
+			<div class="col fuente" style="font-size:11px; text-align:center;">{{testigo2}}</div>
 		</div>	
 		<div class="row">
-			<div class="col fuente" style="font-size:11px; text-align:center;"></div>
 			<div class="col fuente" style="font-size:11px; text-align:center;">REPRESENTADA POR</div>
+			<div class="col fuente" style="font-size:11px; text-align:center;"></div>
+			<div class="col fuente" style="font-size:11px; text-align:center;"></div>
 		</div>	
 		<div class="row">
-			<div class="col fuente" style="font-size:11px; text-align:center;"></div>
 			<div class="col fuente" style="font-size:11px; text-align:center;">{{info.arrendatario.nombre_arrendatario | upper}}</div>
+			<div class="col fuente" style="font-size:11px; text-align:center;"></div>
+			<div class="col fuente" style="font-size:11px; text-align:center;"></div>
 		</div>	
 	{% endif %}
 	
