@@ -1526,17 +1526,17 @@ class investigaciones(viewsets.ModelViewSet):
             #Consulata para obtener el inquilino y establecemos fecha de hoy
             today = date.today().strftime('%d/%m/%Y')
             req_dat = request.data
-            info = self.queryset.filter(id = req_dat["id"]).first()
+            info = Inquilino.objects.filter(id = req_dat["id"]).first()
             print("soy INFO",info.__dict__)   
-            inquilino = info.inquilino       
                  
-            aval = info.inquilino.aval.all().first()
+                 
+            aval = info.aval.all().first()
             redes_negativo = req_dat.get("redes_negativo")
             print("request.data",req_dat)
             print("el id que llega", req_dat["id"])
             print("")
-            print("soy la info del",info.inquilino.nombre)       
-            print(info.inquilino.__dict__)
+            print("soy la info del",info.nombre)       
+            print(info.__dict__)
             print("")        
             print("soy la info del aval",aval)                                
             print("")
@@ -1653,7 +1653,7 @@ class investigaciones(viewsets.ModelViewSet):
                     
                     elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
                         print("aprobado")
-                        conclusion = f"Nos complace informar que el prospecto {info.inquilino.nombre} {info.inquilino.apellido} {info.inquilino.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
+                        conclusion = f"Nos complace informar que el prospecto {info.nombre} {info.apellido} {info.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
                         status = "Aprobado"
                         motivo = "No hay motivo de rechazo"
                     
@@ -1685,7 +1685,7 @@ class investigaciones(viewsets.ModelViewSet):
                 
                 elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
                     print("aprobado")
-                    conclusion = f"Nos complace informar que el prospecto {info.inquilino.nombre} {info.inquilino.apellido} {info.inquilino.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
+                    conclusion = f"Nos complace informar que el prospecto {info.nombre} {info.apellido} {info.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
                     status = "Aprobado"
                     motivo = "hola"   
                 
@@ -1707,32 +1707,32 @@ class investigaciones(viewsets.ModelViewSet):
             print("Generando el pdf")
             pdf_file = HTML(string=html_string).write_pdf()
             #aqui hacia abajo es para enviar por email
-            archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+            # archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
         
-            print("antes de enviar_archivo",context)
-            self.enviar_archivo(archivo, context["info"].inquilino, context["status"])
-            # Aprobar o desaprobar
-            if status == "Aprobado_pe" or status == "Aprobado":  
-                inquilino.status = "1"
-                inquilino.save()
-                info.status = "Aprobado"
-                info.save()
-            else:
-                inquilino.status = "0"
-                inquilino.save()
-                info.status = "Rechazado"
-                info.save()
+            # print("antes de enviar_archivo",context)
+            # self.enviar_archivo(archivo, context["info"].inquilino, context["status"])
+            # # Aprobar o desaprobar
+            # if status == "Aprobado_pe" or status == "Aprobado":  
+            #     inquilino.status = "1"
+            #     inquilino.save()
+            #     info.status = "Aprobado"
+            #     info.save()
+            # else:
+            #     inquilino.status = "0"
+            #     inquilino.save()
+            #     info.status = "Rechazado"
+            #     info.save()
             
-            print("PDF ENVIADO")
+            # print("PDF ENVIADO")
             
-            return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = "200")
+            # return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = "200")
            
             # de aqui hacia abajo Devuelve el PDF como respuesta
-            # response = HttpResponse(content_type='application/pdf')
-            # response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
-            # response.write(pdf_file)
-            # print("Finalizamos el proceso de aprobado") 
-            # return HttpResponse(response, content_type='application/pdf')
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+            response.write(pdf_file)
+            print("Finalizamos el proceso de aprobado") 
+            return HttpResponse(response, content_type='application/pdf')
         
         except Exception as e:
             print(f"el error es: {e}")

@@ -269,23 +269,3 @@ class ContratoSemilleroSerializer(serializers.ModelSerializer):
         model = SemilleroContratos
         fields = '__all__' 
    
-#/////////////////////////////////REFACTORIZACION////////////////////////////////////////////////////
-# class IPF_Serializer(serializers.ModelSerializer):
-#     # aval = Fiador_obligadoSerializer(many=True, read_only=True)
-#     #aval = FOS(many=True, read_only=True)
-#     #archivos = DISerializer(many=True, read_only=True)
-#     #user =  User2Serializer(read_only=True)
-    
-#     class Meta:
-#         model = inquilino_personafisica
-#         fields = '__all__'
-
-# class IPM_Serializer(serializers.ModelSerializer):
-#     # aval = Fiador_obligadoSerializer(many=True, read_only=True)
-#     #aval = FOS(many=True, read_only=True)
-#     #archivos = DISerializer(many=True, read_only=True)
-#     #user =  User2Serializer(read_only=True)
-    
-#     class Meta:
-#         model = inquilino_personamoral
-#         fields = '__all__'

@@ -61,10 +61,7 @@ urlpatterns = [
     
     #manejamos el index con la pag404
     path('health/', health_check, name='health_check'),
-    #/////////////////////////////////////REFACTORIZACION/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    #inquilinos Persona Fisica
-    path('create_ipf/', inquilinos_nuevo.as_view({'post':'registro_ipf'}), name='create_ipf'),
-    
+  
     #manejamos el index con la pag404
     path('', pagina_404, name='error'),   
     path('', include(router.urls)),
