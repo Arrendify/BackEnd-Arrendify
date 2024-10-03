@@ -1463,6 +1463,27 @@ class investigaciones(viewsets.ModelViewSet):
    
         # Configura los detalles del correo electrónico
         try:
+            # scope = ['https://graph.microsoft.com/.default']
+            # url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"  # Usamos 'consumers' para cuentas personales
+            
+            # data = {
+            #     'grant_type': 'client_credentials',
+            #     'client_id': config('client_id'),
+            #     'client_secret': config('client_secret'),
+            #     'scope': ' '.join(scope)
+            # }
+
+            # print("data",data)
+            # #hacemos la peticion del token de autenticacion
+            # response = requests.post(url, data = data)
+            # print("res",response)
+            # token_response = response.json()
+            # print("tok res",token_response)
+            # access_token = token_response.get('access_token')
+
+            # print("obtuvimos el token de acceso",access_token)
+
+
             remitente = 'notificaciones_arrendify@outlook.com'
             # if info.user_id == francis.id:
             #     print("Es el mismo usuaio, envialo a francis calete")
@@ -1513,11 +1534,13 @@ class investigaciones(viewsets.ModelViewSet):
                 print("login")
                 server.sendmail(remitente, Destino, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
                 print("sendmail")
-            return Response({'message': 'Correo electrónico enviado correctamente.'}, status = "200")
+            return Response({'message': 'Correo electrónico enviado correctamente.'}, status = 200)
         except SMTPException as e:
             print("Error al enviar el correo electrónico:", str(e))
-            return Response({'message': 'Error al enviar el correo electrónico.'})
-        
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
+    
         
     def aprobar_prospecto(self, request, *args, **kwargs):
         try:
@@ -1706,36 +1729,36 @@ class investigaciones(viewsets.ModelViewSet):
             print("Generando el pdf")
             pdf_file = HTML(string=html_string).write_pdf()
             #aqui hacia abajo es para enviar por email
-            archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+            # archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
         
-            print("antes de enviar_archivo",context)
-            correo = self.enviar_archivo(archivo, context["info"], context["status"])
-            print("soy correo papito",correo)
-            if correo.status_code == 200:
-                print("a huevo funcione")
-                 # Aprobar o desaprobar
-                if status == "Aprobado_pe" or status == "Aprobado":  
-                    info.status = "Aprobado"
-                    info.save()
-                else:
-                    info.status = "Rechazado"
-                    info.save()
+            # print("antes de enviar_archivo",context)
+            # correo = self.enviar_archivo(archivo, context["info"], context["status"])
+            # print("soy correo papito",correo)
+            # if correo.status_code == 200:
+            #     print("a huevo funcione")
+            #      # Aprobar o desaprobar
+            #     if status == "Aprobado_pe" or status == "Aprobado":  
+            #         info.status = "Aprobado"
+            #         info.save()
+            #     else:
+            #         info.status = "Rechazado"
+            #         info.save()
                 
-                print("Correo ENVIADO")
+            #     print("Correo ENVIADO")
             
-            else:
-                print("valio chetos")
-                print("Correo NO ENVIADO")
-                # Response({"Error":"Valio Chetos"},status = "400")
+            # else:
+            #     print("valio chetos")
+            #     print("Correo NO ENVIADO")
+            #     Response({"Error":"no se envio el correo"},status = 409)
             
-            return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
+            # return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
            
             # de aqui hacia abajo Devuelve el PDF como respuesta
-            # response = HttpResponse(content_type='application/pdf')
-            # response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
-            # response.write(pdf_file)
-            # print("Finalizamos el proceso de aprobado") 
-            # return HttpResponse(response, content_type='application/pdf')
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+            response.write(pdf_file)
+            print("Finalizamos el proceso de aprobado") 
+            return HttpResponse(response, content_type='application/pdf')
         
         except Exception as e:
             print(f"el error es: {e}")
