@@ -119,10 +119,10 @@ def renovar_contrato():
                 # Adjunta el PDF al correo electrónico
                 
                 # Establece la conexión SMTP y envía el correo electrónico
-                smtp_server = 'smtp-mail.outlook.com'
+                smtp_server = 'mail.arrendify.com'
                 smtp_port = 587
-                smtp_username = config('smtp_u')
-                smtp_password = config('smtp_pw')
+                smtp_username = config('mine_smtp_u')
+                smtp_password = config('mine_smtp_pw')
                 with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                     server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                     print("paso1")

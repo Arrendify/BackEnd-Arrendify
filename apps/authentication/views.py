@@ -215,10 +215,10 @@ class Register(APIView):
             msg['To'] = email
             msg['Subject'] = 'Registro Exitoso - Tu código de inmobiaria'
             msg.attach(MIMEText(html, 'html'))
-            smtp_server = 'smtp.office365.com'
+            smtp_server = 'mail.arrendify.com'
             smtp_port = 587
-            smtp_username = config('smtp_u')
-            smtp_password = config('smtp_pw') 
+            smtp_username = config('mine_smtp_u')
+            smtp_password = config('mine_smtp_pw')
 
             with smtplib.SMTP(smtp_server, smtp_port) as server:
                 server.starttls()

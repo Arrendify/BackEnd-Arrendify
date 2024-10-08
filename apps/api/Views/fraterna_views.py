@@ -285,7 +285,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
         arrendatario = info["nombre_arrendatario"]
         # Configura los detalles del correo electrónico
         try:
-            remitente = 'notificaciones_arrendify@outlook.com'
+            remitente = 'notificaciones@arrendify.com'
             # destinatario = 'jsepulvedaarrendify@gmail.com'
             destinatario = 'jcasados@fraterna.mx'
             # destinatario2 = 'juridico.arrendify1@gmail.com'
@@ -319,10 +319,10 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             print("pase el msg attach 2")
             
             # Establece la conexión SMTP y envía el correo electrónico
-            smtp_server = 'smtp.office365.com'
+            smtp_server = 'mail.arrendify.com'
             smtp_port = 587
-            smtp_username = config('smtp_u')
-            smtp_password = config('smtp_pw')
+            smtp_username = config('mine_smtp_u')
+            smtp_password = config('mine_smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
@@ -681,7 +681,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             #activamos la libreri de locale para obtener el mes en español
             print("Generar Pagare Fraterna")
             locale.setlocale(locale.LC_ALL,"es_MX.utf8")
-            id_paq = request.data
+            id_paq = request.data["id"]
+            pagare_distinto = request.data["pagare_distinto"]
+            cantidad_pagare = request.data["cantidad_pagare"]
+            cantidad_letra = num2words(cantidad_pagare, lang='es')
+            print(pagare_distinto)
+            print(cantidad_pagare)
+            # id_paq = request.data
             print("el id que llega", id_paq)
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)       
@@ -719,7 +725,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
             text_representation = text_representation.capitalize()
             
-            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses}
+            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'pagare_distinto':pagare_distinto , 'cantidad_pagare':cantidad_pagare, 'cantidad_letra':cantidad_letra}
             
             template = 'home/pagare_fraterna.html'
             html_string = render_to_string(template, context)
@@ -923,7 +929,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print("mi id es: ",instance.id)
             print(instance.__dict__)
             #Mandar Whats con lo datos del contrato a Miri
-            remitente = 'notificaciones_arrendify@outlook.com'
+            remitente = 'notificaciones@arrendify.com'
             destinatario = 'desarrolloarrendify@gmail.com'
 
             print(instance.residente.nombre_residente)
@@ -942,10 +948,10 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             msg.attach(MIMEText(pdf_html, 'html'))
             print("pase el msg attach 1")
         
-            smtp_server = 'smtp.office365.com'
+            smtp_server = 'mail.arrendify.com'
             smtp_port = 587
-            smtp_username = config('smtp_u')
-            smtp_password = config('smtp_pw')
+            smtp_username = config('mine_smtp_u')
+            smtp_password = config('mine_smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
@@ -1146,7 +1152,7 @@ class Arrendatarios_semilleroViewSet(viewsets.ModelViewSet):
         arrendatario = info["nombre_arrendatario"]
         # Configura los detalles del correo electrónico
         try:
-            remitente = 'notificaciones_arrendify@outlook.com'
+            remitente = 'notificaciones@arrendify.com'
             # destinatario = 'jsepulvedaarrendify@gmail.com'
             destinatario = 'jcasados@fraterna.mx'
             # destinatario2 = 'juridico.arrendify1@gmail.com'
@@ -1180,10 +1186,10 @@ class Arrendatarios_semilleroViewSet(viewsets.ModelViewSet):
             print("pase el msg attach 2")
             
             # Establece la conexión SMTP y envía el correo electrónico
-            smtp_server = 'smtp.office365.com'
+            smtp_server = 'mail.arrendify.com'
             smtp_port = 587
-            smtp_username = config('smtp_u')
-            smtp_password = config('smtp_pw')
+            smtp_username = config('mine_smtp_u')
+            smtp_password = config('mine_smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
@@ -1503,10 +1509,17 @@ class Contratos_semillero(viewsets.ModelViewSet):
             #activamos la libreri de locale para obtener el mes en español
             print("Generar Pagare Semillero")
             locale.setlocale(locale.LC_ALL,"es_MX.utf8")
-            id_paq = request.data
+            print("rd",request.data)
+            id_paq = request.data["id"]
+            pagare_distinto = request.data["pagare_distinto"]
+            cantidad_pagare = request.data["cantidad_pagare"]
+            cantidad_letra = num2words(cantidad_pagare, lang='es')
+            print(pagare_distinto)
+            print(cantidad_pagare)
+            
             print("el id que llega", id_paq)
             info = self.queryset.filter(id = id_paq).first()
-            print(info.__dict__)       
+            print(info.__dict__)
             # Definir la fecha inicial
             fecha_inicial = info.fecha_celebracion
             print(fecha_inicial)
@@ -1540,8 +1553,8 @@ class Contratos_semillero(viewsets.ModelViewSet):
             number = int(number)
             text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
             text_representation = text_representation.capitalize()
-            
-            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses}
+            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'pagare_distinto':pagare_distinto , 'cantidad_pagare':cantidad_pagare, 'cantidad_letra':cantidad_letra}
+            print("pasamos el context")
             
             template = 'home/pagare_semillero.html'
             html_string = render_to_string(template, context)
@@ -1553,7 +1566,7 @@ class Contratos_semillero(viewsets.ModelViewSet):
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
             response.write(pdf_file)
-
+            print("generamos correctamente")
             return HttpResponse(response, content_type='application/pdf')
     
         except Exception as e:
