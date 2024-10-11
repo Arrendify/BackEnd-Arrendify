@@ -1737,12 +1737,18 @@ class investigaciones(viewsets.ModelViewSet):
             else: #No tiene Antecedentes
                 
                 #evaluar el historial crediticio  
-                if tipo_score_pp == "Malo" or tipo_score_ingreso == "Malo":
+                if tipo_score_pp == "Malo":
                     print("rechazado")
                     conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                     status = "Declinado"
-                    motivo = "1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente."
+                    motivo = "1.- Buro: Se cuenta con un buro con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente."
                 
+                elif tipo_score_ingreso == "Malo":
+                    print("rechazado")
+                    conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                    status = "Declinado"
+                    motivo = "1.- Ingresos: Los ingresos comprobados no son suficientes para garantizar el cumplimiento de sus obligaciones financieras."
+                    
                 elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
                     print("aprobado")
                     conclusion = f"Nos complace informar que el prospecto {info.nombre} {info.apellido} {info.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
@@ -1767,36 +1773,36 @@ class investigaciones(viewsets.ModelViewSet):
             print("Generando el pdf")
             pdf_file = HTML(string=html_string).write_pdf()
             #aqui hacia abajo es para enviar por email
-            archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+            # archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
         
-            print("antes de enviar_archivo",context)
-            correo = self.enviar_archivo_arrendify(archivo, context["info"], context["status"])
-            print("soy correo papito",correo)
-            if correo.status_code == 200:
-                print("a huevo funcione")
-                 # Aprobar o desaprobar
-                if status == "Aprobado_pe" or status == "Aprobado":  
-                    info.status = "Aprobado"
-                    info.save()
-                else:
-                    info.status = "Rechazado"
-                    info.save()
+            # print("antes de enviar_archivo",context)
+            # correo = self.enviar_archivo_arrendify(archivo, context["info"], context["status"])
+            # print("soy correo papito",correo)
+            # if correo.status_code == 200:
+            #     print("a huevo funcione")
+            #      # Aprobar o desaprobar
+            #     if status == "Aprobado_pe" or status == "Aprobado":  
+            #         info.status = "Aprobado"
+            #         info.save()
+            #     else:
+            #         info.status = "Rechazado"
+            #         info.save()
                 
-                print("Correo ENVIADO")
+            #     print("Correo ENVIADO")
             
-            else:
-                print("valio chetos")
-                print("Correo NO ENVIADO")
-                Response({"Error":"no se envio el correo"},status = 409)
+            # else:
+            #     print("valio chetos")
+            #     print("Correo NO ENVIADO")
+            #     Response({"Error":"no se envio el correo"},status = 409)
             
-            return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
+            # return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
            
             # de aqui hacia abajo Devuelve el PDF como respuesta
-            # response = HttpResponse(content_type='application/pdf')
-            # response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
-            # response.write(pdf_file)
-            # print("Finalizamos el proceso de aprobado") 
-            # return HttpResponse(response, content_type='application/pdf')
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+            response.write(pdf_file)
+            print("Finalizamos el proceso de aprobado") 
+            return HttpResponse(response, content_type='application/pdf')
         
         except Exception as e:
             print(f"el error es: {e}")
