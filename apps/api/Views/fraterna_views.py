@@ -476,6 +476,7 @@ class DocumentosRes(viewsets.ModelViewSet):
             
             if 'Ingresos' in request.data:
                 Ingresos = request.data['Ingresos']
+                archivo = instance.Ingresos
                 eliminar_archivo_s3(archivo)
                 instance.Ingresos = Ingresos  # Actualizar el archivo adjunto sin eliminar el anterior
             
@@ -815,13 +816,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             }
             
             inventario = {
-                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.png",
-                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.png",
-                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.png",
-                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.png",
-                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.png",
-                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.png",
-                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.png"
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_party.png"
             }
             
             tipologia = info.tipologia
@@ -882,13 +883,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             }
             
             inventario = {
-                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.png",
-                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.png",
-                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.png",
-                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.png",
-                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.png",
-                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.png",
-                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.png"
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_party.png"
             }
             
             tipologia = info.tipologia
