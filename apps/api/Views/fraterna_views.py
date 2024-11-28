@@ -684,10 +684,27 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             locale.setlocale(locale.LC_ALL,"es_MX.utf8")
             id_paq = request.data["id"]
             pagare_distinto = request.data["pagare_distinto"]
-            cantidad_pagare = request.data["cantidad_pagare"]
-            cantidad_letra = num2words(cantidad_pagare, lang='es')
+            
+            if pagare_distinto == "Si":
+                if "." not in request.data["cantidad_pagare"]:
+                    print("no hay yaya pagare")
+                    cantidad_pagare = request.data["cantidad_pagare"]
+                    cantidad_decimal = "00"
+                    cantidad_letra = num2words(cantidad_pagare, lang='es')
+                
+                else:
+                    cantidad_completa = request.data["cantidad_pagare"].split(".")
+                    cantidad_pagare = cantidad_completa[0]
+                    cantidad_decimal = cantidad_completa[1]
+                    cantidad_letra = num2words(cantidad_pagare, lang='es')
+            else:
+                cantidad_pagare = 0
+                cantidad_decimal = "00"
+                cantidad_letra = num2words(cantidad_pagare, lang='es')
+            
             print(pagare_distinto)
-            print(cantidad_pagare)
+            print(cantidad_pagare)   
+
             # id_paq = request.data
             print("el id que llega", id_paq)
             info = self.queryset.filter(id = id_paq).first()
@@ -721,12 +738,22 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 print(f"Año: {year}, Mes: {month}")
             
             #obtenermos la renta para pasarla a letra
-            number = info.renta
-            number = int(number)
-            text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-            text_representation = text_representation.capitalize()
+            if "." not in info.renta:
+                print("no hay yaya")
+                number = int(info.renta)
+                renta_decimal = "00"
+                text_representation = num2words(number, lang='es').capitalize()
+               
+            else:
+                print("tengo punto en renta")
+                renta_completa = info.renta.split(".")
+                info.renta = renta_completa[0]
+                renta_decimal = renta_completa[1]
+                text_representation = num2words(renta_completa[0], lang='es').capitalize()
+
+            # 'es' para español, puedes cambiarlo según el idioma deseado
             
-            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'pagare_distinto':pagare_distinto , 'cantidad_pagare':cantidad_pagare, 'cantidad_letra':cantidad_letra}
+            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'pagare_distinto':pagare_distinto , 'cantidad_pagare':cantidad_pagare, 'cantidad_letra':cantidad_letra, 'cantidad_decimal':cantidad_decimal, 'renta_decimal':renta_decimal}
             
             template = 'home/pagare_fraterna.html'
             html_string = render_to_string(template, context)
@@ -1513,8 +1540,23 @@ class Contratos_semillero(viewsets.ModelViewSet):
             print("rd",request.data)
             id_paq = request.data["id"]
             pagare_distinto = request.data["pagare_distinto"]
-            cantidad_pagare = request.data["cantidad_pagare"]
-            cantidad_letra = num2words(cantidad_pagare, lang='es')
+
+            if pagare_distinto == "Si":
+                if "." not in request.data["cantidad_pagare"]:
+                    print("no hay yaya pagare")
+                    cantidad_pagare = request.data["cantidad_pagare"]
+                    cantidad_decimal = "00"
+                    cantidad_letra = num2words(cantidad_pagare, lang='es')
+                
+                else:
+                    cantidad_completa = request.data["cantidad_pagare"].split(".")
+                    cantidad_pagare = cantidad_completa[0]
+                    cantidad_decimal = cantidad_completa[1]
+                    cantidad_letra = num2words(cantidad_pagare, lang='es')
+            else:
+                cantidad_pagare = 0
+                cantidad_decimal = "00"
+                cantidad_letra = num2words(cantidad_pagare, lang='es')
             print(pagare_distinto)
             print(cantidad_pagare)
             
@@ -1550,11 +1592,20 @@ class Contratos_semillero(viewsets.ModelViewSet):
                 print(f"Año: {year}, Mes: {month}")
             
             #obtenermos la renta para pasarla a letra
-            number = info.renta
-            number = int(number)
-            text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-            text_representation = text_representation.capitalize()
-            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'pagare_distinto':pagare_distinto , 'cantidad_pagare':cantidad_pagare, 'cantidad_letra':cantidad_letra}
+            if "." not in info.renta:
+                print("no hay yaya")
+                number = int(info.renta)
+                renta_decimal = "00"
+                text_representation = num2words(number, lang='es').capitalize()
+               
+            else:
+                print("tengo punto en renta")
+                renta_completa = info.renta.split(".")
+                info.renta = renta_completa[0]
+                renta_decimal = renta_completa[1]
+                text_representation = num2words(renta_completa[0], lang='es').capitalize()
+           
+            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'pagare_distinto':pagare_distinto , 'cantidad_pagare':cantidad_pagare, 'cantidad_letra':cantidad_letra,'cantidad_decimal':cantidad_decimal, 'renta_decimal':renta_decimal}
             print("pasamos el context")
             
             template = 'home/pagare_semillero.html'

@@ -78,12 +78,12 @@
                         <td></td>
                         {% if forloop.counter == 1 %}
                             {% if pagare_distinto == "Si" %}
-                            <td>${{cantidad_pagare | intcomma}}.00</td>
+                                <td>${{cantidad_pagare | intcomma}}.{{cantidad_decimal}}</td>
                             {% else %}
-                            <td>${{info.renta | intcomma}}.00</td>
+                                <td>${{info.renta | intcomma}}.{{renta_decimal}}</td>
                             {% endif %}
                         {% else %}
-                            <td>${{info.renta | intcomma}}.00</td>
+                            <td>${{info.renta | intcomma}}.{{renta_decimal}}</td>
                         {% endif %}
                     </tr>
                 </tbody>
@@ -130,8 +130,8 @@
                 <span id="ref7">de</span>
                 <span id="ref7">{{anio}}</span>
             </p>
-            <p class="justi" id="moneda-nacional">Valor recibido a mi entera satisfacción por la cantidad de {% if pagare_distinto == "Si" %}${{cantidad_pagare | intcomma}}.00 ({{cantidad_letra}} Pesos 00/100
-                MONEDA NACIONAL).{% else %}${{info.renta | intcomma}}.00 ({{text_representation}} Pesos 00/100
+            <p class="justi" id="moneda-nacional">Valor recibido a mi entera satisfacción por la cantidad de {% if pagare_distinto == "Si" %}${{cantidad_pagare | intcomma}}.{{cantidad_decimal}} ({{cantidad_letra}} Pesos {{cantidad_decimal}}/100
+                MONEDA NACIONAL).{% else %}${{info.renta | intcomma}}.{{renta_decimal}} ({{text_representation}} Pesos {{renta_decimal}}/100
                 MONEDA NACIONAL).{% endif %} Este pagaré forma parte de una serie numerada del 1 al {{duracion_meses}} y todos están sujetos a la condición de que,
                 al no pagarse cualquiera de ellos a su vencimiento, serán exigibles todos los que le sigan en número, además de los ya vencidos, 
                 desde la fecha de vencimiento de este documento hasta el día de su liquidación causará intereses moratorios al tipo de 5% mensual, pagadero en esta ciudad 
@@ -175,7 +175,7 @@
                 <span id="ref7">de</span>
                 <span id="ref7">{{anio}}</span>
             </p>
-            <p class="justi" id="moneda-nacional">Valor recibido a mi entera satisfacción por la cantidad de ${{info.renta | intcomma}}.00 ({{text_representation}} Pesos 00/100
+            <p class="justi" id="moneda-nacional">Valor recibido a mi entera satisfacción por la cantidad de ${{info.renta | intcomma}}.{{renta_decimal}} ({{text_representation}} Pesos {{renta_decimal}}/100
                 MONEDA NACIONAL). Este pagaré forma parte de una serie numerada del 1 al {{duracion_meses}} y todos están sujetos a la condición de que,
                 al no pagarse cualquiera de ellos a su vencimiento, serán exigibles todos los que le sigan en número, además de los ya vencidos, 
                 desde la fecha de vencimiento de este documento hasta el día de su liquidación causará intereses moratorios al tipo de 5% mensual, pagadero en esta ciudad 
