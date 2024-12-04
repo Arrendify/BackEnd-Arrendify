@@ -1657,7 +1657,10 @@ class Contratos_semillero(viewsets.ModelViewSet):
             renta = int(info.renta)
             renta_texto = num2words(renta, lang='es').capitalize()
             if renta > 14999:
-                valor_poliza = renta * 0.17
+                #redondeamos el resultado para que no salga numeros decimales en la operacion de resultado, ya que al trabajar un int con un float se producen decimales para cubrir el resto de la operacion
+                resultado = renta * 0.17
+                valor_poliza = int(round(resultado, 2))
+                print("resultado esperado",valor_poliza)
             else:
                 valor_poliza = 2500
             poliza_texto = num2words(valor_poliza, lang='es').capitalize()
