@@ -200,13 +200,24 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': "postgres",
+#         'USER': 'arrendify',
+#         'PASSWORD': 'Arrendy.123',
+#         'HOST': 'arrendifyapp.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
+#         'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': "postgres",
-        'USER': 'arrendify',
+        'USER': 'contratopro',
         'PASSWORD': 'Arrendy.123',
-        'HOST': 'arrendifyapp.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
+        'HOST': 'contratopro.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
         'PORT': '5432',
     }
 }
