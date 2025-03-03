@@ -51,21 +51,68 @@
 	.section3 {
 		border-bottom: 1px solid #000000;
 	}
+
+	.watermark-container {
+		position: relative;
+		display: block;
+	  margin-left: auto;
+	  margin-right: auto;
+	  }
+	
+	  .watermark-container::after {
+		content: '';
+		{% comment %} background-image: url('https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/copia_sin_valor.png');  {% endcomment %}
+		background-repeat: no-repeat;
+		background-size: contain;
+		opacity: 1;
+		position: fixed;
+		top: -150px;
+		bottom: 200px;
+		left: -170px;
+		width: 1000px;
+		height: 1000px;
+		z-index: 1;
+	  }
+
+	  .row {
+		--bs-gutter-x: 1.5rem;
+		--bs-gutter-y: 0;
+		display: flex;
+		flex-wrap: wrap;
+		margin-top: calc(var(--bs-gutter-y) * -1);
+		margin-right: calc(var(--bs-gutter-x) * -.5);
+		margin-left: calc(var(--bs-gutter-x) * -.5); }
+		.row > * {
+		  flex-shrink: 0;
+		  width: 100%;
+		  max-width: 100%;
+		  padding-right: calc(var(--bs-gutter-x) * .5);
+		  padding-left: calc(var(--bs-gutter-x) * .5);
+		  margin-top: var(--bs-gutter-y); }
+	  
+	  .col {
+		flex: 1 0 0%; }
+		
 	</style>
 	
 </head>
 <!-- ************************************************************************** -->
-<table align="left" cellspacing="0" border="0">
+<table class="watermark-container" align="left" cellspacing="0" border="0">
 	<colgroup width="753"></colgroup>
 	<colgroup span="18" width="85"></colgroup>
 	<tr>
-		{% comment %} <p style="font-size:15px; text-align: right;">Contrato No. {{info.codigo_paquete}}</p> {% endcomment %}
+		<p style="font-size:15px; text-align: right;">Contrato No. {{info.codigo_paquete}}</p>
 	<tr>
 	<tr>
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle style=" font-size:18px"><b>CONTRATO DE ARRENDAMIENTO QUE EN TÉRMINOS DE LO QUE DISPONE EL CÓDIGO CIVIL VIGENTE PARA {{info.datos_contratos.entidad_federativa | upper}}, QUE CELEBRAN, POR UNA PARTE {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}, A QUIEN EN LO SUCESIVO SE LE LLAMARÁ "EL ARRENDADOR" Y POR LA OTRA PARTE {{info.arrendatario.nombre | upper}} {{info.arrendatario.apellido | upper}} {{info.arrendatario.apellido1 | upper}} Y {{info.fiador.n_fiador |  upper}} {{info.fiador.a_fiador |  upper}} {{info.fiador.a2_fiador |  upper}} EN SU CARÁCTER DE "EL {{info.fiador.fiador_obligado | upper}}", A QUIEN SE LE DENOMINARÁ COMO "EL ARRENDATARIO" QUIENES CUENTAN CON CAPACIDAD LEGAL PARA CONTRATAR Y OBLIGARSE AL TENOR DE LAS SIGUIENTES DECLARACIONES Y CLÁUSULAS QUE A CONTINUACIÓN SE DETALLAN:
+		<td height="21"  valign=middle style=" font-size:18px"><b>CONTRATO DE ARRENDAMIENTO QUE EN TÉRMINOS DE LO QUE DISPONE EL CÓDIGO CIVIL VIGENTE PARA EL ESTADO DE {{info.datos_contratos.entidad_federativa | upper}}, QUE CELEBRAN, POR UNA PARTE {% if info.arrendador.regimen_fiscal == "Persona Fisica" %} {{info.arrendador.nombre_completo | upper}} {% else %}{{info.arrendador.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendador.nombre_completo_rl | upper}} {% endif %}, A QUIEN EN LO SUCESIVO SE LE LLAMARÁ "EL ARRENDADOR" 
+			Y POR LA OTRA PARTE {% if info.arrendatario.regimen_fiscal == "Persona Fisica" %}{{info.arrendatario.nombre_completo | upper}}{% else %}{{info.arrendatario.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendatario.nombre_completo_rl | upper}}{% endif %} 
+			{% if info.fiador.registro_aval == "Si" or info.fiador.id %}
+				{% if info.fiador.tipo_aval == 'Obligado Solidario Persona Moral' or info.fiador.tipo_aval == 'Fiador Solidario Persona Moral' %}Y {{ info.fiador.nombre_empresa | upper}} REPRESENTADA POR {{info.fiador.nombre_completo_rl | upper}} EN SU CARÁCTER DE "EL {{info.fiador.tipo_aval | upper}}"{% else %}Y {{ info.fiador.nombre_completo | upper}} EN SU CARÁCTER DE "EL {{info.fiador.tipo_aval | upper}}"{% endif %}
+			{% else %}{% endif %}
+			, A QUIEN SE LE DENOMINARÁ COMO "EL ARRENDATARIO" QUIENES CUENTAN CON CAPACIDAD LEGAL PARA CONTRATAR Y OBLIGARSE AL TENOR DE LAS SIGUIENTES DECLARACIONES Y CLÁUSULAS QUE A CONTINUACIÓN SE DETALLAN:
 		</b></td>
 	</tr>	
   <tr>
@@ -80,14 +127,14 @@
   <tr>
 	<td height="21" valign=middle><b>a).- Llamarse como ha quedado establecido, ser una persona de nacionalidad {{info.arrendatario.nacionalidad | upper}}, que cuenta
 		con las facultades suficientes y necesarias para celebrar el presente contrato de arrendamiento respecto,
-		del inmueble ubicado en {{info.inmueble.calle | upper}} NO. EXTERIOR {{info.inmueble.numeroExterior}} NO. INTERIOR {{info.inmueble.numeroInterior}} COL. {{info.inmueble.colonia | upper}}, CP. {{info.inmueble.postal_code}}, {{info.inmueble.municipio_alcaldia | upper}}, {{info.inmueble.estado | upper}}.</b>
+		del inmueble ubicado en {{info.inmueble.direccion_completa | upper}}.</b>
 		</td>
   </tr>
     <tr>
-	 <td height="21"  valign=middle><b>b).- Que a la firma del presente contrato se identifica con {{doc_indentificacion.tipo_documento_arrendador | upper}} con número {{doc_indentificacion.no_doc_arrendador}}. </b></td>
+	 <td height="21"  valign=middle><b>b).- Que a la firma del presente contrato se identifica con {{info.datos_contratos.tipo_identificacion_arrendador| upper}} con número {{info.datos_contratos.no_id_arrendador}}. </b></td>
     </tr>
     <tr>
-	 <td height="21"  valign=middle><b>c).- Que para los efectos del presente contrato señala como domicilio para oír y recibir notificaciones, incluyendo el pago de renta el ubicado en {{info.arrendador.calle | upper}} NO. EXTERIOR {{info.arrendador.num_ext}} NO. INTERIOR {{info.arrendador.num_int}} COL. {{info.arrendador.colonia | upper}}, CP. {{info.arrendador.codigopostal}}, {{info.arrendador.municipio_alcaldia | upper}}, {{info.arrendador.estado | upper}}.</b></td>
+	 <td height="21"  valign=middle><b>c).- Que para los efectos del presente contrato señala como domicilio para oír y recibir notificaciones, incluyendo el pago de renta el ubicado en {{info.arrendador.direccion_completa | upper}}.</b></td>
     </tr>	
 	<tr>
 		<td height="21"  valign=middle><b>d).-</b> Que no tiene conocimiento alguno sobre si <b>'' EL ARRENDATARIO''</b> se encuentra o ha estado
@@ -118,17 +165,16 @@
 		<td height="21"  valign=middle><b>2.- DECLARA EL ''ARRENDATARIO'':</b></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b>a).- Llamarse como ha quedado establecido, ser una persona de nacionalidad {{info.arrendador.nacionalidad | upper}}, que cuenta
+		<td height="21" valign=middle><b>a).- Llamarse como ha quedado establecido, ser una persona de nacionalidad {{info.arrendatario.nacionalidad | upper}}, que cuenta
 			con las facultades suficientes y necesarias para celebrar el presente contrato de arrendamiento respecto,
-			del inmueble ubicado en {{info.inmueble.calle | upper}} NO. EXTERIOR {{info.inmueble.numeroExterior}} NO. INTERIOR {{info.inmueble.numeroInterior}}  COL. {{info.inmueble.colonia | upper}}, CP. {{info.inmueble.postal_code}}, {{info.inmueble.municipio_alcaldia | upper}}, {{info.inmueble.estado | upper}}.</b></td>
-	</tr>
+			del inmueble ubicado en {{info.inmueble.direccion_completa | upper}}.</b></td>
 	<tr>
 		<td height="21"  valign=middle><b>b).-</b>Que bajo protesta de decir verdad y enterado de las consecuencias legales que esto conlleva, manifiesta
 			que el bien inmueble materia del presente contrato, lo destinará única y exclusivamente para un bien lícito, mismo que se determina en el cuerpo del presente y que cubrirá la renta y pago de servicios oportunamente,
 			con los recursos propios que recibe de su trabajo, derivado de la actividad lícita a la que se dedica.</td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><b>c).- Que a la firma del presente contrato se identifica con {{doc_indentificacion.tipo_documento_arrendatario | upper}} con número {{doc_indentificacion.no_doc_arrendatario}}.</b></td>
+		<td height="21"  valign=middle><b>c).- Que a la firma del presente contrato se identifica con {{info.datos_contratos.tipo_identificacion_arrendatario | upper}} con número {{info.datos_contratos.no_id_arrendatario}}.</b></td>
 	</tr>	
 		
 	<tr>
@@ -138,8 +184,8 @@
 	</tr>
 	<tr>
 		<td height="21"  valign = middle><b>e).- Que conoce perfectamente el inmueble descrito en las declaraciones de ''EL ARRENDADOR'' y es
-			su interés tomar en arrendamiento el inmueble ubicado en {{info.inmueble.calle | upper}} NO. EXTERIOR {{info.inmueble.numeroExterior}} NO. INTERIOR {{info.inmueble.numeroInterior}}  COL. {{info.inmueble.colonia | upper}}, CP. {{info.inmueble.postal_code}}, {{info.inmueble.municipio_alcaldia | upper}}, {{info.inmueble.estado | upper}},
-			materia de este contrato y usarlo exclusivamente para {% if info.inmueble.uso_inmueble == "Comercial" %} uso comercial{% else %} casa habitación.{% endif %} </b></td>
+			su interés tomar en arrendamiento el inmueble ubicado en {{info.inmueble.direccion_completa | upper}},
+			materia de este contrato y usarlo exclusivamente para {% if info.inmueble.uso_inmueble == "Comercial" %}uso comercial, especificamente para {{info.inmueble.giro}} {% else %}casa habitación.{% endif %} </b></td>
 	</tr>
 	<tr>
 		<td height="21" valign = middle><b>f).-</b> Que recibió de conformidad el inmueble materia de este instrumento a su entera satisfacción con todas las
@@ -166,18 +212,18 @@
 		<td height="21" valign=middle> </td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><b>3.- DECLARA ''EL {{info.fiador.fiador_obligado | upper}}'':</b></td>
+		<td height="21"  valign=middle><b>3.- DECLARA ''EL {{info.fiador.tipo_aval | upper}}'':</b></td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><b>a).- Llamarse como ha quedado establecido, ser una persona de nacionalidad {{info.fiador.nacionalidad | upper}}, que cuenta
 			con las facultades suficientes y necesarias para celebrar el presente contrato de arrendamiento respecto,
-			del inmueble ubicado en {{info.inmueble.calle | upper}} NO. EXTERIOR {{info.inmueble.numeroExterior}} NO. INTERIOR {{info.inmueble.numeroInterior}}  COL. {{info.inmueble.colonia | upper}}, CP. {{info.inmueble.postal_code}}, {{info.inmueble.municipio_alcaldia | upper}}, {{info.inmueble.estado | upper}}.</b></td>
+			del inmueble ubicado en {{info.inmueble.direccion_completa | upper}}</b></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><b>b).- Que a la firma del presente contrato se identifica con {{doc_indentificacion.tipo_documento_fiador | upper}} con número {{doc_indentificacion.no_doc_fiador}}.</b></td>
+		<td height="21"  valign=middle><b>b).- Que a la firma del presente contrato se identifica con {{info.datos_contratos.tipo_identificacion_fiador | upper}} con número {{info.datos_contratos.no_id_fiador}}.</b></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><b>c).- Que es su voluntad constituirse como {{info.fiador.fiador_obligado | upper}} de “EL ARRENDATARIO”.</b></td>
+		<td height="21"  valign=middle><b>c).- Que es su voluntad constituirse como {{info.fiador.tipo_aval | upper}} de “EL ARRENDATARIO”.</b></td>
 	</tr>	
 			
 	<tr>
@@ -185,12 +231,11 @@
 			DEL INMUEBLE</b> y que dichas notificaciones aún las de carácter personal se podrán realizar con cualquier persona que se encuentre en dicho inmueble.</td>
 	</tr>
 	<tr>
-		<td height="21"  valign = middle><b>e).- Que ''EL {{info.fiador.fiador_obligado | upper}}'' reside en inmueble ubicado en {{info.fiador.calle_fiador | upper}} NÚMERO {{info.fiador.n_ext_fiador}} INT. {{info.fiador.n_int_fiador}}
-			COL. {{info.fiador.colonia_fiador | upper}}, CP. {{info.fiador.cp_fiador}}, {{info.fiador.municipio_fiador | upper}}, {{info.fiador.estado_fiador | upper}}, donde también se podrán
+		<td height="21"  valign = middle><b>e).- Que ''EL {{info.fiador.tipo_aval | upper}}'' reside en inmueble ubicado en {{info.fiador.direccion_completa | upper}}, donde también se podrán
 			recibir todo tipo de notificaciones con cualquier persona que se encuentre en dicho inmueble, aún las de carácter personal.</b></td>
 	</tr>
 	<tr>
-		<td height="21" valign = middle><b>f).- Que "EL {{info.fiador.fiador_obligado | upper}}" declara conocer las obligaciones que adquiere con motivo de la celebración de este contrato y estar de acuerdo con el cumplimiento de estas. </b></td>
+		<td height="21" valign = middle><b>f).- Que "EL {{info.fiador.tipo_aval | upper}}" declara conocer las obligaciones que adquiere con motivo de la celebración de este contrato y estar de acuerdo con el cumplimiento de estas. </b></td>
 	</tr>
 
 	<tr>
@@ -220,7 +265,7 @@
 	
 	<tr>
 		<td height="21" valign=middle><b>"EL ARRENDADOR"</b> concede a <b>"EL ARRENDATARIO"</b>, el uso y goce temporal del inmueble
-			ubicado en <b>{{info.inmueble.calle | upper}} NO. EXTERIOR {{info.inmueble.numeroExterior}} NO. INTERIOR {{info.inmueble.numeroInterior}}  COL. {{info.inmueble.colonia | upper}}, CP. {{info.inmueble.postal_code}}, {{info.inmueble.municipio_alcaldia | upper}}, {{info.inmueble.estado | upper}}</b>, el
+			ubicado en <b>{{info.inmueble.direccion_completa | upper}}</b>, el
 			cual se encuentra en perfectas condiciones ya que reúne todas las condiciones de higiene y seguridad que
 			exigen las normas legales aplicables, declarando <b>"EL ARRENDATARIO"</b> que recibe el inmueble arrendado a su más entera satisfacción (ANEXO INVENTARIO). 
 		</td>
@@ -242,7 +287,7 @@
 			de conservación, uso y aseo, con sus instalaciones hidráulicas y de energía eléctrica completas y en condiciones normales de servicio, comprometiéndose a mantenerlas en igual estado, hasta devolver el inmueble y el
 			mobiliario en el mismo estado que lo recibe, salvo el deterioro normal que se opere por su uso ordinario y cotidiano que no revista negligencia o dolo por parte de <b>"EL ARRENDATARIO"</b>. <br>
 			
-			Para el caso de vicios ocultos que impidan el uso adecuado del inmueble <b>"EL ARRENDATARIO"</b> deberá notificar en un plazo no mayor a los {{vig.vig_c3}} días a partir de la firma del presente contrato a <b>"EL ARRENDADOR"</b> por escrito para que previa su autorización se hagan los arreglos correspondientes, 
+			Para el caso de vicios ocultos que impidan el uso adecuado del inmueble <b>"EL ARRENDATARIO"</b> deberá notificar en un plazo no mayor a los {{info.datos_contratos.vig_c3}} días a partir de la firma del presente contrato a <b>"EL ARRENDADOR"</b> por escrito para que previa su autorización se hagan los arreglos correspondientes, 
 			también se compromete <b>"EL ARRENDATARIO"</b> a solicitar por escrito para que previa autorización se hagan arreglos en mobiliario si fuera necesario, en el supuesto en que dichos vicios sean descubiertos y notificados posteriormente al termino ya estipulado <b>“EL ARRENDADOR”</b> no tendrá responsabilidad 
 			alguna en el momento de responder a la solicitud que pudiese haber por parte de <b>“EL ARRENDATARIO”</b>, salvo cuando los daños o desperfectos impidan el uso adecuado del inmueble y que sean derivados propiamente del inmueble por su antigüedad o falta de mantenimiento, asimismo que no sean provocados directamente 
 			por el descuido o mal uso por parte de <b>“EL ARRENDATARIO”</b>.
@@ -298,7 +343,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><b>QUINTA.- 'EL ARRENDATARIO''</b>y <b>''{{info.fiador.fiador_obligado | upper}}''</b> bajo protesta de decir verdad
+		<td height="21"  valign=middle><b>QUINTA.- 'EL ARRENDATARIO''</b>y <b>''{{info.fiador.tipo_aval | upper}}''</b> bajo protesta de decir verdad
 			manifiesta que <b>''EL INMUEBLE''</b> materia del presente contrato, solo será destinado para el uso que se estipula de buena fe y lícito, asimismo se comprometen y obligan a conservarlo por todo el tiempo que se le ocupe, se
 			advierte a <b>''EL ARRENDATARIO''</b> que la ley de Extinción de Dominio nos obliga a denunciar ante el Agente del Ministerio Público cualquier uso diferente que pueda tener alguna relación con el robo de
 			vehículos, trata de personas(prostitución), secuestro o cualquier conducta ilícita que la autoridad penal lo clasifique como delincuencia organizada, por ello, al tener la solicitud y entrega de documentación para
@@ -311,8 +356,8 @@
 	</tr>
 	<tr>
 		<td height="21" valign=middle><b>SEXTA.- VIGENCIA DE CONTRATO</b><br> 
-			El plazo del arrendamiento es de 12 meses forzosos para <b>"EL ARRENDATARIO"</b>, vigencia que inicia a partir
-			del día <b>{{datos_inicio.dia}} del Mes de {{datos_inicio.mes}} del Año {{datos_inicio.anio}} y vence el día {{datos_fin.dia}} del Mes de {{datos_fin.mes}} del Año {{datos_fin.anio}}</b> por lo que si <b>“EL ARRENDATARIO"</b> desean continuar la relación de arrendamiento, deberá celebrar un
+			El plazo del arrendamiento es de {{info.datos_contratos.duracion}} forzosos para <b>"EL ARRENDATARIO"</b>, vigencia que inicia a partir
+			del día <b>{{datos_inicio.dia}} del Mes de {{datos_inicio.mes}} del Año {{datos_inicio.anio}} y vence el día {{datos_termino.dia}} del Mes de {{datos_termino.mes}} del Año {{datos_termino.anio}}</b> por lo que si <b>“EL ARRENDATARIO"</b> desean continuar la relación de arrendamiento, deberá celebrar un
 			nuevo contrato con <B>"EL ARRENDADOR"</B> y dar aviso con <b>30 días</b> de anticipación, CON UN INCREMENTO POR RENOVACIÓN ya que se venció el término de este documento, lo anterior conforme al Índice Nacional de Precios al Consumidor (INPC) que elabora y pública el
 			Instituto Nacional de Estadística y Geografía (INEGI). 
 		</td>
@@ -339,11 +384,11 @@
 	{% if info.inmueble.mantenimiento == "Incluido" %}
 	<tr>
 		<td height="21"  valign=middle>La renta estipulada por la ocupación de dicho inmueble es la cantidad de <b>${{info.inmueble.renta | intcomma}}.00 ({{text_representation}} Pesos 00/100 M.N.),</b> mensuales adelantados, mantenimiento incluido por la cantidad de ${{info.inmueble.cuota_mantenimiento | intcomma}}.00, cantidad que deberá pagar <b>"EL ARRENDATARIO"</b> a <b>"EL
-			ARRENDADOR"</b> por anticipado los días {{dia_pago}} de cada mes, por lo que todo pago de renta pactada, que se realice después de los 5 días posteriores a la fecha de pago de cada mes causará un interés moratorio a razón del 5%
+			ARRENDADOR"</b> por anticipado los días {{info.datos_contratos.dia_pago}} de cada mes, por lo que todo pago de renta pactada, que se realice después de los 5 días posteriores a la fecha de pago de cada mes causará un interés moratorio a razón del 5%
 			mensual, independientemente que se actualice la hipótesis de rescisión del presente contrato por falta de pago puntual de renta. <br>
 			{% if info.arrendador.tipo_pago == "Deposito" %}
 			<b>"EL ARRENDATARIO"</b> se obliga a cubrir el importe de la renta señalada dentro del párrafo que antecede, en el domicilio de <b>"EL ARRENDADOR". Y a modo de cortesía en la cuenta 
-			bancaria {{info.arrendador.no_cuenta}} con Clabe {{info.arrendador.clabe}}, institución {{info.arrendador.banco | upper}} a favor de {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}</b>. 
+			bancaria {{info.arrendador.no_cuenta}} con Clabe {{info.arrendador.clabe}}, institución {{info.arrendador.banco | upper}} a favor de {% if info.arrendador.regimen_fiscal == "Persona Fisica" %} {{info.arrendador.nombre_completo | upper}} {% else %}{{info.arrendador.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendador.nombre_completo_rl | upper}} {% endif %}</b>. 
 			{% else %}
 			<b>"EL ARRENDATARIO"</b> se obliga a cubrir el importe de la renta señalada dentro del párrafo que antecede, en el domicilio del inmueble arrendado en efectivo.
 			{% endif %}
@@ -353,13 +398,13 @@
 	{% else %}
 	<tr>
 		<td height="21"  valign=middle>La renta estipulada por la ocupación de dicho inmueble es la cantidad de <b>${{info.inmueble.renta | intcomma}}.00 ({{text_representation}} Pesos 00/100 M.N.),</b> mensuales adelantados, no incluido mantenimiento, cantidad que deberá pagar <b>"EL ARRENDATARIO"</b> a <b>"EL
-			ARRENDADOR"</b> por anticipado los días {{dia_pago}} de cada mes, por lo que todo pago de renta pactada, que se realice después de los 5 días posteriores a la fecha de pago de cada mes causará un interés moratorio a razón del 5%
+			ARRENDADOR"</b> por anticipado los días {{info.datos_contratos.dia_pago}} de cada mes, por lo que todo pago de renta pactada, que se realice después de los 5 días posteriores a la fecha de pago de cada mes causará un interés moratorio a razón del 5%
 			mensual, independientemente que se actualice la hipótesis de rescisión del presente contrato por falta de pago puntual de renta. <br>
-			{% comment %} Derivado a lo anterior, en cuanto al pago de mantenimiento y/o cualquier cuota extraordinaria,  <b>“EL ARRENDATARIO”</b> deberá cubrir el pago de
-			las mismas por la cantidad de ${{info.inmueble.cuota_mantenimiento | intcomma}}.00, ya que dicho concepto no se encuentra integrado al monto de la renta.<br> {% endcomment %}
+			Derivado a lo anterior, en cuanto al pago de mantenimiento y/o cualquier cuota extraordinaria,  <b>“EL ARRENDATARIO”</b> deberá cubrir el pago de
+			las mismas por la cantidad de ${{info.inmueble.cuota_mantenimiento | intcomma}}.00, ya que dicho concepto no se encuentra integrado al monto de la renta.<br> 
 			{% if info.arrendador.tipo_pago == "Deposito" %}
-			<b>"EL ARRENDATARIO"</b> se obliga a cubrir el importe de la renta señalada dentro del párrafo que antecede, en el domicilio de <b>"EL ARRENDADOR". Y a modo de cortesía en la cuenta 
-			bancaria {{info.arrendador.no_cuenta}} con Clabe {{info.arrendador.clabe}}, institución {{info.arrendador.banco | upper}} a favor de {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}</b>. 
+			<b>"EL ARRENDATARIO"</b> se obliga a cubrir el importe de la renta señalada dentro del párrafo que antecede, a <b>"EL ARRENDADOR". Y a modo de cortesía en la cuenta 
+			bancaria {{info.arrendador.no_cuenta}} con Clabe {{info.arrendador.clabe}}, institución {{info.arrendador.banco | upper}} a favor de {% if info.arrendador.regimen_fiscal == "Persona Fisica" %} {{info.arrendador.nombre_completo | upper}} {% else %}{{info.arrendador.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendador.nombre_completo_rl | upper}} {% endif %}</b>. 
 			{% else %}
 			<b>"EL ARRENDATARIO"</b> se obliga a cubrir el importe de la renta señalada dentro del párrafo que antecede, en el domicilio del inmueble arrendado en efectivo.
 			{% endif %}
@@ -369,22 +414,23 @@
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
-	<tr>
-		<td height="21" valign=middle><b>NOVENA.-</b>Para garantizar el pago de la renta establecida en el presente contrato, quedaran firmados <b>12 PAGARES</b> seriados del 1 al 12, correspondientes a los 12 meses de vigencia de este contrato.
+
+	{% comment %} <tr>
+		<td height="21" valign=middle><b>NOVENA.-</b>Para garantizar el pago de la renta establecida en el presente contrato, quedaran firmados <b>{{ info.datos_contratos.duracion | slice:":1" }} PAGARES</b> seriados del 1 al {{ info.datos_contratos.duracion | slice:":1" }}, correspondientes a los 12 meses de vigencia de este contrato.
 			Ambas partes convienen en que a partir del día {{datos_inicio.dia}} del Mes de {{datos_inicio.mes}} del Año {{datos_inicio.anio}}, todo mes que ocupe <b>"EL ARRENDATARIO"</b> el inmueble arrendado, se considerará forzoso y deberá pagarlo íntegramente, aun cuando no ocupe el inmueble.
 		</td>
+	</tr> {% endcomment %}
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><b>NOVENA.- "EL ARRENDATARIO"</b> no podrá retener la renta en ningún caso, ni bajo ningún título judicial o extrajudicial, sino que la pagará íntegramente en los términos pactados en este contrato.</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b>DÉCIMA.- "EL ARRENDATARIO"</b> no podrá retener la renta en ningún caso, ni bajo ningún título judicial o extrajudicial, sino que la pagará íntegramente en los términos pactados en este contrato.</td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><br></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b>DÉCIMA PRIMERA.- MEJORAS O BENEFICIOS AL INMUEBLE</b></td>
+		<td height="21" valign=middle><b>DÉCIMA.- MEJORAS O BENEFICIOS AL INMUEBLE</b></td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle>Las partes pactan que todas las obras, mejoras o beneficios que se realicen en el inmueble pasarán a formar parte del patrimonio de <b>"EL ARRENDADOR"</b>, sin que se genere ninguna contraprestación por dichas mejoras, obras o beneficios</td>
@@ -393,7 +439,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b>DÉCIMA SEGUNDA.- "EL ARRENDATARIO"</b> está de acuerdo y conforme en que cualquier mejora o adaptación que realicen al inmueble materia del presente contrato, solo lo podrán hacer con autorización
+		<td height="21" valign=middle><b>DÉCIMA PRIMERA.- "EL ARRENDATARIO"</b> está de acuerdo y conforme en que cualquier mejora o adaptación que realicen al inmueble materia del presente contrato, solo lo podrán hacer con autorización
 			previa y por escrito de <b>"EL ARRENDADOR"</b>, siempre y cuando no se perjudique la estabilidad del inmueble, y aquellas mejoras que efectúen y que tengan el carácter de permanentes quedarán en beneficio
 			gratuito del arrendador, sin que el <b>"ARRENDATARIO"</b> pueda destruirlas o retirarlas al término del arrendamiento. Todos los gastos que se eroguen por adaptaciones serán por cuenta y riesgo del <b>"ARRENDATARIO"</b>. </td>
 	</tr>
@@ -406,7 +452,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b>DÉCIMA TERCERA.- PAGO DE SERVICIOS DE INMUEBLE ARRENDADO</b> </td>
+		<td height="21" valign=middle><b>DÉCIMA SEGUNDA.- PAGO DE SERVICIOS DE INMUEBLE ARRENDADO</b> </td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle>Queda expresamente convenido que los gastos que se causen por concepto de consumo de {% if info.inmueble.electricidad == "No" %}energía eléctrica,{% endif %} {% if info.inmueble.gas == "No" %}gas,{% endif %} {% if info.inmueble.agua_potable == "No" %}agua,{% endif %} {% if info.inmueble.lineaTelefonica == "No" %}teléfono,{% endif %} {% if info.inmueble.internet == "No" %}internet,{% endif %} {% if info.inmueble.televisionCable == "No" %}sistemas de cable o servicios similares,{% endif %} 
@@ -434,7 +480,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>DÉCIMA CUARTA.-"EL ARRENDATARIO"</b> se compromete que en caso de contratar servicios de línea telefónica, televisión por cable, internet o cualquier otro tipo de servicio con el domicilio del inmueble
+		<td height="21" valign="middle"><b>DÉCIMA TERCERA.-"EL ARRENDATARIO"</b> se compromete que en caso de contratar servicios de línea telefónica, televisión por cable, internet o cualquier otro tipo de servicio con el domicilio del inmueble
 			arrendado, se obliga a pagar los adeudos generados y obtener la baja de dichos servicios por la empresa contratante.
 		</td>
 	</tr>
@@ -442,7 +488,7 @@
 		<td height="21" valign = "middle"><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign = "middle"><b>DÉCIMA QUINTA.- DEPÓSITO EN GARANTÍA</b></td>
+		<td height="21" valign = "middle"><b>DÉCIMA CUARTA.- DEPÓSITO EN GARANTÍA</b></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle"><b>“EL ARRENDATARIO”</b> entrega en depositó a <b>“EL ARRENDADOR”</b> la cantidad de <b>${{info.inmueble.renta | intcomma}} ({{text_representation}} Pesos 00/100 M.N.)</b> por concepto de depósito que garantiza el cuidado del inmueble arrendado;
@@ -450,7 +496,7 @@
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle">Dicho depósito será devuelto {{vig.vig_c15}} días después de que finalice la relación de arrendamiento entre las partes, lo
+		<td height="21" valign="middle">Dicho depósito será devuelto {{info.datos_contratos.vig_c15}} días después de que finalice la relación de arrendamiento entre las partes, lo
 			anterior a fin de poder acreditar que se entrega el inmueble arrendado en las mismas condiciones que le fue entregado al inicio de la vigencia, únicamente con el deterioro natural que sufra el mismo y el cual se debe
 			encontrar libre de todo adeudo de pago de servicios, por tal motivo, para asegurar la condición en la cual se encuentra el inmueble arrendado, <b>“EL ARRENDADOR”</b> tendrá derecho bajo acuerdo previo en cuanto al
 			horario, de acudir al inmueble 15 días antes del término del contrato, para hacer una revisión del mismo, el cual deberá de encontrarse en buenas condiciones de pintura e higiene debiendo mantenerse de esa forma hasta
@@ -461,7 +507,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>DÉCIMA SEXTA.- LEY NACIONAL DE EXTINCIÓN DE DOMINIO REGLAMENTARIA DEL ARTÍCULO 22 DE LA CONSTITUCIÓN POLÍTICA DE LOS ESTADOS UNIDOS MEXICANOS </b></td>
+		<td height="21" valign="middle"><b>DÉCIMA QUINTA.- LEY NACIONAL DE EXTINCIÓN DE DOMINIO REGLAMENTARIA DEL ARTÍCULO 22 DE LA CONSTITUCIÓN POLÍTICA DE LOS ESTADOS UNIDOS MEXICANOS </b></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle"><b>''EL ARRENDATARIO''</b> bajo protesta de decir verdad y a sabiendas de las consecuencias legales que eso conlleva, se compromete a dar única y exclusivamente el uso{% if info.inmueble.uso_inmueble == "Comercial" %} comercial con giro para {{info.inmueble.giro}}
@@ -481,7 +527,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>DÉCIMA SÉPTIMA.-</b> Las partes convienen que <b>"EL ARRENDATARIO"</b>, posesionario y/u ocupantes del inmueble materia del presente contrato serán los únicos responsables si se comete cualquier delito de carácter
+		<td height="21" valign="middle"><b>DÉCIMA SEXTA.-</b> Las partes convienen que <b>"EL ARRENDATARIO"</b>, posesionario y/u ocupantes del inmueble materia del presente contrato serán los únicos responsables si se comete cualquier delito de carácter
 			local o federal y/o dentro del inmueble arrendado, así también <b>"EL ARRENDATARIO"</b> cuidara que no existan personas secuestradas y/o vehículos o instrumentos que provengan de algún ilícito, por lo que
 			ni el agente del ministerio público ni la autoridad judicial federal o estatal podrán inculpar a <b>"EL ARRENDADOR"</b> de responsabilidad alguna conforme a la <b>Ley Nacional de Extinción de Dominio
 			reglamentaria del artículo 22 de la Constitución Política de los Estados Unidos Mexicanos, ni de ninguna otra legislación estatal o federal</b> aplicable.
@@ -496,7 +542,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>DÉCIMA OCTAVA.- SINIESTROS Y CONTRATACIÓN DE SEGUROS</b></td>
+		<td height="21" valign="middle"><b>DÉCIMA SÉPTIMA.- SINIESTROS Y CONTRATACIÓN DE SEGUROS</b></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle"><b>"EL ARRENDATARIO"</b> no es responsable, de los daños y perjuicios causados en el inmueble y mobiliario
@@ -519,7 +565,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>DÉCIMA NOVENA.- PROHIBICIÓN DE SUBARRENDAR</b></td>
+		<td height="21" valign="middle"><b>DÉCIMA OCTAVA.- PROHIBICIÓN DE SUBARRENDAR</b></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle"><b>"EL ARRENDATARIO"</b> se compromete a no subarrendar, ni a ceder a terceras personas, parcial o totalmente, el uso del bien inmueble materia de este contrato.<br>
@@ -531,36 +577,9 @@
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
-	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA.- ''EL {{info.fiador.fiador_obligado | upper}}'' </b></td>
-	</tr>
-	<tr>
-		<td height="21" valign="middle"><b>''EL {{info.fiador.fiador_obligado | upper}}''</b> bajo protesta de decir verdad y a sabiendas de las consecuencias legales que eso conlleva, manifiesta que <b>''EL ARRENDATARIO''</b> dará el {% if info.inmueble.uso_inmueble == "Comercial" %} uso comercial con giro para {{info.inmueble.giro}}
-			{% else %}uso de casa habitación{% endif %} al inmueble objeto
-			del presenté contrato y que este pagará la renta y los servicios con los recursos lícitos que obtiene de su actividad lícita a la que se dedica así como también garantiza que dentro del inmueble arrendado no se realizaran conductas sospechosas e/o inadecuadas ante terceros, ni actos ilícitos, ni mucho menos incurrir en
-			algún delito del orden común o federal.<br>
-			<b>''{{info.fiador.fiador_obligado | upper}}''</b> garantizará que las rentas serán pagadas con sus respectivos aumentos y en caso de que por algún motivo el arrendatario no pudiera cubrirlas asimismo <b>''EL {{info.fiador.fiador_obligado | upper}}''</b> renuncia expresamente a los beneficios de orden y de excusión, lo que significa que en su
-			momento podremos requerir el pago tanto a <b>''EL {{info.fiador.fiador_obligado | upper}}''</b> como a <b>“EL ARRENDATARIO”</b> de forma conjunta o separada.
-		</td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><br></td>
-	</tr>
-	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA PRIMERA.- “EL ARRENDATARIO”</b> autoriza a <b>''EL {{info.fiador.fiador_obligado | upper}}'' </b> para que entregue la localidad cuando el por ausencia o negligencia no lo haga, designándolo representante de su
-			sucesión únicamente en relación con este contrato, afín de que en caso de que fallezca durante su vigencia el garante esté en posibilidades de reintegrar el inmueble arrendado y quedar liberado de su obligación.<br>
 
-			<b>''EL {{info.fiador.fiador_obligado | upper}}''</b>, para garantizar las obligaciones contraídas en el presente contrato y en particular para garantizar el pago de las rentas pactadas durante el término del arrendamiento, se constituye
-			como <b>{{info.fiador.fiador_obligado | upper}}</b> y mancomunado de <b>''EL ARRENDATARIO''</b> garantizando todas sus obligaciones y renuncia además a los beneficios de orden y excusión que le concede la ley.<br>
-
-			Asimismo, <b>''EL {{info.fiador.fiador_obligado | upper}}''</b> y <b>''EL ARRENDATARIO''</b> responderán ante <b>''EL ARRENDADOR''</b> de cualquier acción de la autoridad competente en aplicación de la Ley Nacional de
-			Extinción de Dominio reglamentaria del artículo 22 de la Constitución Política de los Estados Unidos Mexicanos o de cualquier otra de naturaleza similar, por el uso indebido que se hiciere del inmueble arrendado</td>
-	</tr>
 	<tr>
-		<td height="21" valign=middle><br></td>
-	</tr>
-	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA SEGUNDA.- CAUSAS DE RESCISIÓN DE CONTRATO</b></td>
+		<td height="21" valign="middle"><b>DÉCIMA NOVENA.- CAUSAS DE RESCISIÓN DE CONTRATO</b></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle"><b>"EL ARRENDADOR"</b> podrá rescindir el presenté contrato, en los siguientes casos:<br>
@@ -580,14 +599,134 @@
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
+
+
+	{% comment %} Condicion si no tiene fiador {% endcomment %}
+	{% if info.fiador.registro_aval == "Si" or info.fiador.id %}
+		<tr>
+			<td height="21" valign="middle"><b>VIGÉSIMA.- ''EL {{info.fiador.tipo_aval | upper}}'' </b></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle"><b>''EL {{info.fiador.tipo_aval | upper}}''</b> bajo protesta de decir verdad y a sabiendas de las consecuencias legales que eso conlleva, manifiesta que <b>''EL ARRENDATARIO''</b> dará el {% if info.inmueble.uso_inmueble == "Comercial" %} uso comercial con giro para {{info.inmueble.giro}}
+				{% else %}uso de casa habitación{% endif %} al inmueble objeto
+				del presenté contrato y que este pagará la renta y los servicios con los recursos lícitos que obtiene de su actividad lícita a la que se dedica así como también garantiza que dentro del inmueble arrendado no se realizaran conductas sospechosas e/o inadecuadas ante terceros, ni actos ilícitos, ni mucho menos incurrir en
+				algún delito del orden común o federal.<br>
+				<b>''{{info.fiador.tipo_aval | upper}}''</b> garantizará que las rentas serán pagadas con sus respectivos aumentos y en caso de que por algún motivo el arrendatario no pudiera cubrirlas asimismo <b>''EL {{info.fiador.tipo_aval | upper}}''</b> renuncia expresamente a los beneficios de orden y de excusión, lo que significa que en su
+				momento podremos requerir el pago tanto a <b>''EL {{info.fiador.tipo_aval | upper}}''</b> como a <b>“EL ARRENDATARIO”</b> de forma conjunta o separada.
+			</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle><br></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle"><b>VIGÉSIMA PRIMERA.- “EL ARRENDATARIO”</b> autoriza a <b>''EL {{info.fiador.tipo_aval | upper}}'' </b> para que entregue la localidad cuando el por ausencia o negligencia no lo haga, designándolo representante de su
+				sucesión únicamente en relación con este contrato, afín de que en caso de que fallezca durante su vigencia el garante esté en posibilidades de reintegrar el inmueble arrendado y quedar liberado de su obligación.<br>
+
+				<b>''EL {{info.fiador.tipo_aval | upper}}''</b>, para garantizar las obligaciones contraídas en el presente contrato y en particular para garantizar el pago de las rentas pactadas durante el término del arrendamiento, se constituye
+				como <b>{{info.fiador.tipo_aval | upper}}</b> y mancomunado de <b>''EL ARRENDATARIO''</b> garantizando todas sus obligaciones y renuncia además a los beneficios de orden y excusión que le concede la ley.<br>
+
+				Asimismo, <b>''EL {{info.fiador.tipo_aval | upper}}''</b> y <b>''EL ARRENDATARIO''</b> responderán ante <b>''EL ARRENDADOR''</b> de cualquier acción de la autoridad competente en aplicación de la Ley Nacional de
+				Extinción de Dominio reglamentaria del artículo 22 de la Constitución Política de los Estados Unidos Mexicanos o de cualquier otra de naturaleza similar, por el uso indebido que se hiciere del inmueble arrendado</td>
+		</tr>
+		
+		<tr>
+			<td height="21" valign=middle><br></td>
+		</tr>
+
+		<tr>
+			<td height="21" valign="middle"><b>VIGÉSIMA SEGUNDA.- CAUSAS DE TERMINACIÓN ANTICIPADA</b></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle">Las partes acuerdan que será causa de terminación anticipada del presenté contrato, las siguientes:<br>
+				<b>A)</b> Por muerte de <b>"EL ARRENDATARIO"</b>.<br>
+				<b>B)</b> Si <b>"EL ARRENDADOR"</b> basado en las conductas sospechosas o inadecuadas de <b>"EL ARRENDATARIO"</b> lo hacen suponer que se tiene una actividad ilícita dentro del inmueble arrendado.<br>
+				<b>C)</b> Por voluntad de ambas partes, con {{info.datos_contratos.vig_c23}} días naturales de anticipación, lo cual se realizará por escrito acordando las fechas de terminación y desocupación del bien.<br>
+				<b>D)</b> Cuando el uso o goce pacífico del inmueble se vea interrumpido por causas o factores externos a <b>“EL ARRENDATARIO”.</b><br>
+				<b>E)</b> Cuando por omisión o negligencia de <b>“EL ARRENDADOR”</b>, impida el uso adecuado total o parcial del inmueble.
+			</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle><br></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle"><b>VIGÉSIMA TERCERA.- DE LA TERMINACIÓN DEL CONTRATO Y LA DESOCUPACIÓN DEL INMUEBLE </b></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle">Los contratantes acuerdan que al término de la vigencia de este contrato, <b>''EL ARRENDATARIO''</b> y <b>''EL {{info.fiador.tipo_aval | upper}}''</b> sin necesidad de resolución judicial, se comprometen a entregar a <b>''EL
+				ARRENDADOR''</b> el inmueble como lo recibió y con el simple deterioro que por el uso normal sufra el mismo. La devolución del inmueble, objeto del presente contrato de arrendamiento, se hará mediante cartaentrega firmando <b>''EL ARRENDADOR''</b> de conformidad.<br>
+				<b>"EL ARRENDATARIO"</b> acepta y se obliga a pagar los gastos y costos de procedimientos legales, daños y perjuicios que se ocasionen a <b>"EL ARRENDADOR"</b>, además de la cantidad que resulte de dos meses de
+				renta, si se da el caso que siguiere ocupando el inmueble arrendado a pesar de haber terminado la vigencia del arrendamiento y/o sin consentimiento de <b>"EL ARRENDADOR"</b>.
+			</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle><br></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle"><b>VIGÉSIMA CUARTA.- DESOCUPACIÓN ANTICIPADA DEL INMUEBLE</b></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle">Ambas partes acuerdan que en caso de que <b>"EL ARRENDATARIO"</b> desee desocupar, el inmueble materia
+				del presente contrato, en forma anticipada y antes de la fecha de vencimiento del presente, tendrá que dar aviso
+				por escrito a <b>"EL ARRENDADOR"</b>, con {{info.datos_contratos.vig_c25}} días de anticipación.<br>
+				<b>"EL ARRENDATARIO"</b> deberá pagar a <b>"EL ARRENDADOR"</b> como penalidad por la terminación anticipada, una cantidad igual a la suma de un mes de renta pactada y aplicable para ese momento, así como
+				estar al corriente en el pago de los servicios teniendo como fecha límite para cubrir estas obligaciones, el día de entrega de la posesión jurídica y material del bien materia del presente contrato.
+				El supuesto enunciado en el párrafo anterior, será aplicable también para el caso que el <b>"EL ARRENDATARIO" diera motivo e incumpliera a las causas de rescisión del multicitado contrato estipuladas en la cláusula Vigésima Tercera</b>
+			</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle><br></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle"><b>VIGÉSIMA QUINTA.- EXCLUSIÓN LABORAL</b></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle"><b>"EL ARRENDADOR"</b> no participa de ninguna responsabilidad de liquidación laboral, o empresarial, o de cualquier otra índole, que pudiera tener <b>"EL ARRENDATARIO"</b> con sus empleados y/o socios; De ese
+				modo en caso de que la utilización del bien inmueble objeto de este contrato sea para uso comercial, tampoco será responsable de cualquier relación obrero-patronal que se genere en este domicilio con
+				<b>"EL ARRENDATARIO"</b>, ni cualquier otra persona física o moral, dentro del inmueble arrendado.
+			</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle><br></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle"><b>VIGÉSIMA SEXTA. RECUPERACIÓN DEL INMUEBLE</b></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle">Ambas partes acuerdan que en caso de que <b>"EL ARRENDATARIO"</b> adeude rentas y deje en estado de abandono el inmueble que le fue arrendado, estando vigente o no el presente contrato 
+				<b>"EL ARRENDATARIO"</b> faculta en este acto a <b>"EL ARRENDADOR"</b> para que tome posesión del mismo en forma inmediata, no reservándose en consecuencia ningún tipo de acción civil, penal, o administrativa, o
+				ninguna otra de cualquier índole que pudiera ejecutar en contra <b>"EL ARRENDADOR"</b> por ser su voluntad a hacer y permitir en este acto la entrega del inmueble en forma pacífica y voluntaria.
+			</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle><br></td>
+		</tr>
+		<tr>
+			<td height="21" valign="middle"><b>VIGÉSIMA SÉPTIMA.- RENUNCIAS DEL ARRENDATARIO.- '' EL ARRENDATARIO''</b> renuncia expresamente a: <br>
+				1. Los Derechos de Preferencia establecidos en el Código Civil para {{info.datos_contratos.entidad_federativa | upper}}, para el caso de que '' EL ARRENDADOR'', deseé volver a arrendar o vender el inmueble a un tercero.<br>
+				<br>
+				2. El Derecho a pedir la modificación del Contrato en los supuestos señalados en el Código Civil para {{info.datos_contratos.entidad_federativa | upper}}.<br>
+				<br>
+				Las partes se someten expresamente a las disposiciones del Código Civil para {{info.datos_contratos.entidad_federativa | upper}} y para regular todo lo relativo a este instrumento y para su interpretación y cumplimiento se someten a la
+				jurisdicción de los tribunales en {{info.datos_contratos.entidad_federativa | upper}}, razón por la cual ambos contratantes renuncian expresamente al fuero que por razón de su domicilio presente o futuro pudiera corresponderles.<br>
+				Enteradas ambas partes del presente contrato, lo firman de conformidad en {{info.datos_contratos.entidad_federativa | upper}}, por triplicado el día {{datos_inicio.dia}} del Mes de {{datos_inicio.mes}} del Año {{datos_inicio.anio}}, quienes de igual forma lo suscriben en todas y cada una
+				de sus hojas que lo integran. 
+			</td>
+		</tr>
+	
+	{% else %} {% comment %} SIN AVAL{% endcomment %}
+
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA TERCERA.- CAUSAS DE TERMINACIÓN ANTICIPADA</b></td>
+		<td height="21" valign=middle><br></td>
+	</tr>
+
+	<tr>
+		<td height="21" valign="middle"><b>VIGÉSIMA.- CAUSAS DE TERMINACIÓN ANTICIPADA</b></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle">Las partes acuerdan que será causa de terminación anticipada del presenté contrato, las siguientes:<br>
 			<b>A)</b> Por muerte de <b>"EL ARRENDATARIO"</b>.<br>
 			<b>B)</b> Si <b>"EL ARRENDADOR"</b> basado en las conductas sospechosas o inadecuadas de <b>"EL ARRENDATARIO"</b> lo hacen suponer que se tiene una actividad ilícita dentro del inmueble arrendado.<br>
-			<b>C)</b> Por voluntad de ambas partes, con {{vig.vig_c23}} días naturales de anticipación, lo cual se realizará por escrito acordando las fechas de terminación y desocupación del bien.<br>
+			<b>C)</b> Por voluntad de ambas partes, con {{info.datos_contratos.vig_c23}} días naturales de anticipación, lo cual se realizará por escrito acordando las fechas de terminación y desocupación del bien.<br>
 			<b>D)</b> Cuando el uso o goce pacífico del inmueble se vea interrumpido por causas o factores externos a <b>“EL ARRENDATARIO”.</b><br>
 			<b>E)</b> Cuando por omisión o negligencia de <b>“EL ARRENDADOR”</b>, impida el uso adecuado total o parcial del inmueble.
 		</td>
@@ -596,10 +735,10 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA CUARTA.- DE LA TERMINACIÓN DEL CONTRATO Y LA DESOCUPACIÓN DEL INMUEBLE </b></td>
+		<td height="21" valign="middle"><b>VIGÉSIMA PRIMERA.- DE LA TERMINACIÓN DEL CONTRATO Y LA DESOCUPACIÓN DEL INMUEBLE </b></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle">Los contratantes acuerdan que al término de la vigencia de este contrato, <b>''EL ARRENDATARIO''</b> y <b>''EL {{info.fiador.fiador_obligado | upper}}''</b> sin necesidad de resolución judicial, se comprometen a entregar a <b>''EL
+		<td height="21" valign="middle">Los contratantes acuerdan que al término de la vigencia de este contrato, <b>''EL ARRENDATARIO''</b> y <b>''EL {{info.fiador.tipo_aval | upper}}''</b> sin necesidad de resolución judicial, se comprometen a entregar a <b>''EL
 			ARRENDADOR''</b> el inmueble como lo recibió y con el simple deterioro que por el uso normal sufra el mismo. La devolución del inmueble, objeto del presente contrato de arrendamiento, se hará mediante cartaentrega firmando <b>''EL ARRENDADOR''</b> de conformidad.<br>
 			<b>"EL ARRENDATARIO"</b> acepta y se obliga a pagar los gastos y costos de procedimientos legales, daños y perjuicios que se ocasionen a <b>"EL ARRENDADOR"</b>, además de la cantidad que resulte de dos meses de
 			renta, si se da el caso que siguiere ocupando el inmueble arrendado a pesar de haber terminado la vigencia del arrendamiento y/o sin consentimiento de <b>"EL ARRENDADOR"</b>.
@@ -609,12 +748,12 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA QUINTA.- DESOCUPACIÓN ANTICIPADA DEL INMUEBLE</b></td>
+		<td height="21" valign="middle"><b>VIGÉSIMA SEGUNDA.- DESOCUPACIÓN ANTICIPADA DEL INMUEBLE</b></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle">Ambas partes acuerdan que en caso de que <b>"EL ARRENDATARIO"</b> desee desocupar, el inmueble materia
 			del presente contrato, en forma anticipada y antes de la fecha de vencimiento del presente, tendrá que dar aviso
-			por escrito a <b>"EL ARRENDADOR"</b>, con {{vig.vig_c25}} días de anticipación.<br>
+			por escrito a <b>"EL ARRENDADOR"</b>, con {{info.datos_contratos.vig_c25}} días de anticipación.<br>
 			<b>"EL ARRENDATARIO"</b> deberá pagar a <b>"EL ARRENDADOR"</b> como penalidad por la terminación anticipada, una cantidad igual a la suma de un mes de renta pactada y aplicable para ese momento, así como
 			estar al corriente en el pago de los servicios teniendo como fecha límite para cubrir estas obligaciones, el día de entrega de la posesión jurídica y material del bien materia del presente contrato.
 			El supuesto enunciado en el párrafo anterior, será aplicable también para el caso que el <b>"EL ARRENDATARIO" diera motivo e incumpliera a las causas de rescisión del multicitado contrato estipuladas en la cláusula Vigésima Tercera</b>
@@ -624,7 +763,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA SEXTA.- EXCLUSIÓN LABORAL</b></td>
+		<td height="21" valign="middle"><b>VIGÉSIMA TERCERA. QUINTA.- EXCLUSIÓN LABORAL</b></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle"><b>"EL ARRENDADOR"</b> no participa de ninguna responsabilidad de liquidación laboral, o empresarial, o de cualquier otra índole, que pudiera tener <b>"EL ARRENDATARIO"</b> con sus empleados y/o socios; De ese
@@ -636,7 +775,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA SÉPTIMA. RECUPERACIÓN DEL INMUEBLE</b></td>
+		<td height="21" valign="middle"><b>VIGÉSIMA CUARTA. RECUPERACIÓN DEL INMUEBLE</b></td>
 	</tr>
 	<tr>
 		<td height="21" valign="middle">Ambas partes acuerdan que en caso de que <b>"EL ARRENDATARIO"</b> adeude rentas y deje en estado de abandono el inmueble que le fue arrendado, estando vigente o no el presente contrato 
@@ -648,115 +787,86 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA OCTAVA.- RENUNCIAS DEL ARRENDATARIO.- '' EL ARRENDATARIO''</b> renuncia expresamente a: <br>
-			1. Los Derechos de Preferencia establecidos en el Código Civil para {{info.inmueble.estado | upper}}, para el caso de que '' EL ARRENDADOR'', deseé volver a arrendar o vender el inmueble a un tercero.<br>
+		<td height="21" valign="middle"><b>VIGÉSIMA QUINTA. RENUNCIAS DEL ARRENDATARIO.- '' EL ARRENDATARIO''</b> renuncia expresamente a: <br>
+			1. Los Derechos de Preferencia establecidos en el Código Civil para {{info.datos_contratos.entidad_federativa | upper}}, para el caso de que '' EL ARRENDADOR'', deseé volver a arrendar o vender el inmueble a un tercero.<br>
 			<br>
-			2. El Derecho a pedir la modificación del Contrato en los supuestos señalados en el Código Civil para {{info.inmueble.estado | upper}}.<br>
+			2. El Derecho a pedir la modificación del Contrato en los supuestos señalados en el Código Civil para {{info.datos_contratos.entidad_federativa | upper}}.<br>
 			<br>
-			Las partes se someten expresamente a las disposiciones del Código Civil para {{info.inmueble.estado | upper}} y para regular todo lo relativo a este instrumento y para su interpretación y cumplimiento se someten a la
-			jurisdicción de los tribunales en {{info.inmueble.estado | upper}}, razón por la cual ambos contratantes renuncian expresamente al fuero que por razón de su domicilio presente o futuro pudiera corresponderles.<br>
-			Enteradas ambas partes del presente contrato, lo firman de conformidad en {{info.inmueble.estado | upper}}, por triplicado el día {{datos_inicio.dia}} del Mes de {{datos_inicio.mes}} del Año {{datos_inicio.anio}}, quienes de igual forma lo suscriben en todas y cada una
+			Las partes se someten expresamente a las disposiciones del Código Civil para {{info.datos_contratos.entidad_federativa | upper}} y para regular todo lo relativo a este instrumento y para su interpretación y cumplimiento se someten a la
+			jurisdicción de los tribunales en {{info.datos_contratos.entidad_federativa | upper}}, razón por la cual ambos contratantes renuncian expresamente al fuero que por razón de su domicilio presente o futuro pudiera corresponderles.<br>
+			Enteradas ambas partes del presente contrato, lo firman de conformidad en {{info.datos_contratos.entidad_federativa | upper}}, por triplicado el día {{datos_inicio.dia}} del Mes de {{datos_inicio.mes}} del Año {{datos_inicio.anio}}, quienes de igual forma lo suscriben en todas y cada una
 			de sus hojas que lo integran. 
 		</td>
 	</tr>
+	{% endif %}
+
+	
+	
 	<tr>
 		<td height="31"  valign="middle"></td>
 	</tr>
-	
-	
-	
-	
-	
-
-	
-
-	
 	
 	</tr>
 	{% comment %} FIRMAS {% endcomment %}
 	<tr>
 		<td style="height:63px" align="center" valign=middle></td>
 	</tr>
-	
-	<tr>
-		<td height="21" valign=middle><b>             _______________________________                             _______________________________</b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b>                          "EL ARRENDADOR"                                                 "EL ARRENDATARIO"</b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b>               {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}.                                      {{info.arrendatario.nombre | upper}} {{info.arrendatario.apellido | upper}} {{info.arrendatario.apellido1 | upper}}.</b></td>
-	</tr>
-	<tr>
-		<td style="height:63px" align="center" valign=middle></td>
-	</tr>
-
-	
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><font size=3 color="#000000">_______________________________</font></b></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><font size=3 color="#000000">"{{info.fiador.fiador_obligado | upper}}"</font></b></td>
-
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><font size=3 color="#000000">{{info.fiador.n_fiador | upper}} {{info.fiador.a_fiador | upper}} {{info.fiador.a2_fiador | upper}}.</font></b></td>
-	</tr>
-	
-	
-	<tr>
-		<td height="21" valign=middle><br></td>
-	</tr>
-	
-	{% if mobiliario %}
-	<tr>
-		<td style="text-align:center"><h1>Anexo Inventario Mobiliario<h1></td>
-	</tr>
-	<tr>
-		<td style="text-align:center;">
-			<div style="margin: 0 auto;" class="container">
-				<div style="background-color: #dad7cd;" class="section section3" id="seccion1">
-					<p style="text-align:center;"><b>Cantidad</b></p>
-				</div>
-				<div style="background-color: #dad7cd;" class="section section3" id="seccion2">
-					<p style="text-align:center;"><b>Mobiliario</b></p>
-				</div>
-				<div style="background-color: #dad7cd;" class="section section2 section3" id="seccion3">
-					<p style="text-align:center;"><b>Observaciones</b></p>
-				</div>
-			</div>
-		</td>
-		{% for lista in mobiliario %}
-		<td style="text-align:center;">
-			<div style="margin: 0 auto;" class="container">
-				<div class="section section3" id="seccion1">
-					<p style="text-align:center;">{{lista.cantidad}}</p>
-				</div>
-				<div class="section section3" id="seccion2">
-					<p style="text-align:center;">{{lista.mobiliario}}</p>
-				</div>
-				<div class="section section2 section3" id="seccion3">
-					<p style="text-align:center;">{{lista.observaciones}}</p>
-				</div>
-			</div>
-		</td>
-		{% endfor %} 
-		
-
-	</tr>
-	
-	{% endif %}
-
-	{% comment %} <tr>
-		<td>Croquis pendiente<td>
-	</tr>
-	<tr>
-		<td>Reglamento pendiente<td>
-	</tr> {% endcomment %}
-	
-
-	
 </table>
+
+<div class="row">
+	<div class="col">
+		<b>            _______________________________
+		<p style="text-align:center; margin-top:-1px">"EL ARRENDADOR"</p>
+		{% if info.arrendador.regimen_fiscal == "Persona Moral" %}
+			<p style="text-align:center; margin-top:-20px">{{info.arrendador.nombre_empresa | upper}}.</p>
+			<p style="text-align:center; margin-top:-20px">REPRESENTADA POR </p>
+			<p style="text-align:center; margin-top:-20px">{{info.arrendador.nombre_completo_rl | upper}}.</p></b>
+		
+		{% else %}
+			<p style="text-align:center; margin-top:-20px">{{info.arrendador.nombre_completo | upper}}.</p></b>
+		{% endif %}
+		
+	</div>
+
+	{% comment %} <div class="col"></div> {% endcomment %}
+
+	<div class="col">
+		<b>            _______________________________
+		<p style="text-align:center; margin-top:-1px">"EL ARRENDATARIO"</p>	
+		{% if info.arrendatario.regimen_fiscal == "Persona Moral" %}
+			<p style="text-align:center; margin-top:-20px">{{info.arrendatario.nombre_empresa | upper}}.</p>
+			<p style="text-align:center; margin-top:-20px">REPRESENTADA POR </p>
+			<p style="text-align:center; margin-top:-20px">{{info.arrendatario.nombre_completo_rl | upper}}.</p></b>
+		
+		{% else %}
+			<p style="text-align:center; margin-top:-20px">{{info.arrendatario.nombre_completo | upper}}.</p></b>
+		{% endif %}
+
+	</div>
+</div>
+
+{% if info.fiador.registro_aval == "Si" or info.fiador.id %}
+<div class="row">
+	<div class="col"></div>
+
+	<div class="col">
+		<b>_______________________________
+			<p style="text-align:center; margin-top:-1px">"{{info.fiador.tipo_aval | upper}}"</p>	
+			{% if info.fiador.tipo_aval == "Obligado Solidario Persona Moral" or info.fiador.tipo_aval == "Fiador Solidario Persona Moral" %}
+				<p style="text-align:center; margin-top:-20px">{{info.fiador.nombre_empresa | upper}}.</p>
+				<p style="text-align:center; margin-top:-20px">REPRESENTADA POR </p>
+				<p style="text-align:center; margin-top:-20px">{{info.fiador.nombre_completo_rl | upper}}.</p></b>
+			
+			{% else %}
+				<p style="text-align:center; margin-top:-20px">{{info.fiador.nombre_completo | upper}}.</p></b>
+			{% endif %}
+
+	</div>
+	<div class="col"></div>
+</div>
+{% else %}{% endif %}
+
+
 
 
 <br clear=left>

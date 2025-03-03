@@ -2,22 +2,16 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
-from . import views
+
 from django.urls import path 
 from ..api.routers import *
 from django.urls import include
-from .Views.arrendador.arrendadorView import *
+from .Views.arrendadorView import *
 from .Views.inquilinos_view import *
+from .Views.contratos_dash_view import *
+from .Views.investigaciones_views import *
 
 urlpatterns = [
-    path('v1/inquilino_registro/', views.inquilino_registro.as_view()), 
-    path('v1/inquilinos_delete/', views.inquilinos_delete.as_view()),
-    path('v1/inq_list/', views.inquilinos_list_all),
-    path('v1/editar_inquilino/', views.editar_inquilino),
-    # -*- encoding: utf-8 -*-
-    path('arrendadores/crear_documentos/', ArrendadorViewSet.as_view({'post': 'create_documentos'}), name='crear_documentos'),
-    path('arrendadores/investigacion/<str:slug>/', ArrendadorViewSet.as_view({'put': 'investigacion'}), name='investigacion'),
-    path('arrendadores/enviar_pdf/<str:slug>/', ArrendadorViewSet.as_view({'put': 'investigacion_arrendador_pdf'}), name='investigacion_arrendador_pdf'),
     # Password
     path('RecuperarPassword/recupera_password/', RecuperarPassword.as_view({'post': 'recuperar_password'}), name='recuperar_password'),
     path('nuevo-password', RecuperarPassword.as_view({'post': 'reset_password'}), name='nuevo-password'),
@@ -27,6 +21,12 @@ urlpatterns = [
     #Investigacion
     path('aprobar_prospecto/', investigaciones.as_view({'post': 'aprobar_prospecto'}), name='aprobar_prospecto'),
     path('investigacion_francis/', investigaciones.as_view({'get': 'investigacion_francis'}), name='investigacion_francis'),
+    
+    #Investigaciones
+    path('resultado_inquilino/', InvestigacionInquilinoViewSet.as_view({'post':'investigacion_inquilino'}), name= 'investigacion_inquilino'),
+    path('resultado_laboral/', InvestigacionLaboralViewSet.as_view({'post':'investigacion_laboral'}), name='investigacion_laboral'),
+    path('resultado_financiera/', InvestigacionFinancieraViewSet.as_view({'post':'investigacion_financiera'}), name='investigacion_financiera'),
+    path('resultado_judicial/', InvestigacionJudicialViewSet.as_view({'post':'investigacion_judicial'}), name = 'investigacion_judicial'),
     
     #paquetes
     path('paquetes/generar_pagare/', Paks.as_view({'post': 'generar_pagare'}), name='generar_pagare'),
@@ -58,6 +58,15 @@ urlpatterns = [
     path('send_noti/',notis_prueba.as_view({'post': 'send_noti'}), name='send_noti'),
     path('leer_todas/',notis_prueba.as_view({'post': 'leer_todas'}), name='leer_todas'),
     # path('notificaciones_usuario/',notis_prueba.as_view({'get': 'notificaiones_por_usuario'}), name='notificaiones_por_usuario'),
+    
+    #Contratos Dash
+    path('dash/almacenar_datos/', ContratosViewSet.as_view({'post': 'almacenar_datos'}), name='guardar_datos_dash'),
+    path('dash/generar_preview_pagare/', ContratosViewSet.as_view({'post': 'generar_preview_pagare'}), name='generar_preview_pagare'),
+    path('dash/generar_pagare/', ContratosViewSet.as_view({'post': 'generar_pagare'}), name='generar_pagare'),
+    path('dash/generar_preview_contrato_arrenamiento/', ContratosViewSet.as_view({'post': 'generar_preview_contrato_arrendamiento'}), name='generar_preview_contrato_arrendamiento'),
+    path('dash/generar_contrato_arrenamiento/', ContratosViewSet.as_view({'post': 'generar_contrato_arrendamiento'}), name='generar_preview_contrato_arrendamiento'),
+    path('dash/generar_preview_poliza/', ContratosViewSet.as_view({'post': 'generar_preview_poliza'}), name='generar_preview_poliza'),
+    path('dash/generar_poliza/', ContratosViewSet.as_view({'post': 'generar_poliza'}), name='generar_poliza'),
     
     #manejamos el index con la pag404
     path('health/', health_check, name='health_check'),

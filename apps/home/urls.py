@@ -12,16 +12,9 @@ urlpatterns = [
     # The home page
     path('', views.index, name='home'),
     path("archivos", views.subirArch, name = "subirArch"),
-    path("fiador", views.reg_fiador, name = "fiador"),
     
-    #Rutas Inquilino
-    path('registro_inquilino/', views.reg_inq, name='reg_inq'),   
-    path('inquilinos/', views.inquilinos, name='inquilinos'),
-    path('detalles_inquilino/<str:id>', views.ver_inquilino, name='Detalles_Inquilino'), 
-    path('editar_inq/<str:id>', views.editar_inq, name='editar_inq'),
-    path('eliminar_inq/<str:id>', views.eliminar_inq, name='eliminar_inq'),
+    
     path('pdf', views.generate_pdf, name='pdf'),
-    path('pdf_prueba', views.generar_pdf_prueba, name='pdf_prueba'),
     path('generar-pdf/', views.generar_pdf, name='generar_pdf'),
     path('pdf_descarga/', views.pdf_descarga, name='pdf_descarga'),
     path('correo/', views.correo, name='correo'),
@@ -58,7 +51,7 @@ urlpatterns = [
     # path('inmuebles/', views.listarInmueble, name='listarInmueble'),
     # path('editarin/<slug:slug>', views.editarInmueble, name='editarin'),
     # path('removerin/<id>', views.removerInmueble, name='removerin'),
-    path('vistain/<slug:slug>', views.verInmueble, name='verin'),
+    
     
    
     # Matches any html file

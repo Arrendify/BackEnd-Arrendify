@@ -1,5 +1,4 @@
-from rest_framework.decorators import api_view
-from rest_framework.views import APIView
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 from ...home.models import *
@@ -843,13 +842,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             }
             
             inventario = {
-                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_loft.png",
-                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_twin.png",
-                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_double.png",
-                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_squad.png",
-                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_master.png",
-                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_crew.png",
-                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_party.png"
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.png"
             }
             
             tipologia = info.tipologia
@@ -910,13 +909,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             }
             
             inventario = {
-                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_loft.png",
-                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_twin.png",
-                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_double.png",
-                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_squad.png",
-                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_master.png",
-                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_crew.png",
-                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/Inventario_new/inventario_party.png"
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.png"
             }
             
             tipologia = info.tipologia
@@ -1626,7 +1625,7 @@ class Contratos_semillero(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
-    
+        
     def generar_poliza_semillero(self, request, *args, **kwargs):
         try:
             print("Generar Poliza Semillero")
@@ -1655,12 +1654,14 @@ class Contratos_semillero(viewsets.ModelViewSet):
             print("paqueton",nom_paquete.upper())    
             #obtenemos renta y costo poliza para letra
             renta = int(info.renta)
+            print("la renta es:", renta)
             renta_texto = num2words(renta, lang='es').capitalize()
             if renta > 14999:
                 #redondeamos el resultado para que no salga numeros decimales en la operacion de resultado, ya que al trabajar un int con un float se producen decimales para cubrir el resto de la operacion
                 resultado = renta * 0.17
                 valor_poliza = int(round(resultado, 2))
                 print("resultado esperado",valor_poliza)
+                
             else:
                 valor_poliza = 2500
             poliza_texto = num2words(valor_poliza, lang='es').capitalize()

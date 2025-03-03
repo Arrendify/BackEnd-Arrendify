@@ -45,7 +45,7 @@ LOGGING = {
 }
 
 # load production server
-ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1'), config('SERVER2', default='127.0.0.1'), "192.168.2.24","192.168.3.2","192.168.0.233",]
+ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1'), config('SERVER2', default='127.0.0.1'), "192.168.2.24","192.168.3.2","192.168.0.233","192.168.1.86",]
 
 # Application definition
 
@@ -107,6 +107,7 @@ CORS_ORIGIN_WHITELIST = (
     #saul
     'http://192.168.2.73:8000',
     'http://192.168.1.140:8000',
+    'http://192.168.1.86:8000',
     #yo
     'http://192.168.2.24:8000',
     'http://192.168.0.233:8000',

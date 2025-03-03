@@ -59,7 +59,7 @@
     }
 
     @page buro {
-      @bottom-left {font-size: 8px; color:gray; content: "1. El presente resultado de investigación así como el score son realizados y emitidos bajo el criterio interno de Arrendify derivado al estudio del prospecto \A 2.- No relacionado con buro. \A 3.- En caso de la inexistencia de antecedentes crediticios por parte de la persona moral a investigar, se tomará en cuenta el historial creditico de su representante legal" }
+      @bottom-left {font-size: 8px; color:gray; content: "1. El presente resultado de investigación así como el score son realizados y emitidos bajo el criterio interno de Arrendify derivado al estudio del prospecto \A 2.-No relacionado con buro." }
       white-space: pre-wrap;
     }
 
@@ -452,53 +452,52 @@
       <div class="pb-2 mb-2" style="font-size: 10px; margin-top:-12px;">
         Tenga en cuenta que la información que se muestra en esta página, debajo de este punto, se basa en datos autoinformados del formulario de registro del prospecto.
       </div>
-      
       {% comment %} Informacion Personal del prospecto {% endcomment %}
       <div class="row" >
         <div class="col">
-            <label style="color:#8082a0;"><b>Nombre:</b></label>
-            <input class="input-chido" type="text" value="{{info.nombre}}">
+            <label style="color:#8082a0;"><b>Nombre Completo:</b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.nombre_completo}}">
         </div>
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Apellido Paterno:</b></label>
-            <input class="input-chido" type="text" value="{{info.apellido}}">
-        </div>
-        <div class="col">
-          <label style="color:#8082a0;"><b>Apellido Materno:</b></label>
-          <input class="input-chido" type="text"  value="{{info.apellido1}}">
+          <label style="color:#8082a0;"><b>Celular:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.celular}}">
         </div>
       </div>
       
       <div class="row mt-2" >
         <div class="col">
-            <label style="color:#8082a0;"><b>Teléfono:</b></label>
-            <input class="input-chido" type="text" value="{{info.numeroTel1}}">
+          <label style="color:#8082a0;"><b>Email:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.email}}">
         </div>
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Email:</b></label>
-            <input class="input-chido" type="text" style="font-size:13px;" value="{{info.email}}">
-        </div>
-        <div class="col">
-          <label style="color:#8082a0;"><b>RFC:</b></label>
-          <input class="input-chido" type="text" value="{{info.rfc}}">
+          <label style="color:#8082a0;"><b>Identificación: {{info.identificacion}}</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.no_ide}}">
         </div>
       </div>   
 
       <div class="row mt-2" >
         <div class="col">
             <label style="color:#8082a0;"><b>Estado civil:</b></label>
-            <input class="input-chido" type="text" value="{{info.estado_civil}}">
-            {% comment %} <input class="input-chido" type="text" value="No Aplica"> {% endcomment %}
+            <input class="input-chido" style="width:100%" type="text" value="{{info.estado_civil}}">
         </div>
-        
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-          <label style="color:#8082a0;"><b>Identificación:</b></label>
-          <input class="input-chido" type="text" value="{{datos.identificacion_inquilino}}: {{datos.no_ide_inquilino}}">
+          <label style="color:#8082a0;"><b>RFC:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.rfc}}">
         </div>
-
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
           <label style="color:#8082a0; width:100%;"><b>Nacionalidad:</b></label>
-          <input class="input-chido" type="text" value="{{info.nacionalidad}}">
+          <input class="input-chido" style="width:100%" type="text" value="{{info.nacionalidad}}">
+        </div>
+      </div> 
+      
+      <div class="row mt-2" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Direccion Completa:</b></label>
+            <input class="input-chido" type="text" style="font-size:11px; width:100%;" value="{{info.direccion_completa}}">
         </div>
       </div>   
 
@@ -515,247 +514,231 @@
       <div class="row" >
         <div class="col">
             <label style="color:#8082a0;"><b>Profesión:</b></label>
-            <input class="input-chido" type="text" value="{{info.profesion}}">
+            <input class="input-chido" style="width:100%" type="text" value="{{info.empleo}}">
         </div>
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
             <label style="color:#8082a0; width:100%;"><b>Antiguedad:</b></label>
-            <input class="input-chido" type="text" value="{{info.antiguedad}} Año(s)">
+            <input class="input-chido" style="width:100%" type="text" value="{{info.antiguedad}}">
         </div>
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-          <label style="color:#8082a0;"><b>Puesto:</b></label>
-          <input class="input-chido" type="text"  value="{{info.puesto}}">
+          <label style="color:#8082a0;"><b>Empresa:</b></label>
+          <input class="input-chido" style="width:100%" type="text"  value="{{info.lugar_empleo}}">
         </div>
       </div>
       
       <div class="row mt-2" >
         <div class="col">
-            <label style="color:#8082a0;"><b>Teléfono:</b></label>
-            <input class="input-chido" type="text" value="{{info.tel_empleo}}">
-        </div>
-        <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Empresa:</b></label>
-            <input class="input-chido" type="text" value="{{info.nombre_empresa}}">
-        </div>
-        <div class="col">
-          <label style="color:#8082a0;"><b>Ingreso mensual comprobado:</b></label>
-          <input class="input-chido" type="text"  value="${{datos.ingreso_comprobado | intcomma}}.00">
+          <label style="color:#8082a0;"><b>Dirección del empleo:</b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.direccion_empleo}}">
         </div>
       </div>  
 
       <div class="row mt-2" >
         <div class="col">
-            <label style="color:#8082a0;"><b>Nombre del Jefe:</b></label>
-            <input class="input-chido" style="font-size:12px;" type="text" value="{{info.jefe}}">
-        </div>
+            <label style="color:#8082a0; width:100%;"><b>Nombre del Jefe:</b></label>
+            <input class="input-chido" style="font-size:12px; width:100%;" type="text" value="{{info.nombre_jefe}}">
+          </div>
+          &nbsp&nbsp&nbsp&nbsp
+          <div class="col">
+            <label style="color:#8082a0;"><b>Ingreso mensual comprobado:</b></label>
+            <input class="input-chido" style="width:100%;" type="text"  value="{{info.ingreso_men}}">
+          </div>
+      </div>
+
+      <div class="row mt-2" >
         <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Teléfono del Jefe:</b></label>
-            <input class="input-chido" type="text" value="{{info.tel_jefe}}">
+            <label style="color:#8082a0;"><b>Teléfono del Jefe:</b></label>
+            <input class="input-chido" type="text" style=" width:100%;" value="{{info.telefono_jefe}}">
         </div>
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
           <label style="color:#8082a0;"><b>Email del Jefe:</b></label>
-          <input class="input-chido" type="text" style="font-size:13px;" value="{{info.email_jefe}}">
+          <input class="input-chido" type="text" style="font-size:13px;  width:100%;" value="{{info.email_jefe}}">
         </div>
       </div>
+
+{% if info.numero_credito1 and info.numero_credito2 and info.numero_credito3 %}
+<br><br><br><br><br><br><br><br><br><br><br>
+    <hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos {{info.tipo_credito1}}.</h2>
+    <hr class="hr" >
+
+    <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Tipo de Crédito: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.tipo_credito1}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Institucion Otorgante: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.institucion_otorgante1}}">
+        </div>
+    </div>
       
-      <hr class="hr" >  
-        <h3 class="mb-2 mt-2">Datos domiciliarios del prospecto</h2>
-      <hr class="hr" >
+    <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Numero Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.numero_credito1}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Monto Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text"  value="{{info.monto_credito1}}">
+        </div>
+    </div>
+    
+    <hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos {{info.tipo_credito2}}.</h2>
+    <hr class="hr" >
 
-      <div class="row" >
+    <div class="row" >
         <div class="col">
-            <label style="color:#8082a0;"><b>Calle:</b></label>
-            <input class="input-chido" type="text" style="font-size:11px;" value="{{info.calle}}">
+            <label style="color:#8082a0;"><b>Tipo de Crédito: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.tipo_credito2}}">
         </div>
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Número ext:</b></label>
-            <input class="input-chido" type="text" value="{{info.num_ext}}">
+            <label style="color:#8082a0; width:100%;"><b>Institucion Otorgante: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.institucion_otorgante2}}">
         </div>
-        <div class="col">
-          <label style="color:#8082a0;"><b>Número int:</b></label>
-          <input class="input-chido" type="text"  value="{{info.num_int}}">
-        </div>
-      </div>
+    </div>
       
-      <div class="row mt-2" >
+    <div class="row mt-2" >
         <div class="col">
-            <label style="color:#8082a0;"><b>Colonia:</b></label>
-            <input class="input-chido" type="text" value="{{info.colonia}}">
+          <label style="color:#8082a0;"><b>Numero Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.numero_credito2}}">
         </div>
-        
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-          <label style="color:#8082a0;"><b>Código postal:</b></label>
-          <input class="input-chido" type="text" value="{{info.codigopostal}}">
+          <label style="color:#8082a0;"><b>Monto Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text"  value="{{info.monto_credito2}}">
         </div>
-        
+    </div>
+
+    <hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos {{info.tipo_credito3}}.</h2>
+    <hr class="hr" >
+
+    <div class="row" >
         <div class="col">
-          <label style="color:#8082a0;"><b>Municipio/Alcaldia:</b></label>
-          <input class="input-chido" type="text" value="{{info.municipio_alcaldia}}">
+            <label style="color:#8082a0;"><b>Tipo de Crédito: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.tipo_credito3}}">
         </div>
-      </div>
-
-      <div class="row mt-2" >
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-          <label style="color:#8082a0; width:100%;"><b>Estado:</b></label>
-          <input class="input-chido" type="text" value="{{info.estado}}">
+            <label style="color:#8082a0; width:100%;"><b>Institucion Otorgante: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.institucion_otorgante3}}">
         </div>
-      </div>
-
-      <br><br><br><br>
-
-      {% if aval and aval.fiador_obligado == "Fiador Solidario" %}
-        <hr class="hr" style="opacity: .9;" >  
-          <h3 class="mb-2 mt-2">Fiador Solidario</h2>
-        <hr class="hr">
-
-        <div class="row">
-          <div class="col">
-              <label style="color:#8082a0;"><b>Nombre:</b></label>
-              <input class="input-chido" type="text" value="{{aval.n_fiador}}">
-          </div>
-          <div class="col">
-              <label style="color:#8082a0; width:100%;"><b>Apellido Paterno:</b></label>
-              <input class="input-chido" type="text" value="{{aval.a_fiador}}">
-          </div>
-          <div class="col">
-            <label style="color:#8082a0;"><b>Apellido Materno:</b></label>
-            <input class="input-chido" type="text"  value="{{aval.a2_fiador}}">
-          </div>
-        </div>
+    </div>
       
-        <div class="row mt-2" >
-          <div class="col">
-              <label style="color:#8082a0;"><b>Identificación:</b></label>
-              <input class="input-chido" type="text" value="{{datos.identificacion_fiador}}: {{datos.no_ide_fiador}}">
-          </div>
-          
-          <div class="col">
-            <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
-            <input class="input-chido" type="text" value="{{aval.nacionalidad}}">
-          </div>
-  
-          <div class="col">
-          </div>
+    <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Numero Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.numero_credito3}}">
         </div>
-  
-        <div class="row">
-          <div class="col">
-            <label style="color:#8082a0;"><b>Domicilio Actual:</b></label>
-            <input class="input-chido" style="width:650px;" type="text" value="{{aval.calle_fiador}} {{aval.n_ext_fiador}} Int. {{aval.n_int_fiador}}, {{aval.colonia_fiador}}, {{aval.cp_fiador}}, {{aval.municipio_fiador}}, {{aval.estado_fiador}}">
-          </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Monto Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text"  value="{{info.monto_credito3}}">
         </div>
+    </div> 
+{% elif info.numero_credito1 and info.numero_credito2 %}
+    <hr class="hr" >  
+    <h3 class="mb-2 mt-2">Datos {{info.tipo_credito1}}.</h2>
+    <hr class="hr" >
 
-        <hr class="hr" >  
-         <h3 class="mb-2 mt-2">Datos del inmueble en garantía</h2>
-        <hr class="hr" >
+    <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Tipo de Crédito: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.tipo_credito1}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Institucion Otorgante: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.institucion_otorgante1}}">
+        </div>
+    </div>
+      
+    <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Numero Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.numero_credito1}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Monto Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text"  value="{{info.monto_credito1}}">
+        </div>
+    </div>
+    
+    <hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos {{info.tipo_credito2}}.</h2>
+    <hr class="hr" >
 
-        <div class="row" >
-          <div class="col">
-              <label style="color:#8082a0;"><b>Escritura pública número:</b></label>
-              <input class="input-chido" style="width:650px; font-size:11.5px;" type="text" value="{{aval.escritura_publica}} CONSTATADA BAJO LA FE DEL NOTARIO PÚBLICO NÚMERO {{aval.numero_notario}}, LIC.{{aval.nombre_notario}}">
-          </div>
+    <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Tipo de Crédito: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.tipo_credito2}}">
         </div>
-        
-        <div class="row" >
-          <div class="col">
-              <label style="color:#8082a0; width:100%;"><b>Dirección:</b></label>
-              <input class="input-chido" style="width:650px;" type="text" value="{{aval.calle_escrituras}} {{aval.num_ext_escrituras}} Int. {{aval.num_int_escrituras}}, {{aval.colonia_escrituras}}, {{aval.cp_escrituras}}, {{aval.municipio_escrituras}}, {{aval.estado_escrituras}}.">
-          </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Institucion Otorgante: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.institucion_otorgante2}}">
         </div>
-        <div class="row" >
-          <div class="col">
-              <label style="color:#8082a0; width:100%;"><b>Gravámenes:</b></label>
-              <input class="input-chido" style="width:290px;" type="text" value="No constan gravámenes.">
-          </div>
-          <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Anotaciones Preventivas:</b></label>
-            <input class="input-chido" style="width:290px;" type="text" value="No constan para este folio.">
-          </div>
+    </div>
+      
+    <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Numero Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.numero_credito2}}">
         </div>
-        <div class="row" >
-          <div class="col">
-              <label style="color:#8082a0; width:100%;"><b>Avisos Preventivos O de otorgamiento vigentes: </b></label>
-              <input class="input-chido" style="width:290px;" type="text" value="No constan.">
-          </div>
-          <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Entradas presentadas en proceso:</b></label>
-            <input class="input-chido" style="width:290px; font-size:12.90px;" type="text" value="No hay entradas pendientes para este folio.">
-          </div>
-          <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Observaciones:</b></label>
-            <input class="input-chido" style="width:290px;"  type="text" value="No constan.">
-          </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Monto Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text"  value="{{info.monto_credito2}}">
         </div>
-        
-      {% elif aval and aval.fiador_obligado == "Obligado Solidario Persona Fisica" %}
-        <hr class="hr" style="opacity: .9;" >  
-          <h3 class="mb-2 mt-2">Obligado Solidario</h2>
-        <hr class="hr">
+    </div>
+{% elif info.numero_credito1 %}
+<hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos {{info.tipo_credito1}}.</h2>
+    <hr class="hr" >
 
-        <div class="row">
-          <div class="col">
-              <label style="color:#8082a0;"><b>Nombre:</b></label>
-              <input class="input-chido" type="text" style="font-size:13.50px" value="{{aval.n_fiador}}">
-          </div>
-          <div class="col">
-              <label style="color:#8082a0;"><b>Apellido Paterno:</b></label>
-              <input class="input-chido" type="text" value="{{aval.a_fiador}}">
-          </div>
-          <div class="col">
-            <label style="color:#8082a0;"><b>Apellido Materno:</b></label>
-            <input class="input-chido" type="text" value="{{aval.a2_fiador}}">
-          </div>
+    <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Tipo de Crédito: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.tipo_credito1}}">
         </div>
-  
-        <div class="row mt-2" >
-          <div class="col">
-              <label style="color:#8082a0;"><b>Identificación:</b></label>
-              <input class="input-chido" type="text" value="{{datos.identificacion_fiador}}: {{datos.no_ide_fiador}}">
-          </div>
-          
-          <div class="col">
-            <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
-            <input class="input-chido" type="text" value="{{aval.nacionalidad}}">
-          </div>
-
-          <div class="col">
-          </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Institucion Otorgante: </b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.institucion_otorgante1}}">
         </div>
-
-        <div class="row">
-          <div class="col">
-            <label style="color:#8082a0;"><b>Domicilio Actual:</b></label>
-            <input class="input-chido" style="width:650px; font-size:11px;" type="text" value="{{aval.calle_fiador}} {{aval.n_ext_fiador}} Int. {{aval.n_int_fiador}}, {{aval.colonia_fiador}}, {{aval.cp_fiador}}, {{aval.municipio_fiador}}, {{aval.estado_fiador}}.">
-          </div>
+    </div>
+      
+    <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Numero Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.numero_credito1}}">
         </div>
-       
-        <div class="row">
-          <div class="col">
-            <label style="color:#8082a0;"><b>Profesión/Ocupación:</b></label>
-            <input class="input-chido" style="width:650px;" type="text" value="{{aval.prof_fiador}}">
-          </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Monto Crédito: </b></label>
+          <input class="input-chido" style="width:100%;" type="text"  value="{{info.monto_credito1}}">
         </div>
-       
-        <div class="row">
-          <div class="col">
-            <label style="color:#8082a0;"><b>Ingreso mensual:</b></label>
-            <input class="input-chido" style="width:650px;" type="text" value="${{aval.ingreso_men_fiador | intcomma}}.00 de acuerdo a sus {% if aval.recibos == "Si" %} recibos de pago {% else %} estados de cuenta{% endif %} ya con deducciones.">
-          </div>
-        </div>
-        
-      {% elif aval and aval.fiador_obligado == "Obligado Solidario Persona Moral" %}
-
-      {% else %}
-        {% comment %} <p>sin fiador pa</p> {% endcomment %}
-      {% endif %}
+    </div>
+{% else %}
+    {% comment %} <p>Sin Creditos</p> {% endcomment %}
+{% endif %}
     </div>
 
     {% comment %} Contenido {% endcomment %}
     <article id="pagina-3">
       <hr class="hr">  
-        <h3 class="mb-2 mt-2">Referencias Personales, Laborales</h2>
+        <h3 class="mb-2 mt-2">Referencias Personales, Laborales.</h2>
       <hr class="hr">
-      <p>Como parte del proceso de investigación, se ha solicitado se nos proporcionen referencias personales del prospecto a fin de poder corroborar diversos ámbitos personales que nos permitan conocer el entorno social del investigado.
-        Derivado a lo anterior una vez corroborado las referencias proporcionadas, podemos referir que el prospecto cuenta con # referencias verificadas siendo estas las siguientes:
+      <p>Como parte del proceso de investigación, se solicitaron referencias personales del prospecto para corroborar diversos aspectos de su entorno social. Después de verificar las referencias proporcionadas, podemos confirmar que el prospecto cuenta con referencias verificadas, que son las siguientes:
         </p>
       <table class="table">
         <tbody>
@@ -834,7 +817,7 @@
       {% endif %}
       
      {% comment %} <br> {% endcomment %}
-      <div style="border:1px solid #000000; height:341px; width:650px;">
+      <div style="border:1px solid #000000; height:377px; width:650px;">
         <table class="table">
           <thead>
             <tr>
@@ -884,7 +867,11 @@
               <td style="text-align:center;">{% if datos.civil_mercantil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
               <td style="text-align:center;">{% if datos.antecedentes.civil_mercantil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>
-           
+            <tr>
+              <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Civil - Inmobiliario</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.civil_inmobiliario_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.civil_inmobiliario_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
           </tbody>
         </table>
         
@@ -896,7 +883,7 @@
     <article id="cuadro_interpol">
       <h2 class="mt-3">Antecedentes Legales Internacionales</h2>
       <hr class="hr">
-        <div style="border:1px solid #000000; height:154px; width:650px;">
+        <div style="border:1px solid #000000; height:153px; width:650px;">
           <table class="table">
             <thead>
               <tr>
@@ -928,7 +915,7 @@
 
         <br><br>
 
-        <div style="border:1px solid #000000; height:414px; width:650px;">
+        <div style="border:1px solid #000000; height:413px; width:650px;">
           <table class="table">
             <thead>
               <tr>
@@ -1060,7 +1047,7 @@
     <h3 class="mb-2 mt-2">Redes sociales</h2>
     <hr class="hr">
 
-    <p>Al evaluar a {{info.nombre}} {{info.apellido}} {{info.apellido1}} a través de su perfil en redes sociales, es fundamental tomar en cuenta una serie de criterios adicionales que pueden influir negativamente en su idoneidad 
+    <p>Al evaluar a {{info.nombre_completo}} a través de su perfil en redes sociales, es fundamental tomar en cuenta una serie de criterios adicionales que pueden influir negativamente en su idoneidad 
       para la convivencia armónica en sociedad. A continuación, se detallan los puntos a considerar:</p>
     
     {% for clave in redes_comentarios  %}
@@ -1102,22 +1089,22 @@
         </div>
         <ul>
           {% if datos.tipo_score_ingreso == "Malo" %}
-            <li>Declara un ingreso mensual es de un valor neto de ${{info.ingreso_men}}.</li>
+            <li>Declara un ingreso mensual es de un valor neto de {{info.ingreso_men}}.</li>
             <li>Según los ingresos comprobados del prospecto sus egresos son mayores al monto de renta y sus necesidades básicas.</li>
             <li>Su saldo final es insuficiente para atender imprevistos los cuales pueden llegar a perjudicar el pago de renta.</li>
           
           {% elif datos.tipo_score_ingreso == "Regular" %}
-            <li>Declara un ingreso mensual es de un valor neto de ${{info.ingreso_men}}.</li>
+            <li>Declara un ingreso mensual es de un valor neto de {{info.ingreso_men}}.</li>
             <li>Según los ingresos comprobados del prospecto, llegan al limite de los egresos favorables.</li>
             <li>El saldo final es considera justo para los requerimientos de ARRENDIFY S.A.P.I. de C.V.</li>
           
           {% elif datos.tipo_score_ingreso == "Bueno" %}
-            <li>Declara un ingreso mensual es de un valor neto de ${{info.ingreso_men}}.</li>
+            <li>Declara un ingreso mensual es de un valor neto de {{info.ingreso_men}}.</li>
             <li>Según los ingresos comprobados del prospecto, son acordes a sus egresos.</li>
             <li>Cuenta con un saldo total suficientes para el pago de una renta adicional.</li>
           
           {% elif datos.tipo_score_ingreso == "Excelente" %}
-            <li>Declara un ingreso mensual de un valor neto de ${{info.ingreso_men}}.</li>
+            <li>Declara un ingreso mensual de un valor neto de {{info.ingreso_men}}.</li>
             <li>Cuenta con plena capacidad de pago.</li>
             <li>Cuenta con un saldo favorable para cubrir necesidades básicas, creditos y hasta un par rentas sin que le cause algún impedimento.</li>
           

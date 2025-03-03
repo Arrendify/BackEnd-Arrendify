@@ -7,83 +7,62 @@ from ..accounts.models import *
 from django.conf import settings
 
 class DFSerializer(serializers.ModelSerializer):
-    fiador_nombre = serializers.CharField(source='fiador.n_fiador', read_only=True)
-    fiador_apellido = serializers.CharField(source='fiador.a_fiador', read_only=True)
-    fiador_apellido1 = serializers.CharField(source='fiador.a2_fiador', read_only=True)
+     
     class Meta:
         model = DocumentosFiador
         fields = '__all__'
-
 class DISerializer(serializers.ModelSerializer):
-    inquilinos_nombre = serializers.CharField(source='inquilino.nombre', read_only=True)
-    inquilinos_apellido = serializers.CharField(source='inquilino.apellido', read_only=True)
-    inquilinos_apellido1 = serializers.CharField(source='inquilino.apellido1', read_only=True)
+    inquilinos_nombre = serializers.CharField(source='arrendatario.nombre_completo', read_only=True)
     class Meta:
         model = DocumentosInquilino
         fields = '__all__'
 
-class Fiador_obligadoSerializer(serializers.ModelSerializer):
-    inquilino_nombre = serializers.CharField(source='inquilino.nombre', read_only=True)
-    inquilino_apellido = serializers.CharField(source='inquilino.apellido', read_only=True)
-    inquilino_apellido1 = serializers.CharField(source='inquilino.apellido1', read_only=True)
-    
+class AvalSerializer(serializers.ModelSerializer):
+    inquilino_nombre = serializers.CharField(source='arrendatario.nombre_completo', read_only=True)
     archivos = DFSerializer(many=True, read_only=True)
-
     user =  User2Serializer(read_only=True)
-    
     class Meta:
-        model = Fiador_obligado
-        fields = '__all__'
-        
-# Serializar para mandar excluivamente datos sintetizador del fiador al inquilino
-class FOS(serializers.ModelSerializer):
-    class Meta:
-        model = Fiador_obligado
-        fields = ('id','fiador_obligado','n_fiador','a_fiador','a2_fiador','nombre_comercial')         
-   
+        model = Aval
+        #model = Fiador_obligado
+        fields = '__all__'   
+
 class InquilinoSerializers(serializers.ModelSerializer):
     # aval = Fiador_obligadoSerializer(many=True, read_only=True)
-    aval = FOS(many=True, read_only=True)
+    aval = AvalSerializer(many=True, read_only=True)
     archivos = DISerializer(many=True, read_only=True)
     user =  User2Serializer(read_only=True)
     
     class Meta:
-        model = Inquilino
+        #model = Inquilino
+        model = Arrendatario
         fields = '__all__'
 
-# Serializar para mandar excluivamente datos sintetizador del inquilino hacia fiador
-class InquilinoSerializersFiador(serializers.ModelSerializer):
-    aval = FOS(many=True, read_only=True)
-    class Meta:
-        model = Inquilino
-        fields = ('id', 'nombre','apellido','apellido1','aval')
-        
+
 #arrendador
-# Validacion
-class ValidacionArrendadorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ValidacionArrendador
-        fields = '__all__'
+
 
 # Documentos Arrendador
 class DocumentosArrendadorSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentosArrendador
         fields = '__all__'
+
 #inmuebles
 class InmueblesMobiliarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = InmueblesInmobiliario
         fields = ('cantidad', 'mobiliario','observaciones','inmuebles')
         #fields = '__all__'
+
+class DocumentosInmuebleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentosInmueble
+        fields = '__all__'
         
 class InmueblesSerializer(serializers.ModelSerializer):
-    arrendador_nombre = serializers.CharField(source='arrendador.nombre', read_only=True)
-    arrendador_apellido_paterno = serializers.CharField(source='arrendador.apellido', read_only=True)
-    arrendador_apellido_materno = serializers.CharField(source='arrendador.apellido1', read_only=True)
-    arrendador_rol = serializers.CharField(source='arrendador.pmoi', read_only=True)
-    arrendador_inmobiliaria = serializers.CharField(source='arrendador.n_inmobiliaria', read_only=True)
-    inmuebles = InmueblesMobiliarioSerializer(many=True, read_only=True)
+    arrendador= serializers.CharField(source='arrendador.nombre_completo', read_only=True)
+    documentos_inmueble = DocumentosInmuebleSerializer(many=True, read_only=True)
+    mobiliario = InmueblesMobiliarioSerializer(many=True, read_only=True)
     class Meta:
         model = Inmuebles
         fields = '__all__'
@@ -98,37 +77,57 @@ class UserSerializer2(serializers.ModelSerializer):
 # Arrendador
 class ArrendadorSerializer(serializers.ModelSerializer):
     archivos = DocumentosArrendadorSerializer(many=True, read_only=True)
-    arrendador_validacion = ValidacionArrendadorSerializer(many=True, read_only=True)
     inmuebles_set = InmueblesSerializer(many=True, read_only = True)
     user =  User2Serializer(read_only=True)
     class Meta:
-        model = Arrendador
+        #model = Arrendador
+        model = Propietario
         fields = '__all__'
-
-# Historial
-class HistorialDocumentosArrendadorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HistorialDocumentosArrendador
-        fields = '__all__'
-
-    def create(self, validated_data):
-        try:
-            return Inmuebles.objects.create(**validated_data)
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
         
-class ImagenInmuebleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ImagenInmueble
-        fields = '__all__'
+
 
 class InvestigacionSerializers(serializers.ModelSerializer):
-    # inquilino = serializers.PrimaryKeyRelatedField(queryset=Inquilino.objects.all())
+    # inquilino = serializers.PrimaryKeyRelatedField(queryset=Arrendatario.objects.all())
     inquilino = InquilinoSerializers(read_only=True)
  
     class Meta:
         model = Investigacion
         fields = '__all__'
+
+
+#------------------------------Investigaciones Independientes ---------------------------------       
+class InvestigacionLaboralSerializer(serializers.ModelSerializer):
+    # Definir campos que esperamos recibir, incluidas las referencias a los archivos.
+    
+    # Si tienes archivos, puedes usar FileField o ImageField según el tipo de archivo
+    cartalab_inv1 = serializers.FileField(required=False)
+    cartalab_inv2 = serializers.FileField(required=False)
+    cartalab_inv3 = serializers.FileField(required=False)
+    cartalab_inv4 = serializers.FileField(required=False)
+    
+    class Meta:
+        model = Investigacion_Laboral
+        fields = '__all__'
+
+class InvestigacionJudicialSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Investigacion_Judicial
+        fields ='__all__'
+class InvestigacionFinancieraSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Investigacion_Financiera
+        fields ='__all__'
+        
+class InvestigacionInquilinoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Investigacion_Inquilino
+        fields = '__all__'
+    
+#------------------------------Fin Investigaciones Independientes ---------------------------------   
+
 
 class CotizacionSerializers(serializers.ModelSerializer):
     datos_inmueble = InmueblesSerializer(read_only=True, source='inmueble')
@@ -169,7 +168,7 @@ class PaquetesSerializer(serializers.ModelSerializer):
     is_staff = serializers.SerializerMethodField()
     
     class Meta:
-        model = Paquetes
+        model = Paquetes_legales
         fields = '__all__' 
     
     def get_is_staff(self, obj):
@@ -269,3 +268,11 @@ class ContratoSemilleroSerializer(serializers.ModelSerializer):
         model = SemilleroContratos
         fields = '__all__' 
    
+########################### CONTRATOS DASH ########################################
+class ContratosDashSerializer(serializers.ModelSerializer):
+    #arrendatario_contrato = Arrentarios_semilleroSerializers(read_only=True, source='arrendatario')
+    
+    
+    class Meta:
+        model = Contratos
+        fields = '__all__' 

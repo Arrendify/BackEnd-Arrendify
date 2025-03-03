@@ -43,7 +43,7 @@ def contenido_pdf(info,comentario):
                    <br>
                     """
                      
-                    f'<h1>Estimado/a {info.nombre} {info.apellido} {info.apellido1} </h1>' 
+                    f'<h1>Estimado/a {info.nombre_completo} </h1>' 
                     
                     """
                     <p>Espero que este se encuentre bien.</p>
@@ -193,13 +193,13 @@ def contenido_pdf_aprobado(info,estatus):
                    <br>
                     """
                      
-                    f'<h1>Estimado/a {info.nombre} {info.apellido} {info.apellido1} </h1>' 
+                    f'<h1>Estimado/a {info.nombre_completo} </h1>' 
                     
                     """
                     <p>Esperamos se encuentre bien, el motivo de este correo es para brindarle información respecto al proceso de investigación al cual ha sido sometido a fin de verificar su capacidad y/o solvencia económica y moral, lo anterior con la finalidad de llevar a cabo un arrendamiento exitoso.</p>
                     <br>
                     """
-                    f"<p>Derivado a lo anterior, nos complace informarle que el prospecto {info.nombre} {info.apellido} {info.apellido1} ha cumplido con los requisitos solicitados por ARRENDIFY, declarando la presente investigación como POSITIVO, de acuerdo a lo establecido en EL REPORTE DE INVESTIGACIÓN, documento en donde podrá conocer más a detalle sobre el prospecto.</p>"                    
+                    f"<p>Derivado a lo anterior, nos complace informarle que el prospecto {info.nombre_completo} ha cumplido con los requisitos solicitados por ARRENDIFY, declarando la presente investigación como POSITIVO, de acuerdo a lo establecido en EL REPORTE DE INVESTIGACIÓN, documento en donde podrá conocer más a detalle sobre el prospecto.</p>"                    
                     """
                     <br>
                     <p>Agradecemos su preferencia en cuanto a la contratación de nuestros servicios, sin más por el momento, quedamos en espera de cualquier duda o aclaración que requiera de nuestra parte, le dejamos nuestros números de contacto al pie de este correo..</p>
@@ -338,13 +338,13 @@ def contenido_pdf_aprobado(info,estatus):
                    <br>
                     """
                      
-                    f'<h1>Estimado/a {info.nombre} {info.apellido} {info.apellido1} </h1>' 
+                    f'<h1>Estimado/a {info.nombre_completo} </h1>' 
                     
                     """
                     <p>Esperamos se encuentre bien, el motivo de este correo es para brindarle información respecto al proceso de investigación al cual ha sido sometido a fin de verificar su capacidad y/o solvencia económica y moral, lo anterior con la finalidad de llevar a cabo un arrendamiento exitoso.</p>
                     <br>
                     """
-                    f"<p>Derivado a lo anterior, lamentamos informarle que el prospecto {info.nombre} {info.apellido} {info.apellido1} no ha cumplido con los requisitos solicitados por ARRENDIFY, declarando la presente investigación como DECLINADO, de acuerdo a lo establecido en EL REPORTE DE INVESTIGACIÓN, documento en donde podrá conocer más a detalle sobre el prospecto.</p>"                    
+                    f"<p>Derivado a lo anterior, lamentamos informarle que el prospecto {info.nombre_completo} no ha cumplido con los requisitos solicitados por ARRENDIFY, declarando la presente investigación como DECLINADO, de acuerdo a lo establecido en EL REPORTE DE INVESTIGACIÓN, documento en donde podrá conocer más a detalle sobre el prospecto.</p>"                    
                     """
                     <br>
                     <p>Agradecemos su preferencia en cuanto a la contratación de nuestros servicios, esperando seguir trabajando en este proyecto durante un largo periodo de tiempo, deseando poder cumplir con las expectativas planteadas.</p>
@@ -494,7 +494,7 @@ def contenido_pdf_aprobado_francis(info,estatus):
                     <p>Esperamos se encuentre bien, el motivo de este correo es para brindarle información respecto al proceso de investigación al cual ha sido sometido a fin de verificar su capacidad y/o solvencia económica y moral, lo anterior con la finalidad de llevar a cabo un arrendamiento exitoso.</p>
                     <br>
                     """
-                    f"<p>Derivado a lo anterior, nos complace informarle que el prospecto {info.nombre} {info.apellido} {info.apellido1} ha cumplido con los requisitos solicitados por ARRENDIFY, declarando la presente investigación como POSITIVO, de acuerdo a lo establecido en EL REPORTE DE INVESTIGACIÓN, documento en donde podrá conocer más a detalle sobre el prospecto.</p>"                    
+                    f"<p>Derivado a lo anterior, nos complace informarle que el prospecto {info.nombre_completo} ha cumplido con los requisitos solicitados por ARRENDIFY, declarando la presente investigación como POSITIVO, de acuerdo a lo establecido en EL REPORTE DE INVESTIGACIÓN, documento en donde podrá conocer más a detalle sobre el prospecto.</p>"                    
                     """
                     <br>
                     <p>Agradecemos su preferencia en cuanto a la contratación de nuestros servicios, sin más por el momento, quedamos en espera de cualquier duda o aclaración que requiera de nuestra parte, le dejamos nuestros números de contacto al pie de este correo..</p>
@@ -639,7 +639,7 @@ def contenido_pdf_aprobado_francis(info,estatus):
                     <p>Esperamos se encuentre bien, el motivo de este correo es para brindarle información respecto al proceso de investigación al cual ha sido sometido a fin de verificar su capacidad y/o solvencia económica y moral, lo anterior con la finalidad de llevar a cabo un arrendamiento exitoso.</p>
                     <br>
                     """
-                    f"<p>Derivado a lo anterior, lamentamos informarle que el prospecto {info.nombre} {info.apellido} {info.apellido1} no ha cumplido con los requisitos solicitados por ARRENDIFY, declarando la presente investigación como DECLINADO, de acuerdo a lo establecido en EL REPORTE DE INVESTIGACIÓN, documento en donde podrá conocer más a detalle sobre el prospecto.</p>"                    
+                    f"<p>Derivado a lo anterior, lamentamos informarle que el prospecto {info.nombre_completo} no ha cumplido con los requisitos solicitados por ARRENDIFY, declarando la presente investigación como DECLINADO, de acuerdo a lo establecido en EL REPORTE DE INVESTIGACIÓN, documento en donde podrá conocer más a detalle sobre el prospecto.</p>"                    
                     """
                     <br>
                     <p>Agradecemos su preferencia en cuanto a la contratación de nuestros servicios, esperando seguir trabajando en este proyecto durante un largo periodo de tiempo, deseando poder cumplir con las expectativas planteadas.</p>
