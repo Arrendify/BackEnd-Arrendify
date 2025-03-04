@@ -896,7 +896,7 @@ class DocumentosFiador(models.Model):
     
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    Fiador = models.ForeignKey(Fiador_obligado, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
+    Fiador = models.ForeignKey(Aval, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
     #Obligado y fiador
     Ine = models.FileField(upload_to=get_ine_upload_path, max_length=255)
     Comp_dom = models.FileField(upload_to =get_dom_upload_path, max_length=255)
