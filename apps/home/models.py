@@ -235,7 +235,7 @@ class Arrendatario(models.Model):
     folio_mercantil = models.CharField(max_length=100, null=True, blank=True)
     
     #Representante legal obligado pm
-    nombre_completo_rl=models.CharField(max_length=100, blank=True)
+    nombre_completo_rl=models.CharField(max_length=100, null=True, blank=True)
     nacionalidad_rl=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
     curp_rl=models.CharField(max_length=100, null=True, blank=True)
     rfc_rl=models.CharField(max_length=13, null=True, blank=True)
@@ -754,7 +754,7 @@ class Propietario(models.Model):
     folio_mercantil = models.CharField(max_length=100, null=True, blank=True)
     
     #Representante legal pm
-    nombre_completo_rl=models.CharField(max_length=100, blank=True)
+    nombre_completo_rl=models.CharField(max_length=100,null=True, blank=True)
     nacionalidad_rl=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
     rfc_rl=models.CharField(max_length=13, null=True, blank=True)
     identificacion_rl=models.CharField(max_length = 100, null = True, blank = True)
