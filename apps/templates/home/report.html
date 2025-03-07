@@ -881,6 +881,11 @@
             </tr>
             <tr>
               <td style="border-right:1px solid #B2AFBD;">Civil o Familiar</td>
+              <td style="text-align:center;">{% if datos.civil_inmobiliario_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.antecedentes.civil_inmobiliario_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
+            <tr>
+              <td style="border-right:1px solid #B2AFBD;">Civil - Inmobiliario</td>
               <td style="text-align:center;">{% if datos.civil_mercantil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
               <td style="text-align:center;">{% if datos.antecedentes.civil_mercantil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
             </tr>

@@ -195,7 +195,7 @@ class investigaciones(viewsets.ModelViewSet):
    
     def list(self, request, *args, **kwargs):
         user_session = request.user       
-        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion":
+        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion" or user_session.username == "AndresMtzO":
             print("Si eres el elegido")
             qs = request.GET.get('nombre')     
             try:
@@ -1562,7 +1562,8 @@ class RecuperarPassword(viewsets.ViewSet):
             # switch server
             #server = "'http://192.168.1.192:8000'"
             #server = "http://192.168.3.2:8000"
-            server = "https://arrendify.app"
+            server = "http://192.168.1.141:8000"
+            #server = "https://arrendify.app"
             
             #variable
             html = correo_pas(server, token)

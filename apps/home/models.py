@@ -235,7 +235,7 @@ class Arrendatario(models.Model):
     folio_mercantil = models.CharField(max_length=100, null=True, blank=True)
     
     #Representante legal obligado pm
-    nombre_completo_rl=models.CharField(max_length=100, blank=True)
+    nombre_completo_rl=models.CharField(max_length=100, null=True, blank=True)
     nacionalidad_rl=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
     curp_rl=models.CharField(max_length=100, null=True, blank=True)
     rfc_rl=models.CharField(max_length=13, null=True, blank=True)
@@ -754,7 +754,7 @@ class Propietario(models.Model):
     folio_mercantil = models.CharField(max_length=100, null=True, blank=True)
     
     #Representante legal pm
-    nombre_completo_rl=models.CharField(max_length=100, blank=True)
+    nombre_completo_rl=models.CharField(max_length=100, null=True, blank=True)
     nacionalidad_rl=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
     rfc_rl=models.CharField(max_length=13, null=True, blank=True)
     identificacion_rl=models.CharField(max_length = 100, null = True, blank = True)
@@ -896,7 +896,7 @@ class DocumentosFiador(models.Model):
     
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    Fiador = models.ForeignKey(Fiador_obligado, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
+    Fiador = models.ForeignKey(Aval, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
     #Obligado y fiador
     Ine = models.FileField(upload_to=get_ine_upload_path, max_length=255)
     Comp_dom = models.FileField(upload_to =get_dom_upload_path, max_length=255)
@@ -1247,7 +1247,7 @@ class Investigacion_Inquilino(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     investigacion = models.CharField(max_length=100, null=True, blank=True, default="Arrendamiento")
-    status = models.CharField(max_length=100, null=True, blank=True)
+    status = models.CharField(max_length=100, null=True, blank=True, default="Pendiente")
 
  #Persona Fisica   
     #Datos Personales
@@ -1445,7 +1445,7 @@ class Investigacion_Laboral(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     investigacion = models.CharField(max_length=100, null=True, blank=True, default="Laboral")
-    status = models.CharField(max_length=100, null=True, blank=True)
+    status = models.CharField(max_length=100, null=True, blank=True, default="Pendiente")
     
     #Datos Personales    
     nombre_completo=models.CharField(max_length=250, blank=True)
@@ -1493,46 +1493,40 @@ class Investigacion_Laboral(models.Model):
     direccion_completa_ref3=models.CharField(max_length=100, null=True, blank=True)
     
     
-    
-    cartalab_inv1 = models.FileField(
-        upload_to= get_cartalaboral_upload_path, 
-        blank=True, 
-        null=True,
-        
-    )
-    cartalab_inv2 = models.FileField(
-        upload_to= get_cartalaboral_upload_path, 
-        blank=True, 
-        null=True,
-        
-    )
-    cartalab_inv3 = models.FileField(
-        upload_to= get_cartalaboral_upload_path, 
-        blank=True, 
-        null=True,
-        
-    )
-    cartalab_inv4 = models.FileField(
-        upload_to=get_cartalaboral_upload_path, 
-        blank=True, 
-        null=True,
-        
-    )
-    
     def __str__(self):
         return f'{self.nombre_completo} - {self.rfc}'
     
     class Meta:
         db_table = 'investigacionlaboral'
+        
+        
+class DocumentosLaboral(models.Model):
+    
+    def get_cartaslab_upload_path(self, filename):
+        lab_split = str(self.prospecto)
+        ip = lab_split.replace(" ", "_")
+        print(ip)
+        return f'investigacion_lab/{ip}/{filename}'
+
+    id = models.AutoField(primary_key=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    prospecto=models.ForeignKey(Investigacion_Laboral, on_delete=models.SET_NULL, null=True, related_name='archivos')
+    cartalab1 = models.FileField(upload_to=get_cartaslab_upload_path, null=True, max_length=255)
+    cartalab2 = models.FileField(upload_to=get_cartaslab_upload_path, null=True, max_length=255)
+    cartalab3 = models.FileField(upload_to=get_cartaslab_upload_path, null=True, max_length=255)
+    cartalab4 = models.FileField(upload_to=get_cartaslab_upload_path, null=True, max_length=255)
+
+    class Meta:
+        db_table = 'documentos_laboral'
 
 class Investigacion_Judicial(models.Model):
 #Persona Fisica
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    investigacion = models.CharField(max_length=100, null=True, blank=True, default="Financiera")
-    status = models.CharField(max_length=100, null=True, blank=True)
+    investigacion = models.CharField(max_length=100, null=True, blank=True, default="Judicial")
+    status = models.CharField(max_length=100, null=True, blank=True, default="Pendiente")
     #Datos Personales    
-    regimen_fiscal=models.CharField(max_length=250, null = True, blank = True)
+    regimen_fiscalinvjud=models.CharField(max_length=250, null = True, blank = True)
     nombre_completo=models.CharField(max_length=250, blank=True)
     nacionalidad=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
     rfc=models.CharField(max_length=25, null=True, blank=True)
@@ -1544,6 +1538,7 @@ class Investigacion_Judicial(models.Model):
 
 #Persona Moral
     nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
+    rfc_empresa=models.CharField(max_length=25, null=True, blank=True)
     direccion_fiscal = models.CharField(max_length=250, null=True, blank=True)
     telefono = models.CharField(max_length=250, null=True, blank=True)
     escritura_publica=models.CharField(max_length=100, null=True, blank=True)
@@ -1552,6 +1547,7 @@ class Investigacion_Judicial(models.Model):
     numero_notario=models.BigIntegerField(null=True, blank=True)
     estado_acta = models.CharField(max_length=100, null=True, blank=True)
     folio_mercantil = models.CharField(max_length=100, null=True, blank=True)
+    acta_constitutiva = models.CharField(max_length=250, null=True, blank=True)
     
 #Representante Legal
     nombre_rl=models.CharField(max_length=100, blank=True)
@@ -1563,18 +1559,53 @@ class Investigacion_Judicial(models.Model):
     correo_rl=models.EmailField(null=True, blank=True)
     direccion_rl=models.CharField(max_length = 250, null = True, blank = True)
     
+    #Referencias Laborales P.F.
+    n_ref1=models.CharField(max_length=100, null=True, blank=True)
+    p_ref1=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref1=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa_ref1=models.CharField(max_length=250, null=True, blank=True)
+    n_ref2=models.CharField(max_length=100, null=True, blank=True)
+    p_ref2=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref2=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa_ref2=models.CharField(max_length=250, null=True, blank=True)
+    n_ref3=models.CharField(max_length=100, null=True, blank=True)
+    p_ref3=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref3=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa_ref3=models.CharField(max_length=250, null=True, blank=True)
+    
     class Meta:
         db_table = 'investigacionjudicial'
+        
+class DocumentosJudicial(models.Model):
+    
+    def get_documentos_judicial_upload_path(self, filename):
+        jud_split = str(self.prospecto)
+        ip = jud_split.replace(" ", "_")
+        print(ip)
+        return f'investigacion_jud/{ip}/{filename}'
+
+
+    id = models.AutoField(primary_key=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    prospecto=models.ForeignKey(Investigacion_Judicial, on_delete=models.SET_NULL, null=True, related_name='archivos')
+    identificacion_doc = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
+    comprobante_domicilio = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
+    comprobante_ingresos = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
+    situacionfiscal = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
+    carta_laboral = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
+
+    class Meta:
+        db_table = 'documentos_judicial'
     
 class Investigacion_Financiera(models.Model):
 #Informacion Personal
 #Persona Fisica
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    investigacion = models.CharField(max_length=100, null=True, blank=True, default="Laboral")
-    status = models.CharField(max_length=100, null=True, blank=True)
+    investigacion = models.CharField(max_length=100, null=True, blank=True, default="Financiera")
+    status = models.CharField(max_length=100, null=True, blank=True, default="Pendiente")
     
-    regimen_fiscal=models.CharField(max_length=250, null = True, blank = True)
+    regimen_fiscalinvfin=models.CharField(max_length=250, null = True, blank = True)
     nombre_completo=models.CharField(max_length=250, blank=True)
     nacionalidad=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
     rfc=models.CharField(max_length=25, null=True, blank=True)
@@ -1584,6 +1615,7 @@ class Investigacion_Financiera(models.Model):
     email=models.EmailField(max_length=100, null=True, blank=True)
     estado_civil=models.CharField(max_length=100,null=True, blank=True)
     direccion_completa=models.CharField(max_length=100,null=True, blank=True)
+    acta_constitutiva = models.CharField(max_length=250, null=True, blank=True)
     
 #Datos Empleo Actual  
     empleo = models.CharField(max_length = 250, null = True, blank = True)
@@ -1664,6 +1696,27 @@ class Investigacion_Financiera(models.Model):
     
     class Meta:
         db_table = 'investigacionfinanciera'
+        
+class DocumentosFinanciera(models.Model):
+    
+    def get_documentos_financiera_upload_path(self, filename):
+        fin_split = str(self.prospecto)
+        ip = fin_split.replace(" ", "_")
+        print(ip)
+        return f'investigacion_fin/{ip}/{filename}'
+
+
+    id = models.AutoField(primary_key=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    prospecto=models.ForeignKey(Investigacion_Financiera, on_delete=models.SET_NULL, null=True, related_name='archivos')
+    identificacion_doc = models.FileField(upload_to=get_documentos_financiera_upload_path, null=True, max_length=255)
+    comprobante_domicilio = models.FileField(upload_to=get_documentos_financiera_upload_path, null=True, max_length=255)
+    comprobante_ingresos = models.FileField(upload_to=get_documentos_financiera_upload_path, null=True, max_length=255)
+    situacionfiscal = models.FileField(upload_to=get_documentos_financiera_upload_path, null=True, max_length=255)
+    estado_cuenta = models.FileField(upload_to=get_documentos_financiera_upload_path, null=True, max_length=255)
+
+    class Meta:
+        db_table = 'documentos_financiera'
 
 class Investigacion(models.Model):
      id = models.AutoField(primary_key=True)
