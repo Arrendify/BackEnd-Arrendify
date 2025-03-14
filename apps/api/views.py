@@ -215,8 +215,8 @@ class investigaciones(viewsets.ModelViewSet):
                         # for inq in inquilino:
                         #     id_inq.append(inq.id)
                         # investigar = Investigacion.objects.all().exclude(inquilino__in = id_inq)
-                        investigar = Arrendatario.objects.all()
-                        serializer = self.get_serializer(investigar, many=True)
+                        investigar = Arrendatario.objects.all().order_by('-id')
+                        serializer = InquilinoSerializers(investigar, many=True)
                         return Response(serializer.data)
                 
                 #    return Response(serializer.data, status= status.HTTP_200_OK)
