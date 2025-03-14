@@ -190,8 +190,8 @@ class investigaciones(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     
-    queryset = Investigacion.objects.all()
-    serializer_class = InvestigacionSerializers
+    queryset = Arrendatario.objects.all()
+    serializer_class = InquilinoSerializers
    
     def list(self, request, *args, **kwargs):
         user_session = request.user       
@@ -200,14 +200,8 @@ class investigaciones(viewsets.ModelViewSet):
             qs = request.GET.get('nombre')     
             try:
                 if qs:
-                    
-                    inquilino = Arrendatario.objects.all().filter(nombre__icontains = qs)
-                    id_inq = []
-                    for inq in inquilino:
-                        id_inq.append(inq.id)
-                    investigar = Investigacion.objects.all().filter(inquilino__in = id_inq)
-                    serializer = self.get_serializer(investigar, many=True)
-                    
+                    inquilino = Arrendatario.objects.all().filter(nombre_completo__icontains = qs)
+                    serializer = InquilinoSerializers(inquilino, many=True)                    
                     return Response(serializer.data)
                     
                 else:
@@ -221,7 +215,7 @@ class investigaciones(viewsets.ModelViewSet):
                         # for inq in inquilino:
                         #     id_inq.append(inq.id)
                         # investigar = Investigacion.objects.all().exclude(inquilino__in = id_inq)
-                        investigar = Investigacion.objects.all()
+                        investigar = Arrendatario.objects.all()
                         serializer = self.get_serializer(investigar, many=True)
                         return Response(serializer.data)
                 
@@ -490,7 +484,7 @@ class investigaciones(viewsets.ModelViewSet):
             
             #hacemos una lista destinatarios para enviar el correo
             Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com']
-            asunto = f"Resultado Investigación Prospecto {info.nombre} {info.apellido} {info.apellido1}"
+            asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
             
             # Crea un objeto MIMEMultipart para el correo electrónico
             msg = MIMEMultipart()
@@ -549,7 +543,7 @@ class investigaciones(viewsets.ModelViewSet):
             
             #hacemos una lista destinatarios para enviar el correo
             Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com']
-            asunto = f"Resultado Investigación Prospecto {info.nombre} {info.apellido} {info.apellido1}"
+            asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
             
             # Crea un objeto MIMEMultipart para el correo electrónico
             msg = MIMEMultipart()
@@ -608,7 +602,7 @@ class investigaciones(viewsets.ModelViewSet):
             print("request.data",req_dat)
             print("el id que llega", req_dat["id"])
             print("")
-            print("soy la info del",info.nombre)       
+            print("soy la info del",info.nombre_completo)       
             print(info.__dict__)
             print("")        
             print("soy la info del aval",aval)                                
@@ -764,7 +758,7 @@ class investigaciones(viewsets.ModelViewSet):
                     
                 elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
                     print("aprobado")
-                    conclusion = f"Nos complace informar que el prospecto {info.nombre} {info.apellido} {info.apellido1} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
+                    conclusion = f"Nos complace informar que el prospecto {info.nombre_completo} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
                     status = "Aprobado"
                     motivo = "hola"   
                 

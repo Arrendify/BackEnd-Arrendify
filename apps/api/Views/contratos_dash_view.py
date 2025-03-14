@@ -314,7 +314,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     
                 else:
                     print("no existe el fiador")
-                    serializer_fiador = Fiador_obligadoSerializer(data=aval)
+                    serializer_fiador = AvalSerializer(data=aval)
                     serializer_fiador.is_valid(raise_exception=True)
                     fiador = serializer_fiador.save(user = user_session)
                     print("Se guardo al nuevo el fiador")    
@@ -392,29 +392,29 @@ class ContratosViewSet(viewsets.ModelViewSet):
             
             codigo_paquete = ""
             
-            if info["tipo_contrato"] == "Arrendamiento":
+            if info["tipo_contrato"] == "Arrendamiento" or info["tipo_contrato"] == "Poliza" or info["tipo_contrato"] == "Arrendamiento+Pagares":
                 data_contrato = {
                     'propietario': f"{arrendador.id}",
                     'inmueble': f"{propiedad.id}",
                     'arrendatario': f"{inquilino.id}",
                     'aval': f"{fiador.id}",
-                    'tipo_contrato': "Arrendamiento",
+                    'tipo_contrato': info["tipo_contrato"],
                     'datos_contratos': informacion_del_contrato
                     }
                 
                 contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato = "Arrendamiento")
                 
-            elif info["tipo_contrato"] == "Poliza":
+            elif info["tipo_contrato"] == "Pagare":
                 data_contrato = {
                     'propietario': f"{arrendador.id}",
-                    'inmueble': f"{propiedad.id}",
+                    # 'inmueble': f"{propiedad.id}",
                     'arrendatario': f"{inquilino.id}",
                     'aval': f"{fiador.id}",
                     'tipo_contrato': "Poliza",
                     'datos_contratos': informacion_del_contrato
                     }
                 
-                contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato = "Poliza")
+                contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato = "Pagare")
             
             #comprobar que no se duplique el registro del contrato
             if contrato:
@@ -460,31 +460,6 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
                 info["arrendador"] = arrendador
 
-            # arrendatario = dict(info["arrendatario"])        
-            # print("Esto es el request data.",info)
-            # print("")
-            # print("Esto es el arrendatario",arrendatario)
-            # print("")
-            
-            # if arrendatario.get("inquilino"):
-            #     print("hay informacion del tipo inquilino hay que hacer una busqueda de id")
-            #     inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"])
-            #     print("Listo si hay Inquilino",inquilino)
-            # else:
-            #     print("no hay informacion del tipo inquilino hay que Guardarlo pero hay que ver si ya existe")
-            #     print("nombre_completo", arrendatario["nombre_completo"])
-            #     inquilino = Arrendatario.objects.all().filter(nombre_completo = arrendatario["nombre_completo"], user = user_session)
-            #     if inquilino:
-            #         print("ya existe el inquilino")
-                    
-            #     else:
-            #         print("no existe el inquilino")
-            #         serializer_inquilino = InquilinoSerializers(data=arrendatario)
-            #         serializer_inquilino.is_valid(raise_exception=True)
-            #         serializer_inquilino.save(user = user_session)
-            #         #inquilino = Inquilino.objects.create(nombre_completo = arrendatario["nombre_completo"], user = user_session)
-            #         print("Se creo el inquilino")            
-                    
             print("")
             print("Contimuamos el proceso para el arrendatario")
             print("")
@@ -537,23 +512,27 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     renta_decimal = renta_completa[1]
                     text_representation = num2words(renta_completa[0], lang='es').capitalize()
             else:
-                print("vengo desde inmueble con poliza")
-                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
-                info["inmueble"] = propiedad 
-                print("spy datos del inmueble en pagare-poliza",info["inmueble"])
-                
-                #checamos que no tenga decimales
-                
-                if "." not in str(propiedad.renta):
-                    print("no hay yaya")
-                    number = int(propiedad.renta)
-                    renta_decimal = "00"
-                    text_representation = num2words(number, lang='es').capitalize()
-                else:
-                    print("tengo punto en renta")
-                   
-
-            
+                print("vengo desde poliza o arrendamiento con una propiedad existente")
+                inmueble = info["inmueble"]
+                if inmueble.get("inmueble"):
+                    propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                    info["inmueble"] = propiedad
+                    #checamos que no tenga decimales
+                    if "." not in str(propiedad.renta):
+                        number = int(propiedad.renta)
+                        renta_decimal = "00"
+                        text_representation = num2words(number, lang='es').capitalize()
+                    else:
+                        print("tengo punto en renta pendiente de saber que hacer")
+                else: 
+                    if "." not in str(info["inmueble"]["renta"]):
+                        print("no hay yaya")
+                        number = int(info["inmueble"]["renta"])
+                        renta_decimal = "00"
+                        text_representation = num2words(number, lang='es').capitalize()
+                    else:
+                        print("tengo punto en renta pendiente de saber que hacer")
+                    
             print("")
             print(f"renta {number}, letra: {text_representation}")
             #imprimir el nombre de la las fechas
@@ -640,18 +619,37 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 print(f"Año: {year}, Mes: {month}")
                 
             #obtenermos la renta para pasarla a letra
-            if "." not in info["datos_contratos"]['renta']:
-                print("no hay yaya")
-                number = int(info["datos_contratos"]['renta'])
-                renta_decimal = "00"
-                text_representation = num2words(number, lang='es').capitalize()
-               
+            renta = info["datos_contratos"]
+            if renta.get("renta"):
+                print("vengo desde pagare Sin Poliza")
+                #obtenermos la renta para pasarla a letra
+                if "." not in info["datos_contratos"]['renta']:
+                    print("no hay yaya")
+                    number = int(info["datos_contratos"]['renta'])
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                
+                else:
+                    print("tengo punto en renta")
+                    renta_completa = info["datos_contratos"]['renta'].split(".")
+                    info.renta = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
             else:
-                print("tengo punto en renta")
-                renta_completa = info["datos_contratos"]['renta'].split(".")
-                info.renta = renta_completa[0]
-                renta_decimal = renta_completa[1]
-                text_representation = num2words(renta_completa[0], lang='es').capitalize()
+                print("vengo desde inmueble con poliza")
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                info["inmueble"] = propiedad 
+                print("spy datos del inmueble en pagare-poliza",info["inmueble"])
+                
+                #checamos que no tenga decimales
+                
+                if "." not in str(propiedad.renta):
+                    print("no hay yaya")
+                    number = int(propiedad.renta)
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                else:
+                    print("tengo punto en renta")
             
             print("")
             print(f"renta {number}, letra: {text_representation}")
@@ -692,13 +690,13 @@ class ContratosViewSet(viewsets.ModelViewSet):
             print("soy el arrendatario vamos a ver quye pdo",arrendatario)
             if arrendatario.get("inquilino"):
                 print("hay informacion del arrendatarios hay que hacer una busqueda de id")
-                print("Inquilino ID", info["arrendatario"]["inquilino"])
                 inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
-                print("Inquilino", inquilino)
+                # print("Inquilino", inquilino)
 
                 info["arrendatario"] = inquilino
 
             aval = dict(info["fiador"])         
+            
             if aval.get("aval"):
                 print("hay informacion del aval hay que hacer una busqueda de id")
                 fiador = Aval.objects.all().filter(id = info["fiador"]["aval"]).first()
@@ -1011,9 +1009,13 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     # renta_decimal = renta_completa[1]
                     # text_representation = num2words(renta_completa[0], lang='es').capitalize()
                 
-                info["inmueble"] = propiedad    
+                print("hay que sacar sus impuestos")
+                info["inmueble"] = propiedad  
+                impuestos = propiedad.impuestos  
             else: #ahora si no hay inmueble registrado
                 print("no hay informacion del inmueble")
+                print("hay que sacar sus impuestos",info["inmueble"]['impuestos'])
+                impuestos = info["inmueble"]['impuestos']
                 
                 if "." not in info["inmueble"]['renta']:
                     print("no hay yaya")
@@ -1033,7 +1035,6 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     # text_representation = num2words(renta_completa[0], lang='es').capitalize()
 
             # obtenermos el monto de la poliza
-            impuestos = propiedad.impuestos
             plata = 3920 
             oro = 4900
             platino = 9800
@@ -1098,10 +1099,9 @@ class ContratosViewSet(viewsets.ModelViewSet):
              
             print("fecha OK",fecha_inicial)
           
-         
-            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.month ,'anio':fecha_ok.year}
-            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.month ,'anio':fecha_off.year}
-            datos_firma = {'dia':fecha_firma.day, 'mes':fecha_firma.month ,'anio':fecha_firma.year}
+            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.strftime("%B").upper() ,'anio':fecha_ok.year}
+            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.strftime("%B").upper()  ,'anio':fecha_off.year}
+            datos_firma = {'dia':fecha_firma.day, 'mes':fecha_firma.strftime("%B").capitalize()  ,'anio':fecha_firma.year}
             
             #obtenermos el precio de la poliza para pasarla a letra
             precio = int(info["datos_contratos"]["monto_total"])
@@ -1137,6 +1137,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
             print("Generar Poliza")
             locale.setlocale(locale.LC_ALL,"es_MX.utf8")
             info = request.data
+            
             
             print("")
             print("Esto es el request data.",info)
@@ -1189,9 +1190,13 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     # renta_decimal = renta_completa[1]
                     # text_representation = num2words(renta_completa[0], lang='es').capitalize()
                 
-                info["inmueble"] = propiedad    
+                print("hay que sacar sus impuestos")
+                info["inmueble"] = propiedad  
+                impuestos = propiedad.impuestos  
             else: #ahora si no hay inmueble registrado
                 print("no hay informacion del inmueble")
+                print("hay que sacar sus impuestos",info["inmueble"]['impuestos'])
+                impuestos = info["inmueble"]['impuestos']
                 
                 if "." not in info["inmueble"]['renta']:
                     print("no hay yaya")
@@ -1211,7 +1216,6 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     # text_representation = num2words(renta_completa[0], lang='es').capitalize()
 
             # obtenermos el monto de la poliza
-            impuestos = propiedad.impuestos
             plata = 3920 
             oro = 4900
             platino = 9800
@@ -1225,7 +1229,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     else:
                         info["datos_contratos"]["monto_total"] = plata
                 else:
-                    total_poliza = (number * 0.28);
+                    total_poliza = (number * 0.28)
                     if impuestos == "Si":
                         info["datos_contratos"]["monto_total"] = total_poliza + (total_poliza*0.16)
                     else:
@@ -1241,7 +1245,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     else:
                         info["datos_contratos"]["monto_total"] = oro
                 else:
-                    total_poliza = (number * 0.35);
+                    total_poliza = (number * 0.35)
                     if impuestos == "Si":
                         info["datos_contratos"]["monto_total"] = total_poliza + (total_poliza*0.16)
                     else:
@@ -1275,11 +1279,14 @@ class ContratosViewSet(viewsets.ModelViewSet):
             fecha_firma = datetime.strptime(info["datos_contratos"]['fecha_firma'], "%Y-%m-%d").date()
              
             print("fecha OK",fecha_inicial)
-          
          
-            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.month ,'anio':fecha_ok.year}
-            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.month ,'anio':fecha_off.year}
-            datos_firma = {'dia':fecha_firma.day, 'mes':fecha_firma.month ,'anio':fecha_firma.year}
+            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.strftime("%B").upper() ,'anio':fecha_ok.year}
+            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.strftime("%B").upper()  ,'anio':fecha_off.year}
+            datos_firma = {'dia':fecha_firma.day, 'mes':fecha_firma.strftime("%B").capitalize()  ,'anio':fecha_firma.year}
+
+            print("datos_inicio",datos_inicio["mes"])
+            nombre_mes = fecha_ok.strftime("%B").capitalize()
+            print("nombre del mes",nombre_mes)
             
             #obtenermos el precio de la poliza para pasarla a letra
             precio = int(info["datos_contratos"]["monto_total"])

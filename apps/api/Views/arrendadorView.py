@@ -167,7 +167,7 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
                 # pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
                 # pertenece = pertenece.union(pertenece2)
                 # arrendador_all = mios.union(pertenece).order_by('-id')
-               
+          
                 # print("Registrados por mi o por un agente directo", mios)
                 # print("Independientes vinculado(s) a un agente(s)", pertenece)
                 # print("Todos los arrendadores",arrendador_all)

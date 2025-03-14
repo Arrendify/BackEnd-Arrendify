@@ -10,6 +10,8 @@ from .Views.arrendadorView import *
 from .Views.inquilinos_view import *
 from .Views.contratos_dash_view import *
 from .Views.investigaciones_views import *
+from .Views.stripe_view import CreateStripeCheckoutSession
+
 
 urlpatterns = [
     # Password
@@ -71,6 +73,8 @@ urlpatterns = [
     path('dash/generar_preview_poliza/', ContratosViewSet.as_view({'post': 'generar_preview_poliza'}), name='generar_preview_poliza'),
     path('dash/generar_poliza/', ContratosViewSet.as_view({'post': 'generar_poliza'}), name='generar_poliza'),
     
+    #STRIPE
+    path('stripe-webhook/', stripe_webhook, name='stripe-webhook'),
     #manejamos el index con la pag404
     path('health/', health_check, name='health_check'),
   

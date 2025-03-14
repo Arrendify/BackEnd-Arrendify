@@ -906,6 +906,7 @@ class DocumentosFiador(models.Model):
     Comp_dom = models.FileField(upload_to =get_docs_upload_path, max_length=255)
     Estado_cuenta = models.FileField(null=True, blank=True,upload_to = get_docs_upload_path, max_length=255)
     Escrituras = models.FileField(null=True, blank=True,upload_to = get_docs_upload_path, max_length=255)
+
     
     #comentarios
     comentarios_ine = models.CharField(max_length=200, null=True, blank=True)
@@ -957,7 +958,7 @@ class DocumentosArrendador(models.Model):
 class Inmuebles(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    arrendador = models.ForeignKey(Propietario, null=True, blank=True, on_delete=models.SET_NULL)
+    arrendador = models.ForeignKey(Propietario, null=True, blank=True, on_delete=models.SET_NULL, related_name='propietario')
 
     alias_inmueble = models.CharField(max_length=100, null=True, blank=True)
     
@@ -974,15 +975,13 @@ class Inmuebles(models.Model):
     mantenimiento = models.CharField(max_length=100, null=True, blank=True)
     cuota_mantenimiento= models.BigIntegerField(null=True, blank=True)
     giro=models.CharField(max_length=100, null=True, blank=True)
-    op_compra = models.CharField(max_length=100, null=True, blank=True)   
-    direccion_completa = models.CharField(max_length=250,null=True, blank=True)
+    op_compra = models.CharField(max_length=100, null=True, blank=True) 
     
+    direccion_completa = models.CharField(max_length=250,null=True, blank=True)
     
     calle1 = models.CharField(max_length=100, null=True, blank=True)
     calle2 = models.CharField(max_length=100, null=True, blank=True)
     referencias = models.CharField(max_length=100, null=True, blank=True)
-    
-    
     
     n_baños = models.BigIntegerField(null=True, blank=True)
     n_medios_baños = models.BigIntegerField(null=True, blank=True)
@@ -1443,8 +1442,7 @@ class DocumentosInvInquilino(models.Model):
 
     class Meta:
         db_table = 'documentos_inv_inquilino'
-    
-    
+
 #Fin Investigacion Inquilino
 #Revisado Completo
 class Investigacion_Laboral(models.Model):
@@ -1572,6 +1570,19 @@ class Investigacion_Judicial(models.Model):
     celular_rl=models.CharField(max_length = 100, null = True, blank = True)
     correo_rl=models.EmailField(null=True, blank=True)
     direccion_rl=models.CharField(max_length = 250, null = True, blank = True)
+    #Referencias Laborales P.F.
+    n_ref1=models.CharField(max_length=100, null=True, blank=True)
+    p_ref1=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref1=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa_ref1=models.CharField(max_length=250, null=True, blank=True)
+    n_ref2=models.CharField(max_length=100, null=True, blank=True)
+    p_ref2=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref2=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa_ref2=models.CharField(max_length=250, null=True, blank=True)
+    n_ref3=models.CharField(max_length=100, null=True, blank=True)
+    p_ref3=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref3=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa_ref3=models.CharField(max_length=250, null=True, blank=True)
     
     #Referencias Laborales P.F.
     n_ref1=models.CharField(max_length=100, null=True, blank=True)
@@ -1589,7 +1600,7 @@ class Investigacion_Judicial(models.Model):
     
     class Meta:
         db_table = 'investigacionjudicial'
-        
+
 class DocumentosJudicial(models.Model):
     
     def get_documentos_judicial_upload_path(self, filename):
@@ -1709,7 +1720,7 @@ class Investigacion_Financiera(models.Model):
     
     class Meta:
         db_table = 'investigacionfinanciera'
-        
+
 class DocumentosFinanciera(models.Model):
     
     def get_documentos_financiera_upload_path(self, filename):
