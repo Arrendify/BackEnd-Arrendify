@@ -173,6 +173,8 @@ class inmueblesViewSet(viewsets.ModelViewSet):
                 return Response({'message': 'Inmueble eliminado correctamente'}, status=204)
             return Response({'message': 'Error al eliminar inmueble'}, status=400)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     def retrieve(self, request, slug=None, *args, **kwargs):
@@ -195,7 +197,9 @@ class inmueblesViewSet(viewsets.ModelViewSet):
             return Response({'inmuebles': serializer_inmueble.data, 'imagen': serializer_img.data, 'total_imagenes':total_imagenes},
                             status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response({'Error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def update(self, request, *args, **kwargs):
         try: 

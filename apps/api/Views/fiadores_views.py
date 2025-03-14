@@ -115,6 +115,8 @@ class AvalViewSet(viewsets.ModelViewSet):
            
            return Response(serializer.data, status= status.HTTP_200_OK)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     def create(self, request, *args, **kwargs):
@@ -131,6 +133,8 @@ class AvalViewSet(viewsets.ModelViewSet):
                 print("Error en validacion")
                 return Response({'errors': aval_serializer.errors})
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 
@@ -144,8 +148,8 @@ class AvalViewSet(viewsets.ModelViewSet):
             self.perform_update(AvalSerializer)
             print("Guardado Aval")
             return Response(AvalSerializer.data, status=status.HTTP_200_OK)
+        
             
-            print("No guardo Aval")
         except Exception as e: 
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
@@ -174,12 +178,13 @@ class AvalViewSet(viewsets.ModelViewSet):
                 return Response({'message': 'Aval eliminado'}, status=204)
             return Response({'message': 'Error al eliminar'}, status=400)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 class DocumentosFoo(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
-    
     queryset = DocumentosFiador.objects.all()
     serializer_class = DFSerializer
    
@@ -195,6 +200,7 @@ class DocumentosFoo(viewsets.ModelViewSet):
         return Response(FiadorSerializers.data ,status=status.HTTP_200_OK)
     
     def create (self, request, *args,**kwargs):
+        print("Entro a create fiadores docs")
         user_session = request.user.id
         print(user_session)
         try: 
@@ -217,6 +223,8 @@ class DocumentosFoo(viewsets.ModelViewSet):
             else:
                 return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 
@@ -262,39 +270,47 @@ class DocumentosFoo(viewsets.ModelViewSet):
             # print(documentos_arrendador)
             return Response(serializer_fiador.data)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     
     def update(self, request, *args, **kwargs):
+        print("Entro a update fiadores docs")
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         print(request.data)
-        
-        # Verificar si se proporciona un nuevo archivo adjunto
-        if 'Ine' in request.data:
-            print("soy ine")
-            Ine = request.data['Ine']
-            archivo = instance.Ine
-            eliminar_archivo_s3(archivo)
-            instance.Ine = Ine  # Actualizar el archivo adjunto sin eliminar el anterior
+        try:  
+            # Verificar si se proporciona un nuevo archivo adjunto
+            if 'Ine' in request.data:
+                print("soy ine")
+                Ine = request.data['Ine']
+                archivo = instance.Ine
+                eliminar_archivo_s3(archivo)
+                instance.Ine = Ine  # Actualizar el archivo adjunto sin eliminar el anterior
+                
+            if 'Comp_dom' in request.data:
+                Comp_dom = request.data['Comp_dom']
+                archivo = instance.Comp_dom
+                eliminar_archivo_s3(archivo)
+                instance.Comp_dom = Comp_dom  # Actualizar el archivo adjunto sin eliminar el anterior
+                
+            if 'Estado_cuenta' in request.data:
+                Estado_cuenta = request.data['Estado_cuenta']
+                instance.Estado_cuenta = Estado_cuenta  # Actualizar el archivo adjunto sin eliminar el anterior
             
-        if 'Comp_dom' in request.data:
-            Comp_dom = request.data['Comp_dom']
-            archivo = instance.Comp_dom
-            eliminar_archivo_s3(archivo)
-            instance.Comp_dom = Comp_dom  # Actualizar el archivo adjunto sin eliminar el anterior
-            
-        if 'Estado_cuenta' in request.data:
-            Estado_cuenta = request.data['Estado_cuenta']
-            instance.Estado_cuenta = Estado_cuenta  # Actualizar el archivo adjunto sin eliminar el anterior
+            if 'Escrituras' in request.data:
+                Escrituras = request.data['Escrituras']
+                archivo = instance.Escrituras
+                eliminar_archivo_s3(archivo)
+                instance.Escrituras = Escrituras  # Actualizar el archivo adjunto sin eliminar el anterior
         
-        if 'Escrituras' in request.data:
-            Escrituras = request.data['Escrituras']
-            archivo = instance.Escrituras
-            eliminar_archivo_s3(archivo)
-            instance.Escrituras = Escrituras  # Actualizar el archivo adjunto sin eliminar el anterior
+            serializer.update(instance, serializer.validated_data)
+            print(serializer.data['Ine'])# Actualizar el archivo adjunto sin eliminar el anterior
+            return Response(serializer.data) 
         
-        serializer.update(instance, serializer.validated_data)
-        print(serializer.data['Ine'])# Actualizar el archivo adjunto sin eliminar el anterior
-        return Response(serializer.data)    
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)   

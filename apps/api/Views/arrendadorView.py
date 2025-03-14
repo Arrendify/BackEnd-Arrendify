@@ -163,17 +163,17 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
                 mios = arrendadores_a_cargo.union(arrendadores_mios)
                 
                 #busqueda de inquilino vinculado
-                pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
-                pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
-                pertenece = pertenece.union(pertenece2)
-                arrendador_all = mios.union(pertenece).order_by('-id')
+                # pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+                # pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+                # pertenece = pertenece.union(pertenece2)
+                # arrendador_all = mios.union(pertenece).order_by('-id')
                
-                print("Registrados por mi o por un agente directo", mios)
-                print("Independientes vinculado(s) a un agente(s)", pertenece)
-                print("Todos los arrendadores",arrendador_all)
+                # print("Registrados por mi o por un agente directo", mios)
+                # print("Independientes vinculado(s) a un agente(s)", pertenece)
+                # print("Todos los arrendadores",arrendador_all)
                # print("inquilinos_all con ids",arrendador_all("id"))
                 
-                serializer = ArrendadorSerializer(arrendador_all, many=True)
+                serializer = ArrendadorSerializer(mios, many=True)
                 serialized_data = serializer.data
                 
                 if not serialized_data:
@@ -312,6 +312,8 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
                 return Response({'message': 'Arrendador eliminado'}, status=204)
             return Response({'message': 'Error al eliminar'}, status=400)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
   

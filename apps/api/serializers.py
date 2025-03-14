@@ -12,13 +12,13 @@ class DFSerializer(serializers.ModelSerializer):
         model = DocumentosFiador
         fields = '__all__'
 class DISerializer(serializers.ModelSerializer):
-    inquilinos_nombre = serializers.CharField(source='arrendatario.nombre_completo', read_only=True)
+    inquilinos_nombre = serializers.CharField(source='inquilino.nombre_completo', read_only=True)
     class Meta:
         model = DocumentosInquilino
         fields = '__all__'
 
 class AvalSerializer(serializers.ModelSerializer):
-    inquilino_nombre = serializers.CharField(source='arrendatario.nombre_completo', read_only=True)
+    arrendatario_nombre_completo = serializers.CharField(source='inquilino.nombre_completo', read_only=True)
     archivos = DFSerializer(many=True, read_only=True)
     user =  User2Serializer(read_only=True)
     class Meta:
@@ -140,8 +140,17 @@ class InvestigacionFinancieraSerializer(serializers.ModelSerializer):
         model = Investigacion_Financiera
         fields ='__all__'
         
-class InvestigacionInquilinoSerializer(serializers.ModelSerializer):
+class DocumentosInvInquilinoSerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = DocumentosInvInquilino
+        fields = '__all__'
+        
+class InvestigacionInquilinoSerializer(serializers.ModelSerializer):
+    prospecto_nombre= serializers.CharField(source='Investigacion_Inquilino.nombre_completo', read_only=True)
+    empresa_nombre= serializers.CharField(source='Investigacion_Inquilino.nombre_empresa', read_only=True)
+    archivos = DocumentosInvInquilinoSerializer(many=True, read_only=True)
+    user =  User2Serializer(read_only=True)
     class Meta:
         model = Investigacion_Inquilino
         fields = '__all__'

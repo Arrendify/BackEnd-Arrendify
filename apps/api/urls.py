@@ -18,6 +18,9 @@ urlpatterns = [
     #Amigos
     path('friendrequest/', Amigos.as_view({'post': 'send_friend_request'}), name='friendrequest'),
     
+    #Fiador/Obligado Documentos
+    #path('actualiza_documentos/', DocumentosFoo.as_view({'put': 'actualiza_documentos'}), name='documentos_foo'),
+    
     #Investigacion
     path('aprobar_prospecto/', investigaciones.as_view({'post': 'aprobar_prospecto'}), name='aprobar_prospecto'),
     path('investigacion_francis/', investigaciones.as_view({'get': 'investigacion_francis'}), name='investigacion_francis'),

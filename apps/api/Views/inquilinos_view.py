@@ -54,7 +54,8 @@ def send_noti(self, request, *args, **kwargs):
                 return Response({'errors': post_serializer.errors})
             
         except Exception as e:
-            print("error",e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # ----------------------------------Metodo para disparar notificaciones a varios destinos----------------------------------------------- #
@@ -93,7 +94,8 @@ def send_noti_varios(self, request, *args, **kwargs):
             return Response({'Post': post_serializer.data}, status=status.HTTP_201_CREATED)
             
         except Exception as e:
-            print("error",e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -133,18 +135,18 @@ class inquilinosViewSet(viewsets.ModelViewSet):
                     mios = inquilinos_a_cargo.union(inquilinos_mios)
                     
                     #busqueda de inquilino vinculado
-                    pertenece2 = Arrendatario.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
-                    pertenece = Arrendatario.objects.filter(mi_agente_es__in = agentes.values("first_name"))
-                    pertenece = pertenece.union(pertenece2)
+                    # pertenece2 = Arrendatario.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+                    # pertenece = Arrendatario.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+                    # pertenece = pertenece.union(pertenece2)
                     
-                    inquilinos_all = mios.union(pertenece)
+                    #inquilinos_all = mios.union(pertenece)
                     #print("inquilinos a cargo", inquilinos_a_cargo.values())
-                    print("Registrados por mi o por un agente directo", mios)
-                    print("Independientes vinculado(s) a un agente(s)", pertenece)
-                    print("inquilinos_all",inquilinos_all)
+                    # print("Registrados por mi o por un agente directo", mios)
+                    # print("Independientes vinculado(s) a un agente(s)", pertenece)
+                    # print("inquilinos_all",inquilinos_all)
                     
                     
-                    serializer = InquilinoSerializers(inquilinos_all, many=True)
+                    serializer = InquilinoSerializers(mios, many=True)
                     serialized_data = serializer.data
                     
                     if not serialized_data:
@@ -162,12 +164,12 @@ class inquilinosViewSet(viewsets.ModelViewSet):
                     #obtengo mis inquilinos
                     inquilinos_ag = Arrendatario.objects.filter(user_id = user_session)
                     #obtengo mis inquilinos vinculados
-                    pertenece = Arrendatario.objects.filter(mi_agente_es__icontains = user_session.first_name)
+                    #pertenece = Arrendatario.objects.filter(mi_agente_es__icontains = user_session.first_name)
                     # pertenece = Arrendatario.objects.filter(mi_agente_es = user_session.first_name)
                     # pertenece = Arrendatario.objects.filter(mi_agente_es__in = user_session.first_name)
                     # pertenece = pertenece.union(pertenece2)
-                    inquilinos_all = inquilinos_ag.union(pertenece)
-                    serializer = InquilinoSerializers(inquilinos_all, many=True)
+                    #inquilinos_all = inquilinos_ag.union(pertenece)
+                    serializer = InquilinoSerializers(inquilinos_ag, many=True)
                     serialized_data = serializer.data
                     
                     if not serialized_data:
@@ -229,7 +231,7 @@ class inquilinosViewSet(viewsets.ModelViewSet):
                         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
-                    logger.error(f"{datetime.datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+                    logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
                     return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -315,6 +317,8 @@ class DocumentosInquilinoViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 
