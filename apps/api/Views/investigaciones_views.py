@@ -5,9 +5,9 @@ from rest_framework import status
 from rest_framework.authentication import TokenAuthentication,SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 #nuevo modelo user
-from ...home.models import Investigacion_Laboral,Investigacion_Inquilino
+from ...home.models import Investigacion_Laboral,Investigacion_Inquilino,Investigacion_Judicial,Investigacion_Financiera
 from ..views import *
-from ..serializers import *
+from ..serializers import InvestigacionFinancieraSerializer,InvestigacionInquilinoSerializer,InvestigacionJudicialSerializer,InvestigacionLaboralSerializer,DocumentosLaboralSerializer
 from ...accounts.models import CustomUser
 User = CustomUser
 
@@ -56,15 +56,13 @@ class InvestigacionLaboralViewSet(viewsets.ViewSet):
 
                     # Devolver la respuesta
                     return Response(serialized_data)
-                
-                    # Listar muchos a muchos
-                    # Obtener todos las investigaciones del usuario actual
-                investigacion_propia = Investigacion_Laboral.objects.all().filter(user_id = user_session)
-                print(investigacion_propia)
-   
-                serializer = InvestigacionLaboralSerializer(snippets, many=True)
+
+                elif user_session.is_staff == False:
+                    mis_investigaciones = Investigacion_Laboral.objects.filter(user=user_session).order_by('-id')
+                    serializer = InvestigacionLaboralSerializer(mis_investigaciones, many=True)
+                    serialized_data = serializer.data
             
-                return Response(serializer.data)
+                    return Response(serializer.data)
             
         except Exception as e:
             print(f"el error es: {e}")
@@ -73,27 +71,37 @@ class InvestigacionLaboralViewSet(viewsets.ViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def create(self, request, *args, **kwargs):
-        user_session = request.user  # Obtener el usuario autenticado
         try:
+            data_documentos = {}
             print("entro a post")
-            # Crea un nuevo diccionario con los datos de la solicitud y agrega el campo 'user'
-            data = request.data.copy()  # Crea una copia de los datos
-            data['user'] = user_session.id  # Agregar el ID del usuario al diccionario
-            
-            # Crear el serializer con los datos enviados en la petición
-            serializerlab = InvestigacionLaboralSerializer(data=data)
-            print("Este es el Serializer: ",serializerlab)
-            
-            if serializerlab.is_valid():  # Validar los datos antes de guardarlos
-                serializerlab.save(user=user_session)
+            data = request.data  # Crea una copia de los datos          
+            serializerlab = InvestigacionLaboralSerializer(data=data)# Crear el serializer con los datos enviados en la petición
+            if serializerlab.is_valid():# Validar los datos antes de guardarlos
+                documentos = ['cartalab1','cartalab2','cartalab3','cartalab4']
+                print("antes de For:",data_documentos)
+                for field in documentos:
+                    print("campo",field)
+                    if field in request.FILES:
+                        data_documentos[field] = request.FILES[field]
+                    else:
+                        data_documentos[field] = None
+                        
+                print("aqui estan los documentos :D ", data_documentos)        
+                prospecto = serializerlab.save(user = request.user)
+                data_documentos["prospecto"] = prospecto.id
+                
+                print("serializer",data_documentos)
+                documentos_serializer = DocumentosLaboralSerializer(data=data_documentos)
+                documentos_serializer.is_valid()
+                documentos_serializer.save(user = request.user)
                 print("Guardado")
                 # Guardar el objeto con el usuario autenticado
-                return Response(serializerlab.data, status=status.HTTP_201_CREATED)
+                return Response({'prospecto': serializerlab.data}, status = status.HTTP_201_CREATED)
                 
             
             else:
                 # Si la validación falla, devolver los errores
-                return Response(serializerlab.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'Error al guardar datos': serializerlab.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             # Captura general de errores
@@ -254,10 +262,10 @@ class InvestigacionInquilinoViewSet(viewsets.ViewSet):
         try:    
             if request.method == 'GET':
                 if user_session.is_staff:
-                    snippets = Investigacion_Inquilino.objects.all().order_by('-id')
+                    todas = Investigacion_Inquilino.objects.all().order_by('-id')
                     
                     # Crear una copia de los datos serializados
-                    serializer = InvestigacionInquilinoSerializer(snippets, many=True)
+                    serializer = InvestigacionInquilinoSerializer(todas, many=True)
                     serialized_data = serializer.data
 
                     # Agregar el campo 'is_staff'
@@ -267,14 +275,12 @@ class InvestigacionInquilinoViewSet(viewsets.ViewSet):
                     # Devolver la respuesta
                     return Response(serialized_data)
                 
-                    # Listar muchos a muchos
-                    # Obtener todos las investigaciones del usuario actual
-                investigacion_propia = Investigacion_Inquilino.objects.all().filter(user_id = user_session)
-                print(investigacion_propia)
-   
-                serializer = InvestigacionInquilinoSerializer(snippets, many=True)
-            
-                return Response(serializer.data)
+                elif user_session.is_staff == False:
+                    mis_investigaciones = Investigacion_Inquilino.objects.all().filter(user_id = user_session).order_by('-id')
+                    serializer = InvestigacionInquilinoSerializer(mis_investigaciones, many=True)
+                    serialized_data = serializer.data         
+
+                    return Response(serializer.data)
             
         except Exception as e:
             print(f"el error es: {e}")
@@ -285,26 +291,34 @@ class InvestigacionInquilinoViewSet(viewsets.ViewSet):
     
     def create(self, request, *args, **kwargs):
         try:
-            user_session = request.user  # Obtener el usuario autenticado
-            print("entro a post")
-            # Crea un nuevo diccionario con los datos de la solicitud y agrega el campo 'user'
-            data = request.data.copy()  # Crea una copia de los datos
-            data['user'] = user_session.id  # Agregar el ID del usuario al diccionario
-            
-            # Crear el serializer con los datos enviados en la petición
+            data_documentos = {}
+            data = request.data
             serializerinq = InvestigacionInquilinoSerializer(data=data)
-            print("Este es el Serializer: ",serializerinq)
             
-            if serializerinq.is_valid():  # Validar los datos antes de guardarlos
-                serializerinq.save(user=user_session)
-                print("Guardado")
-                # Guardar el objeto con el usuario autenticado
-                return Response(serializerinq.data, status=status.HTTP_201_CREATED)
+            if serializerinq.is_valid():
+                documentos = ['identificacion_doc_fiador','comprobante_domicilio_fiador','escrituras_fiador','situacionfiscal_fiador','identificacion_doc','comprobante_domicilio','comprobante_ingresos','situacionfiscal','cartalaboral','acta_constitutiva']
+                print("antes de For", data_documentos)
+                for field in documentos:
+                    print("campo", field)
+                    if field in request.FILES:
+                        data_documentos[field] = request.FILES[field]
+                    else:
+                        data_documentos[field] = None
+            
+                print("aqui estan sus documentos :D",serializerinq)
+                prospecto = serializerinq.save(user=request.user)
+                data_documentos["prospecto"] = prospecto.id
                 
-            
+                print("serializer", data_documentos)
+                documentos_serializer = DocumentosInvInquilinoSerializer(data=data_documentos)
+                documentos_serializer.is_valid()
+                documentos_serializer.save(user=request.user)
+                print("Guardado")
+                return Response({'prospecto': serializerinq.data}, status=status.HTTP_201_CREATED)
+                      
             else:
-                # Si la validación falla, devolver los errores
-                return Response(serializerinq.errors, status=status.HTTP_400_BAD_REQUEST)
+                print("Error al guardar datos",serializerinq.errors)
+                return Response({"error serializer no valido":serializerinq.errors}, status = status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             # Captura general de errores
@@ -602,11 +616,11 @@ class InvestigacionFinancieraViewSet(viewsets.ViewSet):
             user_session = request.user
             try:    
                 if request.method == 'GET':
-                    if user_session.is_staff:
-                        snippets = Investigacion_Financiera.objects.all().order_by('-id')
-                        
+                    if user_session.is_staff == True:
+                        todas = Investigacion_Financiera.objects.all().order_by('-id')
+                       
                         # Crear una copia de los datos serializados
-                        serializer = InvestigacionFinancieraSerializer(snippets, many=True)
+                        serializer = InvestigacionFinancieraSerializer(todas, many=True)
                         serialized_data = serializer.data
 
                         # Agregar el campo 'is_staff'
@@ -616,14 +630,12 @@ class InvestigacionFinancieraViewSet(viewsets.ViewSet):
                         # Devolver la respuesta
                         return Response(serialized_data)
                     
-                        # Listar muchos a muchos
-                        # Obtener todos las investigaciones del usuario actual
-                    investigacion_propia = Investigacion_Financiera.objects.all().filter(user_id = user_session)
-                    print(investigacion_propia)
-    
-                    serializer = InvestigacionFinancieraSerializer(snippets, many=True)
-                
-                    return Response(serializer.data)
+                    elif user_session.is_staff == False:
+                        mis_investigaciones = Investigacion_Financiera.objects.all().filter(user_id = user_session).order_by('-id')
+                        serializer = InvestigacionFinancieraSerializer(mis_investigaciones, many=True)
+                        serialized_data = serializer.data
+
+                        return Response(serializer.data)
                 
             except Exception as e:
                 print(f"el error es: {e}")
@@ -634,26 +646,34 @@ class InvestigacionFinancieraViewSet(viewsets.ViewSet):
     
     def create(self, request, *args, **kwargs):
         try:
-            user_session = request.user  # Obtener el usuario autenticado
-            print("entro a post")
-            # Crea un nuevo diccionario con los datos de la solicitud y agrega el campo 'user'
-            data = request.data.copy()  # Crea una copia de los datos
-            data['user'] = user_session.id  # Agregar el ID del usuario al diccionario
-            
-            # Crear el serializer con los datos enviados en la petición
-            serializerfin = InvestigacionFinancieraSerializer(data=data)
-            print("Este es el Serializer: ",serializerfin)
-            
+            data_documentos = {}
+            data = request.data  # Crea una copia de los datos 
+            serializerfin = InvestigacionFinancieraSerializer(data=data)# Crear el serializer con los datos enviados en la petición
             if serializerfin.is_valid():  # Validar los datos antes de guardarlos
-                serializerfin.save(user=user_session)
+                documentos = ['identificacion_doc','comprobante_domicilio','comprobante_ingresos','situacionfiscal','acta_constitutiva','estado_cuenta']
+                print("antes de For",data_documentos)
+                for field in documentos:
+                    print("campo", field)
+                    if field in request.FILES:
+                        data_documentos[field] = request.FILES[field]
+                    else:
+                        data_documentos[field] = None
+                
+                print("aqui estan tus documentos :D", data_documentos)
+                prospecto = serializerfin.save(user = request.user)
+                data_documentos["prospecto"] = prospecto.id  
+                
+                print("serializer", data_documentos)
+                documentos_serializer = DocumentosFinancieraSerializer(data=data_documentos)
+                documentos_serializer.is_valid()     
+                documentos_serializer.save(user = request.user)
                 print("Guardado")
                 # Guardar el objeto con el usuario autenticado
-                return Response(serializerfin.data, status=status.HTTP_201_CREATED)
-                
+                return Response({'prospecto': serializerfin.data}, status=status.HTTP_201_CREATED)               
             
             else:
                 # Si la validación falla, devolver los errores
-                return Response(serializerfin.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'Error al guardar datos': serializerfin.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             # Captura general de errores
@@ -874,7 +894,7 @@ class InvestigacionJudicialViewSet(viewsets.ViewSet):
       # Autenticación y permisos
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
-    serializer_class = InvestigacionLaboralSerializer
+    serializer_class = InvestigacionJudicialSerializer
     queryset = Investigacion_Judicial.objects.all()
     
     
@@ -896,14 +916,12 @@ class InvestigacionJudicialViewSet(viewsets.ViewSet):
                     # Devolver la respuesta
                     return Response(serialized_data)
                 
-                    # Listar muchos a muchos
-                    # Obtener todos las investigaciones del usuario actual
-                investigacion_propia = Investigacion_Judicial.objects.all().filter(user_id = user_session)
-                print(investigacion_propia)
-   
-                serializer = InvestigacionJudicialSerializer(snippets, many=True)
+                elif user_session.is_staff == False:
+                    mis_investigaciones = Investigacion_Judicial.objects.all().filter(user_id = user_session).order_by('-id')
+                    serializer = InvestigacionJudicialSerializer(mis_investigaciones, many=True)
+                    serialized_data = serializer.data
             
-                return Response(serializer.data)
+                    return Response(serializer.data)
             
         except Exception as e:
             print(f"el error es: {e}")
@@ -912,23 +930,31 @@ class InvestigacionJudicialViewSet(viewsets.ViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def create(self, request, *args, **kwargs):
-        user_session = request.user  # Obtener el usuario autenticado
         try:
+            data_documentos ={}
             print("entro a post")
-            # Crea un nuevo diccionario con los datos de la solicitud y agrega el campo 'user'
-            data = request.data.copy()  # Crea una copia de los datos
-            data['user'] = user_session.id  # Agregar el ID del usuario al diccionario
-            
-            # Crear el serializer con los datos enviados en la petición
-            serializerjud = InvestigacionJudicialSerializer(data=data)
-            print("Este es el Serializer: ",serializerjud)
+            data = request.data # Crea una copia de los datos
+            serializerjud = InvestigacionJudicialSerializer(data=data) # Crear el serializer con los datos enviados en la petición
             
             if serializerjud.is_valid():  # Validar los datos antes de guardarlos
-                serializerjud.save(user=user_session)
-                print("Guardado")
-                # Guardar el objeto con el usuario autenticado
-                return Response(serializerjud.data, status=status.HTTP_201_CREATED)
+                documentos = ['identificacion_doc','comprobante_domicilio','comprobante_ingresos','situacionfiscal','carta_laboral']
+                print("antes de For:",data_documentos)
+                for field in documentos:
+                    print("campo", field)
+                    if field in request.FILES:
+                        data_documentos[field] = request.FILES[field]
+                    else:
+                        data_documentos[field] = None
+
+                print("aqui estan los documentos :D",data_documentos)
+                prospecto = serializerjud.save(user = request.user)
+                data_documentos["prospecto"] = prospecto.id 
                 
+                documentos_serializer = DocumentosJudicialSerializer(data=data_documentos)
+                documentos_serializer.is_valid()
+                documentos_serializer.save(user = request.user)
+                print("Guardado")         
+                return Response({'prospecto': serializerjud.data}, status=status.HTTP_201_CREATED) # Guardar el objeto
             
             else:
                 # Si la validación falla, devolver los errores
@@ -1068,7 +1094,6 @@ class InvestigacionJudicialViewSet(viewsets.ViewSet):
             
                 # de aqui hacia abajo Devuelve esl PDF como respuesta
                 response = HttpResponse(content_type='application/pdf')
-                response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
                 response.write(pdf_file)
                 print("Finalizamos el proceso de aprobado") 
                 return HttpResponse(response, content_type='application/pdf')

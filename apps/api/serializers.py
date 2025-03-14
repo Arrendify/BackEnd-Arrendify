@@ -12,13 +12,13 @@ class DFSerializer(serializers.ModelSerializer):
         model = DocumentosFiador
         fields = '__all__'
 class DISerializer(serializers.ModelSerializer):
-    inquilinos_nombre = serializers.CharField(source='arrendatario.nombre_completo', read_only=True)
+    inquilinos_nombre = serializers.CharField(source='inquilino.nombre_completo', read_only=True)
     class Meta:
         model = DocumentosInquilino
         fields = '__all__'
 
 class AvalSerializer(serializers.ModelSerializer):
-    inquilino_nombre = serializers.CharField(source='arrendatario.nombre_completo', read_only=True)
+    arrendatario_nombre_completo = serializers.CharField(source='inquilino.nombre_completo', read_only=True)
     archivos = DFSerializer(many=True, read_only=True)
     user =  User2Serializer(read_only=True)
     class Meta:
@@ -96,33 +96,62 @@ class InvestigacionSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
 
-#------------------------------Investigaciones Independientes ---------------------------------       
+#------------------------------Investigaciones Independientes ---------------------------------               
+class DocumentosLaboralSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DocumentosLaboral
+        fields = '__all__'
+        
 class InvestigacionLaboralSerializer(serializers.ModelSerializer):
-    # Definir campos que esperamos recibir, incluidas las referencias a los archivos.
-    
-    # Si tienes archivos, puedes usar FileField o ImageField según el tipo de archivo
-    cartalab_inv1 = serializers.FileField(required=False)
-    cartalab_inv2 = serializers.FileField(required=False)
-    cartalab_inv3 = serializers.FileField(required=False)
-    cartalab_inv4 = serializers.FileField(required=False)
-    
+    prospecto_nombre= serializers.CharField(source='Investigacion_Laboral.nombre_completo', read_only=True)
+    archivos = DocumentosLaboralSerializer(many=True, read_only=True)
+    user =  User2Serializer(read_only=True)
     class Meta:
         model = Investigacion_Laboral
         fields = '__all__'
 
+class DocumentosJudicialSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DocumentosJudicial
+        fields = '__all__'
+              
 class InvestigacionJudicialSerializer(serializers.ModelSerializer):
-    
+    prospecto_nombre= serializers.CharField(source='Investigacion_Judicial.nombre_completo', read_only=True)
+    empresa_nombre= serializers.CharField(source='Investigacion_Judicial.nombre_empresa', read_only=True)
+    archivos = DocumentosJudicialSerializer(many=True, read_only=True)
+    user =  User2Serializer(read_only=True)
     class Meta:
         model = Investigacion_Judicial
         fields ='__all__'
+
+class DocumentosFinancieraSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DocumentosFinanciera
+        fields = '__all__'
+          
 class InvestigacionFinancieraSerializer(serializers.ModelSerializer):
-    
+    prospecto_nombre= serializers.CharField(source='Investigacion_Financiera.nombre_completo', read_only=True)
+    empresa_nombre= serializers.CharField(source='Investigacion_Financiera.nombre_empresa', read_only=True)
+    archivos = DocumentosFinancieraSerializer(many=True, read_only=True)
+    user =  User2Serializer(read_only=True)
     class Meta:
         model = Investigacion_Financiera
         fields ='__all__'
         
-class InvestigacionInquilinoSerializer(serializers.ModelSerializer):
+class DocumentosInvInquilinoSerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = DocumentosInvInquilino
+        fields = '__all__'
+        
+class InvestigacionInquilinoSerializer(serializers.ModelSerializer):
+    prospecto_nombre= serializers.CharField(source='Investigacion_Inquilino.nombre_completo', read_only=True)
+    empresa_nombre= serializers.CharField(source='Investigacion_Inquilino.nombre_empresa', read_only=True)
+    archivos = DocumentosInvInquilinoSerializer(many=True, read_only=True)
+    user =  User2Serializer(read_only=True)
     class Meta:
         model = Investigacion_Inquilino
         fields = '__all__'

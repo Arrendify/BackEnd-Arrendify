@@ -671,7 +671,6 @@ class Arrendador(models.Model):
     # Estatus del arrendador
     estatus_arrendador = models.CharField(max_length=100, null=True, blank=True, default='En espera')
     
-    mi_agente_es = models.CharField(max_length=100, null=True, blank=True)
     created=models.DateField(auto_now_add=True, null=True, blank=True)
     codigo_amigo = models.CharField(max_length=8, editable = False, unique=True)
     # Agregando slug
@@ -894,16 +893,20 @@ class DocumentosFiador(models.Model):
         ip2 = inq_split2.replace(" ", "_")
         return f'inquilino/{ip}/{ip2}/Escrituras/{filename}'
     
+    def get_docs_upload_path(self, filename):
+        inq_split = str(self.Fiador)
+        ip = inq_split.replace(" ", "_")
+        print(ip)
+        return f'documentos_foo/{ip}/{filename}'
+    
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     Fiador = models.ForeignKey(Aval, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
-    #Obligado y fiador
-    Ine = models.FileField(upload_to=get_ine_upload_path, max_length=255)
-    Comp_dom = models.FileField(upload_to =get_dom_upload_path, max_length=255)
-    #obligado
-    Estado_cuenta = models.FileField(null=True, blank=True,upload_to = get_estado_upload_path, max_length=255)
-    #fiador
-    Escrituras = models.FileField(null=True, blank=True,upload_to = get_esc_upload_path, max_length=255)
+    Ine = models.FileField(upload_to=get_docs_upload_path, max_length=255)
+    Comp_dom = models.FileField(upload_to =get_docs_upload_path, max_length=255)
+    Estado_cuenta = models.FileField(null=True, blank=True,upload_to = get_docs_upload_path, max_length=255)
+    Escrituras = models.FileField(null=True, blank=True,upload_to = get_docs_upload_path, max_length=255)
+
     
     #comentarios
     comentarios_ine = models.CharField(max_length=200, null=True, blank=True)
@@ -972,7 +975,7 @@ class Inmuebles(models.Model):
     mantenimiento = models.CharField(max_length=100, null=True, blank=True)
     cuota_mantenimiento= models.BigIntegerField(null=True, blank=True)
     giro=models.CharField(max_length=100, null=True, blank=True)
-    op_compra = models.CharField(max_length=100, null=True, blank=True)
+    op_compra = models.CharField(max_length=100, null=True, blank=True) 
     
     direccion_completa = models.CharField(max_length=250,null=True, blank=True)
     
@@ -1274,8 +1277,6 @@ class Investigacion_Inquilino(models.Model):
     numero_notario=models.CharField(max_length=100, null=True, blank=True)
     estado_acta= models.CharField(max_length=100, null=True, blank=True)
     
-
-    
     #Representante legal Persona Moral
     nombre_rl=models.CharField(max_length=100, blank=True)
     identificacion_rl=models.CharField(max_length = 100, null = True, blank = True)
@@ -1418,9 +1419,9 @@ class Investigacion_Inquilino(models.Model):
         db_table = 'investigacionarrendamiento'
         
 class DocumentosInvInquilino(models.Model):
-
+    
     def get_docs_upload_path(self, filename):
-        inq_split = str(self.prospecto)
+        inq_split = str(self.prospecto.nombre_completo)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'investigacion_inq/{ip}/{filename}'
@@ -1441,6 +1442,7 @@ class DocumentosInvInquilino(models.Model):
 
     class Meta:
         db_table = 'documentos_inv_inquilino'
+
 #Fin Investigacion Inquilino
 #Revisado Completo
 class Investigacion_Laboral(models.Model):
@@ -1509,10 +1511,12 @@ class Investigacion_Laboral(models.Model):
     
     class Meta:
         db_table = 'investigacionlaboral'
+        
+        
 class DocumentosLaboral(models.Model):
     
     def get_cartaslab_upload_path(self, filename):
-        lab_split = str(self.prospecto)
+        lab_split = str(self.prospecto.nombre_completo)
         ip = lab_split.replace(" ", "_")
         print(ip)
         return f'investigacion_lab/{ip}/{filename}'
@@ -1580,12 +1584,27 @@ class Investigacion_Judicial(models.Model):
     tel_ref3=models.CharField(max_length=100, null=True, blank=True)
     direccion_completa_ref3=models.CharField(max_length=250, null=True, blank=True)
     
+    #Referencias Laborales P.F.
+    n_ref1=models.CharField(max_length=100, null=True, blank=True)
+    p_ref1=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref1=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa_ref1=models.CharField(max_length=250, null=True, blank=True)
+    n_ref2=models.CharField(max_length=100, null=True, blank=True)
+    p_ref2=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref2=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa_ref2=models.CharField(max_length=250, null=True, blank=True)
+    n_ref3=models.CharField(max_length=100, null=True, blank=True)
+    p_ref3=models.CharField(max_length=100, null=True, blank=True)
+    tel_ref3=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa_ref3=models.CharField(max_length=250, null=True, blank=True)
+    
     class Meta:
         db_table = 'investigacionjudicial'
+
 class DocumentosJudicial(models.Model):
     
     def get_documentos_judicial_upload_path(self, filename):
-        jud_split = str(self.prospecto)
+        jud_split = str(self.prospecto.nombre_completo)
         ip = jud_split.replace(" ", "_")
         print(ip)
         return f'investigacion_jud/{ip}/{filename}'
@@ -1701,10 +1720,11 @@ class Investigacion_Financiera(models.Model):
     
     class Meta:
         db_table = 'investigacionfinanciera'
+
 class DocumentosFinanciera(models.Model):
     
     def get_documentos_financiera_upload_path(self, filename):
-        fin_split = str(self.prospecto)
+        fin_split = str(self.prospecto.nombre_completo)
         ip = fin_split.replace(" ", "_")
         print(ip)
         return f'investigacion_fin/{ip}/{filename}'

@@ -195,7 +195,7 @@ class investigaciones(viewsets.ModelViewSet):
    
     def list(self, request, *args, **kwargs):
         user_session = request.user       
-        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion":
+        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion" or user_session.username == "AndresMtzO":
             print("Si eres el elegido")
             qs = request.GET.get('nombre')     
             try:
@@ -260,6 +260,8 @@ class investigaciones(viewsets.ModelViewSet):
                 
                 #    return Response(serializer.data, status= status.HTTP_200_OK)
             except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'No estas autorizado'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -901,7 +903,9 @@ class Arrendador_Cotizador(viewsets.ModelViewSet):
                 serializer = self.get_serializer(queryset, many=True)
                 return Response(serializer.data)
         except Exception as e:
-            print(f"Error: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
 
 class Cotizacion_ap(viewsets.ModelViewSet):
@@ -996,6 +1000,8 @@ class Cotizacion_ap(viewsets.ModelViewSet):
            
            return Response(serializer.data, status= status.HTTP_200_OK)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     def create(self, request, *args, **kwargs):
@@ -1165,7 +1171,8 @@ class Cotizacion_ap(viewsets.ModelViewSet):
                 print("Error en validacion")
                 return Response({'errors': cotizador_serializer.errors})
         except Exception as e:
-            print(f"Error: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     # probando con variables de entorno
@@ -1556,7 +1563,8 @@ class RecuperarPassword(viewsets.ViewSet):
             # switch server
             #server = "'http://192.168.1.192:8000'"
             #server = "http://192.168.3.2:8000"
-            server = "https://arrendify.app"
+            server = "http://192.168.1.141:8000"
+            #server = "https://arrendify.app"
             
             #variable
             html = correo_pas(server, token)
@@ -1675,6 +1683,8 @@ class Comentario(viewsets.ModelViewSet):
         except ValidationError as e:
             return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 # ----------------------------------Paquetes---------------------------------- #
@@ -1738,7 +1748,8 @@ class Paks(viewsets.ModelViewSet):
            
            return Response(serializer.data, status= status.HTTP_200_OK)
         except Exception as e:
-            print(f"error {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def create(self, request, *args, **kwargs):
@@ -1761,6 +1772,8 @@ class Paks(viewsets.ModelViewSet):
                 print("Error en validacion")
                 return Response({'errors': paquete_serializer.errors})
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def update(self, request, *args, **kwargs):
@@ -1775,7 +1788,9 @@ class Paks(viewsets.ModelViewSet):
             instance.save()
             return Response({'Exito': 'Se cambio el estatus a aprobado'}, status= status.HTTP_200_OK)
         except Exception as e:
-            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     def generar_pagare(self, request, *args, **kwargs):
         id_paq = request.data
@@ -2016,7 +2031,9 @@ class Paks(viewsets.ModelViewSet):
 
             return HttpResponse(response, content_type='application/pdf')
         except Exception as e:
-            print("error es:",e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
 class Amigos(viewsets.ModelViewSet):
     queryset = Friends.objects.all()
@@ -2094,6 +2111,8 @@ class Encuestas(viewsets.ModelViewSet):
            
            return Response(serializer.data, status= status.HTTP_200_OK)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def create(self, request, *args, **kwargs):
@@ -2106,6 +2125,8 @@ class Encuestas(viewsets.ModelViewSet):
             else:
                 return Response({'serializer no valido': encuesta_serializer.errors})
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class Inventario_fotografico(viewsets.ModelViewSet):     
@@ -2131,6 +2152,8 @@ class Inventario_fotografico(viewsets.ModelViewSet):
            
            return Response(serializer.data, status= status.HTTP_200_OK)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -2252,6 +2275,8 @@ class Inventario_fotografico(viewsets.ModelViewSet):
                 return Response( {"0 archivos":"no hay compresiones restantes"}, status=status.HTTP_204_NO_CONTENT)
             
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # ---------------------------------- Notificaciones ---------------------------------- #
@@ -2289,6 +2314,8 @@ class notis_prueba(viewsets.ModelViewSet):
                 serializer = self.get_serializer(consulta, many=True)
            return Response(serializer.data, status= status.HTTP_200_OK)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
         
