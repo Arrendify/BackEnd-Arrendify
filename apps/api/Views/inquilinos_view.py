@@ -162,12 +162,12 @@ class inquilinosViewSet(viewsets.ModelViewSet):
                     #obtengo mis inquilinos
                     inquilinos_ag = Arrendatario.objects.filter(user_id = user_session)
                     #obtengo mis inquilinos vinculados
-                    pertenece = Arrendatario.objects.filter(mi_agente_es__icontains = user_session.first_name)
+                    #pertenece = Arrendatario.objects.filter(mi_agente_es__icontains = user_session.first_name)
                     # pertenece = Arrendatario.objects.filter(mi_agente_es = user_session.first_name)
                     # pertenece = Arrendatario.objects.filter(mi_agente_es__in = user_session.first_name)
                     # pertenece = pertenece.union(pertenece2)
                     inquilinos_all = inquilinos_ag.union(pertenece)
-                    serializer = InquilinoSerializers(inquilinos_all, many=True)
+                    serializer = InquilinoSerializers(inquilinos_ag, many=True)
                     serialized_data = serializer.data
                     
                     if not serialized_data:

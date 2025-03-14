@@ -7,6 +7,7 @@ from .Views.fiadores_views import AvalViewSet, DocumentosFoo
 from .Views.contratos_dash_view import ContratosViewSet
 from .Views import fraterna_views
 from .Views.investigaciones_views import InvestigacionLaboralViewSet,InvestigacionInquilinoViewSet,InvestigacionFinancieraViewSet,InvestigacionJudicialViewSet
+from .Views.stripe_view import *
 
 
 
@@ -55,7 +56,7 @@ router.register(r'comentarios', Comentario, basename='comentarios'),
 # paquetes
 router.register(r'paquetes_legales', Paks, basename='paquetes_legales'),
 # encuesta
-router.register(r'encuesta', Encuestas, basename='encuesta'),# encuesta
+router.register(r'encuesta', Encuestas, basename='encuesta'),
 # invetario fotografico
 router.register(r'inventario_fotografico', Inventario_fotografico, basename='inventario_fotografico'),
 
@@ -69,10 +70,13 @@ router.register(r'arrendatarios_semillero', fraterna_views.Arrendatarios_semille
 router.register(r'documentos_arrendatarios_semillero', fraterna_views.DocumentosArrendatario_semillero, basename='documentos_arrendatarios_semillero')
 router.register(r'contratos_semillero', fraterna_views.Contratos_semillero, basename='contratos_semillero')
 
-# si descomentamos la linea de abajo nos da el create con post de notificacion directo con el metodo notify_signals.
+# Contratos Dash
 router.register(r'contratos_dash', ContratosViewSet, basename='contratos_semillero')
-# si descomentamos la linea de abajo nos da el create con post de notificacion directo con el metodo notify_signals.
+#Stripe
+router.register(r'create-checkout-session', CreateStripeCheckoutSession, basename='create-checkout-session')
+router.register(r"check-payment-status/", CheckPaymentStatus, basename="check-payment-status"),
 
+# si descomentamos la linea de abajo nos da el create con post de notificacion directo con el metodo notify_signals.
 # router.register(r'notis_prueba', notis_prueba, basename='notis_prueba')
 # router.register(r'documentos_foo', DocumentosFoo, basename='documentos_foo')
 # router.register(r'i_a', Inmuebles_a, basename='a_a')

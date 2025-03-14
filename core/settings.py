@@ -18,7 +18,7 @@ SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
-
+#DEBUG = False
 
 LOGGING = {
     'version': 1,
@@ -45,7 +45,7 @@ LOGGING = {
 }
 
 # load production server
-ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1'), config('SERVER2', default='127.0.0.1'), "192.168.2.24","192.168.3.2","192.168.0.233","192.168.1.86",]
+ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1'), config('SERVER2', default='127.0.0.1'), "192.168.2.24","192.168.3.2","192.168.0.233","192.168.1.86","127.0.0.1"]
 
 # Application definition
 
@@ -126,6 +126,10 @@ CORS_ORIGIN_WHITELIST = (
 #     'OPTIONS'
 # )
 
+#STRIPE
+STRIPE_SECRET_KEY = config("stripe_secreta", "tu_clave_secreta")
+STRIPE_PUBLIC_KEY = config("stripe_publica", "tu_clave_publica")
+STRIPE_WEBHOOK_SECRET = config("webhook_stripe", "tu_clave_webhook")
 
 
 ROOT_URLCONF = 'core.urls'

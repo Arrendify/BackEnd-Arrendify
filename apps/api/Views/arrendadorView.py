@@ -163,17 +163,17 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
                 mios = arrendadores_a_cargo.union(arrendadores_mios)
                 
                 #busqueda de inquilino vinculado
-                pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
-                pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
-                pertenece = pertenece.union(pertenece2)
-                arrendador_all = mios.union(pertenece).order_by('-id')
+                # pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+                # pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+                # pertenece = pertenece.union(pertenece2)
+                # arrendador_all = mios.union(pertenece).order_by('-id')
                
                 print("Registrados por mi o por un agente directo", mios)
                 print("Independientes vinculado(s) a un agente(s)", pertenece)
-                print("Todos los arrendadores",arrendador_all)
+                print("Todos los arrendadores",mios)
                # print("inquilinos_all con ids",arrendador_all("id"))
                 
-                serializer = ArrendadorSerializer(arrendador_all, many=True)
+                serializer = ArrendadorSerializer(mios, many=True)
                 serialized_data = serializer.data
                 
                 if not serialized_data:
