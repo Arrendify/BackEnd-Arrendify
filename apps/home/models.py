@@ -958,7 +958,7 @@ class DocumentosArrendador(models.Model):
 class Inmuebles(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    arrendador = models.ForeignKey(Propietario, null=True, blank=True, on_delete=models.SET_NULL, related_name='propietario')
+    propietario = models.ForeignKey(Propietario, null=True, blank=True, on_delete=models.SET_NULL, related_name='propietario')
 
     alias_inmueble = models.CharField(max_length=100, null=True, blank=True)
     
