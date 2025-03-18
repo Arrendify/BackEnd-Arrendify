@@ -844,7 +844,7 @@ class DocumentosInquilino(models.Model):
     
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    inquilino = models.ForeignKey(Arrendatario, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
+    arrendatario = models.ForeignKey(Arrendatario, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
     Ine = models.FileField(upload_to=get_ine_upload_path, max_length=255)
     Comp_dom = models.FileField(upload_to =get_dom_upload_path, max_length=255)
     Rfc = models.FileField(upload_to = get_rfc_upload_path, max_length=255)

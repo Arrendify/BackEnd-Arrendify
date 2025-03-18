@@ -419,6 +419,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
             #comprobar que no se duplique el registro del contrato
             if contrato:
                 print("ya existen los datos de contrato, ignoramos")
+                return Response({'aviso': aviso}, status=302)
             else:
                 print("vamos a guardar")
                 serializer_contratos = ContratosDashSerializer(data=data_contrato)
@@ -426,10 +427,9 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 print("serializer_contratos", serializer_contratos)
                 serializer_contratos.save(user = user_session)
                 print("Se guardo el contrato")
+                return Response({'Contrato': serializer_contratos.data}, status=status.HTTP_201_CREATED)
                  
-            # return Response({'aviso': aviso}, status=302)
-                
-        
+            
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")

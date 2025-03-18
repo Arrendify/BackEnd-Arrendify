@@ -1,6 +1,7 @@
 import stripe
 from django.conf import settings
 from rest_framework import viewsets
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
@@ -93,14 +94,17 @@ def stripe_webhook(request):
     return JsonResponse({"status": "success"}, status=200)
 
 
-class CheckPaymentStatus(viewsets.ModelViewSet):
-    def list(self, request):
-        session_id = request.GET.get("session_id")
+class CheckPaymentStatus(APIView):
+    def get(self, request):
+        print("Entró a CheckPaymentStatus")
+        session_id = request.query_params.get("session_id")  # Mejor práctica en DRF
+
         if not session_id:
             return Response({"error": "session_id requerido"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             session = stripe.checkout.Session.retrieve(session_id)
+            print("Sesión obtenida:", session)
             return Response({"status": session.payment_status})  # paid, open, etc.
         except stripe.error.StripeError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
