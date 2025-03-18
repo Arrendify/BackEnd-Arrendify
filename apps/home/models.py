@@ -940,7 +940,7 @@ class DocumentosArrendador(models.Model):
 
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    arrendador=models.ForeignKey(Propietario, on_delete=models.SET_NULL, null=True, related_name='archivos')
+    propietario=models.ForeignKey(Propietario, on_delete=models.SET_NULL, null=True, related_name='archivos')
     ine = models.FileField(upload_to=get_ine_upload_path, null=True, max_length=255)
     acta_constitutiva = models.FileField(upload_to = get_acta_upload_path, null=True, max_length=255)
     extras = models.FileField(upload_to = get_extras_upload_path, null=True, max_length=255)
