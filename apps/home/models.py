@@ -1159,7 +1159,7 @@ class InmueblesInmobiliario(models.Model):
 class DocumentosInmueble(models.Model):
     def get_docs_inmueble_upload_path(self,filename):
         print("soy el self user de inmueble",self.user)
-        arrendador = str(self.inmueble.arrendador.nombre_completo)
+        arrendador = str(self.inmueble.propietario.nombre_completo)
         ip = arrendador.replace(" ", "_")
         inm = str(self.inmueble.alias_inmueble)
         alias_inm = inm.replace(" ", "_")

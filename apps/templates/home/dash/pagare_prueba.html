@@ -36,9 +36,9 @@
 .watermark-container {
     position: relative;
     display: block;
-  margin-left: auto;
-  margin-right: auto;
-  }
+    margin-left: auto;
+    margin-right: auto;
+    }
 
   .watermark-container::after {
     content: '';
@@ -72,7 +72,6 @@
  
   {% comment %} al ser una tupla se quita el .items que se usa en diccionarios {% for month,year in lista_fechas.items %} {% endcomment %}
   {% for mes,anio in lista_fechas %}
-  {% if forloop.counter == 1  %}
   <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12 text-center">
@@ -90,7 +89,11 @@
                     <tr>
                         <td></td>
                         <td></td>
-                        <td>${{info.datos_contratos.renta | intcomma}}.00</td>
+                        {% if info.datos_contratos.renta  %}
+                            <td>${{info.datos_contratos.renta | intcomma}}.00</td>
+                        {% else %}
+                             <td>${{info.inmueble.renta | intcomma}}.00</td>
+                        {% endif %}
                     </tr>
                 </tbody>
             </table>
@@ -135,7 +138,7 @@
                 <span id="ref7">de</span>
                 <span id="ref7">{{anio}}</span>
             </p>
-            <p class="justi" id="moneda-nacional">Valor recibido a mi entera satisfacción por la cantidad de ${{info.datos_contratos.renta | intcomma}}.{{renta_decimal}} ({{text_representation}} Pesos {{renta_decimal}}/100
+            <p class="justi" id="moneda-nacional">Valor recibido a mi entera satisfacción por la cantidad de {% if info.datos_contratos.renta  %}${{info.datos_contratos.renta | intcomma}}{% else %}${{info.inmueble.renta | intcomma}}{% endif %}.{{renta_decimal}} ({{text_representation}} Pesos {{renta_decimal}}/100
                 MONEDA NACIONAL). Este pagaré forma parte de una serie numerada del 1 al {{info.datos_contratos.duracion}} y todos están sujetos a la condición de que,
                 al no pagarse cualquiera de ellos a su vencimiento, serán exigibles todos los que le sigan en número, además de los ya vencidos, 
                 desde la fecha de vencimiento de este documento hasta el día de su liquidación causará intereses moratorios al tipo de 5% mensual, pagadero en esta ciudad 
@@ -184,7 +187,7 @@
     </div>
 </div>
   
-{% endif %}
+
   
   
 {% endfor %}

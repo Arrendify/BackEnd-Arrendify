@@ -323,7 +323,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
             
             #Propietario
             print("")
-            propietario= dict(info["arrendador"]) 
+            propietario = dict(info["arrendador"]) 
             print("Esto es el propietario", propietario)           
             
             if propietario.get("propietario"):
@@ -393,26 +393,44 @@ class ContratosViewSet(viewsets.ModelViewSet):
             codigo_paquete = ""
             
             if info["tipo_contrato"] == "Arrendamiento" or info["tipo_contrato"] == "Poliza" or info["tipo_contrato"] == "Arrendamiento+Pagares":
-                data_contrato = {
+
+                if aval["registro_aval" == "No"]:
+                    data_contrato = {
                     'propietario': f"{arrendador.id}",
                     'inmueble': f"{propiedad.id}",
                     'arrendatario': f"{inquilino.id}",
-                    'aval': f"{fiador.id}",
                     'tipo_contrato': info["tipo_contrato"],
                     'datos_contratos': informacion_del_contrato
-                    }
-                
-                contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato = "Arrendamiento")
+                    } 
+                else:
+                    data_contrato = {
+                        'propietario': f"{arrendador.id}",
+                        'inmueble': f"{propiedad.id}",
+                        'arrendatario': f"{inquilino.id}",
+                        'aval': f"{fiador.id}",
+                        'tipo_contrato': info["tipo_contrato"],
+                        'datos_contratos': informacion_del_contrato
+                        }
+                    
+                contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato__in = info["tipo_contrato"])
                 
             elif info["tipo_contrato"] == "Pagare":
-                data_contrato = {
+                if aval["registro_aval" == "No"]:
+                    data_contrato = {
                     'propietario': f"{arrendador.id}",
-                    # 'inmueble': f"{propiedad.id}",
                     'arrendatario': f"{inquilino.id}",
-                    'aval': f"{fiador.id}",
                     'tipo_contrato': "Poliza",
                     'datos_contratos': informacion_del_contrato
                     }
+                    
+                else:
+                    data_contrato = {
+                        'propietario': f"{arrendador.id}",
+                        'arrendatario': f"{inquilino.id}",
+                        'aval': f"{fiador.id}",
+                        'tipo_contrato': "Poliza",
+                        'datos_contratos': informacion_del_contrato
+                        }
                 
                 contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato = "Pagare")
             
@@ -763,8 +781,8 @@ class ContratosViewSet(viewsets.ModelViewSet):
             print("fecha OK",fecha_inicial)
           
          
-            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.month ,'anio':fecha_ok.year}
-            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.month ,'anio':fecha_off.year}
+            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.strftime("%B").upper() ,'anio':fecha_ok.year}
+            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.strftime("%B").upper()  ,'anio':fecha_off.year}
             
             
             # Definir la duración en meses
@@ -853,6 +871,11 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 print("nombre del arrendatario",propiedad.__dict__)
                 print("mi renta es",propiedad.renta)
                 info["inmueble"] = propiedad
+                #esto es lo nuevo en mantenimiento
+                if propiedad.mantenimiento == "No Incluido":
+                    info["inmueble"]["cuota_letra"] == num2words(propiedad.cuota_mantenimiento, lang='es').capitalize()
+                    print("cuota con letra", info["inmueble"]["cuota_letra"])
+                
                 #checamos que no tenga decimales
                 if "." not in str(propiedad.renta):
                     print("no hay yaya")
@@ -871,6 +894,11 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     text_representation = num2words(renta_completa[0], lang='es').capitalize()
                     
             else:
+                #esto es lo nuevo en mantenimiento
+                if info["inmueble"]["mantenimiento"] == "No Incluido":
+                    info["inmueble"]["cuota_letra"] == num2words(info["inmueble"]["cuota_mantenimiento"], lang='es').capitalize()
+                    print("cuota con letra", info["inmueble"]["cuota_letra"])
+                
                 print("no hay informacion del inmueble")
                 if "." not in info["inmueble"]['renta']:
                     print("no hay yaya")
@@ -898,39 +926,16 @@ class ContratosViewSet(viewsets.ModelViewSet):
             fecha_off = datetime.strptime(info["datos_contratos"]['fecha_termino'], "%Y-%m-%d").date()
             print("fecha OK",fecha_inicial)
           
-         
-            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.month ,'anio':fecha_ok.year}
-            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.month ,'anio':fecha_off.year}
+            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.strftime("%B").upper() ,'anio':fecha_ok.year}
+            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.strftime("%B").upper()  ,'anio':fecha_off.year}
             
-            
-            # Definir la duración en meses
-            
-            duracion_meses = int(info["datos_contratos"]['duracion'])
-            print("duracion en meses",duracion_meses)
-            # Calcular la fecha final
-            fecha_final = fecha_ok + relativedelta(months=duracion_meses)
-            # Lista para almacenar las fechas iteradas (solo meses y años)
-            fechas_iteradas = []
-            # Iterar sobre todos los meses entre la fecha inicial y la fecha final
-            while fecha_ok < fecha_final:
-                nombre_mes = fecha_ok.strftime("%B")  # %B da el nombre completo del mes
-                print("fecha",fecha_ok.year)
-                fechas_iteradas.append((nombre_mes.capitalize(),fecha_ok.year))      
-                fecha_ok += relativedelta(months=1)
-            
-            print("fechas_iteradas",fechas_iteradas)
-            # Imprimir la lista de fechas iteradas
-            for month, year in fechas_iteradas:
-                print(f"Año: {year}, Mes: {month}")
-                
             # obtenermos la renta para pasarla a letra            
             print("")
             print(f"renta {number}, letra: {text_representation}")
-            #imprimir el nombre de la las fechas
-            print("fechas_iteradas",fechas_iteradas)
-            print("fechas_iteradas como diccionario",dict(fechas_iteradas))
+            
+            #si tiene mantenimiento incluido hay que pasarlo a letra
                         
-            context = {'info': info,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'renta_decimal':renta_decimal, "datos_inicio":datos_inicio, 'datos_termino':datos_termino}
+            context = {'info': info, 'text_representation':text_representation, 'renta_decimal':renta_decimal, "datos_inicio":datos_inicio, 'datos_termino':datos_termino}
             
             template = 'home/dash/contrato_arrendamiento.html'
             html_string = render_to_string(template, context)
