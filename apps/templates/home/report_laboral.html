@@ -556,7 +556,9 @@
           <input class="input-chido" type="text" style="font-size:13px;  width:100%;" value="{{info.email_jefe}}">
         </div>
       </div>
-      
+
+      <br><br><br><br><br><br><br><br><br><br><br><br>
+
       <hr class="hr" >  
         <h3 class="mb-2 mt-2">Datos del empleo anterior</h2>
       <hr class="hr" >
@@ -858,7 +860,7 @@
           </table>
         </div>
 
-        <br><br><br> <br><br><br> <br><br><br><br>
+        <br>
         <p style="font-size: 10px;">La verificación de antecedentes en un busqueda exhaustiva que se realiza en mas de 110.000 bases de datos de más de 240 países en busca de antecedentes penales, decisiones judiciales, prensa negativa,
           perfiles sociales, biografías públicas, empleos anteriores y más. Tenga en cuenta que es posible que esto no sea una coincidencia exacta con el prospecto, sino una búsqueda general con los detalles del prospecto, por lo que sugerimos
           verificar la validez de los datos con el prospecto. </p>
@@ -939,126 +941,6 @@
   </div>
   {% else %}{% endif %}
 
-    <article id="offers">
-      <div class="row mt-2" style="width:100%">
-        <h2 class="mt-3">Análisis Créditicio</h2>
-        <hr class="hr">
-      </div>
-      {% comment %} texto introductorio {% endcomment %}
-      {% comment %} <p>En este apartado se valorará la capacidad crediticia del prospecto, a fin de determinar si es considerado apto para el cumplimiento de las obligaciones que se buscan contraer, 
-        el presente análisis tomará en cuenta diversos factores a investigar tales como la capacidad economica y compromiso de pagos, los cuales para efectos de esta investigación resultará 
-        indispensable que se tenga un estimado la calidad de persona con la que se generará una relación.
-      </p>  {% endcomment %}
-      <p>En este apartado se evaluará de manera exhaustiva la capacidad crediticia del prospecto, con el objetivo de determinar si es apto para cumplir con las obligaciones financieras que se pretenden contraer.</p>
-      <p>Con el fin de minimizar el riesgo financiero y asegurar que la relación que se establecerá sea con personas que demuestren una alta capacidad para cumplir con sus compromisos de manera puntual y responsable.</p>
-      <p>Este análisis incluirá una revisión detallada de diversos factores, como la solvencia económica y el historial de compromiso con los pagos, para esto se considera el historial crediticio, los ingresos y gastos recurrentes, 
-        las deudas existentes y cualquier otra información relevante que permita una evaluación completa de la capacidad de pago del prospecto. Con ello podemos generar una visión clara y precisa sobre la estabilidad financiera del individuo 
-        y su capacidad para asumir nuevas obligaciones para el arrendamiento.</p>
-
-      <br>
-     
-      <section>
-        <h4> <sup>1</sup> Ingresos vs créditos</h4>
-        <img src="{{tsi}}" style="width:215px; height:100px; margin-left:-16px;"></img>
-        <p style="color:white;">{{datos.score_ingreso}}/100</p>
-        <div class="mt-3">
-          <h4>Puntos a destacar:</h4>
-        </div>
-        <ul>
-          {% if datos.tipo_score_ingreso == "Malo" %}
-            <li>Declara un ingreso mensual es de un valor neto de {{info.ingreso_men}}.</li>
-            <li>Según los ingresos comprobados del prospecto sus egresos son mayores al monto de renta y sus necesidades básicas.</li>
-            <li>Su saldo final es insuficiente para atender imprevistos los cuales pueden llegar a perjudicar el pago de renta.</li>
-          
-          {% elif datos.tipo_score_ingreso == "Regular" %}
-            <li>Declara un ingreso mensual es de un valor neto de {{info.ingreso_men}}.</li>
-            <li>Según los ingresos comprobados del prospecto, llegan al limite de los egresos favorables.</li>
-            <li>El saldo final es considera justo para los requerimientos de ARRENDIFY S.A.P.I. de C.V.</li>
-          
-          {% elif datos.tipo_score_ingreso == "Bueno" %}
-            <li>Declara un ingreso mensual es de un valor neto de {{info.ingreso_men}}.</li>
-            <li>Según los ingresos comprobados del prospecto, son acordes a sus egresos.</li>
-            <li>Cuenta con un saldo total suficientes para el pago de una renta adicional.</li>
-          
-          {% elif datos.tipo_score_ingreso == "Excelente" %}
-            <li>Declara un ingreso mensual de un valor neto de {{info.ingreso_men}}.</li>
-            <li>Cuenta con plena capacidad de pago.</li>
-            <li>Cuenta con un saldo favorable para cubrir necesidades básicas, creditos y hasta un par rentas sin que le cause algún impedimento.</li>
-          
-          {% endif %}          
-        </ul>
-      </section>
-
-      <section>
-        <h4>Pagos Puntuales</h4>
-        <img src="{{tspp}}" style="width:215px; height:100px; margin-left:-16px;"></img>
-        <p style="color:white;">{{datos.score_pp}}/100</p>
-        <div class="mt-3">
-          <h4>Puntos a destacar:</h4>
-        </div>
-        <ul>
-        {% if datos.tipo_score_pp == "Malo" %}
-        <li>Presenta varios creditos con atrasos, haciéndolo una conducta constante.</li>
-        <li>Cuenta con muchas irregularidades en sus pagos.</li>
-        <li>No cubre el compromiso de pago.</li>
-        
-        {% elif datos.tipo_score_pp == "Regular" %}
-          <li>Cuenta con irregularidades de pago no constantes.</li>
-          <li>La mayoría de sus creditos se encuentran al corriente.</li>
-          <li>Los atrasos/ adeudos no perduran demasiado tiempo.</li>
-        
-        {% elif datos.tipo_score_pp == "Bueno" %}
-          <li>La mayoría de sus creditos se encuentran al corriente.</li>
-          <li>Presenta un adeudo no significativo de menos de 30 días.</li>
-          <li>No existe mucha irregularidad de sus pagos en tiempo y forma.</li>
-        
-        {% elif datos.tipo_score_pp == "Excelente" %}
-          <li>La mayoría de sus creditos se encuentran al corriente.</li>
-          <li>No presenta ningun adeudo/atraso significativo.</li>
-          <li>Cuenta con un excelente historial.</li>
-        
-        {% endif %}
-        </ul>
-      </section>
-
-      <section>
-        <h4>Créditos</h4>
-        <img src="{{tsc}}" style="width:215px; height:100px; margin-left:-16px;"></img>
-        <p style="color:white;">{{datos.score_credito}}/100</p>
-
-        <div class="mt-3">
-          <h4>Puntos a destacar:</h4>
-        </div>
-
-        <ul>
-        {% if datos.tipo_score_credito == "Malo" %}
-          <li>Cuenta con creditos en quebrando.</li>
-          <li>Cuenta con adeudos mayores a los 120 dias.</li>
-          <li>Presenta mala disposición de pago.</li>
-        
-        {% elif datos.tipo_score_credito == "Regular" %}
-          <li>Disposición de pago regular.</li>
-          <li>Cuenta con 1 credito en quebranto.</li>
-          <li>Cuenta con adeudos menores a 60 días.</li>
-        
-        {% elif datos.tipo_score_credito == "Bueno" %}
-          <li>Disposición de pago buena.</li>
-          <li>Creditos cerrados al corriente con algunos atrasos.</li>
-          <li>Adeudos de 1 a 30 días.</li>
-        
-        {% elif datos.tipo_score_credito == "Excelente" %}
-          <li>Creditos cerrados al corriente sin atrasos.</li>
-          <li>Cerrados por pagos realizados</li>
-          <li>Su historial crediticio esta limpio.</li>
-        
-        {% endif %}
-        </ul>
-        
-      </section>
-      
-      <br><br><br>
-      
-    </article>
     {% comment %} Firmas Final {% endcomment %}
     <br><br><br>
 
