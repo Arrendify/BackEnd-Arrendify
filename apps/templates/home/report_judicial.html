@@ -454,6 +454,7 @@
       </div>
       
       {% comment %} Informacion Personal del prospecto {% endcomment %}
+  {% if datos.regimen_fiscalinvjud == "Persona Fisica" %}
       <div class="row" >
         <div class="col">
             <label style="color:#8082a0;"><b>Nombre Completo:</b></label>
@@ -499,8 +500,28 @@
             <label style="color:#8082a0;"><b>Direccion Completa:</b></label>
             <input class="input-chido" type="text" style="font-size:11px; width:100%;" value="{{info.direccion_completa}}">
         </div>
-      </div>  
+      </div>
+  {% else %}
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Razón Social:</b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.nombre_empresa}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>RFC:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.rfc_empresa}}">
+        </div>
+      </div>
+      <div class="row mt-2" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Direccion Fiscal:</b></label>
+            <input class="input-chido" type="text" style="font-size:11px; width:100%;" value="{{info.direccion_fiscal}}">
+        </div>
+      </div>
+  {% endif %}
 
+  {% if datos.regimen_fiscalinvjud == "Persona Fisica" %}
       <hr class="hr" >  
         <h3 class="mb-2 mt-2">Datos del empleo</h2>
       <hr class="hr" >
@@ -556,17 +577,67 @@
           <input class="input-chido" type="text" style="font-size:13px;  width:100%;" value="{{info.email_jefe}}">
         </div>
       </div>
+    </div>
+    <br><br><br><br><br><br><br><br><br><br><br><br><br>
+  {% else %}
+    <hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos del Representante Legal</h2>
+      <hr class="hr" >
+      <div class="mb-2" style="font-size: 10px; margin-top:-12px;">
+        Basado en la información proporcionada por el solicitante. 
+      </div>
+      <div class="mb-1" style="font-size: 10px; margin-top:-12px;">
+        Ingreso mensual declarado es diferente al ingreso comprobado. 
+      </div>
 
-      <br><br><br><br><br><br><br><br><br><br><br><br><br>
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Nombre Completo:</b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.nombre_rl}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>identificacion: {{info.identificacion_rl}}</b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.no_ide_rl}}">
+        </div>
 
-    {% comment %} Contenido {% endcomment %}
+      <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.nacionalidad_rl}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Telefono:</b></label>
+          <input class="input-chido" style="width:100%;" type="text"  value="{{info.celular_rl}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Correo:</b></label>
+          <input class="input-chido" style="width:100%;" type="text"  value="{{info.correo_rl}}">
+        </div>
+      </div>  
+
+      <div class="row mt-2" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Dirección:</b></label>
+            <input class="input-chido" type="text" style=" width:100%;" value="{{info.direccion_rl}}">
+        </div>
+      </div>
+    </div>
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+  {% endif %}
+
+
+
+
+
+{% comment %} Contenido {% endcomment %}
     <article id="pagina-3">
       <hr class="hr">  
         <h3 class="mb-2 mt-2">Referencias Personales, Laborales.</h2>
       <hr class="hr">
-      <p>Como parte del proceso de investigación, se ha solicitado se nos proporcionen referencias personales del prospecto a fin de poder corroborar diversos ámbitos personales que nos permitan conocer el entorno social del investigado.
-        Derivado a lo anterior una vez corroborado las referencias proporcionadas, podemos referir que el prospecto cuenta con # referencias verificadas siendo estas las siguientes:
-        </p>
+      <p>Como parte del proceso de investigación, se solicitaron referencias personales del prospecto para corroborar diversos aspectos de su entorno social. Después de verificar las referencias proporcionadas, podemos confirmar que el prospecto cuenta con referencias verificadas, que son las siguientes:</p>
       <table class="table">
         <tbody>
           <tr>
@@ -831,12 +902,12 @@
   </div>
 
   {% elif datos.record_rs == "En_cuenta" %}
-  <div class="mt-3" style="width:100%" id="redes">
+  <div class="mt-3" style="width:100%" id="redes">  
     <hr class="hr">  
     <h3 class="mb-2 mt-2">Redes sociales</h2>
     <hr class="hr">
 
-    <p>Al evaluar a {{info.nombre_completo}} a través de su perfil en redes sociales, es fundamental tomar en cuenta una serie de criterios adicionales que pueden influir negativamente en su idoneidad 
+    <p>Al evaluar a {% if info.nombre_completo %} {{ info.nombre_completo }} {% else %} {{ info.nombre_empresa }} {% endif %}a través de su perfil en redes sociales, es fundamental tomar en cuenta una serie de criterios adicionales que pueden influir negativamente en su idoneidad 
       para la convivencia armónica en sociedad. A continuación, se detallan los puntos a considerar:</p>
     
     {% for clave in redes_comentarios  %}
