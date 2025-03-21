@@ -732,7 +732,7 @@
     {% comment %} <p>Sin Creditos</p> {% endcomment %}
 {% endif %}
     </div>
-
+     <br><br><br><br><br><br><br><br><br><br><br>
     {% comment %} Contenido {% endcomment %}
     <article id="pagina-3">
       <hr class="hr">  
@@ -762,42 +762,6 @@
       <p>{{referencias}}</p>
 
       {% comment %} <br>  {% endcomment %}
-      {% if aval and aval.fiador_obligado == "Obligado Solidario Persona Fisica" %}<br><br><br><br><br><br><br><br><br><br><br>{% else %}{% endif %}
-
-      <article id="nueva_pag_4">
-        <div style="width:100%" id="conclusion_final">
-          <h2 class="mb-2 mt-2">Resultado de Investigación</h2>
-          <hr class="hr">  
-            <h3 class="mb-2 mt-2"><b>{% if status == "Declinado" %}RECHAZADO{% elif status == "Aprobado_pe" %}APROBADO CON PUNTOS A TOMAR EN CUENTA{% else %}APROBADO{% endif %}</b></h2>
-          <hr class="hr">
-          <br>
-          {% if status == "Declinado" or status == "Aprobado_pe" %}
-            <p style="font-size:14px">{{conclusion}}</p>
-            <br>
-            <p style="font-size:20px">{{motivo | linebreaksbr}}</p>
-          {% else %}
-            <p style="font-size:14px">{{conclusion}}</p>
-            <br>
-          {% endif %}
-        </div>
-    
-        <br> <br> <br> <br> <br> <br>
-        <br> <br> <br> <br> <br> <br>
-        {% comment %} Firmas {% endcomment %}
-  
-        <p style="font-size:14px">La información descrita en el resultado se detalla en los apartados siguientes de este reporte, los cuales ofrecen un análisis exhaustivo y minucioso de cada elemento relevante. </p>
-        <p style="font-size:14px">Cada apartado está diseñado para abordar de manera específica los distintos aspectos y hallazgos derivados del estudio, proporcionando una visión integral de los datos obtenidos. En los siguientes apartados, se explorarán los detalles técnicos y las interpretaciones clave que permiten comprender en profundidad los resultados presentados. </p>
-        <p style="font-size:14px">Se incluirán Información de las metodologías empleadas, las variables analizadas, y los resultados obtenidos en cada etapa del proceso. Además, se discutirán las implicaciones de los hallazgos y se ofrecerán recomendaciones basadas en el análisis realizado, con esto se busca que el reporte ofrezca una visión clara y completa del resultado de investigación, facilitando la comprensión y evaluación de la información presentada.</p><br>
-        <p></p>
-        <p></p>
-        <p></p>
-        <p></p><br>
-        <p></p><br>  
-        <p></p><br>  
-        <br>  
-       
-      </article>
-
 
       <hr class="hr">  
         <h3 class="mb-2 mt-2">Antecedentes Legales Nacionales</h2>
