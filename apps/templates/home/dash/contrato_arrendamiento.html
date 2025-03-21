@@ -387,7 +387,7 @@
 	</tr>
 	{% if info.inmueble.mantenimiento == "Incluido" %}
 	<tr> 
-		<td height="21"  valign=middle>La renta estipulada por la ocupación de dicho inmueble es la cantidad de <b>${{info.inmueble.renta | intcomma}}.00 ({{text_representation}} Pesos 00/100 M.N.),</b> mensuales adelantados, mantenimiento incluido por la cantidad de {% comment %} ${{info.inmueble.cuota_mantenimiento | intcomma}}.00{% endcomment %} {{{{info.inmueble.cuota_letra}}}},  cantidad que deberá pagar <b>"EL ARRENDATARIO"</b> a <b>"EL
+		<td height="21"  valign=middle>La renta estipulada por la ocupación de dicho inmueble es la cantidad de <b>${{info.inmueble.renta | intcomma}}.00 ({{text_representation}} Pesos 00/100 M.N.),</b> mensuales adelantados, mantenimiento incluido por la cantidad de {% comment %} ${{info.inmueble.cuota_mantenimiento | intcomma}}.00{% endcomment %} {{info.inmueble.cuota_letra}},  cantidad que deberá pagar <b>"EL ARRENDATARIO"</b> a <b>"EL
 			ARRENDADOR"</b> por anticipado los días {{info.datos_contratos.dia_pago}} de cada mes, por lo que todo pago de renta pactada, que se realice después de los 5 días posteriores a la fecha de pago de cada mes causará un interés moratorio a razón del 5%
 			mensual, independientemente que se actualice la hipótesis de rescisión del presente contrato por falta de pago puntual de renta. <br>
 			{% if info.arrendador.tipo_pago == "Deposito" %}

@@ -394,23 +394,26 @@ class ContratosViewSet(viewsets.ModelViewSet):
             
             if info["tipo_contrato"] == "Arrendamiento" or info["tipo_contrato"] == "Poliza" or info["tipo_contrato"] == "Arrendamiento+Pagares":
 
-                if aval["registro_aval" == "No"]:
-                    data_contrato = {
-                    'propietario': f"{arrendador.id}",
-                    'inmueble': f"{propiedad.id}",
-                    'arrendatario': f"{inquilino.id}",
-                    'tipo_contrato': info["tipo_contrato"],
-                    'datos_contratos': informacion_del_contrato
-                    } 
-                else:
+                if aval.get("aval"):
                     data_contrato = {
                         'propietario': f"{arrendador.id}",
                         'inmueble': f"{propiedad.id}",
                         'arrendatario': f"{inquilino.id}",
                         'aval': f"{fiador.id}",
                         'tipo_contrato': info["tipo_contrato"],
-                        'datos_contratos': informacion_del_contrato
+                        'datos_contratos': informacion_del_contrato,
+                        "id_pago": info["id_pago"]
                         }
+                else:
+                    data_contrato = {
+                    'propietario': f"{arrendador.id}",
+                    'inmueble': f"{propiedad.id}",
+                    'arrendatario': f"{inquilino.id}",
+                    'tipo_contrato': info["tipo_contrato"],
+                    'datos_contratos': informacion_del_contrato,
+                    "id_pago": info["id_pago"]
+                    } 
+                   
                     
                 contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato__in = info["tipo_contrato"])
                 
@@ -420,7 +423,8 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     'propietario': f"{arrendador.id}",
                     'arrendatario': f"{inquilino.id}",
                     'tipo_contrato': "Poliza",
-                    'datos_contratos': informacion_del_contrato
+                    'datos_contratos': informacion_del_contrato,
+                    "id_pago": info["id_pago"]
                     }
                     
                 else:
@@ -429,7 +433,8 @@ class ContratosViewSet(viewsets.ModelViewSet):
                         'arrendatario': f"{inquilino.id}",
                         'aval': f"{fiador.id}",
                         'tipo_contrato': "Poliza",
-                        'datos_contratos': informacion_del_contrato
+                        'datos_contratos': informacion_del_contrato,
+                        "id_pago": info["id_pago"]
                         }
                 
                 contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato = "Pagare")

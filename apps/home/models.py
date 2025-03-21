@@ -1899,7 +1899,9 @@ class Contratos(models.Model):
     
     datos_contratos  =  models.JSONField(null=True)
     
-    #renta = models.CharField(max_length=255, null=True, blank=True)
+    status_pago = models.CharField(max_length=255, null=True, blank=True, default = "Esperando Pago")
+    id_pago = models.CharField(max_length=255, null=True, blank=True)
+    
     #fecha_celebracion = models.DateField( null=True, blank=True)
     #duracion = models.CharField(max_length=255, null=True, blank=True)
     #entidad_federativa = models.CharField(max_length=255, null=True, blank=True)

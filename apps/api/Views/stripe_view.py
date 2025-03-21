@@ -7,6 +7,8 @@ from rest_framework import status
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from ...home.models import Contratos
+
 #obtener Logs de errores
 import logging
 import sys
@@ -40,7 +42,7 @@ class CreateStripeCheckoutSession(viewsets.ModelViewSet):
                     },
                 ],
                 mode='payment',  # Puede ser 'subscription' si es un pago recurrente
-                success_url="http://192.168.2.24:8000/success?session_id={CHECKOUT_SESSION_ID}",
+                success_url="http://192.168.1.24:8000/succes/",
                 cancel_url="http://192.168.2.24:8000/cancel",
             )
             print("")
@@ -63,13 +65,13 @@ def stripe_webhook(request):
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
     print("sig header",sig_header)
-    # endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
-    endpoint_secret = "whsec_47566d0c657e8811e44dfaf10aa402d9037cb6cf5e2331471d03ace9d48f4324"
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+    # endpoint_secret = "whsec_47566d0c657e8811e44dfaf10aa402d9037cb6cf5e2331471d03ace9d48f4324"
 
     try:
         print("entro a try")
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-        print("soy event", event)
+       
 
     except ValueError:
         print("entro a ValueError",ValueError)
@@ -77,20 +79,28 @@ def stripe_webhook(request):
     except stripe.error.SignatureVerificationError:
         print("otro error",)
         return JsonResponse({"error": "Invalid signature"}, status=400)
-
+    
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
-        print("soy session", session)
-        print(f"✅ Pago aprobado session complete: {session['id']}")
+        contrato_actual = Contratos.objects.all().filter(id_pago = session['id']).first()
+        
+        # 🔹 Detectar si el pago fue aprobado
+        print(f"id session complete: {session['id']}")
+        print(f"✅ Pago aprobado? session complete: {session['status']}")
         # Procesar el pago en la base de datos
-     # 🔹 Detectar si el pago fue aprobado
-    
+        print("")
+        print("contrato_actual",contrato_actual.__dict__)
+        print("contrato_actual sin el firts()",contrato_actual.__dict__)
+        contrato_actual.status_pago = "Pagado"
+        contrato_actual.save()
+        print("contrato_actualizado",contrato_actual.__dict__)
+        print("")
+        
     if event["type"] == "charge.updated":
         session = event["data"]["object"]
         print(f"✅ Pago aprobado charge update: {session['id']}")
-        # Aquí puedes actualizar la base de datos y notificar al usuario
-    
-
+        
+       
     return JsonResponse({"status": "success"}, status=200)
 
 
@@ -104,7 +114,8 @@ class CheckPaymentStatus(APIView):
 
         try:
             session = stripe.checkout.Session.retrieve(session_id)
-            print("Sesión obtenida:", session)
+            print("session.payment_status",session.payment_status)
+       
             return Response({"status": session.payment_status})  # paid, open, etc.
         except stripe.error.StripeError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
