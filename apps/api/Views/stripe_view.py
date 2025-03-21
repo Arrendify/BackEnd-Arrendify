@@ -42,7 +42,7 @@ class CreateStripeCheckoutSession(viewsets.ModelViewSet):
                     },
                 ],
                 mode='payment',  # Puede ser 'subscription' si es un pago recurrente
-                success_url="http://192.168.1.24:8000/succes/",
+                success_url="https://arrendify.app/succes/",
                 cancel_url="http://192.168.2.24:8000/cancel",
             )
             print("")
@@ -89,7 +89,7 @@ def stripe_webhook(request):
         print(f"✅ Pago aprobado? session complete: {session['status']}")
         # Procesar el pago en la base de datos
         print("")
-        print("contrato_actual",contrato_actual.__dict__)
+
         print("contrato_actual sin el firts()",contrato_actual.__dict__)
         contrato_actual.status_pago = "Pagado"
         contrato_actual.save()
