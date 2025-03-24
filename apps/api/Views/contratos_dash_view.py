@@ -878,8 +878,9 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 info["inmueble"] = propiedad
                 #esto es lo nuevo en mantenimiento
                 if propiedad.mantenimiento == "No Incluido":
-                    info["inmueble"]["cuota_letra"] == num2words(propiedad.cuota_mantenimiento, lang='es').capitalize()
-                    print("cuota con letra", info["inmueble"]["cuota_letra"])
+                    pass
+                    # info["inmueble"]["cuota_letra"] == num2words(propiedad.cuota_mantenimiento, lang='es').capitalize()
+                    # print("cuota con letra", info["inmueble"]["cuota_letra"])
                 
                 #checamos que no tenga decimales
                 if "." not in str(propiedad.renta):
