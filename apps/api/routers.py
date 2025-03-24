@@ -74,7 +74,6 @@ router.register(r'contratos_semillero', fraterna_views.Contratos_semillero, base
 router.register(r'contratos_dash', ContratosViewSet, basename='contratos_semillero')
 #Stripe
 router.register(r'create-checkout-session', CreateStripeCheckoutSession, basename='create-checkout-session')
-router.register(r"check-payment-status/", CheckPaymentStatus, basename="check-payment-status"),
 
 # si descomentamos la linea de abajo nos da el create con post de notificacion directo con el metodo notify_signals.
 # router.register(r'notis_prueba', notis_prueba, basename='notis_prueba')

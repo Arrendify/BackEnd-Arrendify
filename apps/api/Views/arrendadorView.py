@@ -94,12 +94,12 @@ def send_noti_comentario(self, request, *args, **kwargs):
         print("")
         
         print("request data que llega en noti: ",request)
-        print("mi target es el usuario de los documentos ",request.arrendador.user.id)
+        print("mi target es el usuario de los documentos ",request.propietario.user.id)
         print("request data que llega en noti dcit: ",request.__dict__)
  
         print("")
         #sleccionamos al actor que es el que va a recivir el comentario
-        actor = User.objects.all().filter(id = request.arrendador.user.id).first()
+        actor = User.objects.all().filter(id = request.propietario.user.id).first()
         print("request verbo",kwargs["title"])
         
         try:
@@ -428,6 +428,12 @@ class Documentos_Arrendador(viewsets.ModelViewSet):
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             print(request.data)
+            print("instance", instance.__dict__)
+            print("instance fk propietario", instance.propietario.id)
+            print("instance fk propietario", instance.propietario.regimen_fiscal)
+            print("el")
+            print("instance fk propietario", instance.propietario.slug)
+            print("instance fk propietario", instance.propietario.nombre_completo)
             
             # Verificar si se proporciona un nuevo archivo adjunto
             if 'ine' in request.data:
@@ -451,10 +457,11 @@ class Documentos_Arrendador(viewsets.ModelViewSet):
                 instance.extras = extras  # Actualizar el archivo adjunto sin eliminar el anterior   
         
             print("notificacion a legal de que actualizaron documentos")   
-            if instance.arrendador.regimen_fiscal == "Persona Moral":             
-                send_noti_legal(DocumentosArrendador, request, title="Actualización documentos", text=f"El Arrendador: {instance.arrendador.nombre_empresa} ah actualizado documentos", url = f"arrendadores/#{instance.arrendador.slug}")
+            
+            if instance.propietario.regimen_fiscal == "Persona Moral":             
+                send_noti_legal(DocumentosArrendador, request, title="Actualización documentos", text=f"El Arrendador: {instance.propietario.nombre_empresa} ah actualizado documentos", url = f"arrendadores/#{instance.propietario.slug}")
             else:    
-                send_noti_legal(DocumentosArrendador, request, title="Actualización documentos", text=f"El Arrendador: {instance.arrendador.nombre_completo} ah actualizado documentos", url = f"arrendadores/#{instance.arrendador.slug}")
+                send_noti_legal(DocumentosArrendador, request, title="Actualización documentos", text=f"El Arrendador: {instance.propietario.nombre_completo} ah actualizado documentos", url = f"arrendadores/#{instance.propietario.slug}")
             
         
             serializer.update(instance, serializer.validated_data)
@@ -482,11 +489,11 @@ class Documentos_Arrendador(viewsets.ModelViewSet):
             
             if request.data.get('comentarios_ine') or request.data.get('comentarios_acta_constitutiva') or request.data.get('comentarios_extras'):
                 print("tengo datos comentarios")
-                if instance.arrendador.regimen_fiscal == "Persona Moral":
-                    send_noti_comentario(Arrendador, instance, title="Tienes un comentario en docs", text=f"El Equipo legal ah agregado un comentario en los docs del arrendador: {instance.arrendador.nombre_empresa}", url = f"arrendadores/#{instance.arrendador.slug}")
+                if instance.propietario.regimen_fiscal == "Persona Moral":
+                    send_noti_comentario(Arrendador, instance, title="Tienes un comentario en docs", text=f"El Equipo legal ah agregado un comentario en los docs del arrendador: {instance.propietario.nombre_empresa}", url = f"arrendadores/#{instance.propietario.slug}")
                     
                 else:
-                    send_noti_comentario(Arrendador, instance, title="Tienes un comentario en docs", text=f"El Equipo legal ah agregado un comentario en los docs del arrendador: {instance.arrendador.nombre_completo}", url = f"arrendadores/#{instance.arrendador.slug}")
+                    send_noti_comentario(Arrendador, instance, title="Tienes un comentario en docs", text=f"El Equipo legal ah agregado un comentario en los docs del arrendador: {instance.propietario.nombre_completo}", url = f"arrendadores/#{instance.propietario.slug}")
 
             else:
                 print("borramos comentarios")

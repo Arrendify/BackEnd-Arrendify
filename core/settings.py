@@ -17,8 +17,8 @@ CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
-#DEBUG = False
+#DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = True
 
 LOGGING = {
     'version': 1,
@@ -45,7 +45,7 @@ LOGGING = {
 }
 
 # load production server
-ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1'), config('SERVER2', default='127.0.0.1'), "192.168.2.24","192.168.3.2","192.168.0.233","192.168.1.86","192.168.1.141","127.0.0.1"]
+ALLOWED_HOSTS = [config('SERVER', default='127.0.0.1'), config('SERVER2', default='127.0.0.1'), "192.168.1.24","192.168.3.2","ec2-3-129-70-24.us-east-2.compute.amazonaws.com","192.168.1.86","192.168.1.141","127.0.0.1"]
 
 # Application definition
 
@@ -110,7 +110,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://192.168.1.86:8000',
     'http://192.168.1.141:8000',
     #yo
-    'http://192.168.2.24:8000',
+    'http://192.168.1.24:8000',
     'http://192.168.0.233:8000',
     'http://192.168.3.2:8001',
     'http://192.168.3.2:8000',
@@ -216,24 +216,24 @@ WSGI_APPLICATION = 'core.wsgi.application'
 #     }
 # }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': "postgres",
-#         'USER': 'contratopro',
-#         'PASSWORD': 'Arrendy.123',
-#         'HOST': 'contratopro.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
-#         'PORT': '5432',
-#     }
-# }
-
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': "postgres",
+        'USER': 'contratopro',
+        'PASSWORD': 'Arrendy.123',
+        'HOST': 'contratopro.cnw0xwrwd9ir.us-east-2.rds.amazonaws.com',
+        'PORT': '5432',
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': 'db.sqlite3',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators

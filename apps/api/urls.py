@@ -75,6 +75,7 @@ urlpatterns = [
     
     #STRIPE
     path('stripe-webhook/', stripe_webhook, name='stripe-webhook'),
+    path('check-payment-status/', CheckPaymentStatus.as_view(), name='check-payment-status'),
     #manejamos el index con la pag404
     path('health/', health_check, name='health_check'),
   

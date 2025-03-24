@@ -807,37 +807,37 @@ class Propietario(models.Model):
 
 class DocumentosInquilino(models.Model):
     def get_ine_upload_path(self, filename):
-        inq_split = str(self.inquilino)
+        inq_split = str(self.arrendatario)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/INE/{filename}'
     
     def get_dom_upload_path(self, filename):
-        inq_split = str(self.inquilino)
+        inq_split = str(self.arrendatario)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/Comprobante_de_domicilio/{filename}'
     
     def get_rfc_upload_path(self, filename):
-        inq_split = str(self.inquilino)
+        inq_split = str(self.arrendatario)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/RFC/{filename}'
    
     def get_ingresos_upload_path(self, filename):
-        inq_split = str(self.inquilino)
+        inq_split = str(self.arrendatario)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/Ingresos/{filename}'
    
     def get_extras_upload_path(self, filename):
-        inq_split = str(self.inquilino)
+        inq_split = str(self.arrendatario)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/Documentos_extras/{filename}'
    
     def get_rl_upload_path(self, filename):
-        inq_split = str(self.inquilino)
+        inq_split = str(self.arrendatario)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/Recomendacion_laboral/{filename}'
@@ -920,27 +920,27 @@ class DocumentosFiador(models.Model):
 
 class DocumentosArrendador(models.Model):
     def get_ine_upload_path(self, filename):
-        inq_split = str(self.arrendador)
+        inq_split = str(self.propietario)
        
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'arrendador/{ip}/documentos/INE/{filename}'
 
     def get_acta_upload_path(self, filename):
-        inq_split = str(self.arrendador)
+        inq_split = str(self.propietario)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'arrendador/{ip}/documentos/Acta_constitutiva/{filename}'
     
     def get_extras_upload_path(self, filename):
-        inq_split = str(self.arrendador)
+        inq_split = str(self.propietario)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'arrendador/{ip}/documentos/Extras/{filename}'
 
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    arrendador=models.ForeignKey(Propietario, on_delete=models.SET_NULL, null=True, related_name='archivos')
+    propietario=models.ForeignKey(Propietario, on_delete=models.SET_NULL, null=True, related_name='archivos')
     ine = models.FileField(upload_to=get_ine_upload_path, null=True, max_length=255)
     acta_constitutiva = models.FileField(upload_to = get_acta_upload_path, null=True, max_length=255)
     extras = models.FileField(upload_to = get_extras_upload_path, null=True, max_length=255)
@@ -958,7 +958,7 @@ class DocumentosArrendador(models.Model):
 class Inmuebles(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    arrendador = models.ForeignKey(Propietario, null=True, blank=True, on_delete=models.SET_NULL, related_name='propietario')
+    propietario = models.ForeignKey(Propietario, null=True, blank=True, on_delete=models.SET_NULL, related_name='propietario')
 
     alias_inmueble = models.CharField(max_length=100, null=True, blank=True)
     
@@ -1159,7 +1159,7 @@ class InmueblesInmobiliario(models.Model):
 class DocumentosInmueble(models.Model):
     def get_docs_inmueble_upload_path(self,filename):
         print("soy el self user de inmueble",self.user)
-        arrendador = str(self.inmueble.arrendador.nombre_completo)
+        arrendador = str(self.inmueble.propietario.nombre_completo)
         ip = arrendador.replace(" ", "_")
         inm = str(self.inmueble.alias_inmueble)
         alias_inm = inm.replace(" ", "_")
@@ -1894,12 +1894,14 @@ class Contratos(models.Model):
     propietario =  models.ForeignKey(Propietario,null=True, blank=True, on_delete=models.CASCADE,  related_name='contratos_propietario')
     inmueble = models.ForeignKey(Inmuebles, null=True, blank=True, on_delete=models.CASCADE, related_name="contratos_propiedad")
     arrendatario = models.ForeignKey(Arrendatario, null=True, blank=True, on_delete=models.CASCADE,related_name="contratos_arrendatario")
-    aval = models.ForeignKey(Fiador_obligado, null=True, blank=True, on_delete=models.CASCADE,related_name="contratos_aval")
+    aval = models.ForeignKey(Aval, null=True, blank=True, on_delete=models.CASCADE,related_name="contratos_aval")
     tipo_contrato = models.CharField(max_length=255, null=True, blank=True)
     
     datos_contratos  =  models.JSONField(null=True)
     
-    #renta = models.CharField(max_length=255, null=True, blank=True)
+    status_pago = models.CharField(max_length=255, null=True, blank=True, default = "Esperando Pago")
+    id_pago = models.CharField(max_length=255, null=True, blank=True)
+    
     #fecha_celebracion = models.DateField( null=True, blank=True)
     #duracion = models.CharField(max_length=255, null=True, blank=True)
     #entidad_federativa = models.CharField(max_length=255, null=True, blank=True)

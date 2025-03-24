@@ -60,8 +60,8 @@ class DocumentosInmuebleSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class InmueblesSerializer(serializers.ModelSerializer):
-    nombre_empresa= serializers.CharField(source='arrendador.nombre_empresa', read_only=True)
-    nombre_completo= serializers.CharField(source='arrendador.nombre_completo', read_only=True)
+    nombre_empresa= serializers.CharField(source='propietario.nombre_empresa', read_only=True)
+    nombre_completo= serializers.CharField(source='propietario.nombre_completo', read_only=True)
     documentos_inmueble = DocumentosInmuebleSerializer(many=True, read_only=True)
     mobiliario = InmueblesMobiliarioSerializer(many=True, read_only=True)
     class Meta:

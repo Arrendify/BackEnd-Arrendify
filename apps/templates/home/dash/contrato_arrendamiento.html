@@ -101,13 +101,13 @@
 	<colgroup width="753"></colgroup>
 	<colgroup span="18" width="85"></colgroup>
 	<tr>
-		<p style="font-size:15px; text-align: right;">Contrato No. {{info.codigo_paquete}}</p>
+		{% comment %} <p style="font-size:15px; text-align: right;">Contrato No. {{info.codigo_paquete}}</p> {% endcomment %}
 	<tr>
 	<tr>
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle style=" font-size:18px"><b>CONTRATO DE ARRENDAMIENTO QUE EN TÉRMINOS DE LO QUE DISPONE EL CÓDIGO CIVIL VIGENTE PARA EL ESTADO DE {{info.datos_contratos.entidad_federativa | upper}}, QUE CELEBRAN, POR UNA PARTE {% if info.arrendador.regimen_fiscal == "Persona Fisica" %} {{info.arrendador.nombre_completo | upper}} {% else %}{{info.arrendador.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendador.nombre_completo_rl | upper}} {% endif %}, A QUIEN EN LO SUCESIVO SE LE LLAMARÁ "EL ARRENDADOR" 
+		<td height="21"  valign=middle style=" font-size:18px"><b>CONTRATO DE ARRENDAMIENTO QUE EN TÉRMINOS DE LO QUE DISPONE EL CÓDIGO CIVIL VIGENTE PARA {% if info.datos_contratos.entidad_federativa == "Ciudad De México" %}CIUDAD DE MÉXICO{% else %}EL ESTADO DE {{info.datos_contratos.entidad_federativa | upper}}{% endif %}, QUE CELEBRAN, POR UNA PARTE {% if info.arrendador.regimen_fiscal == "Persona Fisica" %} {{info.arrendador.nombre_completo | upper}} {% else %}{{info.arrendador.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendador.nombre_completo_rl | upper}} {% endif %}, A QUIEN EN LO SUCESIVO SE LE LLAMARÁ "EL ARRENDADOR" 
 			Y POR LA OTRA PARTE {% if info.arrendatario.regimen_fiscal == "Persona Fisica" %}{{info.arrendatario.nombre_completo | upper}}{% else %}{{info.arrendatario.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendatario.nombre_completo_rl | upper}}{% endif %} 
 			{% if info.fiador.registro_aval == "Si" or info.fiador.id %}
 				{% if info.fiador.tipo_aval == 'Obligado Solidario Persona Moral' or info.fiador.tipo_aval == 'Fiador Solidario Persona Moral' %}Y {{ info.fiador.nombre_empresa | upper}} REPRESENTADA POR {{info.fiador.nombre_completo_rl | upper}} EN SU CARÁCTER DE "EL {{info.fiador.tipo_aval | upper}}"{% else %}Y {{ info.fiador.nombre_completo | upper}} EN SU CARÁCTER DE "EL {{info.fiador.tipo_aval | upper}}"{% endif %}
@@ -211,38 +211,42 @@
 	<tr>
 		<td height="21" valign=middle> </td>
 	</tr>
-	<tr>
-		<td height="21"  valign=middle><b>3.- DECLARA ''EL {{info.fiador.tipo_aval | upper}}'':</b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b>a).- Llamarse como ha quedado establecido, ser una persona de nacionalidad {{info.fiador.nacionalidad | upper}}, que cuenta
-			con las facultades suficientes y necesarias para celebrar el presente contrato de arrendamiento respecto,
-			del inmueble ubicado en {{info.inmueble.direccion_completa | upper}}</b></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><b>b).- Que a la firma del presente contrato se identifica con {{info.datos_contratos.tipo_identificacion_fiador | upper}} con número {{info.datos_contratos.no_id_fiador}}.</b></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><b>c).- Que es su voluntad constituirse como {{info.fiador.tipo_aval | upper}} de “EL ARRENDATARIO”.</b></td>
-	</tr>	
-			
-	<tr>
-		<td height="21"  valign = middle><b>d).-</b>Que señala como domicilio para oír y recibir toda clase de notificaciones el ubicado en <b>MISMA DE LA
-			DEL INMUEBLE</b> y que dichas notificaciones aún las de carácter personal se podrán realizar con cualquier persona que se encuentre en dicho inmueble.</td>
-	</tr>
-	<tr>
-		<td height="21"  valign = middle><b>e).- Que ''EL {{info.fiador.tipo_aval | upper}}'' reside en inmueble ubicado en {{info.fiador.direccion_completa | upper}}, donde también se podrán
-			recibir todo tipo de notificaciones con cualquier persona que se encuentre en dicho inmueble, aún las de carácter personal.</b></td>
-	</tr>
-	<tr>
-		<td height="21" valign = middle><b>f).- Que "EL {{info.fiador.tipo_aval | upper}}" declara conocer las obligaciones que adquiere con motivo de la celebración de este contrato y estar de acuerdo con el cumplimiento de estas. </b></td>
-	</tr>
+	{% if info.fiador.registro_aval == "Si" or info.fiador.id %}
+		<tr>
+			<td height="21"  valign=middle><b>3.- DECLARA ''EL {{info.fiador.tipo_aval | upper}}'':</b></td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle><b>a).- Llamarse como ha quedado establecido, ser una persona de nacionalidad {{info.fiador.nacionalidad | upper}}, que cuenta
+				con las facultades suficientes y necesarias para celebrar el presente contrato de arrendamiento respecto,
+				del inmueble ubicado en {{info.inmueble.direccion_completa | upper}}</b></td>
+		</tr>
+		<tr>
+			<td height="21"  valign=middle><b>b).- Que a la firma del presente contrato se identifica con {{info.datos_contratos.tipo_identificacion_fiador | upper}} con número {{info.datos_contratos.no_id_fiador}}.</b></td>
+		</tr>
+		<tr>
+			<td height="21"  valign=middle><b>c).- Que es su voluntad constituirse como {{info.fiador.tipo_aval | upper}} de “EL ARRENDATARIO”.</b></td>
+		</tr>	
+				
+		<tr>
+			<td height="21"  valign = middle><b>d).-</b>Que señala como domicilio para oír y recibir toda clase de notificaciones el ubicado en <b>MISMA DE LA
+				DEL INMUEBLE</b> y que dichas notificaciones aún las de carácter personal se podrán realizar con cualquier persona que se encuentre en dicho inmueble.</td>
+		</tr>
+		<tr>
+			<td height="21"  valign = middle><b>e).- Que ''EL {{info.fiador.tipo_aval | upper}}'' reside en inmueble ubicado en {{info.fiador.direccion_completa | upper}}, donde también se podrán
+				recibir todo tipo de notificaciones con cualquier persona que se encuentre en dicho inmueble, aún las de carácter personal.</b></td>
+		</tr>
+		<tr>
+			<td height="21" valign = middle><b>f).- Que "EL {{info.fiador.tipo_aval | upper}}" declara conocer las obligaciones que adquiere con motivo de la celebración de este contrato y estar de acuerdo con el cumplimiento de estas. </b></td>
+		</tr>
+	
+	{% else %}{% endif %}
+	
 
 	<tr>
 		<td height="21" valign=middle> </td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><b>4.- DECLARAN LAS PARTES</b></td>
+		<td height="21"  valign=middle><b>{% if info.fiador.registro_aval == "Si" or info.fiador.id %}4.- DECLARAN LAS PARTES{% else %}3.- DECLARAN LAS PARTES{% endif %}</b></td>
 	</tr>
 	<tr>
 		<td height="21"  valign=middle><b>a) </b>Que en el presente contrato no existe dolo, error, mala fe o cualquier otro vicio de la voluntad, por lo que
@@ -343,7 +347,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><b>QUINTA.- 'EL ARRENDATARIO''</b>y <b>''{{info.fiador.tipo_aval | upper}}''</b> bajo protesta de decir verdad
+		<td height="21"  valign=middle><b>QUINTA.- 'EL ARRENDATARIO''</b> {% if info.fiador.registro_aval == "Si" or info.fiador.id %}y <b>''{{info.fiador.tipo_aval | upper}}''</b>{% else %}{% endif %} bajo protesta de decir verdad
 			manifiesta que <b>''EL INMUEBLE''</b> materia del presente contrato, solo será destinado para el uso que se estipula de buena fe y lícito, asimismo se comprometen y obligan a conservarlo por todo el tiempo que se le ocupe, se
 			advierte a <b>''EL ARRENDATARIO''</b> que la ley de Extinción de Dominio nos obliga a denunciar ante el Agente del Ministerio Público cualquier uso diferente que pueda tener alguna relación con el robo de
 			vehículos, trata de personas(prostitución), secuestro o cualquier conducta ilícita que la autoridad penal lo clasifique como delincuencia organizada, por ello, al tener la solicitud y entrega de documentación para
@@ -382,8 +386,8 @@
 		<td height="21" valign=middle><b>OCTAVA.- VALOR DE LA RENTA Y FORMA DE PAGO</b></td>
 	</tr>
 	{% if info.inmueble.mantenimiento == "Incluido" %}
-	<tr>
-		<td height="21"  valign=middle>La renta estipulada por la ocupación de dicho inmueble es la cantidad de <b>${{info.inmueble.renta | intcomma}}.00 ({{text_representation}} Pesos 00/100 M.N.),</b> mensuales adelantados, mantenimiento incluido por la cantidad de ${{info.inmueble.cuota_mantenimiento | intcomma}}.00, cantidad que deberá pagar <b>"EL ARRENDATARIO"</b> a <b>"EL
+	<tr> 
+		<td height="21"  valign=middle>La renta estipulada por la ocupación de dicho inmueble es la cantidad de <b>${{info.inmueble.renta | intcomma}}.00 ({{text_representation}} Pesos 00/100 M.N.),</b> mensuales adelantados, mantenimiento incluido por la cantidad de {% comment %} ${{info.inmueble.cuota_mantenimiento | intcomma}}.00{% endcomment %} {{info.inmueble.cuota_letra}},  cantidad que deberá pagar <b>"EL ARRENDATARIO"</b> a <b>"EL
 			ARRENDADOR"</b> por anticipado los días {{info.datos_contratos.dia_pago}} de cada mes, por lo que todo pago de renta pactada, que se realice después de los 5 días posteriores a la fecha de pago de cada mes causará un interés moratorio a razón del 5%
 			mensual, independientemente que se actualice la hipótesis de rescisión del presente contrato por falta de pago puntual de renta. <br>
 			{% if info.arrendador.tipo_pago == "Deposito" %}
@@ -401,7 +405,7 @@
 			ARRENDADOR"</b> por anticipado los días {{info.datos_contratos.dia_pago}} de cada mes, por lo que todo pago de renta pactada, que se realice después de los 5 días posteriores a la fecha de pago de cada mes causará un interés moratorio a razón del 5%
 			mensual, independientemente que se actualice la hipótesis de rescisión del presente contrato por falta de pago puntual de renta. <br>
 			Derivado a lo anterior, en cuanto al pago de mantenimiento y/o cualquier cuota extraordinaria,  <b>“EL ARRENDATARIO”</b> deberá cubrir el pago de
-			las mismas por la cantidad de ${{info.inmueble.cuota_mantenimiento | intcomma}}.00, ya que dicho concepto no se encuentra integrado al monto de la renta.<br> 
+			las mismas por la cantidad de {{info.inmueble.cuota_letra}}, ya que dicho concepto no se encuentra integrado al monto de la renta.<br> 
 			{% if info.arrendador.tipo_pago == "Deposito" %}
 			<b>"EL ARRENDATARIO"</b> se obliga a cubrir el importe de la renta señalada dentro del párrafo que antecede, a <b>"EL ARRENDADOR". Y a modo de cortesía en la cuenta 
 			bancaria {{info.arrendador.no_cuenta}} con Clabe {{info.arrendador.clabe}}, institución {{info.arrendador.banco | upper}} a favor de {% if info.arrendador.regimen_fiscal == "Persona Fisica" %} {{info.arrendador.nombre_completo | upper}} {% else %}{{info.arrendador.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendador.nombre_completo_rl | upper}} {% endif %}</b>. 
@@ -414,18 +418,22 @@
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
-
+	{% if info.tipo_contrato == "Arrendamiento+Pagares" or info.tipo_contrato == "Poliza" %}
+		<tr>
+			<td height="21" valign=middle><b>NOVENA.-</b>Para garantizar el pago de la renta establecida en el presente contrato, quedaran firmados <b>{{ info.datos_contratos.duracion | slice:":1" }} PAGARES</b> seriados del 1 al {{ info.datos_contratos.duracion | slice:":1" }}, correspondientes a los {{ info.datos_contratos.duracion | slice:":1" }} de vigencia de este contrato.
+				Ambas partes convienen en que a partir del día {{datos_inicio.dia}} del Mes de {{datos_inicio.mes}} del Año {{datos_inicio.anio}}, todo mes que ocupe <b>"EL ARRENDATARIO"</b> el inmueble arrendado, se considerará forzoso y deberá pagarlo íntegramente, aun cuando no ocupe el inmueble.
+			</td>
+		</tr> 
+	{% else %}
+		<tr>
+			<td height="21" valign=middle><b>NOVENA.- "EL ARRENDATARIO"</b> no podrá retener la renta en ningún caso, ni bajo ningún título judicial o extrajudicial, sino que la pagará íntegramente en los términos pactados en este contrato.</td>
+		</tr>
+	{% endif %}
+	
 	{% comment %} <tr>
-		<td height="21" valign=middle><b>NOVENA.-</b>Para garantizar el pago de la renta establecida en el presente contrato, quedaran firmados <b>{{ info.datos_contratos.duracion | slice:":1" }} PAGARES</b> seriados del 1 al {{ info.datos_contratos.duracion | slice:":1" }}, correspondientes a los 12 meses de vigencia de este contrato.
-			Ambas partes convienen en que a partir del día {{datos_inicio.dia}} del Mes de {{datos_inicio.mes}} del Año {{datos_inicio.anio}}, todo mes que ocupe <b>"EL ARRENDATARIO"</b> el inmueble arrendado, se considerará forzoso y deberá pagarlo íntegramente, aun cuando no ocupe el inmueble.
-		</td>
-	</tr> {% endcomment %}
-	<tr>
 		<td height="21" valign=middle><br></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b>NOVENA.- "EL ARRENDATARIO"</b> no podrá retener la renta en ningún caso, ni bajo ningún título judicial o extrajudicial, sino que la pagará íntegramente en los términos pactados en este contrato.</td>
-	</tr>
+	</tr> {% endcomment %}
+	
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
@@ -491,7 +499,7 @@
 		<td height="21" valign = "middle"><b>DÉCIMA CUARTA.- DEPÓSITO EN GARANTÍA</b></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>“EL ARRENDATARIO”</b> entrega en depositó a <b>“EL ARRENDADOR”</b> la cantidad de <b>${{info.inmueble.renta | intcomma}} ({{text_representation}} Pesos 00/100 M.N.)</b> por concepto de depósito que garantiza el cuidado del inmueble arrendado;
+		<td height="21" valign="middle"><b>“EL ARRENDATARIO”</b> entrega en depositó a <b>“EL ARRENDADOR”</b> la cantidad de <b>${{info.inmueble.renta | intcomma}}.00 ({{text_representation}} Pesos 00/100 M.N.)</b> por concepto de depósito que garantiza el cuidado del inmueble arrendado;
 			este depósito deberá ser actualizado cada vez que se firme un nuevo contrato y por ningún motivo se tomará a cuenta de rentas.<br>
 		</td>
 	</tr>
