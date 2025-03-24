@@ -807,37 +807,37 @@ class Propietario(models.Model):
 
 class DocumentosInquilino(models.Model):
     def get_ine_upload_path(self, filename):
-        inq_split = str(self.arrendatario)
+        inq_split = str(self.arrendatario.nombre_completo)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/INE/{filename}'
     
     def get_dom_upload_path(self, filename):
-        inq_split = str(self.arrendatario)
+        inq_split = str(self.arrendatario.nombre_completo)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/Comprobante_de_domicilio/{filename}'
     
     def get_rfc_upload_path(self, filename):
-        inq_split = str(self.arrendatario)
+        inq_split = str(self.arrendatario.nombre_completo)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/RFC/{filename}'
    
     def get_ingresos_upload_path(self, filename):
-        inq_split = str(self.arrendatario)
+        inq_split = str(self.arrendatario.nombre_completo)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/Ingresos/{filename}'
    
     def get_extras_upload_path(self, filename):
-        inq_split = str(self.arrendatario)
+        inq_split = str(self.arrendatario.nombre_completo)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/Documentos_extras/{filename}'
    
     def get_rl_upload_path(self, filename):
-        inq_split = str(self.arrendatario)
+        inq_split = str(self.arrendatario.nombre_completo)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'inquilino/{ip}/Recomendacion_laboral/{filename}'
