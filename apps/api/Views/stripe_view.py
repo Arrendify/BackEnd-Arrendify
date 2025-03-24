@@ -43,7 +43,7 @@ class CreateStripeCheckoutSession(viewsets.ModelViewSet):
                 ],
                 mode='payment',  # Puede ser 'subscription' si es un pago recurrente
                 success_url="https://arrendify.app/succes/",
-                cancel_url="http://192.168.2.24:8000/cancel",
+                cancel_url="https://arrendify.app/cancel/",
             )
             print("")
             # print("soy session", session)
@@ -65,8 +65,8 @@ def stripe_webhook(request):
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
     print("sig header",sig_header)
-    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
-    # endpoint_secret = "whsec_47566d0c657e8811e44dfaf10aa402d9037cb6cf5e2331471d03ace9d48f4324"
+    #endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+    endpoint_secret = "whsec_47566d0c657e8811e44dfaf10aa402d9037cb6cf5e2331471d03ace9d48f4324"
 
     try:
         print("entro a try")
