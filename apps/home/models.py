@@ -1894,7 +1894,7 @@ class Contratos(models.Model):
     propietario =  models.ForeignKey(Propietario,null=True, blank=True, on_delete=models.CASCADE,  related_name='contratos_propietario')
     inmueble = models.ForeignKey(Inmuebles, null=True, blank=True, on_delete=models.CASCADE, related_name="contratos_propiedad")
     arrendatario = models.ForeignKey(Arrendatario, null=True, blank=True, on_delete=models.CASCADE,related_name="contratos_arrendatario")
-    aval = models.ForeignKey(Fiador_obligado, null=True, blank=True, on_delete=models.CASCADE,related_name="contratos_aval")
+    aval = models.ForeignKey(Aval, null=True, blank=True, on_delete=models.CASCADE,related_name="contratos_aval")
     tipo_contrato = models.CharField(max_length=255, null=True, blank=True)
     
     datos_contratos  =  models.JSONField(null=True)
