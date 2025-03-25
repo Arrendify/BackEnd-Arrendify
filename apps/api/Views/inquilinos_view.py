@@ -262,8 +262,8 @@ class inquilinosViewSet(viewsets.ModelViewSet):
         try:
             id = request.data.get('id')
             print("Valor de la id", id)
-            inquilino = Inquilino.objects.get(id=id)
-            inquilino.delete()
+            arrendatario = Arrendatario.objects.get(id=id)
+            arrendatario.delete()
             print("Elimino Inquilino")
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
@@ -305,7 +305,7 @@ class DocumentosInquilinoViewSet(viewsets.ModelViewSet):
                     "Extras": request.FILES.get('Extras', None),
                     "Recomendacion_laboral": request.FILES.get('Recomendacion_laboral', None),
                     "Acta_constitutiva":request.data['Acta_constitutiva'],
-                    "inquilino":request.data['inquilino'],
+                    "arrendatario":request.data['arrendatario'],
                     "user":user_session
                 }
           
@@ -335,6 +335,8 @@ class DocumentosInquilinoViewSet(viewsets.ModelViewSet):
             # print(documentos_arrendador)
             return Response(serializer_inquilino.data)
         except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
    
