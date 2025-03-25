@@ -95,7 +95,7 @@ class Inquilino(models.Model):
     pagina_web=models.CharField(max_length=100, null=True, blank=True)
     giro=models.CharField(max_length=100, null=True, blank=True)
     tel_jefe=models.BigIntegerField(null=True, blank=True)
-    email_jefe=models.EmailField(null=True, blank=True)
+    email_jefe=models.EmailField(null=True, blank=True, default="na@na.com")
 
     #acta constitutiva
     empresa_constituida = models.CharField(max_length=50, null=True, blank=True)
@@ -220,7 +220,7 @@ class Arrendatario(models.Model):
     pagina_web=models.CharField(max_length=100, null=True, blank=True)
     giro=models.CharField(max_length=100, null=True, blank=True)
     telefono_jefe=models.BigIntegerField(null=True, blank=True)
-    email_jefe=models.EmailField(null=True, blank=True)
+    email_jefe=models.EmailField(null=True, blank=True, default="na@na.com")
     #////////////////de aqui hacia arriba seria para persona fisica
     # persona moral
     nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
@@ -461,6 +461,8 @@ class Aval(models.Model):
     nombre_completo=models.CharField(max_length=100, null=True, blank=True)
     nacionalidad=models.CharField(max_length=100, null=True, blank=True, default="Mexicana") 
     rfc=models.CharField(max_length=100, null=True, blank=True)
+    identificacion=models.CharField(max_length = 100, null = True, blank = True)
+    no_ide=models.CharField(max_length = 100, null = True, blank = True)
     parentesco=models.CharField(max_length=100, null=True, blank=True)
     estado_civil=models.CharField(max_length=100, null=True, blank=True)
     direccion_completa=models.CharField(max_length=100, null=True, blank=True)
@@ -1262,7 +1264,7 @@ class Investigacion_Inquilino(models.Model):
     direccion_empleo= models.CharField(max_length = 250, null = True, blank = True)
     nombre_jefe=models.CharField(max_length=100, null=True, blank=True)
     telefono_jefe=models.CharField(max_length=100, null=True, blank=True)
-    email_jefe=models.EmailField(null=True, blank=True)
+    email_jefe=models.EmailField(null=True, blank=True, default="na@na.com")
 
 #Fin Persona Fisica
 
@@ -1479,7 +1481,7 @@ class Investigacion_Laboral(models.Model):
     direccion_empleo = models.CharField(max_length = 250, null = True, blank = True)
     nombre_jefe=models.CharField(max_length=100, null=True, blank=True)
     telefono_jefe=models.CharField(max_length = 20,null=True, blank=True)
-    email_jefe=models.EmailField(max_length = 100,null=True, blank=True)
+    email_jefe=models.EmailField(max_length = 100,null=True, blank=True, default="na@na.com")
     
 #Datos Empleo Anterior  
     empleo_ant = models.CharField(max_length = 250, null = True, blank = True)
@@ -1649,7 +1651,7 @@ class Investigacion_Financiera(models.Model):
     direccion_empleo = models.CharField(max_length = 250, null = True, blank = True)
     nombre_jefe=models.CharField(max_length=100, null=True, blank=True)
     telefono_jefe=models.CharField(max_length = 20, null=True, blank=True)
-    email_jefe=models.EmailField(null=True, blank=True)
+    email_jefe=models.EmailField(null=True, blank=True, default="na@na.com")
     
 #Persona Moral
     nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)

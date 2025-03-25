@@ -527,19 +527,18 @@
           <label style="color:#8082a0;"><b>Dirección del empleo:</b></label>
           <input class="input-chido" style="width:100%;" type="text" value="{{info.direccion_empleo}}">
         </div>
-        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
           <label style="color:#8082a0;"><b>Ingreso mensual comprobado:</b></label>
-          <input class="input-chido" style="width:100%;" type="text"  value="{{info.ingreso_men}}">
+          <input class="input-chido" style="width:100%;" type="text"  value="${{info.ingreso_comprobado | intcomma}}.00">
         </div>
-      </div>  
-
-      <div class="row mt-2" >
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
           <label style="color:#8082a0; width:100%;"><b>Nombre del Jefe:</b></label>
           <input class="input-chido" style="font-size:12px; width:100%;" type="text" value="{{info.nombre_jefe}}">
         </div>
-        &nbsp&nbsp&nbsp&nbsp
+      </div>  
+
+      <div class="row mt-2" >
         <div class="col">
             <label style="color:#8082a0;"><b>Teléfono del Jefe:</b></label>
             <input class="input-chido" type="text" style=" width:100%;" value="{{info.telefono_jefe}}">
@@ -562,7 +561,7 @@
         </div>
       </div>   
 
-<br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br>
 
       {% if info.regimenfiscfiadorinq == "Fiador Solidario Persona Fisica" %}
         <hr class="hr" style="opacity: .9;" >  
@@ -681,7 +680,7 @@
       <div class="row" >
         <div class="col">
             <label style="color:#8082a0;"><b>Escritura pública número:</b></label>
-            <input class="input-chido" style="width:100%;" font-size:11.5px;" type="text" value="{{info.escritura_publica_fiador}} Constatada ante el Notario Público No.{{info.numero_notario_fiador}}, LIC.{{info.nombre_notario_fiador}}">
+            <input class="input-chido" style="width:100%; font-size:11.5px;" type="text" value="{{info.escritura_publica_fiador}} Constatada ante el Notario Público No.{{info.numero_notario_fiador}}, LIC.{{info.nombre_notario_fiador}}" >
         </div>
       </div>
       
@@ -849,7 +848,7 @@
       <div class="row" >
         <div class="col">
             <label style="color:#8082a0;"><b>Escritura pública número:</b></label>
-            <input class="input-chido" style="width:100%;" font-size:11px;" type="text" value="{{info.escritura_publica_fiador}} CONSTATADA BAJO LA FE DEL NOTARIO PÚBLICO NÚMERO:{{info.numero_notario_fiador}}, LIC.{{info.nombre_notario_fiador}}">
+            <input class="input-chido" style="width:100%; font-size:11px;" type="text" value="{{info.escritura_publica_fiador}} CONSTATADA BAJO LA FE DEL NOTARIO PÚBLICO NÚMERO:{{info.numero_notario_fiador}}, LIC.{{info.nombre_notario_fiador}}">
         </div>
       </div>
       
