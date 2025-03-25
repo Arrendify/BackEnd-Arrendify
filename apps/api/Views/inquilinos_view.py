@@ -305,7 +305,7 @@ class DocumentosInquilinoViewSet(viewsets.ModelViewSet):
                     "Extras": request.FILES.get('Extras', None),
                     "Recomendacion_laboral": request.FILES.get('Recomendacion_laboral', None),
                     "Acta_constitutiva":request.data['Acta_constitutiva'],
-                    "inquilino":request.data['inquilino'],
+                    "arrendatario":request.data['arrendatario'],
                     "user":user_session
                 }
           
