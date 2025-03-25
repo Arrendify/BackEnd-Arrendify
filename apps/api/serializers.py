@@ -12,7 +12,7 @@ class DFSerializer(serializers.ModelSerializer):
         model = DocumentosFiador
         fields = '__all__'
 class DISerializer(serializers.ModelSerializer):
-    inquilinos_nombre = serializers.CharField(source='inquilino.nombre_completo', read_only=True)
+    inquilinos_nombre = serializers.CharField(source='arrendatario.nombre_completo', read_only=True)
     class Meta:
         model = DocumentosInquilino
         fields = '__all__'
