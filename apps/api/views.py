@@ -794,7 +794,7 @@ class investigaciones(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status = "404") 
 
-    
+
 
 # ----------------------------------Cotizador---------------------------------- #        
 class Arrendador_Cotizador(viewsets.ModelViewSet):
