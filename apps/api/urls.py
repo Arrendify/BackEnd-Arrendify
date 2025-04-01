@@ -72,6 +72,8 @@ urlpatterns = [
     path('dash/generar_contrato_arrenamiento/', ContratosViewSet.as_view({'post': 'generar_contrato_arrendamiento'}), name='generar_preview_contrato_arrendamiento'),
     path('dash/generar_preview_poliza/', ContratosViewSet.as_view({'post': 'generar_preview_poliza'}), name='generar_preview_poliza'),
     path('dash/generar_poliza/', ContratosViewSet.as_view({'post': 'generar_poliza'}), name='generar_poliza'),
+    path('dash/generar_corretaje_preview/', ContratosViewSet.as_view({'post': 'generar_corretaje_preview'}), name='generar_corretaje_preview'),
+    path('dash/generar_corretaje/', ContratosViewSet.as_view({'post': 'generar_corretaje'}), name='generar_corretaje'),
     
     #STRIPE
     path('stripe-webhook/', stripe_webhook, name='stripe-webhook'),

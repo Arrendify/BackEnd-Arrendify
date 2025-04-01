@@ -357,7 +357,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
             #Inmueble
             print("")
             print("Vamos a checar si tenemos inmueble")
-            if(info["inmueble"]):
+            if info.get("inmueble"):
                 inmueble= dict(info["inmueble"])
                 print("Esto es el inmueble", inmueble) 
                 
@@ -414,15 +414,16 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     "id_pago": info["id_pago"]
                     } 
                    
-                    
+                print("Soy el data del contrato que no es pagare",data_contrato)    
                 contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato__in = info["tipo_contrato"])
                 
-            elif info["tipo_contrato"] == "Pagare":
-                if aval["registro_aval" == "No"]:
+            elif info["tipo_contrato"] == "Pagares":
+                
+                if aval.get("aval"):
                     data_contrato = {
                     'propietario': f"{arrendador.id}",
                     'arrendatario': f"{inquilino.id}",
-                    'tipo_contrato': "Poliza",
+                    'tipo_contrato': "Pagares",
                     'datos_contratos': informacion_del_contrato,
                     "id_pago": info["id_pago"]
                     }
@@ -432,11 +433,11 @@ class ContratosViewSet(viewsets.ModelViewSet):
                         'propietario': f"{arrendador.id}",
                         'arrendatario': f"{inquilino.id}",
                         'aval': f"{fiador.id}",
-                        'tipo_contrato': "Poliza",
+                        'tipo_contrato': "Pagares",
                         'datos_contratos': informacion_del_contrato,
                         "id_pago": info["id_pago"]
                         }
-                
+                print("Soy el data del contrato en pagare",data_contrato)
                 contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato = "Pagare")
             
             #comprobar que no se duplique el registro del contrato
@@ -1326,5 +1327,89 @@ class ContratosViewSet(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
+    def generar_corretaje_preview(self, request, *args, **kwargs):  
+        try:
+            print("Generar corretaje")
+            # user_session = request.user
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            propietario = dict(info["arrendador"])        
+            if propietario.get("propietario"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                info["arrendador"] = arrendador
+
+            inmueble= dict(info["inmueble"])
+            print("Esto es el inmueble", inmueble) 
+            if inmueble.get("inmueble"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                info["inmueble"] = propiedad
+                #esto es lo nuevo en mantenimiento
+          
+            context = {'info': info}
+            
+            template = 'home/dash/contrato_corretaje_preview.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="contrato_corretaje.pdf"'
+            response.write(pdf_file)
+            print("Se genero el preview")
+            return HttpResponse(response, content_type='application/pdf')
+        
+           
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
        
-             
+    def generar_corretaje(self, request, *args, **kwargs):  
+        try:
+            print("Generar corretaje")
+            # user_session = request.user
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            propietario = dict(info["arrendador"])        
+            if propietario.get("propietario"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                info["arrendador"] = arrendador
+
+            inmueble= dict(info["inmueble"])
+            print("Esto es el inmueble", inmueble) 
+            if inmueble.get("inmueble"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                info["inmueble"] = propiedad
+                #esto es lo nuevo en mantenimiento
+          
+            context = {'info': info}
+            
+            template = 'home/dash/contrato_corretaje.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="contrato_corretaje.pdf"'
+            response.write(pdf_file)
+            print("Se genero el preview")
+            return HttpResponse(response, content_type='application/pdf')
+        
+           
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
