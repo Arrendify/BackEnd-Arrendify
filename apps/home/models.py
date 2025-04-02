@@ -1342,6 +1342,8 @@ class Investigacion_Inquilino(models.Model):
     direccion_completa_ref3=models.CharField(max_length=100, null=True, blank=True)
     
     tyc =models.CharField(max_length=10,null=True,blank=True)
+    status_pago = models.CharField(max_length=255, null=True, blank=True, default = "Esperando Pago")
+    id_pago = models.CharField(max_length=255, null=True, blank=True)
     
 #Documentos Persona Fisica
     identificacion_invinq = models.FileField(
@@ -1507,6 +1509,9 @@ class Investigacion_Laboral(models.Model):
     tel_ref3=models.CharField(max_length=100, null=True, blank=True)
     direccion_completa_ref3=models.CharField(max_length=100, null=True, blank=True)
     
+    status_pago = models.CharField(max_length=255, null=True, blank=True, default = "Esperando Pago")
+    id_pago = models.CharField(max_length=255, null=True, blank=True)
+    
     
     def __str__(self):
         return f'{self.nombre_completo} - {self.rfc}'
@@ -1599,6 +1604,9 @@ class Investigacion_Judicial(models.Model):
     p_ref3=models.CharField(max_length=100, null=True, blank=True)
     tel_ref3=models.CharField(max_length=100, null=True, blank=True)
     direccion_completa_ref3=models.CharField(max_length=250, null=True, blank=True)
+    
+    status_pago = models.CharField(max_length=255, null=True, blank=True, default = "Esperando Pago")
+    id_pago = models.CharField(max_length=255, null=True, blank=True)
     
     class Meta:
         db_table = 'investigacionjudicial'
@@ -1716,6 +1724,9 @@ class Investigacion_Financiera(models.Model):
     p_ref3=models.CharField(max_length=100, null=True, blank=True)
     tel_ref3=models.CharField(max_length=20,null=True, blank=True)
     direccion_r3=models.CharField(max_length=250, null=True, blank=True)
+    
+    status_pago = models.CharField(max_length=255, null=True, blank=True, default = "Esperando Pago")
+    id_pago = models.CharField(max_length=255, null=True, blank=True)
     
     tyc =models.CharField(max_length=10,null=True,blank=True)
     
