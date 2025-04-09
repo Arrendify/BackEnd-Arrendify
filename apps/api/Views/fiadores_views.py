@@ -34,7 +34,7 @@ class AvalViewSet(viewsets.ModelViewSet):
         try:
            if user_session.is_staff:
                 print("Esta entrando a listar aval fill")
-                fiadores_obligados =  Aval.objects.all()
+                fiadores_obligados =  Aval.objects.all().order_by('-id')
                 serializer = self.get_serializer(fiadores_obligados, many=True)
                 serialized_data = serializer.data
                 

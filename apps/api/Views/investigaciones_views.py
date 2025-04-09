@@ -651,6 +651,7 @@ class InvestigacionFinancieraViewSet(viewsets.ViewSet):
             serializerfin = InvestigacionFinancieraSerializer(data=data)# Crear el serializer con los datos enviados en la petición
             if serializerfin.is_valid():  # Validar los datos antes de guardarlos
                 documentos = ['identificacion_doc','comprobante_domicilio','comprobante_ingresos','situacionfiscal','acta_constitutiva','estado_cuenta']
+                print("Soy la data:",data)
                 print("antes de For",data_documentos)
                 for field in documentos:
                     print("campo", field)
@@ -663,7 +664,6 @@ class InvestigacionFinancieraViewSet(viewsets.ViewSet):
                 prospecto = serializerfin.save(user = request.user)
                 data_documentos["prospecto"] = prospecto.id  
                 
-                print("serializer", data_documentos)
                 documentos_serializer = DocumentosFinancieraSerializer(data=data_documentos)
                 documentos_serializer.is_valid()     
                 documentos_serializer.save(user = request.user)

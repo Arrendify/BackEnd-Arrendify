@@ -1425,7 +1425,7 @@ class Investigacion_Inquilino(models.Model):
 class DocumentosInvInquilino(models.Model):
     
     def get_docs_upload_path(self, filename):
-        inq_split = str(self.prospecto.nombre_completo)
+        inq_split = str(self.prospecto.nombre_completo or self.prospecto.nombre_empresa)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'investigacion_inq/{ip}/{filename}'
@@ -1614,7 +1614,7 @@ class Investigacion_Judicial(models.Model):
 class DocumentosJudicial(models.Model):
     
     def get_documentos_judicial_upload_path(self, filename):
-        jud_split = str(self.prospecto.nombre_completo)
+        jud_split = str(self.prospecto.nombre_completo or self.prospecto.nombre_empresa)
         ip = jud_split.replace(" ", "_")
         print(ip)
         return f'investigacion_jud/{ip}/{filename}'
@@ -1624,6 +1624,7 @@ class DocumentosJudicial(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     prospecto=models.ForeignKey(Investigacion_Judicial, on_delete=models.SET_NULL, null=True, related_name='archivos')
     identificacion_doc = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
+    acta_constitutiva = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
     comprobante_domicilio = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
     comprobante_ingresos = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
     situacionfiscal = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
@@ -1737,7 +1738,7 @@ class Investigacion_Financiera(models.Model):
 class DocumentosFinanciera(models.Model):
     
     def get_documentos_financiera_upload_path(self, filename):
-        fin_split = str(self.prospecto.nombre_completo)
+        fin_split = str(self.prospecto.nombre_completo or self.prospecto.nombre_empresa)
         ip = fin_split.replace(" ", "_")
         print(ip)
         return f'investigacion_fin/{ip}/{filename}'
