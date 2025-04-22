@@ -56,13 +56,13 @@
 	</tr>
 	
   <tr>
-	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendador: {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}.</font></b></td>
+	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendador: {{info.arrendador.nombre_completo | upper}}.</font></b></td>
   </tr>
   <tr>
-	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendatario: {{info.arrendatario.nombre | upper}} {{info.arrendatario.apellido | upper}} {{info.arrendatario.apellido1 | upper}}.</font></b></td>
+	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendatario: {{info.arrendatario.nombre_completo | upper}}.</font></b></td>
   </tr>
   <tr>
-	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Inmueble: {{info.inmueble.calle | upper}} INT. {{info.inmueble.numeroInterior}} {{info.inmueble.numeroExterior}} COL. {{info.inmueble.colonia | upper}}, {{info.inmueble.postal_code}} {{info.inmueble.municipio_alcaldia | upper}}, {{info.inmueble.estado | upper}}.</font></b></td>
+	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Inmueble: {{info.inmueble.direccion_completa| upper}}.</font></b></td>
   </tr>	
 	<tr>
 		<td align="left" valign=bottom><font color="#000000"><br></font></td>
@@ -110,7 +110,7 @@
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>PRIMERA.-DECLARA EL“CLIENTE”,</b> por propio derecho:</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendador: {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}.</font><b></td>
+		<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendador: {{info.arrendador.nombre_completo | upper}}.</font><b></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000">a.   Que es de nacionalidad <b>{{info.arrendador.nacionalidad | upper}}</b>, mayor de edad, estado civil {{info.arrendador.estado_civil | lower}}, con capacidad jurídica necesaria para obligarse en términos del presente contrato.</font></td>
@@ -120,7 +120,7 @@
 		</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000">c.   Que señala como domicilio para recibir notificaciones el ubicado en <b>{{info.arrendador.calle | upper}} INT. {{info.arrendador.num_int}} {{info.arrendador.num_ext}} COL. {{info.arrendador.colonia | upper}}, {{info.arrendador.codigopostal}} {{info.arrendador.municipio_alcaldia | upper}}, {{info.arrendador.estado | upper}}</b>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000">c.   Que señala como domicilio para recibir notificaciones el ubicado en <b>{{info.arrendador.direccion_completa | upper}}</b>
 		</font></td>
 	</tr>
 	<tr>
@@ -130,7 +130,7 @@
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>PRIMERA BIS.-DECLARA EL“CLIENTE”,</b> por propio derecho:</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendatario: {{info.arrendatario.nombre | upper}} {{info.arrendatario.apellido | upper}} {{info.arrendatario.apellido1 | upper}}.</font><b></td>
+		<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendatario: {{info.arrendatario.nombre_completa | upper}}.</font><b></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000">a.   Que es de nacionalidad <b>{{info.arrendatario.nacionalidad | upper}}</b>, mayor de edad, estado civil {{info.arrendatario.estado_civil | lower}}, con capacidad jurídica necesaria para obligarse en términos del presente contrato.</font></td>

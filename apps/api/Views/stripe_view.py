@@ -32,11 +32,11 @@ class CreateStripeCheckoutSession(viewsets.ModelViewSet):
                 line_items=[
                     {
                         'price_data': {
-                            'currency': 'mxn', # Moneda
+                            'currency': 'mxn',  
                             'product_data': {
-                                'name': str(producto),  # Nombre del producto/servicio
+                                'name': str(producto),  
                             },
-                            'unit_amount': int(costo) * 100,  # Precio en centavos (3920 MXN)
+                            'unit_amount': int(costo) * 100, 
                         },
                         'quantity': 1,
                     },
@@ -69,6 +69,13 @@ def stripe_webhook(request):
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+        #contrato_actual = Contratos.objects.all().filter(id_pago = session['id']).first()
+        session = event["data"]["object"]
+        consulta = stripe.checkout.Session.list_line_items(session['id'],) 
+        #print("Soy Consulta",consulta)  
+        descripcion = consulta["data"][0]["description"]
+        producto = descripcion.split(" ")
+        print("Soy el producto en el try", producto)     
 
     except ValueError:
         print("entro a ValueError",ValueError)
@@ -78,20 +85,18 @@ def stripe_webhook(request):
         return JsonResponse({"error": "Invalid signature"}, status=400)
     
     if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        contrato_actual = Contratos.objects.all().filter(id_pago = session['id']).first()
-        
         # 🔹 Detectar si el pago fue aprobado
         print(f"id session complete: {session['id']}")
         print(f"✅ Pago aprobado? session complete: {session['status']}")
         # Procesar el pago en la base de datos
         print("")
-
-        print("contrato_actual sin el firts()",contrato_actual.__dict__)
-        contrato_actual.status_pago = "Pagado"
-        contrato_actual.save()
-        print("contrato_actualizado",contrato_actual.__dict__)
-        print("")
+        
+        if producto[0] == "Investigacion":
+            print("Investigaciones")
+            
+        elif producto[0] == "Contrato":
+            print("Hacer consulta contratos")
+    
         
     if event["type"] == "charge.updated":
         session = event["data"]["object"]

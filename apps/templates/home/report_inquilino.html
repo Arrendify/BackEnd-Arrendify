@@ -443,6 +443,9 @@
         <div class="col" style="text-align:left">
           <h3>Datos Generales</h2> 
         </div>
+        
+        {% if info.regimen_fiscalinvinq == "Persona Fisica" %}
+
         <div class="col" style="text-align:right; margin-top: 4px;">
           <label style="color:#8082a0;"><b style="font-weight:900;">Fecha de consulta: {{fecha_consulta}}</b></label>
         </div>
@@ -529,7 +532,7 @@
         </div>
         <div class="col">
           <label style="color:#8082a0;"><b>Ingreso mensual comprobado:</b></label>
-          <input class="input-chido" style="width:100%;" type="text"  value="${{info.ingreso_comprobado | intcomma}}.00">
+          <input class="input-chido" style="width:100%;" type="text"  value="${{info.ingreso_comprobado}}.00">
         </div>
         &nbsp&nbsp&nbsp&nbsp
         <div class="col">
@@ -559,9 +562,114 @@
             <label style="color:#8082a0;"><b>Direccion Completa:</b></label>
             <input class="input-chido" type="text" style="font-size:11px; width:100%;" value="{{info.direccion_completa}}">
         </div>
-      </div>   
+      </div>
+      <hr class="hr" > 
 
-<br><br><br><br><br><br><br>
+      <br><br><br><br><br><br><br>
+
+      {% elif info.regimen_fiscalinvinq == "Persona Moral" %}
+
+      <div class="col" style="text-align:right; margin-top: 4px;">
+        <label style="color:#8082a0;"><b style="font-weight:900;">Fecha de consulta: {{fecha_consulta}}</b></label>
+      </div>
+    </div>
+    
+    <hr class="hr" style="margin-top: 7px;">
+    <div class="pb-2 mb-2" style="font-size: 10px; margin-top:-12px;">
+      Tenga en cuenta que la información que se muestra en esta página, debajo de este punto, se basa en datos autoinformados del formulario de registro del prospecto.
+    </div>
+    
+    {% comment %} Informacion Personal del prospecto {% endcomment %}
+    <div class="row" >
+      <div class="col">
+          <label style="color:#8082a0;"><b>Razón Social:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.nombre_empresa}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+        <label style="color:#8082a0;"><b>RFC:</b></label>
+        <input class="input-chido" style="width:100%" type="text" value="{{info.rfc_empresa}}">
+      </div>
+    </div>
+    
+    <div class="row mt-2" >
+      <div class="col">
+        <label style="color:#8082a0;"><b>Escritura Publica:</b></label>
+        <input class="input-chido" style="width:100%" type="text" value="{{info.escritura_publica}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+        <label style="color:#8082a0;"><b> Folio Mercantil:</b></label>
+        <input class="input-chido" style="width:100%" type="text" value="{{info.folio_mercantil}}">
+      </div>
+    </div>   
+
+    <div class="row mt-2" >
+      <div class="col">
+          <label style="color:#8082a0;"><b>Nombre Notario:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.nombre_notario}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+        <label style="color:#8082a0;"><b>Número Notario:</b></label>
+        <input class="input-chido" style="width:100%" type="text" value="{{info.numero_notario}}">
+      </div>
+    </div>
+    
+    <hr class="hr" >  
+      <h3 class="mb-2 mt-2">Datos domiciliarios del prospecto</h2>
+    <hr class="hr" >
+
+    <div class="row" >
+      <div class="col">
+          <label style="color:#8082a0;"><b>Direccion Completa:</b></label>
+          <input class="input-chido" type="text" style="font-size:11px; width:100%;" value="{{info.direccion_fiscal}}">
+      </div>
+    </div>
+
+    <hr class="hr" >  
+      <h3 class="mb-2 mt-2">Datos del Representante Legal</h2>
+    <hr class="hr" >
+
+    <div class="row" >
+      <div class="col">
+          <label style="color:#8082a0;"><b>Nombre Completo:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.nombre_rl}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+          <label style="color:#8082a0; width:100%;"><b>Identificación: {{info.identificacion_rl}}</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="No. ID: {{info.no_ide_rl}}">
+      </div>
+    </div>
+    
+    <div class="row mt-2" >
+      <div class="col">
+        <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
+        <input class="input-chido" style="width:100%;" type="text" value="{{info.nacionalidad_rl}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+        <label style="color:#8082a0;"><b>RFC:</b></label>
+        <input class="input-chido" style="width:100%;" type="text"  value="{{info.rfc_rl}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+        <label style="color:#8082a0; width:100%;"><b>Telefono:</b></label>
+        <input class="input-chido" style="font-size:12px; width:100%;" type="text" value="{{info.celular_rl}}">
+      </div>
+    </div>  
+
+    <div class="row mt-2" >
+      <div class="col">
+        <label style="color:#8082a0;"><b>Dirección:</b></label>
+        <input class="input-chido" type="text" style="font-size:13px;  width:100%;" value="{{info.direccion_completa_rl}}">
+      </div>
+    </div>
+      
+    {% endif %}
+
+
 
       {% if info.regimenfiscfiadorinq == "Fiador Solidario Persona Fisica" %}
         <hr class="hr" style="opacity: .9;" >  

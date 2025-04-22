@@ -1342,6 +1342,8 @@ class Investigacion_Inquilino(models.Model):
     direccion_completa_ref3=models.CharField(max_length=100, null=True, blank=True)
     
     tyc =models.CharField(max_length=10,null=True,blank=True)
+    status_pago = models.CharField(max_length=255, null=True, blank=True, default = "Esperando Pago")
+    id_pago = models.CharField(max_length=255, null=True, blank=True)
     
 #Documentos Persona Fisica
     identificacion_invinq = models.FileField(
@@ -1423,7 +1425,7 @@ class Investigacion_Inquilino(models.Model):
 class DocumentosInvInquilino(models.Model):
     
     def get_docs_upload_path(self, filename):
-        inq_split = str(self.prospecto.nombre_completo)
+        inq_split = str(self.prospecto.nombre_completo or self.prospecto.nombre_empresa)
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'investigacion_inq/{ip}/{filename}'
@@ -1506,6 +1508,9 @@ class Investigacion_Laboral(models.Model):
     p_ref3=models.CharField(max_length=100, null=True, blank=True)
     tel_ref3=models.CharField(max_length=100, null=True, blank=True)
     direccion_completa_ref3=models.CharField(max_length=100, null=True, blank=True)
+    
+    status_pago = models.CharField(max_length=255, null=True, blank=True, default = "Esperando Pago")
+    id_pago = models.CharField(max_length=255, null=True, blank=True)
     
     
     def __str__(self):
@@ -1600,13 +1605,16 @@ class Investigacion_Judicial(models.Model):
     tel_ref3=models.CharField(max_length=100, null=True, blank=True)
     direccion_completa_ref3=models.CharField(max_length=250, null=True, blank=True)
     
+    status_pago = models.CharField(max_length=255, null=True, blank=True, default = "Esperando Pago")
+    id_pago = models.CharField(max_length=255, null=True, blank=True)
+    
     class Meta:
         db_table = 'investigacionjudicial'
 
 class DocumentosJudicial(models.Model):
     
     def get_documentos_judicial_upload_path(self, filename):
-        jud_split = str(self.prospecto.nombre_completo)
+        jud_split = str(self.prospecto.nombre_completo or self.prospecto.nombre_empresa)
         ip = jud_split.replace(" ", "_")
         print(ip)
         return f'investigacion_jud/{ip}/{filename}'
@@ -1616,6 +1624,7 @@ class DocumentosJudicial(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     prospecto=models.ForeignKey(Investigacion_Judicial, on_delete=models.SET_NULL, null=True, related_name='archivos')
     identificacion_doc = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
+    acta_constitutiva = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
     comprobante_domicilio = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
     comprobante_ingresos = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
     situacionfiscal = models.FileField(upload_to=get_documentos_judicial_upload_path, null=True, max_length=255)
@@ -1657,6 +1666,7 @@ class Investigacion_Financiera(models.Model):
     nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
     direccion_fiscal = models.CharField(max_length=250, null=True, blank=True)
     telefono = models.CharField(max_length=250, null=True, blank=True)
+    giro = models.CharField(max_length=250, null=True, blank=True)
     escritura_publica=models.CharField(max_length=100, null=True, blank=True)
     fecha_acta = models.DateField(null=True, blank=True)
     nombre_notario=models.CharField(max_length=100, null=True, blank=True)
@@ -1717,6 +1727,9 @@ class Investigacion_Financiera(models.Model):
     tel_ref3=models.CharField(max_length=20,null=True, blank=True)
     direccion_r3=models.CharField(max_length=250, null=True, blank=True)
     
+    status_pago = models.CharField(max_length=255, null=True, blank=True, default = "Esperando Pago")
+    id_pago = models.CharField(max_length=255, null=True, blank=True)
+    
     tyc =models.CharField(max_length=10,null=True,blank=True)
     
     
@@ -1726,7 +1739,7 @@ class Investigacion_Financiera(models.Model):
 class DocumentosFinanciera(models.Model):
     
     def get_documentos_financiera_upload_path(self, filename):
-        fin_split = str(self.prospecto.nombre_completo)
+        fin_split = str(self.prospecto.nombre_completo or self.prospecto.nombre_empresa)
         ip = fin_split.replace(" ", "_")
         print(ip)
         return f'investigacion_fin/{ip}/{filename}'
