@@ -25,8 +25,6 @@ class CreateStripeCheckoutSession(viewsets.ModelViewSet):
             print("soy info", info)
             costo = info.get('costo', info.get('costo_investigacion'))
             producto = info.get('tipo_contrato', info.get('tipo_investigacion'))
-            print("soy costo", costo)
-            print("soy producto", producto)
             
             # Crear una sesión de pago
             session = stripe.checkout.Session.create(
@@ -66,12 +64,10 @@ def stripe_webhook(request):
     print("entro a stripe_webhook")
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-    print("sig header",sig_header)
-    #endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
-    endpoint_secret = "whsec_47566d0c657e8811e44dfaf10aa402d9037cb6cf5e2331471d03ace9d48f4324"
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+    #endpoint_secret = "whsec_47566d0c657e8811e44dfaf10aa402d9037cb6cf5e2331471d03ace9d48f4324"
 
     try:
-        print("entro a try")
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
         #contrato_actual = Contratos.objects.all().filter(id_pago = session['id']).first()
         session = event["data"]["object"]
@@ -80,7 +76,6 @@ def stripe_webhook(request):
         descripcion = consulta["data"][0]["description"]
         producto = descripcion.split(" ")
         print("Soy el producto en el try", producto)     
-
 
     except ValueError:
         print("entro a ValueError",ValueError)

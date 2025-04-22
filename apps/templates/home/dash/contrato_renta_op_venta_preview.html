@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+<head>
+	
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>Contrato de renta con opción a venta </title>
+	<meta name="generator" content="LibreOffice 7.4.2.3 (Linux)"/>
+	<meta name="created" content="2021-04-08T17:59:28"/>
+	<meta name="changedby" content="GM Integraciones"/>
+	<meta name="changed" content="2023-07-05T17:55:17"/>
+	<meta name="AppVersion" content="16.0300"/>
+	
+	<style type="text/css">
+	  body,div,table,thead,tbody,tfoot,tr,th,td,p {
+      font-family:Times New Roman; 
+      font-size:15.5px;
+	  text-align:justify;
+	  display: block;
+	
+	}
+ 
+	.contenedor-imagenes {
+		display: block;
+	  }
+	  
+	.contenedor-imagenes img:first-child {
+		margin-right: 1px;
+	  }
+	  
+    @page {
+      size: letter;
+      margin: 1cm;
+     }
+	 
+	 .container {
+		display: flex;
+		width: 100%
+	}
+
+	.section {
+		flex: 1;
+		border-top: 1px solid #000000; 
+		border-left: 1px solid #000000;
+	}
+
+	.section2 {
+		border-right: 1px solid #000000;  
+	}
+
+	.section3 {
+		border-bottom: 1px solid #000000;
+	}
+
+	.watermark-container {
+		position: relative;
+		display: block;
+	  margin-left: auto;
+	  margin-right: auto;
+	  }
+	
+	  .watermark-container::after {
+		content: '';
+		background-image: url('https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/copia_sin_valor.png');
+		background-repeat: no-repeat;
+		background-size: contain;
+		opacity: 1;
+		position: fixed;
+		top: -150px;
+		bottom: 200px;
+		left: -170px;
+		width: 1000px;
+		height: 1000px;
+		z-index: 1;
+	  }
+
+	  .row {
+		--bs-gutter-x: 1.5rem;
+		--bs-gutter-y: 0;
+		display: flex;
+		flex-wrap: wrap;
+		margin-top: calc(var(--bs-gutter-y) * -1);
+		margin-right: calc(var(--bs-gutter-x) * -.5);
+		margin-left: calc(var(--bs-gutter-x) * -.5); }
+		.row > * {
+		  flex-shrink: 0;
+		  width: 100%;
+		  max-width: 100%;
+		  padding-right: calc(var(--bs-gutter-x) * .5);
+		  padding-left: calc(var(--bs-gutter-x) * .5);
+		  margin-top: var(--bs-gutter-y); }
+	  
+	  .col {
+		flex: 1 0 0%; }
+	 .sangria{
+		padding-left: 15px;
+	 }
+	</style>
+	
+</head>
+<!-- ************************************************************************** -->
+<table class="watermark-container" align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<p style="font-size:15px; text-align: left;">Contrato No. {{info.codigo_paquete}}</p>
+	<tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+  <tr>
+	<td height="21" valign=middle>CONTRATO DE ARRENDAMIENTO CON OPCIÓN A COMPRA que celebran por una parte {{info.arrendador.nombre_completo}}, a quien en lo sucesivo se le denominará “EL ARRENDADOR”; 
+		y por la otra parte {{info.arrendatario.nombre_completo}}, a quien se le denominará “EL ARRENDATARIO”; ambos con la capacidad legal para obligarse conforme a las siguientes:
+	</td>
+  </tr>
+  <tr>
+	<td height="21"  style="text-align:left;" valign=middle><b>DECLARACIONES</b></td>
+  </tr>	
+    <tr>
+	 <td height="21"  valign=middle><b>1.	I. Declara “EL ARRENDADOR”:</b></td>
+    </tr>
+    <tr>
+	 <td height="21"  valign=middle class="sangria">• a) Ser una persona de nacionalidad {{info.arrendador.nacionalidad}}, con identificación {{info.arrendador.identificacion}} núm. {{info.arrendador.no_ide}}.</td>
+    </tr>	
+	<tr>
+	 <td height="21"  valign=middle class="sangria">• b) Ser legítimo propietario del inmueble ubicado en {{info.inmueble.direccion_completa}}.</td>
+    </tr>
+	<tr>
+	 <td height="21"  valign=middle class="sangria">• c) Tener la voluntad de otorgar en arrendamiento el inmueble antes descrito, reservándose el derecho de conceder la opción a compra bajo los términos que se estipulan en este contrato.</td>
+    </tr>
+	
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>2.	II. Declara “EL ARRENDATARIO”:</b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">•	a) Ser una persona de nacionalidad {{info.arrendatario.nacionalidad}}, con identificación {{info.arrendatario.identificacion_arrendatario}} núm. {{info.arrendatario.no_ide_arrendatario}}.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">•	b) Que destinará el inmueble única y exclusivamente para uso habitacional.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">•	c) Que tiene interés en celebrar este contrato y hacer uso del derecho de opción a compra conforme a lo pactado.</td>
+	</tr>	
+		
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	
+	<tr>
+		{% comment %} clausulas {% endcomment %}
+		<td height="21"  style="text-align:left;" valign="middle"><b>CLÁUSULAS</b></td>
+    </tr>
+	<tr>
+		<td height="21"  valign=middle><b>    PRIMERA – OBJETO DEL CONTRATO:</b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>“El ARRENDADOR” da en arrendamiento al “ARRENDATARIO” el inmueble ubicado en {{info.inmueble.direccion_completa}}, el cual se entrega en condiciones aptas para su uso habitacional.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>    SEGUNDA – DURACIÓN:</b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>Este contrato tendrá una vigencia de {{info.datos_contratos.duracion}} meses, iniciando el día {{datos_inicio.dia}} de {{datos_inicio.mes}} del {{datos_inicio.anio}} y finalizando el día {{datos_termino.dia}} de {{datos_termino.mes}} del {{datos_termino.anio}}.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>    TERCERA – RENTA:</b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>El “ARRENDATARIO” pagará mensualmente la cantidad de ${{info.inmueble.renta | intcomma}} MXN como renta, dentro de los primeros cinco días naturales de cada mes.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>    CUARTA – OPCIÓN A COMPRA:</b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>“El ARRENDATARIO” gozará de una opción irrevocable de compra del inmueble al finalizar el presente contrato, con un precio de venta pactado de ${{info.datos_contratos.precio_venta | intcomma}} MXN.
+			Dicha opción podrá ejercerse mediante notificación escrita con al menos {{info.datos_contratos.meses_anticipo_aviso}} meses de antelación a la fecha de vencimiento del presente contrato.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle>•	En caso de ejercer dicha opción:</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">•	a) El precio de compra será el antes mencionado.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">•	b) La renta pagada durante la vigencia no se aplicará al precio final, salvo acuerdo por escrito.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">•	c) El contrato de compraventa deberá celebrarse dentro de los {{info.datos_contratos.dias_maximos_para_formalizar}} días naturales siguientes a la notificación.</td>
+	</tr>
+
+
+	<tr>
+		<td height="21"  valign=middle><b>    QUINTA – GASTOS Y TRÁMITES DE LA COMPRAVENTA:</b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>Todos los gastos notariales, impuestos y derechos derivados de la compraventa serán cubiertos por el {{info.datos_contratos.responsable_gastos}}.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>    SEXTA – RESTO DE CLÁUSULAS:</b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>Para todo lo no previsto en este contrato, las partes acuerdan sujetarse a las disposiciones del contrato de arrendamiento base, así como al Código Civil aplicable en {{info.datos_contratos.entidad_federativa}}.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>FIRMAN LAS PARTES:</b></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>En {{info.datos_contratos.entidad_federativa}}, a {{datos_inicio.dia}} de {{datos_inicio.mes}} del {{datos_inicio.anio}} {{fecha_firma}}.</td>
+	</tr>
+	
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	{% comment %} FIRMAS {% endcomment %}
+	<tr>
+		<td height="21"  valign=middle>EL ARRENDADOR:</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>Nombre: {{info.arrendador.nombre_completo | upper}}</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>Firma:<b>_______________________________</b></td>
+	</tr>
+
+	<tr>
+		<td height="21"  valign=middle>EL ARRENDATARIO:</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>Nombre: {{info.arrendatario.nombre_completo | upper}}</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>Firma:<b>_______________________________</b></td>
+	</tr>
+	
+</table>
+
+<!-- ************************************************************************** -->
+</body>
+
+</html>

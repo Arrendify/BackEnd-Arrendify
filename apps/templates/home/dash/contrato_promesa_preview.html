@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+<head>
+	
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>Contrato Promesa</title>
+	<meta name="generator" content="LibreOffice 7.4.2.3 (Linux)"/>
+	<meta name="created" content="2021-04-08T17:59:28"/>
+	<meta name="changedby" content="GM Integraciones"/>
+	<meta name="changed" content="2023-07-05T17:55:17"/>
+	<meta name="AppVersion" content="16.0300"/>
+	
+	<style type="text/css">
+	  body,div,table,thead,tbody,tfoot,tr,th,td,p {
+      font-family:Times New Roman; 
+      font-size:15.5px;
+	  text-align:justify;
+	  display: block;
+	
+	}
+ 
+	.contenedor-imagenes {
+		display: block;
+	  }
+	  
+	.contenedor-imagenes img:first-child {
+		margin-right: 1px;
+	  }
+	  
+    @page {
+      size: letter;
+      margin: 1cm;
+     }
+	 
+	 .container {
+		display: flex;
+		width: 100%
+	}
+
+	.section {
+		flex: 1;
+		border-top: 1px solid #000000; 
+		border-left: 1px solid #000000;
+	}
+
+	.section2 {
+		border-right: 1px solid #000000;  
+	}
+
+	.section3 {
+		border-bottom: 1px solid #000000;
+	}
+
+	.watermark-container {
+		position: relative;
+		display: block;
+	  margin-left: auto;
+	  margin-right: auto;
+	  }
+	
+	  .watermark-container::after {
+		content: '';
+		background-image: url('https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/copia_sin_valor.png');
+		background-repeat: no-repeat;
+		background-size: contain;
+		opacity: 1;
+		position: fixed;
+		top: -150px;
+		bottom: 200px;
+		left: -170px;
+		width: 1000px;
+		height: 1000px;
+		z-index: 1;
+	  }
+
+	  .row {
+		--bs-gutter-x: 1.5rem;
+		--bs-gutter-y: 0;
+		display: flex;
+		flex-wrap: wrap;
+		margin-top: calc(var(--bs-gutter-y) * -1);
+		margin-right: calc(var(--bs-gutter-x) * -.5);
+		margin-left: calc(var(--bs-gutter-x) * -.5); }
+		.row > * {
+		  flex-shrink: 0;
+		  width: 100%;
+		  max-width: 100%;
+		  padding-right: calc(var(--bs-gutter-x) * .5);
+		  padding-left: calc(var(--bs-gutter-x) * .5);
+		  margin-top: var(--bs-gutter-y); }
+	  
+	  .col {
+		flex: 1 0 0%; }
+	 .sangria{
+		padding-left: 15px;
+	 }
+	</style>
+	
+</head>
+<!-- ************************************************************************** -->
+<table class="watermark-container" align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		{% comment %} <p style="font-size:15px; text-align: right;">Contrato No. {{info.codigo_paquete}}</p> {% endcomment %}
+	<tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle style="font-size:18px; text-align:center; font-weight:bold;"><b>CONTRATO DE PROMESA DE COMPRAVENTA DE INMUEBLE Preview
+		</b></td>
+	</tr>	
+  <tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+  </tr>
+  <tr>
+	<td height="21" valign=middle>CONTRATO DE PROMESA DE COMPRAVENTA QUE CELEBRAN POR UNA PARTE {{info.datos_contratos.promitente_vendedor_nombre | upper}}, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ 'EL PROMITENTE VENDEDOR', Y POR LA OTRA {{info.datos_contratos.promitente_comprador_nombre | upper}},
+		 A QUIEN SE LE DENOMINARÁ 'EL PROMITENTE COMPRADOR', RESPECTO DEL INMUEBLE UBICADO EN {{info.datos_contratos.direccion_completa_inmueble | upper}}, AL TENOR DE LAS SIGUIENTES DECLARACIONES Y CLÁUSULAS:
+	</td>
+  </tr>
+  <tr>
+	<td height="21"  style="text-align:center;" valign=middle><b>DECLARACIONES</b></td>
+  </tr>	
+    <tr>
+	 <td height="21"  valign=middle><b>I. Declara 'EL PROMITENTE VENDEDOR':</b></td>
+    </tr>
+    <tr>
+	 <td height="21"  valign=middle class="sangria">- Ser una persona de nacionalidad {{info.datos_contratos.promitente_vendedor_nacionalidad}}.</td>
+    </tr>	
+	<tr>
+	 <td height="21"  valign=middle class="sangria">- Que tiene la intención y facultad legal para vender el inmueble ubicado en {{info.datos_contratos.direccion_completa_inmueble}}.</td>
+    </tr>
+	<tr>
+	 <td height="21"  valign=middle class="sangria">- Que dicho inmueble está debidamente inscrito en el Registro Público con la clave catastral {{info.datos_contratos.clave_catastral}} y folio real {{info.datos_contratos.folio_real}}.</td>
+    </tr>
+	
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>II. Declara 'EL PROMITENTE COMPRADOR':</b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">- Ser una persona de nacionalidad {{info.datos_contratos.promitente_comprador_nacionalidad}}.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">- Tener domicilio en {{info.datos_contratos.promitente_comprador_direccion}} y capacidad legal para obligarse en términos del presente contrato.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">- Que está interesado en adquirir el inmueble en las condiciones que se detallan.</td>
+	</tr>	
+		
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	
+	<tr>
+		{% comment %} clausulas {% endcomment %}
+		<td height="21"  style="text-align:center;" valign="middle"><b>CLÁUSULAS</b></td>
+    </tr>
+	<tr>
+		<td height="21"  valign=middle><b>PRIMERA.- Objeto del contrato.</b> Por medio del presente contrato, ambas partes se obligan a celebrar, en un plazo no mayor a {{info.datos_contratos.plazo_promesa}},
+			 el contrato definitivo de compraventa respecto del inmueble ubicado en {{info.datos_contratos.direccion_completa_inmueble}}.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>SEGUNDA.- Precio.</b> Las partes acuerdan que el precio del inmueble será de ${{info.datos_contratos.precio_promesa | intcomma}}, de los cuales ${{info.datos_contratos.anticipo_promesa | intcomma}} se entregan como anticipo en este acto, el cual se aplicará al pago total al momento de formalizar la compraventa.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>TERCERA.- Penalización.</b> En caso de que alguna de las partes incumpla con la celebración del contrato definitivo dentro del plazo estipulado, pagará a la otra parte la cantidad de ${{info.datos_contratos.penalizacion_incumplimiento | intcomma}} como pena convencional.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>CUARTA.-</b> Condiciones para la firma del contrato definitivo. Las partes acuerdan que la firma del contrato de compraventa definitivo dependerá del cumplimiento de las siguientes condiciones:
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	{% if info.datos_contratos.condicion1 %}
+		<tr>
+			<td height="21"  valign=middle class="sangria">- {{info.datos_contratos.condicion1}}.
+			</td>
+		</tr>
+		
+		<tr>
+			<td height="21" valign=middle> </td>
+		</tr>
+
+	{% else %}{% endif %}
+
+	{% if info.datos_contratos.condicion2 %}
+		<tr>
+			<td height="21"  valign=middle class="sangria">- {{info.datos_contratos.condicion2}}.
+			</td>
+		</tr>
+	{% else %}{% endif %}
+	<tr>
+		<td height="21"  valign=middle><b>QUINTA.- Jurisdicción. </b> Para la interpretación y cumplimiento del presente contrato, las partes se someten a los tribunales y leyes de {{info.datos_contratos.jurisdiccion_inmueble}}, renunciando a cualquier otro fuero que por razón de su domicilio pudiera corresponderles.
+		</td>
+	</tr>
+	
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	
+	</tr>
+	{% comment %} FIRMAS {% endcomment %}
+	<tr>
+		<td style="height:40px" align="center" valign=middle></td>
+	</tr>
+</table>
+
+<div class="row">
+	<div class="col"></div>
+
+	<div class="col">
+		<b>_______________________________
+		<p style="text-align:center; margin-top:-1px">"PROMITENTE VENDEDOR"</p>
+		<p style="text-align:center; margin-top:-20px">{{info.datos_contratos.promitente_vendedor_nombre | upper}}</p></b>	
+		
+	</div>
+
+	<div class="col"></div>
+</div>
+
+
+<div class="row">
+	<div class="col"></div>
+
+	<div class="col">
+		<b>_______________________________
+		<p style="text-align:center; margin-top:-1px">"PROMITENTE COMPRADOR"</p>	
+		<p style="text-align:center; margin-top:-20px">{{info.datos_contratos.promitente_comprador_nombre | upper}}</p></b>
+	</div>
+	<div class="col"></div>
+</div>
+
+<!-- ************************************************************************** -->
+</body>
+
+</html>

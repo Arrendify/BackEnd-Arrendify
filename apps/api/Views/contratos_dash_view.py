@@ -253,111 +253,118 @@ class ContratosViewSet(viewsets.ModelViewSet):
             user_session = request.user            
             info = request.data
             aviso ={}        
-                   
-            print("Esto es el request data.",info)
             print("")
+            print("Esto es el request data en almacenar datos.",info)
+            print("")
+            print("tipo de contrato",info["tipo_contrato"])
             #comprueba si el inquilino ya esta registrado
-            arrendatario = dict(info["arrendatario"])
-            print("Esto es el inquilino", arrendatario) 
-            if arrendatario.get("inquilino"):
-                print("hay informacion del arrendatario hay que hacer una busqueda de id")
-                inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
-            else:
-                print("no hay informacion del inquilino hay que Guardarlo pero hay que ver si ya existe")
-                #Hay que saber el regimen fiscal primero
-                if arrendatario.get("regimen_fiscal") == "Persona Fisica":
-                    print("nombre_completo", arrendatario["nombre_completo"])
-                    inquilino = Arrendatario.objects.all().filter(nombre_completo = arrendatario["nombre_completo"], user = user_session).first()
+            arrendatario =  info.get("arrendatario")
+            print("este que valor tiene?",arrendatario)
+            if arrendatario != None:
+                arrendatario = dict(arrendatario)
+
+                if arrendatario.get("inquilino"):
+                    print("hay informacion del arrendatario hay que hacer una busqueda de id")
+                    inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
                 else:
-                    print("nombre_empresa", arrendatario["nombre_empresa"])
-                    inquilino = Arrendatario.objects.all().filter(nombre_empresa = arrendatario["nombre_empresa"], user = user_session).first()
-                
-                if inquilino:
-                    print("ya existe el inquilino")
-                    aviso["inquilino"] = "Ya existe el inquilino"
-                    #return Response({'error': 'Ya existe el inquilino'}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    print("no existe el inquilino")
-                    serializer_inquilino = InquilinoSerializers(data=arrendatario)
-                    serializer_inquilino.is_valid(raise_exception=True)
-                    inquilino = serializer_inquilino.save(user = user_session)
-                    print("Se guardo al nuevo el inquilino")    
-                    print("saber el numero de inquilino id", inquilino.id)
-            
-            
+                    print("no hay informacion del inquilino hay que Guardarlo pero hay que ver si ya existe")
+                    #Hay que saber el regimen fiscal primero
+                    if arrendatario.get("regimen_fiscal") == "Persona Fisica":
+                        print("nombre_completo", arrendatario["nombre_completo"])
+                        inquilino = Arrendatario.objects.all().filter(nombre_completo = arrendatario["nombre_completo"], user = user_session).first()
+                    else:
+                        print("nombre_empresa", arrendatario["nombre_empresa"])
+                        inquilino = Arrendatario.objects.all().filter(nombre_empresa = arrendatario["nombre_empresa"], user = user_session).first()
+                    
+                    if inquilino:
+                        print("ya existe el inquilino")
+                        aviso["inquilino"] = "Ya existe el inquilino"
+                        #return Response({'error': 'Ya existe el inquilino'}, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        print("no existe el inquilino")
+                        serializer_inquilino = InquilinoSerializers(data=arrendatario)
+                        serializer_inquilino.is_valid(raise_exception=True)
+                        inquilino = serializer_inquilino.save(user = user_session)
+                        print("Se guardo al nuevo el inquilino")    
+                        print("saber el numero de inquilino id", inquilino.id)
+               
             #AVAL
             print("")
-            aval = dict(info["fiador"]) 
-            print("Esto es el aval",aval)           
-            if aval.get("aval"):
-                print("hay informacion del aval hay que hacer una busqueda de id")
-                fiador = Aval.objects.all().filter(id = info["fiador"]["aval"]).first()
-                aviso["fiador"] = "Ya existe el fiador"
-            
-            elif aval.get("registro_aval") == "No":
-                print("no quiere tener aval vamos a darle un valor o ver que hacemos")
-                aviso["aval"] = "No"
-            
-            else:
-                print("no hay informacion del fiador hay que Guardarlo pero hay que ver si ya existe")
-                #Hay que saber el regimen fiscal primero
-                if aval.get("tipo_aval") == "Obligado Solidario Persona Fisica" or aval.get("tipo_aval") == "Fiador Solidario Persona Fisica":    
-                    print("nombre_completo", aval["nombre_completo"])
-                    fiador = Aval.objects.all().filter(nombre_completo = aval["nombre_completo"], user = user_session).first()
+            aval = info.get("fiador")
+            if aval != None:
+                aval = dict(aval) 
+                print("Esto es el aval",aval)           
+                if aval.get("aval"):
+                    print("hay informacion del aval hay que hacer una busqueda de id")
+                    fiador = Aval.objects.all().filter(id = info["fiador"]["aval"]).first()
+                    aviso["fiador"] = "Ya existe el fiador"
+                
+                elif aval.get("registro_aval") == "No":
+                    print("no quiere tener aval vamos a darle un valor o ver que hacemos")
+                    aviso["aval"] = "No"
                 
                 else:
-                    print("nombre_empresa", aval["nombre_empresa"])
-                    fiador = Aval.objects.all().filter(nombre_empresa = aval["nombre_empresa"], user = user_session).first()
+                    print("no hay informacion del fiador hay que Guardarlo pero hay que ver si ya existe")
+                    #Hay que saber el regimen fiscal primero
+                    if aval.get("tipo_aval") == "Obligado Solidario Persona Fisica" or aval.get("tipo_aval") == "Fiador Solidario Persona Fisica":    
+                        print("nombre_completo", aval["nombre_completo"])
+                        fiador = Aval.objects.all().filter(nombre_completo = aval["nombre_completo"], user = user_session).first()
+                    
+                    else:
+                        print("nombre_empresa", aval["nombre_empresa"])
+                        fiador = Aval.objects.all().filter(nombre_empresa = aval["nombre_empresa"], user = user_session).first()
+                    
+                    if fiador:
+                        print("ya existe el fiador")
+                        
+                    else:
+                        print("no existe el fiador")
+                        serializer_fiador = AvalSerializer(data=aval)
+                        serializer_fiador.is_valid(raise_exception=True)
+                        fiador = serializer_fiador.save(user = user_session)
+                        print("Se guardo al nuevo el fiador")    
+                        print("saber el numero de arrendador id", fiador.id)    
                 
-                if fiador:
-                    print("ya existe el fiador")
-                    
-                else:
-                    print("no existe el fiador")
-                    serializer_fiador = AvalSerializer(data=aval)
-                    serializer_fiador.is_valid(raise_exception=True)
-                    fiador = serializer_fiador.save(user = user_session)
-                    print("Se guardo al nuevo el fiador")    
-                    print("saber el numero de arrendador id", fiador.id)
-                    
-            
             #Propietario
             print("")
-            propietario = dict(info["arrendador"]) 
+            #propietario = dict(info["arrendador"])
+            propietario = info.get("arrendador") 
             print("Esto es el propietario", propietario)           
-            
-            if propietario.get("propietario"):
-                print("hay informacion del propietario hay que hacer una busqueda de id")
-                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
-                print("nombre del arrendador",arrendador)
-            
-            else:
-                print("no hay información del propietario hay que Guardarlo pero hay que ver si ya existe")
-                #Hay que saber el regimen fiscal primero
-                if propietario.get("regimen_fiscal") == "Persona Fisica":    
-                    print("nombre_completo", propietario["nombre_completo"])
-                    arrendador = Propietario.objects.all().filter(nombre_completo = propietario["nombre_completo"], user = user_session).first()
+            if propietario != None:
+                propietario = dict(propietario) 
+                
+                if propietario.get("propietario"):
+                    print("hay informacion del propietario hay que hacer una busqueda de id")
+                    arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                    print("nombre del arrendador",arrendador)
                 
                 else:
-                    print("nombre_empresa", propietario["nombre_empresa"])
-                    arrendador = Propietario.objects.all().filter(nombre_empresa = propietario["nombre_empresa"], user = user_session).first()
-                
-                if arrendador:
-                    print("ya existe el propietario")
+                    print("no hay información del propietario hay que Guardarlo pero hay que ver si ya existe")
+                    #Hay que saber el regimen fiscal primero
+                    if propietario.get("regimen_fiscal") == "Persona Fisica":    
+                        print("nombre_completo", propietario["nombre_completo"])
+                        arrendador = Propietario.objects.all().filter(nombre_completo = propietario["nombre_completo"], user = user_session).first()
                     
-                else:
-                    print("no existe el propietario hay que guardar la variable arrendador para asignarla en el data del contrato")
-                    serializer_arrendador = ArrendadorSerializer(data=propietario)
-                    serializer_arrendador.is_valid(raise_exception=True)
-                    arrendador = serializer_arrendador.save(user = user_session)
+                    else:
+                        print("nombre_empresa", propietario["nombre_empresa"])
+                        arrendador = Propietario.objects.all().filter(nombre_empresa = propietario["nombre_empresa"], user = user_session).first()
                     
-                    print("Se guardo al nuevo el propietario")
-                    print("Saber el numero de arrendador id", arrendador.id)
+                    if arrendador:
+                        print("ya existe el propietario")
+                        
+                    else:
+                        print("no existe el propietario hay que guardar la variable arrendador para asignarla en el data del contrato")
+                        serializer_arrendador = ArrendadorSerializer(data=propietario)
+                        serializer_arrendador.is_valid(raise_exception=True)
+                        arrendador = serializer_arrendador.save(user = user_session)
+                        
+                        print("Se guardo al nuevo el propietario")
+                        print("Saber el numero de arrendador id", arrendador.id)
 
             #Inmueble
             print("")
             print("Vamos a checar si tenemos inmueble")
-            if(info["inmueble"]):
+            if info.get("inmueble"):
                 inmueble= dict(info["inmueble"])
                 print("Esto es el inmueble", inmueble) 
                 
@@ -392,9 +399,9 @@ class ContratosViewSet(viewsets.ModelViewSet):
             
             codigo_paquete = ""
             
-            if info["tipo_contrato"] == "Arrendamiento" or info["tipo_contrato"] == "Poliza" or info["tipo_contrato"] == "Arrendamiento+Pagares":
+            if info["tipo_contrato"] == "Arrendamiento" or info["tipo_contrato"] == "Poliza" or info["tipo_contrato"] == "Arrendamiento+Pagares" or info["tipo_contrato"] == "Contrato Renta con opcion a venta" or info["tipo_contrato"] == "Contrato Renta con opcion a venta + Pagares":
 
-                if aval.get("aval"):
+                if  aval is not None and aval.get("aval"):
                     data_contrato = {
                         'propietario': f"{arrendador.id}",
                         'inmueble': f"{propiedad.id}",
@@ -404,6 +411,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
                         'datos_contratos': informacion_del_contrato,
                         "id_pago": info["id_pago"]
                         }
+                    
                 else:
                     data_contrato = {
                     'propietario': f"{arrendador.id}",
@@ -412,17 +420,18 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     'tipo_contrato': info["tipo_contrato"],
                     'datos_contratos': informacion_del_contrato,
                     "id_pago": info["id_pago"]
-                    } 
+                    }
                    
-                    
+                print("Soy el data del contrato que no es pagare",data_contrato)
                 contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato__in = info["tipo_contrato"])
                 
-            elif info["tipo_contrato"] == "Pagare":
-                if aval["registro_aval" == "No"]:
+            elif info["tipo_contrato"] == "Pagares":
+                
+                if aval.get("aval"):
                     data_contrato = {
                     'propietario': f"{arrendador.id}",
                     'arrendatario': f"{inquilino.id}",
-                    'tipo_contrato': "Poliza",
+                    'tipo_contrato': "Pagares",
                     'datos_contratos': informacion_del_contrato,
                     "id_pago": info["id_pago"]
                     }
@@ -432,13 +441,45 @@ class ContratosViewSet(viewsets.ModelViewSet):
                         'propietario': f"{arrendador.id}",
                         'arrendatario': f"{inquilino.id}",
                         'aval': f"{fiador.id}",
-                        'tipo_contrato': "Poliza",
+                        'tipo_contrato': "Pagares",
                         'datos_contratos': informacion_del_contrato,
                         "id_pago": info["id_pago"]
                         }
-                
+                    
+                print("Soy el data del contrato en pagare",data_contrato)
                 contrato = Contratos.objects.all().filter(arrendatario__in = data_contrato["arrendatario"], propietario__in = data_contrato["propietario"], tipo_contrato = "Pagare")
             
+            elif info["tipo_contrato"] == "Corretaje (Inmobiliaria)":
+                data_contrato = {
+                        'propietario': f"{arrendador.id}",
+                        'inmueble': f"{propiedad.id}",
+                        'tipo_contrato': "Corretaje (Inmobiliaria)",
+                        'datos_contratos': informacion_del_contrato,
+                        "id_pago": info["id_pago"]
+                        }
+                print("Soy el data del contrato en corretaje",data_contrato)
+                contrato = Contratos.objects.all().filter(inmueble__in = data_contrato["inmueble"], propietario__in = data_contrato["propietario"], tipo_contrato = "Corretaje (Inmobiliaria)")                
+
+            elif info["tipo_contrato"] == "Contrato de Compra/Venta":
+                data_contrato = {
+                        'tipo_contrato': info["tipo_contrato"],
+                        'datos_contratos': informacion_del_contrato,
+                        "id_pago": info["id_pago"]
+                        }
+                print("Soy el data del contrato en corretaje",data_contrato)
+                contrato = Contratos.objects.filter(datos_contratos__nombre_vendedor = info["datos_contratos"]["nombre_vendedor"], datos_contratos__nombre_comprador = info["datos_contratos"]["nombre_comprador"])       
+                print("contrato compra venta",contrato)
+            
+            elif info["tipo_contrato"] == "Contrato de Promesa":
+                data_contrato = {
+                        'tipo_contrato': info["tipo_contrato"],
+                        'datos_contratos': informacion_del_contrato,
+                        "id_pago": info["id_pago"]
+                        }
+                print("Soy el data del contrato en corretaje",data_contrato)
+                contrato = Contratos.objects.filter(datos_contratos__promitente_vendedor_nombre = info["datos_contratos"]["promitente_vendedor_nombre"], datos_contratos__promitente_comprador_nombre = info["datos_contratos"]["promitente_comprador_nombre"])       
+                print("contrato promesa",contrato)
+             
             #comprobar que no se duplique el registro del contrato
             if contrato:
                 print("ya existen los datos de contrato, ignoramos")
@@ -701,7 +742,6 @@ class ContratosViewSet(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
-    
     def generar_preview_contrato_arrendamiento(self, request, *args, **kwargs):  
         try:
             print("")
@@ -1141,7 +1181,6 @@ class ContratosViewSet(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
-       
     def generar_poliza(self, request, *args, **kwargs):
         try:
             print("")
@@ -1326,5 +1365,642 @@ class ContratosViewSet(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
-       
-             
+    def generar_corretaje_preview(self, request, *args, **kwargs):  
+        try:
+            print("Generar corretaje")
+            # user_session = request.user
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            propietario = dict(info["arrendador"])        
+            if propietario.get("propietario"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                info["arrendador"] = arrendador
+
+            inmueble= dict(info["inmueble"])
+            print("Esto es el inmueble", inmueble) 
+            if inmueble.get("inmueble"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                info["inmueble"] = propiedad
+                #esto es lo nuevo en mantenimiento
+          
+            context = {'info': info}
+            
+            template = 'home/dash/contrato_corretaje_preview.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="contrato_corretaje.pdf"'
+            response.write(pdf_file)
+            print("Se genero el preview")
+            return HttpResponse(response, content_type='application/pdf')
+        
+           
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def generar_corretaje(self, request, *args, **kwargs):  
+        try:
+            print("Generar corretaje")
+            # user_session = request.user
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            propietario = dict(info["arrendador"])
+            if propietario.get("propietario"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                info["arrendador"] = arrendador
+
+            inmueble= dict(info["inmueble"])
+            print("Esto es el inmueble", inmueble)
+            if inmueble.get("inmueble"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                info["inmueble"] = propiedad
+                #esto es lo nuevo en mantenimiento
+          
+            context = {'info': info}
+        
+            template = 'home/dash/contrato_corretaje.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="contrato_corretaje.pdf"'
+            response.write(pdf_file)
+            print("Se genero el preview")
+            return HttpResponse(response, content_type='application/pdf')
+           
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+    def generar_compraventa_preview(self, request, *args, **kwargs):  
+        try:
+            print("Generar compraventa")
+            # user_session = request.user
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            # Definir la fecha inicial
+            fecha_entrega = datetime.strptime(info["datos_contratos"]['fecha_entrega'], "%Y-%m-%d").date()
+
+          
+            datos_entrega = {'dia':fecha_entrega.day, 'mes':fecha_entrega.strftime("%B") ,'anio':fecha_entrega.year}
+          
+            context = {'info': info, 'datos_entrega':datos_entrega}
+        
+            template = 'home/dash/contrato_compraventa_preview.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="contrato_corretaje.pdf"'
+            response.write(pdf_file)
+            print("Se genero el preview")
+            return HttpResponse(response, content_type='application/pdf')
+           
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+    def generar_compraventa(self, request, *args, **kwargs):  
+        try:
+            print("Generar compraventa")
+            # user_session = request.user
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            # Definir la fecha inicial
+            fecha_entrega = datetime.strptime(info["datos_contratos"]['fecha_entrega'], "%Y-%m-%d").date()
+
+          
+            datos_entrega = {'dia':fecha_entrega.day, 'mes':fecha_entrega.strftime("%B") ,'anio':fecha_entrega.year}
+          
+            context = {'info': info, 'datos_entrega':datos_entrega}
+        
+            template = 'home/dash/contrato_compraventa.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="contrato_corretaje.pdf"'
+            response.write(pdf_file)
+            print("Se genero el preview")
+            return HttpResponse(response, content_type='application/pdf')
+           
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def generar_promesa_preview(self, request, *args, **kwargs):  
+        try:
+            print("Generar promesa")
+            # user_session = request.user
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+            print("info",info)
+            context = {'info': info}
+        
+            template = 'home/dash/contrato_promesa_preview.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="contrato_promesa.pdf"'
+            response.write(pdf_file)
+            print("Se genero el preview")
+            return HttpResponse(response, content_type='application/pdf')
+           
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+    def generar_promesa(self, request, *args, **kwargs):  
+        try:
+            print("Generar promesa")
+            # user_session = request.user
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+            print("info",info)
+            context = {'info': info}
+        
+            template = 'home/dash/contrato_promesa.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="contrato_promesa.pdf"'
+            response.write(pdf_file)
+            print("Se genero el preview")
+            return HttpResponse(response, content_type='application/pdf')
+           
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def generar_renta_op_venta_preview(self, request, *args, **kwargs):  
+        try:
+            print("Generar renta op venta preview")
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            arrendatario = dict(info["arrendatario"]) 
+            if arrendatario.get("inquilino"):
+                print("hay informacion del arrendatarios hay que hacer una busqueda de id")
+                print("Inquilino ID", info["arrendatario"]["inquilino"])
+                inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
+                print("Inquilino", inquilino)
+                info["arrendatario"] = inquilino
+            
+            propietario = dict(info["arrendador"])        
+            if propietario.get("propietario"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                info["arrendador"] = arrendador
+            
+            inmueble= dict(info["inmueble"])
+            print("Esto es el inmueble", inmueble) 
+            if inmueble.get("inmueble"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                print("nombre del arrendatario",propiedad.__dict__)
+                print("mi renta es",propiedad.renta)
+                info["inmueble"] = propiedad
+                #esto es lo nuevo en mantenimiento
+                if propiedad.mantenimiento == "No Incluido":
+                    pass
+                    # info["inmueble"]["cuota_letra"] == num2words(propiedad.cuota_mantenimiento, lang='es').capitalize()
+                    # print("cuota con letra", info["inmueble"]["cuota_letra"])
+                
+                #checamos que no tenga decimales
+                if "." not in str(propiedad.renta):
+                    print("no hay yaya")
+                    number = int(propiedad.renta)
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                else:
+                    print("tengo punto en renta")
+                    if info["inmueble"]['renta']:
+                        renta_completa = info["inmueble"]['renta'].split(".")
+                    else:
+                        renta_completa = propiedad.renta.split(".")
+                    
+                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+                    
+            else:
+                #esto es lo nuevo en mantenimiento
+                if info["inmueble"]["mantenimiento"] == "No Incluido":
+                    info["inmueble"]["cuota_letra"] == num2words(info["inmueble"]["cuota_mantenimiento"], lang='es').capitalize()
+                    print("cuota con letra", info["inmueble"]["cuota_letra"])
+                
+                print("no hay informacion del inmueble")
+                if "." not in info["inmueble"]['renta']:
+                    print("no hay yaya")
+                    number = int(info["inmueble"]['renta'])
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                
+                else:
+                    print("tengo punto en renta")
+                    if info["inmueble"]['renta']:
+                        renta_completa = info["inmueble"]['renta'].split(".")
+                    else:
+                        renta_completa = propiedad.renta.split(".")
+                    
+                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+
+            print("Esto es el request data.",info)
+            print("")
+            
+            # Definir la fecha inicial
+            fecha_inicial = info["datos_contratos"]['fecha_celebracion']
+            fecha_ok = datetime.strptime(info["datos_contratos"]['fecha_celebracion'], "%Y-%m-%d").date()
+            fecha_off = datetime.strptime(info["datos_contratos"]['fecha_termino'], "%Y-%m-%d").date()
+            print("fecha OK",fecha_inicial)
+          
+            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.strftime("%B"),'anio':fecha_ok.year}
+            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.strftime("%B"),'anio':fecha_off.year}
+            
+            # obtenermos la renta para pasarla a letra            
+            print("")
+            print(f"renta {number}, letra: {text_representation}")
+            
+            #si tiene mantenimiento incluido hay que pasarlo a letra
+                        
+            context = {'info': info, 'text_representation':text_representation, 'renta_decimal':renta_decimal, "datos_inicio":datos_inicio, 'datos_termino':datos_termino}
+            
+            template = 'home/dash/contrato_renta_op_venta_preview.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Contrato.pdf"'
+            response.write(pdf_file)
+            print("Se genero el contrato")
+            return HttpResponse(response, content_type='application/pdf')
+        
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+    def generar_renta_op_venta(self, request, *args, **kwargs):  
+        try:
+            print("Generar renta op venta")
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+            arrendatario = dict(info["arrendatario"]) 
+
+            if arrendatario.get("inquilino"):
+                inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
+                info["arrendatario"] = inquilino
+            
+            propietario = dict(info["arrendador"])        
+            if propietario.get("propietario"):
+                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                info["arrendador"] = arrendador
+            
+            inmueble= dict(info["inmueble"])
+            print("Esto es el inmueble", inmueble) 
+            if inmueble.get("inmueble"):
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                #esto es lo nuevo en mantenimiento
+                if propiedad.mantenimiento == "No Incluido":
+                    pass
+                    # info["inmueble"]["cuota_letra"] == num2words(propiedad.cuota_mantenimiento, lang='es').capitalize()
+                    # print("cuota con letra", info["inmueble"]["cuota_letra"])
+                
+                #checamos que no tenga decimales
+                if "." not in str(propiedad.renta):
+                    print("no hay yaya")
+                    number = int(propiedad.renta)
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                else:
+                    
+                    if info["inmueble"]['renta']:
+                        renta_completa = info["inmueble"]['renta'].split(".")
+                    else:
+                        renta_completa = propiedad.renta.split(".")
+                    
+                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+                    
+            else:
+                #esto es lo nuevo en mantenimiento
+                if info["inmueble"]["mantenimiento"] == "No Incluido":
+                    info["inmueble"]["cuota_letra"] == num2words(info["inmueble"]["cuota_mantenimiento"], lang='es').capitalize()
+                    
+                
+                print("no hay informacion del inmueble")
+                if "." not in info["inmueble"]['renta']:
+                    print("no hay yaya")
+                    number = int(info["inmueble"]['renta'])
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                
+                else:
+                    print("tengo punto en renta")
+                    if info["inmueble"]['renta']:
+                        renta_completa = info["inmueble"]['renta'].split(".")
+                    else:
+                        renta_completa = propiedad.renta.split(".")
+                    
+                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+
+            # Definir la fecha inicial
+            fecha_inicial = info["datos_contratos"]['fecha_celebracion']
+            fecha_ok = datetime.strptime(info["datos_contratos"]['fecha_celebracion'], "%Y-%m-%d").date()
+            fecha_off = datetime.strptime(info["datos_contratos"]['fecha_termino'], "%Y-%m-%d").date()
+           
+          
+            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.strftime("%B"),'anio':fecha_ok.year}
+            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.strftime("%B"),'anio':fecha_off.year}
+            
+            #si tiene mantenimiento incluido hay que pasarlo a letra
+                        
+            context = {'info': info, 'text_representation':text_representation, 'renta_decimal':renta_decimal, "datos_inicio":datos_inicio, 'datos_termino':datos_termino}
+            
+            template = 'home/dash/contrato_renta_op_venta.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Contrato.pdf"'
+            response.write(pdf_file)
+            print("Se genero el contrato")
+            return HttpResponse(response, content_type='application/pdf')
+        
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+    def generar_preview_pagare_extra(self, request, *args, **kwargs):  
+        try:
+            print("Generar cotrato + pagare preview")
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            arrendatario = dict(info["arrendatario"]) 
+            if arrendatario.get("inquilino"):
+                inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
+                info["arrendatario"] = inquilino
+            
+            propietario = dict(info["arrendador"])        
+            if propietario.get("propietario"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                info["arrendador"] = arrendador
+                
+            print("Esto es el request data.",info)
+            print("")
+            
+            # Definir la fecha inicial
+            fecha_inicial = info["datos_contratos"]['fecha_celebracion']
+            fecha_ok = datetime.strptime(fecha_inicial, "%Y-%m-%d").date()
+            print("fecha OK",fecha_inicial)
+          
+            dia = fecha_ok.day
+            
+            print("")
+            print("dia",dia)
+            
+            # Definir la duración en meses
+            
+            duracion_meses = int(info["datos_contratos"]['duracion'])
+            print("duracion en meses",duracion_meses)
+            # Calcular la fecha final
+            fecha_final = fecha_ok + relativedelta(months=duracion_meses)
+            # Lista para almacenar las fechas iteradas (solo meses y años)
+            fechas_iteradas = []
+            # Iterar sobre todos los meses entre la fecha inicial y la fecha final
+            while fecha_ok < fecha_final:
+                nombre_mes = fecha_ok.strftime("%B")  # %B da el nombre completo del mes
+                print("fecha",fecha_ok.year)
+                fechas_iteradas.append((nombre_mes.capitalize(),fecha_ok.year))      
+                fecha_ok += relativedelta(months=1)
+            
+            print("fechas_iteradas",fechas_iteradas)
+            # Imprimir la lista de fechas iteradas
+            # for month, year in fechas_iteradas:
+            #     print(f"Año: {year}, Mes: {month}")
+                
+            #obtenermos la renta para pasarla a letra
+            renta = info["datos_contratos"]
+            if renta.get("renta"):
+                print("vengo desde pagare Sin Poliza")
+                #obtenermos la renta para pasarla a letra
+                if "." not in info["datos_contratos"]['renta']:
+                    print("no hay yaya")
+                    number = int(info["datos_contratos"]['renta'])
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                
+                else:
+                    print("tengo punto en renta")
+                    renta_completa = info["datos_contratos"]['renta'].split(".")
+                    info.renta = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+            else:
+                print("vengo desde inmueble con poliza")
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                info["inmueble"] = propiedad 
+                print("spy datos del inmueble en pagare-poliza",info["inmueble"])
+                
+                #checamos que no tenga decimales
+                
+                if "." not in str(propiedad.renta):
+                    number = int(propiedad.renta)
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                else:
+                    print("tengo punto en renta")
+            
+            print("")
+            print(f"renta {number}, letra: {text_representation}")
+            #imprimir el nombre de la las fechas
+            print("fechas_iteradas",fechas_iteradas)
+            print("fechas_iteradas como diccionario",dict(fechas_iteradas))
+                        
+            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'renta_decimal':renta_decimal}
+            
+            template = 'home/dash/pagare_extra_preview.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+            response.write(pdf_file)
+            print("Se genero el preview")
+            return HttpResponse(response, content_type='application/pdf')
+        
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
+    def generar_pagare_extra(self, request, *args, **kwargs):  
+        try:
+            print("Generar cotrato + pagare preview")
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            arrendatario = dict(info["arrendatario"]) 
+            if arrendatario.get("inquilino"):
+                inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
+                info["arrendatario"] = inquilino
+            
+            propietario = dict(info["arrendador"])        
+            if propietario.get("propietario"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                info["arrendador"] = arrendador
+                
+            print("Esto es el request data.",info)
+            print("")
+            
+            # Definir la fecha inicial
+            fecha_inicial = info["datos_contratos"]['fecha_celebracion']
+            fecha_ok = datetime.strptime(fecha_inicial, "%Y-%m-%d").date()
+            print("fecha OK",fecha_inicial)
+          
+            dia = fecha_ok.day
+            
+            print("")
+            print("dia",dia)
+            
+            # Definir la duración en meses
+            
+            duracion_meses = int(info["datos_contratos"]['duracion'])
+            print("duracion en meses",duracion_meses)
+            # Calcular la fecha final
+            fecha_final = fecha_ok + relativedelta(months=duracion_meses)
+            # Lista para almacenar las fechas iteradas (solo meses y años)
+            fechas_iteradas = []
+            # Iterar sobre todos los meses entre la fecha inicial y la fecha final
+            while fecha_ok < fecha_final:
+                nombre_mes = fecha_ok.strftime("%B")  # %B da el nombre completo del mes
+                print("fecha",fecha_ok.year)
+                fechas_iteradas.append((nombre_mes.capitalize(),fecha_ok.year))      
+                fecha_ok += relativedelta(months=1)
+            
+            print("fechas_iteradas",fechas_iteradas)
+            # Imprimir la lista de fechas iteradas
+            # for month, year in fechas_iteradas:
+            #     print(f"Año: {year}, Mes: {month}")
+                
+            #obtenermos la renta para pasarla a letra
+            renta = info["datos_contratos"]
+            if renta.get("renta"):
+                print("vengo desde pagare Sin Poliza")
+                #obtenermos la renta para pasarla a letra
+                if "." not in info["datos_contratos"]['renta']:
+                    print("no hay yaya")
+                    number = int(info["datos_contratos"]['renta'])
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                
+                else:
+                    print("tengo punto en renta")
+                    renta_completa = info["datos_contratos"]['renta'].split(".")
+                    info.renta = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+            else:
+                print("vengo desde inmueble con poliza")
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                info["inmueble"] = propiedad 
+                print("spy datos del inmueble en pagare-poliza",info["inmueble"])
+                
+                #checamos que no tenga decimales
+                
+                if "." not in str(propiedad.renta):
+                    number = int(propiedad.renta)
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                else:
+                    print("tengo punto en renta")
+            
+            print("")
+            print(f"renta {number}, letra: {text_representation}")
+            #imprimir el nombre de la las fechas
+            print("fechas_iteradas",fechas_iteradas)
+            print("fechas_iteradas como diccionario",dict(fechas_iteradas))
+                        
+            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'renta_decimal':renta_decimal}
+            
+            template = 'home/dash/pagare_extra.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
+            response.write(pdf_file)
+            print("Se genero el preview")
+            return HttpResponse(response, content_type='application/pdf')
+        
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
