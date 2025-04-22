@@ -402,6 +402,8 @@ class InvestigacionInquilinoViewSet(viewsets.ViewSet):
             print("request.data",req_dat)
             print("el id que llega", req_dat["id"])
             print("")
+            ingreso_comprobado = req_dat.get("ingreso_comprobado")
+            print("soy el ingreso comprobado",ingreso_comprobado)
             print("soy la info del",info.nombre_completo)       
             print(info.__dict__)
             print("")                                     

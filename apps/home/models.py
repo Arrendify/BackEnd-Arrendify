@@ -1666,6 +1666,7 @@ class Investigacion_Financiera(models.Model):
     nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
     direccion_fiscal = models.CharField(max_length=250, null=True, blank=True)
     telefono = models.CharField(max_length=250, null=True, blank=True)
+    giro = models.CharField(max_length=250, null=True, blank=True)
     escritura_publica=models.CharField(max_length=100, null=True, blank=True)
     fecha_acta = models.DateField(null=True, blank=True)
     nombre_notario=models.CharField(max_length=100, null=True, blank=True)

@@ -55,13 +55,13 @@
   </tr>
 	
   <tr>
-	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendador: {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}.</font></b></td>
+	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendador: {{info.arrendador.nombre_completo | upper}}.</font></b></td>
   </tr>
   <tr>
-	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendatario: {{info.arrendatario.nombre | upper}} {{info.arrendatario.apellido | upper}} {{info.arrendatario.apellido1 | upper}}.</font></b></td>
+	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendatario: {{info.arrendatario.nombre_completo | upper}}.</font></b></td>
   </tr>
   <tr>
-	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Inmueble: {{info.inmueble.calle | upper}} INT. {{info.inmueble.numeroInterior}} {{info.inmueble.numeroExterior}} COL. {{info.inmueble.colonia | upper}}, {{info.inmueble.postal_code}} {{info.inmueble.municipio_alcaldia | upper}}, {{info.inmueble.estado | upper}}.</font></b></td>
+	<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Inmueble: {{info.inmueble.direccion_completa | upper}}.</font></b></td>
   </tr>	
 	<tr>
 		<td align="left" valign=bottom><font color="#000000"><br></font></td>
@@ -98,7 +98,7 @@
 	</tr>
 
 	<tr>
-		<td height="41" align="justify" valign=middle><b><font size=3 color="#000000">CONTRATO DE PRESTACIÓN DE SERVICIOS ESPECIALIZADOS EN MATERIA DE ARRENDAMIENTO INMOBILIARIO QUE CELEBRAN POR UNA PARTE “ARRENDIFY S.A.P.I. DE C.V.", REPRESENTADA EN ESTE ACTO POR EL ING. JONATHAN GUADARRAMA SALGADO, EN SU CARÁCTER DE APODERADO LEGAL, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ EL “PRESTADOR” Y POR OTRA {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ EL “CLIENTE” CONFORME A LAS SIGUIENTES:</font></td>
+		<td height="41" align="justify" valign=middle><b><font size=3 color="#000000">CONTRATO DE PRESTACIÓN DE SERVICIOS ESPECIALIZADOS EN MATERIA DE ARRENDAMIENTO INMOBILIARIO QUE CELEBRAN POR UNA PARTE “ARRENDIFY S.A.P.I. DE C.V.", REPRESENTADA EN ESTE ACTO POR EL ING. JONATHAN GUADARRAMA SALGADO, EN SU CARÁCTER DE APODERADO LEGAL, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ EL “PRESTADOR” Y POR OTRA {{info.arrendador.nombre_completo | upper}}, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ EL “CLIENTE” CONFORME A LAS SIGUIENTES:</font></td>
 	</tr>
 
 	<tr>
@@ -109,17 +109,17 @@
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>PRIMERA.-DECLARA EL“CLIENTE”,</b> por propio derecho:</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendador: {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}.</font><b></td>
+		<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendador: {{info.arrendador.nombre_completo | upper}}.</font><b></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000">a.   Que es de nacionalidad <b>{{info.arrendador.nacionalidad | upper}}</b>, mayor de edad, estado civil {{info.arrendador.estado_civil | lower}}, con capacidad jurídica necesaria para obligarse en términos del presente contrato.</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000">b.   Que requiere de los servicios especializados en materia de arrendamiento inmobiliario brindados por el “PRESTADOR” derivado del <b>“CONTRATO DE ARRENDAMIENTO”</b> que celebra como <b>“ARRENDADOR”</b> del inmueble ubicado en <b>{{info.inmueble.calle | upper}} INT. {{info.inmueble.numeroInterior}} {{info.inmueble.numeroExterior}} COL. {{info.inmueble.colonia | upper}}, {{info.inmueble.postal_code}} {{info.inmueble.municipio_alcaldia | upper}}, {{info.inmueble.estado | upper}}</b>, servicios que quedan precisados en la <b>CLÁUSULA PRIMERA</b> de este <b>CONTRATO</b>.
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000">b.   Que requiere de los servicios especializados en materia de arrendamiento inmobiliario brindados por el “PRESTADOR” derivado del <b>“CONTRATO DE ARRENDAMIENTO”</b> que celebra como <b>“ARRENDADOR”</b> del inmueble ubicado en <b>{{info.inmueble.direccion_completa | upper}}</b>, servicios que quedan precisados en la <b>CLÁUSULA PRIMERA</b> de este <b>CONTRATO</b>.
 		</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000">c.   Que señala como domicilio para recibir notificaciones el ubicado en <b>{{info.arrendador.calle | upper}} INT. {{info.arrendador.num_int}} {{info.arrendador.num_ext}} COL. {{info.arrendador.colonia | upper}}, {{info.arrendador.codigopostal}} {{info.arrendador.municipio_alcaldia | upper}}, {{info.arrendador.estado | upper}}</b>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000">c.   Que señala como domicilio para recibir notificaciones el ubicado en <b>{{info.arrendador.direccion_completa | upper}}</b>
 		</font></td>
 	</tr>
 	<tr>
@@ -129,13 +129,13 @@
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>PRIMERA BIS.-DECLARA EL“CLIENTE”,</b> por propio derecho:</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendatario: {{info.arrendatario.nombre | upper}} {{info.arrendatario.apellido | upper}} {{info.arrendatario.apellido1 | upper}}.</font><b></td>
+		<td height="21" align="justify" valign=middle><b><font size=3 color="#000000">Arrendatario: {{info.arrendatario.nombre_completo | upper}}.</font><b></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000">a.   Que es de nacionalidad <b>{{info.arrendatario.nacionalidad | upper}}</b>, mayor de edad, estado civil {{info.arrendatario.estado_civil | lower}}, con capacidad jurídica necesaria para obligarse en términos del presente contrato.</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000">b.   Que requiere de los servicios especializados en materia de arrendamiento inmobiliario brindados por el “PRESTADOR” derivado del <b>“CONTRATO DE ARRENDAMIENTO”</b> que celebra como <b>“ARRENDATARIO”</b> del inmueble ubicado en <b>{{info.inmueble.calle | upper}} INT. {{info.inmueble.numeroInterior}} {{info.inmueble.numeroExterior}} COL. {{info.inmueble.colonia | upper}}, {{info.inmueble.postal_code}} {{info.inmueble.municipio_alcaldia | upper}}, {{info.inmueble.estado | upper}}</b>, servicios que quedan precisados en la CLÁUSULA PRIMERA de este <b>CONTRATO</b>.
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000">b.   Que requiere de los servicios especializados en materia de arrendamiento inmobiliario brindados por el “PRESTADOR” derivado del <b>“CONTRATO DE ARRENDAMIENTO”</b> que celebra como <b>“ARRENDATARIO”</b> del inmueble ubicado en <b>{{info.inmueble.direccion_completa| upper}}</b>, servicios que quedan precisados en la CLÁUSULA PRIMERA de este <b>CONTRATO</b>.
 		</font></td>
 	</tr>
 	<tr>
@@ -186,10 +186,10 @@
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>2.</b>  El <b>CONTRATO</b>: El presente contrato de <b>“PRESTACIÓN DE SERVICIOS EN MATERIA DE ARRENDAMIENTO INMOBILIARIO”</b>.</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>3.    El CONTRATO DE ARRENDAMIENTO: Que celebra el “CLIENTE” con {{info.arrendatario.nombre | upper}} {{info.arrendatario.apellido | upper}} {{info.arrendatario.apellido1 | upper}}, en su carácter de ARRENDATARIO y con {{info.fiador.n_fiador |  upper}} {{info.fiador.a_fiador |  upper}} {{info.fiador.a2_fiador |  upper}}, como {{info.fiador.fiador_obligado |  upper}} del ARRENDATARIO.</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>3.    El CONTRATO DE ARRENDAMIENTO: Que celebra el “CLIENTE” con {{info.arrendatario.nombre_completo | upper}}, en su carácter de ARRENDATARIO y con {{info.aval.nombre_completo |  upper}}, como {{info.aval.tipo_aval |  upper}} del ARRENDATARIO.</b></font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>4.     El INMUEBLE: Ubicado en {{info.inmueble.calle}} Int. {{info.inmueble.numeroInterior}} {{info.inmueble.numeroExterior}} Col. {{info.inmueble.colonia}}, {{info.inmueble.postal_code}} {{info.inmueble.municipio_alcaldia}}, {{info.inmueble.estado}}.</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>4.     El INMUEBLE: Ubicado en {{info.inmueble.direccion_completa}}.</b></font></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>5.</b>     La <b>RENTA</b>: La estipulada en el <b>“CONTRATO DE ARRENDAMIENTO”</b>, misma que es por la cantidad de:</font></td>
@@ -216,10 +216,10 @@
 		</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>2.     Investigación judicial del “ARRENDATARIO” y  su  ''{{info.fiador.fiador_obligado |  upper}}'' a  efecto de determinar su situación judicial, así como proporcionarle al “CLIENTE” un estudio de cómo estos juicios pueden repercutir o no en el “CONTRATO DE ARRENDAMIENTO”.</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>2.     Investigación judicial del “ARRENDATARIO” y  su  ''{{info.aval.tipo_aval |  upper}}'' a  efecto de determinar su situación judicial, así como proporcionarle al “CLIENTE” un estudio de cómo estos juicios pueden repercutir o no en el “CONTRATO DE ARRENDAMIENTO”.</b></font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>3.     Informe pormenorizado de la capacidad moral y económica del “ARRENDATARIO” y su ''{{info.fiador.fiador_obligado |  upper}}'' a efecto de que el “CLIENTE” decida si es su deseo llevar a cabo la celebración del “CONTRATO DE ARRENDAMIENTO”.</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>3.     Informe pormenorizado de la capacidad moral y económica del “ARRENDATARIO” y su ''{{info.aval.tipo_aval|  upper}}'' a efecto de que el “CLIENTE” decida si es su deseo llevar a cabo la celebración del “CONTRATO DE ARRENDAMIENTO”.</b></font></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>4.</b>      Redacción del <b>“CONTRATO DE ARRENDAMIENTO”</b> profesional y personalizado ajustado a las necesidades del <b>“INMUEBLE”</b>, exigencias del <b>“CLIENTE”</b> y a las disposiciones legales aplicables.</font></td>
@@ -232,7 +232,7 @@
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>6.</b>     Elaboración del <b>“INVENTARIO”</b> del <b>“INMUEBLE”</b>, a efecto de que el <b>“ARRENDATARIO”</b> realice la entrega de este, en las mismas condiciones en que les fue dado.</font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>7.   Intermediación con el “ARRENDATARIO” y su ''{{info.fiador.fiador_obligado |  upper}}'' en caso de algún desacuerdo relacionado con el “CONTRATO DE ARRENDAMIENTO”.
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>7.   Intermediación con el “ARRENDATARIO” y su ''{{info.aval.tipo_aval |  upper}}'' en caso de algún desacuerdo relacionado con el “CONTRATO DE ARRENDAMIENTO”.
 		</b></font></td>
 	</tr>
 	<tr>
@@ -266,7 +266,7 @@
 		<td height="21" align="justify" valign=middle></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>TERCERA.– Las “PARTES” convienen en que la vigencia del presente “CONTRATO” será por el término de un año contado a partir del {{datos_inicio.dia}} del Mes de {{datos_inicio.mes}} del Año {{datos_inicio.anio}} fecha de vigencia del “CONTRATO DE ARRENDAMIENTO” hasta el {{datos_fin.dia}} del Mes de {{datos_fin.mes}} del Año {{datos_fin.anio}} especificando lo siguiente:</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>TERCERA.– Las “PARTES” convienen en que la vigencia del presente “CONTRATO” será por el término de un año contado a partir del {{datos_inicio.dia}} del Mes de {{datos_inicio.mes}} del Año {{datos_inicio.anio}} fecha de vigencia del “CONTRATO DE ARRENDAMIENTO” hasta el {{datos_termino.dia}} del Mes de {{datos_termino.mes}} del Año {{datos_termino.anio}} especificando lo siguiente:</b></font></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000">1.     De no renovarse oportunamente el <b>“CONTRATO”</b>, el <b>“PRESTADOR”</b> únicamente se obliga en términos de la CLÁUSULA PRIMERA durante la vigencia estipulada en la presente cláusula.</font></td>
@@ -279,7 +279,7 @@
 		<td height="21" align="justify" valign=middle></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>CUARTA</b>.– Las <b>“PARTES”</b> aceptan que el precio de los servicios especializados en materia de arrendamiento durante la vigencia del <b>“CONTRATO”</b> será por la cantidad de <b>${{info.cotizacion.monto}}.00 ({{precio_texto}} Pesos 00/100 M.N.)</b>, misma que quedará debidamente liquidada por el <b>“CLIENTE”</b>, al momento de la celebración del <b>“CONTRATO DE ARRENDAMIENTO”</b>, mismos que deberán ser pagado a traves de la cuenta bancaria 70185881642, con Cable Interbancaria  002180701858816427 a la Institución Banamex a favor de ARRENDIFY S.A.P.I. DE C.V.</font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>CUARTA</b>.– Las <b>“PARTES”</b> aceptan que el precio de los servicios especializados en materia de arrendamiento durante la vigencia del <b>“CONTRATO”</b> será por la cantidad de <b>${{info.total_poliza}}.00 ({{precio_texto}} Pesos 00/100 M.N.)</b>, misma que quedará debidamente liquidada por el <b>“CLIENTE”</b>, al momento de la celebración del <b>“CONTRATO DE ARRENDAMIENTO”</b>, mismos que deberán ser pagado a traves de la cuenta bancaria 70185881642, con Cable Interbancaria  002180701858816427 a la Institución Banamex a favor de ARRENDIFY S.A.P.I. DE C.V.</font></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle></td>
@@ -329,16 +329,16 @@
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>EL "CLIENTE"</b></font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>Arrendador: {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}.</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>Arrendador: {{info.arrendador.nombre_completo | upper}}.</b></font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000">Dirección: <b>{{info.arrendador.calle | upper}} INT. {{info.arrendador.num_int}} {{info.arrendador.num_ext}} COL. {{info.arrendador.colonia | upper}}, {{info.arrendador.codigopostal}} {{info.arrendador.municipio_alcaldia | upper}}, {{info.arrendador.estado | upper}}</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000">Dirección: <b>{{info.arrendador.direccion_completa | upper}}</b></font></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000">Correo electrónico: <b>{{info.arrendador.email}}</b></font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000">Celular: <b>{{info.arrendador.numeroTel}}</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000">Celular: <b>{{info.arrendador.celular}}</b></font></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle></td>
@@ -348,16 +348,16 @@
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>EL "CLIENTE"</b></font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>Arrendatario:{{info.arrendatario.nombre | upper}} {{info.arrendatario.apellido | upper}} {{info.arrendatario.apellido1 | upper}}.</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000"><b>Arrendatario:{{info.arrendatario.nombre_completo | upper}}.</b></font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000">Dirección: <b>{{info.arrendatario.calle | upper}} INT. {{info.arrendatario.num_int}} {{info.arrendatario.num_ext}} COL. {{info.arrendatario.colonia | upper}}, {{info.arrendatario.codigopostal}} {{info.arrendatario.municipio_alcaldia | upper}}, {{info.arrendatario.estado | upper}}</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000">Dirección: <b>{{info.arrendatario.direccion_completa | upper}}</b></font></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle><font size=3 color="#000000">Correo electrónico: <b>{{info.arrendatario.email}}</b></font></td>
 	</tr>
 	<tr>
-		<td height="21" align="justify" valign=middle><font size=3 color="#000000">Celular: <b>{{info.arrendatario.numeroTel}}</b></font></td>
+		<td height="21" align="justify" valign=middle><font size=3 color="#000000">Celular: <b>{{info.arrendatario.celular}}</b></font></td>
 	</tr>
 	<tr>
 		<td height="21" align="justify" valign=middle></td>
@@ -401,7 +401,7 @@
 		<td height="21" valign=middle><b><font size=3 color="#000000">                                             EL CLIENTE                                                                                                                         "ARRENDIFY S.A.P.I. DE C.V."</font></b></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b><font size=3 color="#000000">                                {{info.arrendador.nombre | upper}} {{info.arrendador.apellido | upper}} {{info.arrendador.apellido1 | upper}}.                                                                                               JONATHAN GUADARRAMA SALGADO</font></b></td>
+		<td height="21" valign=middle><b><font size=3 color="#000000">                                {{info.arrendador.nombre_completo | upper}}.                                                                                               JONATHAN GUADARRAMA SALGADO</font></b></td>
 	</tr>
 	<tr>
 		<td style="height:63px" align="center" valign=middle></td>
@@ -416,7 +416,7 @@
 
 	</tr>
 	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><font size=3 color="#000000">{{info.arrendatario.nombre | upper}} {{info.arrendatario.apellido | upper}} {{info.arrendatario.apellido1 | upper}}.</font></b></td>
+		<td height="21" style="text-align:center" valign=middle><b><font size=3 color="#000000">{{info.arrendatario.nombre_completo | upper}}.</font></b></td>
 	</tr>
 	
 	
