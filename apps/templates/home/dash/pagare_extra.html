@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Pagaré</title>
+    {% comment %} <title>Real Estate Appraiser Template</title> {% endcomment %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <style>
+    .custom-table {
+        border: none;
+        border: 1px solid black;
+    }
+    
+    .custom-table th, .custom-table td {
+        border: none;
+    }
+    
+    #moneda-nacional {
+        border: 1px solid black;
+        padding: 10px;
+        margin: 10px 0;
+    }
+
+    .content {
+        margin-top: 30px;
+    }
+    
+    .deudor {
+        margin-bottom: 50px;
+    }
+    .acepto {
+    text-indent: 73.97px; /* Ajusta el valor según tus necesidades */
+}
+
+.watermark-container {
+    position: relative;
+    display: block;
+  margin-left: auto;
+  margin-right: auto;
+  }
+
+  .watermark-container::after {
+    content: '';
+    background-image: url('');
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 1;
+    position: absolute;
+    top: -150px;
+    bottom: 200px;
+    left: -170px;
+    width: 1000px;
+    height: 1000px;
+    z-index: 1;
+  }
+  
+
+  .negritas {
+    color:black; 
+    font-weight: bold;  
+}
+
+  .justi{
+    text-align: justify;
+    text-justify: inter-word;
+  }
+
+  </style>
+</head>
+<body>
+ 
+  {% comment %} al ser una tupla se quita el .items que se usa en diccionarios {% for month,year in lista_fechas.items %} {% endcomment %}
+  {% for mes,anio in lista_fechas %}
+  <div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12 text-center">
+            {% comment %} <h1 class="text-start">Pagaré</h1> {% endcomment %}
+            <br>
+            <table class="table custom-table">
+                <thead class="text-center">
+                    <tr>
+                        <th class="col-md-4" scope="col">Pagaré</th>
+                        <th class="col-md-4" scope="col">{{forloop.counter}} de {{info.datos_contratos.duracion}}</th>
+                        <th class="col-md-4" scope="col">Bueno por</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center align-middle">
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        {% if info.datos_contratos.renta  %}
+                            <td>${{info.datos_contratos.renta | intcomma}}.00</td>
+                        {% else %}
+                             <td>${{info.inmueble.renta | intcomma}}.00</td>
+                        {% endif %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+
+
+  <div class="container content watermark-container">
+    <div class="row">
+        <div class="col-md-12">
+            <p id="ref8" class="text-center">
+                <span id="ref5"></span>
+                <span id="ref5">En EL ESTADO DE {{info.datos_contratos.entidad_federativa | upper}} a </span>
+                {% if mes == "Febrero" and dia > 28 %}
+                <span id="ref5">28</span>
+                {% else %}
+                <span id="ref5">{{dia}}</span>
+                {% endif %}
+                <span id="ref5">de</span>
+                <span id="ref6">{{mes}}</span>
+                <span id="ref7">de</span>
+                <span id="ref7">{{anio}}</span>
+            </p>
+            <br>
+            <p>
+                <span class="justi" id="ref4">Debemos y pagaremos incondicionalmente por este pagaré a la orden de:</span>
+            </p>
+            <p>
+                <span class="justi negritas" id="ref4"><b> {% if info.arrendador.regimen_fiscal == "Persona Fisica" %} {{info.arrendador.nombre_completo}} {% else %}{{info.arrendador.nombre_empresa}} Representada por {{info.arrendador.nombre_rl}} {% endif %}</b></span>
+            </p>
+            <br>
+            <p id="ref8">
+                <span id="ref5">En EL ESTADO DE {{info.datos_contratos.entidad_federativa | upper}} a</span>
+                {% if mes == "Febrero" and dia > 28 %}
+                <span id="ref5">28</span>
+                {% else %}
+                <span id="ref5">{{dia}}</span>
+                {% endif %}
+                <span id="ref5">de</span>
+                <span id="ref6">{{mes}}</span>
+                <span id="ref7">de</span>
+                <span id="ref7">{{anio}}</span>
+            </p>
+            <p class="justi" id="moneda-nacional">Valor recibido a mi entera satisfacción por la cantidad de {% if info.datos_contratos.renta  %}${{info.datos_contratos.renta | intcomma}}{% else %}${{info.inmueble.renta | intcomma}}{% endif %}.{{renta_decimal}} ({{text_representation}} Pesos {{renta_decimal}}/100
+                MONEDA NACIONAL). Este pagaré forma parte de una serie numerada del 1 al {{info.datos_contratos.duracion}} y todos están sujetos a la condición de que,
+                al no pagarse cualquiera de ellos a su vencimiento, serán exigibles todos los que le sigan en número, además de los ya vencidos, 
+                desde la fecha de vencimiento de este documento hasta el día de su liquidación causará intereses moratorios al tipo de 5% mensual, pagadero en esta ciudad 
+                juntamente con el principal.
+            </p>
+        </div>
+    </div>
+    
+</div>
+<br>
+<br>
+<div class="container">
+    <div class="row ">
+        <div class="col-md-12 "> 
+            {% if info.arrendatario.regimen_fiscal == "Persona Fisica" %}
+                <div class="col-md-8">
+                    <h3>Nombre y Datos del Deudor</h3>
+                    <p>Nombre: <span id="ref9">{{info.arrendatario.nombre_completo}} </span></p>
+                    <p class="acepto">Acepto<span> _____________________________________________</span></p>
+                    <p>Dirección: <span id="ref10">{{info.arrendatario.direccion_completa}}.</span></p>
+                </div>
+            {% else %}
+                <div class="col-md-8">
+                    <h3>Nombre y Datos del Deudor</h3>
+                    <p>Nombre: <span id="ref9">{{info.arrendatario.nombre_empresa}} Representada por {{info.arrendatario.nombre_rl}}</span></p>
+                    <p class="acepto">Acepto<span> _____________________________________________</span></p>
+                    <p>Dirección: <span id="ref10">{{info.arrendatario.direccion_fiscal}}.</span></p>
+                </div>
+            {% endif %}
+            
+            <br>
+            <br>
+            
+            {% if info.fiador.registro_aval == "Si" or info.fiador.id %}
+                <div class="col-md-8">
+                    <h3>Nombre y Datos del Deudor</h3>
+                    <p>Nombre: <span id="ref11" style="backdrop-filter: blur(10px);">{% if info.fiador.tipo_aval == 'Obligado Solidario Persona Moral' or info.fiador.tipo_aval == 'Fiador Solidario Persona Moral' %}{{ info.fiador.nombre_empresa }}{% else %}{{ info.fiador.nombre_completo }}{% endif %}</span></p>
+                    <p class="acepto">Acepto <span> _____________________________________________</span></p>
+                    <p>Dirección: <span id="ref12">{% if info.fiador.tipo_aval == 'Obligado Solidario Persona Moral' or info.fiador.tipo_aval == 'Fiador Solidario Persona Moral' %}{{info.fiador.direccion_fiscal}}{% else %}{{info.fiador.direccion_completa}}{% endif %}</span></p>
+                </div>                       
+            {% else %}
+            {% comment %} no tengo aval {% endcomment %}
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+  
+
+  
+  
+{% endfor %}
+</body>
+</html>
+
+
+
+<!-- <table class="table datos table-borderless">
+    <thead>
+        <tr>
+            <th class="col-md-1" scope="col">Nombre:</th>
+            <th class="col-md-2" scope="col">Juanito Perez</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td></td>
+            <td>Acepto: <span>_____________________________________________</span></td>
+        </tr>
+        <tr>
+            <td>Dirección:</td>
+            <td>Avenida Insurgentes</td>
+        </tr>
+    </tbody>
+</table> 
+<ul class="list-group list-group-horizontal">
+  <li class="list-group-item">An item</li>
+  <li class="list-group-item">A second item</li>
+  <li class="list-group-item">A third item</li>
+</ul>
+<ul class="list-group list-group-horizontal-sm">
+  <li class="list-group-item">An item</li>
+  <li class="list-group-item">A second item</li>
+  <li class="list-group-item">A third item</li>
+</ul>
+
+
+-->

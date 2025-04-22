@@ -103,7 +103,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ORIGIN_WHITELIST = (
-    'https://arrendify.app',
+    # 'https://arrendify.app',
+    'https://contrato.pro',
     #saul
     'http://192.168.2.73:8000',
     'http://192.168.1.140:8000',
@@ -226,7 +227,6 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
 
 # DATABASES = {
 #     'default': {

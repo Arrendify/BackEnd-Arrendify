@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+<head>
+	
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>Contrato Comodato</title>
+	<meta name="generator" content="LibreOffice 7.4.2.3 (Linux)"/>
+	<meta name="created" content="2021-04-08T17:59:28"/>
+	<meta name="changedby" content="GM Integraciones"/>
+	<meta name="changed" content="2023-07-05T17:55:17"/>
+	<meta name="AppVersion" content="16.0300"/>
+	
+	<style type="text/css">
+	  body,div,table,thead,tbody,tfoot,tr,th,td,p {
+      font-family:Times New Roman; 
+      font-size:15.5px;
+	  text-align:justify;
+	  display: block;
+	
+	}
+ 
+	.contenedor-imagenes {
+		display: block;
+	  }
+	  
+	.contenedor-imagenes img:first-child {
+		margin-right: 1px;
+	  }
+	  
+    @page {
+      size: letter;
+      margin: 1cm;
+     }
+	 
+	 .container {
+		display: flex;
+		width: 100%
+	}
+
+	.section {
+		flex: 1;
+		border-top: 1px solid #000000; 
+		border-left: 1px solid #000000;
+	}
+
+	.section2 {
+		border-right: 1px solid #000000;  
+	}
+
+	.section3 {
+		border-bottom: 1px solid #000000;
+	}
+
+	.watermark-container {
+		position: relative;
+		display: block;
+	  margin-left: auto;
+	  margin-right: auto;
+	  }
+	
+	  .watermark-container::after {
+		content: '';
+		{% comment %} background-image: url('https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/copia_sin_valor.png'); {% endcomment %}
+		background-repeat: no-repeat;
+		background-size: contain;
+		opacity: 1;
+		position: fixed;
+		top: -150px;
+		bottom: 200px;
+		left: -170px;
+		width: 1000px;
+		height: 1000px;
+		z-index: 1;
+	  }
+
+	  .row {
+		--bs-gutter-x: 1.5rem;
+		--bs-gutter-y: 0;
+		display: flex;
+		flex-wrap: wrap;
+		margin-top: calc(var(--bs-gutter-y) * -1);
+		margin-right: calc(var(--bs-gutter-x) * -.5);
+		margin-left: calc(var(--bs-gutter-x) * -.5); }
+		.row > * {
+		  flex-shrink: 0;
+		  width: 100%;
+		  max-width: 100%;
+		  padding-right: calc(var(--bs-gutter-x) * .5);
+		  padding-left: calc(var(--bs-gutter-x) * .5);
+		  margin-top: var(--bs-gutter-y); }
+	  
+	  .col {
+		flex: 1 0 0%; }
+	 .sangria{
+		padding-left: 15px;
+	 }
+	</style>
+	
+</head>
+<!-- ************************************************************************** -->
+<table class="watermark-container" align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		{% comment %} <p style="font-size:15px; text-align: right;">Contrato No. {{info.codigo_paquete}}</p> {% endcomment %}
+	<tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle style="font-size:18px; text-align:left; font-weight:bold;"><b>CONTRATO DE COMODATO
+		</b></td>
+	</tr>	
+  <tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+  </tr>
+  <tr>
+	<td height="21" valign=middle>CONTRATO DE COMODATO que formalizan por una parte la sociedad {{comodante_razon_social}} representada en este acto por, el señor {{comodante_representante_nombre}} 
+		a quien en lo sucesivo se le denominará como “EL COMODANTE” y por otra parte {{comodatario_nombre}} a quien en lo sucesivo se les denominará como “EL COMODATARIO”, en conjunto “LAS PARTES”; 
+		mismas que se sujetan a las Declaraciones y Cláusulas siguientes:
+	</td>
+  </tr>
+  <tr>
+	<td height="21"  style="text-align:left;" valign=middle><b>DECLARACIONES</b></td>
+  </tr>	
+    <tr>
+	 <td height="21"  valign=middle><b>I.- Expresa “EL COMODANTE”:</b></td>
+    </tr>
+    <tr>
+	 <td height="21"  valign=middle class="sangria">(a) Que cuenta con la legítima posesión y pleno dominio de los muebles descritos en el Anexo I: (En lo sucesivo LOS MUEBLES).</td>
+    </tr>	
+	<tr>
+	 <td height="21"  valign=middle class="sangria">(b) Que LOS MUEBLES se encuentran dentro del {{comodante_ubicacion_departamento}} en el proyecto denominado como Utower ubicado en el domicilio {{comodante_domicilio_muebles}}.</td>
+    </tr>
+	<tr>
+	 <td height="21"  valign=middle class="sangria">(c) Que es una sociedad anónima de capital variable debidamente constituida conforme a las leyes mexicanas según consta en la Escritura Pública No. {{comodante_escritura_constitutiva_numero}} de fecha 
+		{{comodante_escritura_constitutiva_fecha}}, otorgada ante la fe del licenciado {{comodante_notario_constitutiva_nombre}}, Notario Público Suplente de la Notaría Pública número {{comodante_notaria_numero}}, debidamente inscrita en el Instituto Registral y Catastral 
+		en el Estado de Nuevo León bajo el FME {{comodante_folio_rp}}.</td>
+    </tr>
+	<tr>
+	 <td height="21"  valign=middle class="sangria">(d) En fecha {{comodante_cambio_razon_fecha}} cambio de denominación social a {{comodante_razon_social}} mediante Escritura Pública No. {{comodante_cambio_razon_escritura}} otorgada ante la fe del licenciado {{comodante_cambio_razon_notario}}, 
+		Notario Público Titular de la Notaría Pública No. {{comodante_notaria_numero}}.</td>
+    </tr>
+	<tr>
+	 <td height="21"  valign=middle class="sangria">(e) Que su representante legal cuenta con amplias facultades para celebrar el presente instrumento.</td>
+    </tr>
+	<tr>
+	 <td height="21"  valign=middle class="sangria">(f) Que el objeto social de su representada le permite la celebración del presente Contrato.</td>
+    </tr>
+	<tr>
+	 <td height="21"  valign=middle class="sangria">(g) Que el Registro Federal de Contribuyentes de su representada es {{comodante_rfc}}.</td>
+    </tr>
+	<tr>
+	 <td height="21"  valign=middle class="sangria">(h) Que LOS MUEBLES anteriormente descritos, se encuentran libres de todo gravamen y responsabilidad.</td>
+    </tr>
+	<tr>
+	 <td height="21"  valign=middle class="sangria">(i) Que es voluntad e intención expresa de su representada, celebrar el presente Contrato de Comodato.</td>
+    </tr>
+	
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>II.- Expresa “EL COMODATARIO”:</b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">(a) Que es su deseo recibir de manera gratuita en forma de Comodato el uso de LOS MUEBLES.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">(b) Que es una persona física de nacionalidad {{comodatario_nacionalidad}}, mayor de edad, de estado civil {{comodatario_estado_civil}}, 
+			con Clave Única de Registro de Población {{comodatario_curp}} y RFC {{comodatario_rfc}}.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle class="sangria">(c) Que no tiene limitación o impedimento alguno para celebrar este acuerdo.</td>
+	</tr>	
+	<tr>
+		<td height="21" valign=middle class="sangria">(d) Que tiene los recursos económicos para responder de los daños y perjuicios que origine a LOS MUEBLES.</td>
+	</tr>	
+		
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	
+	<tr>
+		{% comment %} clausulas {% endcomment %}
+		<td height="21"  style="text-align:left;" valign="middle"><b>CLÁUSULAS</b></td>
+    </tr>
+	<tr>
+		<td height="21"  valign=middle>Primera.- “EL COMODANTE” concede el uso gratuito y “EL COMODATARIO” así lo recibe en calidad de comodato respecto de LOS MUEBLES descritos en el Anexo I.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>Segunda.- Todos los gastos de conservación son por cuenta exclusiva del “EL COMODATARIO”.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>Tercera.- La vigencia del comodato será de {{duracion_meses}} meses contados a partir del {{fecha_firma_contrato}}.
+		</td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b>CUARTA.-</b> Condiciones para la firma del contrato definitivo. Las partes acuerdan que la firma del contrato de compraventa definitivo dependerá del cumplimiento de las siguientes condiciones:
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	{% if info.datos_contratos.condicion1 %}
+		<tr>
+			<td height="21"  valign=middle class="sangria">- {{info.datos_contratos.condicion1}}.
+			</td>
+		</tr>
+		
+		<tr>
+			<td height="21" valign=middle> </td>
+		</tr>
+
+	{% else %}{% endif %}
+
+	{% if info.datos_contratos.condicion2 %}
+		<tr>
+			<td height="21"  valign=middle class="sangria">- {{info.datos_contratos.condicion2}}.
+			</td>
+		</tr>
+	{% else %}{% endif %}
+	<tr>
+		<td height="21"  valign=middle><b>QUINTA.- Jurisdicción. </b> Para la interpretación y cumplimiento del presente contrato, las partes se someten a los tribunales y leyes de {{info.datos_contratos.jurisdiccion_inmueble}}, renunciando a cualquier otro fuero que por razón de su domicilio pudiera corresponderles.
+		</td>
+	</tr>
+	
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	
+	</tr>
+	{% comment %} FIRMAS {% endcomment %}
+	<tr>
+		<td style="height:40px" align="center" valign=middle></td>
+	</tr>
+</table>
+
+<div class="row">
+	<div class="col"></div>
+
+	<div class="col">
+		<b>_______________________________
+		<p style="text-align:center; margin-top:-1px">"PROMITENTE VENDEDOR"</p>
+		<p style="text-align:center; margin-top:-20px">{{info.datos_contratos.promitente_vendedor_nombre | upper}}</p></b>	
+		
+	</div>
+
+	<div class="col"></div>
+</div>
+
+
+<div class="row">
+	<div class="col"></div>
+
+	<div class="col">
+		<b>_______________________________
+		<p style="text-align:center; margin-top:-1px">"PROMITENTE COMPRADOR"</p>	
+		<p style="text-align:center; margin-top:-20px">{{info.datos_contratos.promitente_comprador_nombre | upper}}</p></b>
+	</div>
+	<div class="col"></div>
+</div>
+
+<!-- ************************************************************************** -->
+</body>
+
+</html>

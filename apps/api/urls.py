@@ -74,6 +74,15 @@ urlpatterns = [
     path('dash/generar_poliza/', ContratosViewSet.as_view({'post': 'generar_poliza'}), name='generar_poliza'),
     path('dash/generar_corretaje_preview/', ContratosViewSet.as_view({'post': 'generar_corretaje_preview'}), name='generar_corretaje_preview'),
     path('dash/generar_corretaje/', ContratosViewSet.as_view({'post': 'generar_corretaje'}), name='generar_corretaje'),
+    path('dash/generar_compraventa_preview/', ContratosViewSet.as_view({'post': 'generar_compraventa_preview'}), name='generar_compraventa_preview'),
+    path('dash/generar_compraventa/', ContratosViewSet.as_view({'post': 'generar_compraventa'}), name='generar_compraventa'),
+    path('dash/generar_promesa_preview/', ContratosViewSet.as_view({'post': 'generar_promesa_preview'}), name='generar_promesa_preview'),
+    path('dash/generar_promesa/', ContratosViewSet.as_view({'post': 'generar_promesa'}), name='generar_promesa'),
+    path('dash/generar_renta_op_venta/', ContratosViewSet.as_view({'post': 'generar_renta_op_venta'}), name='generar_renta_op_venta'),
+    path('dash/generar_renta_op_venta_preview/', ContratosViewSet.as_view({'post': 'generar_renta_op_venta_preview'}), name='generar_renta_op_venta_preview'),
+    path('dash/generar_preview_pagare_extra/', ContratosViewSet.as_view({'post': 'generar_preview_pagare_extra'}), name='generar_preview_pagare_extra'),
+    path('dash/generar_pagare_extra/', ContratosViewSet.as_view({'post': 'generar_pagare_extra'}), name='generar_pagare_extra'),
+    
     
     #STRIPE
     path('stripe-webhook/', stripe_webhook, name='stripe-webhook'),
