@@ -133,29 +133,25 @@
 	<tr>
 	 <td height="21"  valign=middle class="sangria">(b) Que LOS MUEBLES se encuentran dentro del {{comodante_ubicacion_departamento}} en el proyecto denominado como Utower ubicado en el domicilio {{comodante_domicilio_muebles}}.</td>
     </tr>
+
 	<tr>
-	 <td height="21"  valign=middle class="sangria">(c) Que es una sociedad anónima de capital variable debidamente constituida conforme a las leyes mexicanas según consta en la Escritura Pública No. {{comodante_escritura_constitutiva_numero}} de fecha 
-		{{comodante_escritura_constitutiva_fecha}}, otorgada ante la fe del licenciado {{comodante_notario_constitutiva_nombre}}, Notario Público Suplente de la Notaría Pública número {{comodante_notaria_numero}}, debidamente inscrita en el Instituto Registral y Catastral 
-		en el Estado de Nuevo León bajo el FME {{comodante_folio_rp}}.</td>
-    </tr>
-	<tr>
-	 <td height="21"  valign=middle class="sangria">(d) En fecha {{comodante_cambio_razon_fecha}} cambio de denominación social a {{comodante_razon_social}} mediante Escritura Pública No. {{comodante_cambio_razon_escritura}} otorgada ante la fe del licenciado {{comodante_cambio_razon_notario}}, 
+	 <td height="21"  valign=middle class="sangria">(c) En fecha {{comodante fecha acta constitutiva}} cambio de denominación social a {{comodante_razon_social}} mediante Escritura Pública No. {{comodante_cambio_razon_escritura}} otorgada ante la fe del licenciado {{comodante_cambio_razon_notario}}, 
 		Notario Público Titular de la Notaría Pública No. {{comodante_notaria_numero}}.</td>
     </tr>
 	<tr>
-	 <td height="21"  valign=middle class="sangria">(e) Que su representante legal cuenta con amplias facultades para celebrar el presente instrumento.</td>
+	 <td height="21"  valign=middle class="sangria">(d) Que su representante legal cuenta con amplias facultades para celebrar el presente instrumento.</td>
     </tr>
 	<tr>
-	 <td height="21"  valign=middle class="sangria">(f) Que el objeto social de su representada le permite la celebración del presente Contrato.</td>
+	 <td height="21"  valign=middle class="sangria">(e) Que el objeto social de su representada le permite la celebración del presente Contrato.</td>
     </tr>
 	<tr>
-	 <td height="21"  valign=middle class="sangria">(g) Que el Registro Federal de Contribuyentes de su representada es {{comodante_rfc}}.</td>
+	 <td height="21"  valign=middle class="sangria">(f) Que el Registro Federal de Contribuyentes de su representada es {{comodante_rfc}}.</td>
     </tr>
 	<tr>
-	 <td height="21"  valign=middle class="sangria">(h) Que LOS MUEBLES anteriormente descritos, se encuentran libres de todo gravamen y responsabilidad.</td>
+	 <td height="21"  valign=middle class="sangria">(g) Que LOS MUEBLES anteriormente descritos, se encuentran libres de todo gravamen y responsabilidad.</td>
     </tr>
 	<tr>
-	 <td height="21"  valign=middle class="sangria">(i) Que es voluntad e intención expresa de su representada, celebrar el presente Contrato de Comodato.</td>
+	 <td height="21"  valign=middle class="sangria">(h) Que es voluntad e intención expresa de su representada, celebrar el presente Contrato de Comodato.</td>
     </tr>
 	
 	<tr>
@@ -203,7 +199,40 @@
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle> </td>
+		<td height="21" valign=middle>Quinta.- Las partes se someten a los tribunales de {{tribunal_jurisdiccion}}.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle>Enteradas las partes del contenido del contrato, lo firman el {{fecha_firma_contrato}} en {{tribunal_jurisdiccion}}.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle>“EL COMODANTE”                   “EL COMODATARIO”</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle>{{comodante_razon_social}}                   {{comodatario_nombre}}</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle>{{comodante_representante_nombre}}   Por sus propios derechos</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle>ANEXO II – PAGARÉ</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle>Pagaré por ${{pagaré_monto}} ({{pagaré_monto_letra}}) a pagar el día {{pagaré_fecha_pago}} en {{comodante_domicilio_muebles}} mediante Banco {{pagaré_banco}}, cuenta {{pagaré_num_cuenta}}, CLABE {{pagaré_clabe}}, referencia {{pagaré_referencia}}. Interés por mora: {{pagaré_interes_mora}} mensual.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle>Domicilio del suscriptor: {{comodatario_domicilio}}</td>
 	</tr>
 	{% if info.datos_contratos.condicion1 %}
 		<tr>
@@ -212,7 +241,7 @@
 		</tr>
 		
 		<tr>
-			<td height="21" valign=middle> </td>
+			<td height="21" valign=middle></td>
 		</tr>
 
 	{% else %}{% endif %}
@@ -239,30 +268,6 @@
 	</tr>
 </table>
 
-<div class="row">
-	<div class="col"></div>
-
-	<div class="col">
-		<b>_______________________________
-		<p style="text-align:center; margin-top:-1px">"PROMITENTE VENDEDOR"</p>
-		<p style="text-align:center; margin-top:-20px">{{info.datos_contratos.promitente_vendedor_nombre | upper}}</p></b>	
-		
-	</div>
-
-	<div class="col"></div>
-</div>
-
-
-<div class="row">
-	<div class="col"></div>
-
-	<div class="col">
-		<b>_______________________________
-		<p style="text-align:center; margin-top:-1px">"PROMITENTE COMPRADOR"</p>	
-		<p style="text-align:center; margin-top:-20px">{{info.datos_contratos.promitente_comprador_nombre | upper}}</p></b>
-	</div>
-	<div class="col"></div>
-</div>
 
 <!-- ************************************************************************** -->
 </body>

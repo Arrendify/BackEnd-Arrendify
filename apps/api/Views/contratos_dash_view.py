@@ -1450,6 +1450,247 @@ class ContratosViewSet(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
+    def generar_contrato_comodato_preview(self, request, *args, **kwargs):  
+        try:
+            print("")
+            print("Generar contrato comodato")
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            arrendatario = dict(info["arrendatario"]) 
+            print("soy el arrendatario vamos a ver quye pdo",arrendatario)
+            if arrendatario.get("inquilino"):
+                print("hay informacion del arrendatarios hay que hacer una busqueda de id")
+                print("Inquilino ID", info["arrendatario"]["inquilino"])
+                inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
+                print("Inquilino", inquilino)
+                info["arrendatario"] = inquilino
+            
+            propietario = dict(info["arrendador"])        
+            if propietario.get("propietario"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                info["arrendador"] = arrendador
+            
+             
+            inmueble= dict(info["inmueble"])
+            print("Esto es el inmueble", inmueble) 
+            if inmueble.get("inmueble"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                print("nombre del arrendatario",propiedad.__dict__)
+                print("mi renta es",propiedad.renta)
+                info["inmueble"] = propiedad
+                #esto es lo nuevo en mantenimiento
+                if propiedad.mantenimiento == "No Incluido":
+                    pass
+                    # info["inmueble"]["cuota_letra"] == num2words(propiedad.cuota_mantenimiento, lang='es').capitalize()
+                    # print("cuota con letra", info["inmueble"]["cuota_letra"])
+                
+                #checamos que no tenga decimales
+                if "." not in str(propiedad.renta):
+                    print("no hay yaya")
+                    number = int(propiedad.renta)
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                else:
+                    print("tengo punto en renta")
+                    if info["inmueble"]['renta']:
+                        renta_completa = info["inmueble"]['renta'].split(".")
+                    else:
+                        renta_completa = propiedad.renta.split(".")
+                    
+                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+                    
+            else:
+                #esto es lo nuevo en mantenimiento
+                if info["inmueble"]["mantenimiento"] == "No Incluido":
+                    info["inmueble"]["cuota_letra"] == num2words(info["inmueble"]["cuota_mantenimiento"], lang='es').capitalize()
+                    print("cuota con letra", info["inmueble"]["cuota_letra"])
+                
+                print("no hay informacion del inmueble")
+                if "." not in info["inmueble"]['renta']:
+                    print("no hay yaya")
+                    number = int(info["inmueble"]['renta'])
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                
+                else:
+                    print("tengo punto en renta")
+                    if info["inmueble"]['renta']:
+                        renta_completa = info["inmueble"]['renta'].split(".")
+                    else:
+                        renta_completa = propiedad.renta.split(".")
+                    
+                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+
+            print("Esto es el request data.",info)
+            print("")
+            
+            # Definir la fecha inicial
+            fecha_inicial = info["datos_contratos"]['fecha_celebracion']
+            fecha_ok = datetime.strptime(info["datos_contratos"]['fecha_celebracion'], "%Y-%m-%d").date()
+            fecha_off = datetime.strptime(info["datos_contratos"]['fecha_termino'], "%Y-%m-%d").date()
+            print("fecha OK",fecha_inicial)
+          
+            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.strftime("%B").upper() ,'anio':fecha_ok.year}
+            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.strftime("%B").upper()  ,'anio':fecha_off.year}
+            
+            # obtenermos la renta para pasarla a letra            
+            print("")
+            print(f"renta {number}, letra: {text_representation}")
+            
+            #si tiene mantenimiento incluido hay que pasarlo a letra
+                        
+            context = {'info': info, 'text_representation':text_representation, 'renta_decimal':renta_decimal, "datos_inicio":datos_inicio, 'datos_termino':datos_termino}
+            
+            template = 'home/dash/contrato_comodato.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Contrato_arrendamiento.pdf"'
+            response.write(pdf_file)
+            print("Se genero el contrato")
+            return HttpResponse(response, content_type='application/pdf')
+        
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def generar_contrato_comodato(self, request, *args, **kwargs):  
+        try:
+            print("")
+            print("Generar contrato comodato")
+            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
+            info = request.data
+
+            arrendatario = dict(info["arrendatario"]) 
+            print("soy el arrendatario vamos a ver quye pdo",arrendatario)
+            if arrendatario.get("inquilino"):
+                print("hay informacion del arrendatarios hay que hacer una busqueda de id")
+                print("Inquilino ID", info["arrendatario"]["inquilino"])
+                inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
+                print("Inquilino", inquilino)
+
+                info["arrendatario"] = inquilino
+
+            aval = dict(info["fiador"])         
+            if aval.get("aval"):
+                print("hay informacion del aval hay que hacer una busqueda de id")
+                fiador = Aval.objects.all().filter(id = info["fiador"]["aval"]).first()
+                info["fiador"] = fiador
+            
+            propietario = dict(info["arrendador"])        
+            if propietario.get("propietario"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
+                info["arrendador"] = arrendador
+            
+             
+            inmueble= dict(info["inmueble"])
+            print("Esto es el inmueble", inmueble) 
+            if inmueble.get("inmueble"):
+                print("hay informacion del propietario hay que hacer una busqueda de id")
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+                print("nombre del arrendatario",propiedad.__dict__)
+                print("mi renta es",propiedad.renta)
+                info["inmueble"] = propiedad
+                #esto es lo nuevo en mantenimiento
+                if propiedad.mantenimiento == "No Incluido":
+                    pass
+                    # info["inmueble"]["cuota_letra"] == num2words(propiedad.cuota_mantenimiento, lang='es').capitalize()
+                    # print("cuota con letra", info["inmueble"]["cuota_letra"])
+                
+                #checamos que no tenga decimales
+                if "." not in str(propiedad.renta):
+                    print("no hay yaya")
+                    number = int(propiedad.renta)
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                else:
+                    print("tengo punto en renta")
+                    if info["inmueble"]['renta']:
+                        renta_completa = info["inmueble"]['renta'].split(".")
+                    else:
+                        renta_completa = propiedad.renta.split(".")
+                    
+                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+                    
+            else:
+                #esto es lo nuevo en mantenimiento
+                if info["inmueble"]["mantenimiento"] == "No Incluido":
+                    info["inmueble"]["cuota_letra"] == num2words(info["inmueble"]["cuota_mantenimiento"], lang='es').capitalize()
+                    print("cuota con letra", info["inmueble"]["cuota_letra"])
+                
+                print("no hay informacion del inmueble")
+                if "." not in info["inmueble"]['renta']:
+                    print("no hay yaya")
+                    number = int(info["inmueble"]['renta'])
+                    renta_decimal = "00"
+                    text_representation = num2words(number, lang='es').capitalize()
+                
+                else:
+                    print("tengo punto en renta")
+                    if info["inmueble"]['renta']:
+                        renta_completa = info["inmueble"]['renta'].split(".")
+                    else:
+                        renta_completa = propiedad.renta.split(".")
+                    
+                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+
+            print("Esto es el request data.",info)
+            print("")
+            
+            # Definir la fecha inicial
+            fecha_inicial = info["datos_contratos"]['fecha_celebracion']
+            fecha_ok = datetime.strptime(info["datos_contratos"]['fecha_celebracion'], "%Y-%m-%d").date()
+            fecha_off = datetime.strptime(info["datos_contratos"]['fecha_termino'], "%Y-%m-%d").date()
+            print("fecha OK",fecha_inicial)
+          
+            datos_inicio = {'dia':fecha_ok.day, 'mes':fecha_ok.strftime("%B").upper() ,'anio':fecha_ok.year}
+            datos_termino = {'dia':fecha_off.day, 'mes':fecha_off.strftime("%B").upper()  ,'anio':fecha_off.year}
+            
+            # obtenermos la renta para pasarla a letra            
+            print("")
+            print(f"renta {number}, letra: {text_representation}")
+            
+            #si tiene mantenimiento incluido hay que pasarlo a letra
+                        
+            context = {'info': info, 'text_representation':text_representation, 'renta_decimal':renta_decimal, "datos_inicio":datos_inicio, 'datos_termino':datos_termino}
+            
+            template = 'home/dash/contrato_arrendamiento.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # Devuelve el PDF como respuesta
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Contrato_arrendamiento.pdf"'
+            response.write(pdf_file)
+            print("Se genero el contrato")
+            return HttpResponse(response, content_type='application/pdf')
+        
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"Hubo un error: {e} en la línea {exc_tb.tb_lineno}")
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+    
     def generar_compraventa_preview(self, request, *args, **kwargs):  
         try:
             print("Generar compraventa")
