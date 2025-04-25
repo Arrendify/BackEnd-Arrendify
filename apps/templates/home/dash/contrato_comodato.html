@@ -116,8 +116,8 @@
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
   </tr>
   <tr>
-	<td height="21" valign=middle>CONTRATO DE COMODATO que formalizan por una parte la sociedad {{comodante_razon_social}} representada en este acto por, el señor {{comodante_representante_nombre}} 
-		a quien en lo sucesivo se le denominará como “EL COMODANTE” y por otra parte {{comodatario_nombre}} a quien en lo sucesivo se les denominará como “EL COMODATARIO”, en conjunto “LAS PARTES”; 
+	<td height="21" valign=middle>CONTRATO DE COMODATO que formalizan por una parte la sociedad {{info.arrendador.nombre_empresa}} representada en este acto por, el señor {{info.arrendador.nombre_completo_rl}} 
+		a quien en lo sucesivo se le denominará como “EL COMODANTE” y por otra parte {{info.arrendatario.nombre_completo}} a quien en lo sucesivo se les denominará como “EL COMODATARIO”, en conjunto “LAS PARTES”; 
 		mismas que se sujetan a las Declaraciones y Cláusulas siguientes:
 	</td>
   </tr>
@@ -131,12 +131,12 @@
 	 <td height="21"  valign=middle class="sangria">(a) Que cuenta con la legítima posesión y pleno dominio de los muebles descritos en el Anexo I: (En lo sucesivo LOS MUEBLES).</td>
     </tr>	
 	<tr>
-	 <td height="21"  valign=middle class="sangria">(b) Que LOS MUEBLES se encuentran dentro del {{comodante_ubicacion_departamento}} en el proyecto denominado como Utower ubicado en el domicilio {{comodante_domicilio_muebles}}.</td>
+	 <td height="21"  valign=middle class="sangria">(b) Que LOS MUEBLES se encuentran dentro del {{info.inmueble.tipo_inmueble}} en el proyecto denominado como Utower ubicado en el domicilio {{info.inmueble.direccion_completa}}.</td>
     </tr>
 
 	<tr>
-	 <td height="21"  valign=middle class="sangria">(c) En fecha {{comodante fecha acta constitutiva}} cambio de denominación social a {{comodante_razon_social}} mediante Escritura Pública No. {{comodante_cambio_razon_escritura}} otorgada ante la fe del licenciado {{comodante_cambio_razon_notario}}, 
-		Notario Público Titular de la Notaría Pública No. {{comodante_notaria_numero}}.</td>
+	 <td height="21"  valign=middle class="sangria">(c) En fecha {{info.arrendador.fecha_acta}} cambio de denominación social a {{info.arrendador.nombre_empresa}} mediante Escritura Pública No. {{info.arrendador.escritura_publica}} otorgada ante la fe del licenciado {{info.arrendador.nombre_notario}}, 
+		Notario Público Titular de la Notaría Pública No. {{info.arrendador.numero_notario}} con sede en {{info.arrendador.estado_acta}}.</td>
     </tr>
 	<tr>
 	 <td height="21"  valign=middle class="sangria">(d) Que su representante legal cuenta con amplias facultades para celebrar el presente instrumento.</td>
@@ -145,7 +145,7 @@
 	 <td height="21"  valign=middle class="sangria">(e) Que el objeto social de su representada le permite la celebración del presente Contrato.</td>
     </tr>
 	<tr>
-	 <td height="21"  valign=middle class="sangria">(f) Que el Registro Federal de Contribuyentes de su representada es {{comodante_rfc}}.</td>
+	 <td height="21"  valign=middle class="sangria">(f) Que el Registro Federal de Contribuyentes de su representada es {{info.arrendador.rfc}}.</td>
     </tr>
 	<tr>
 	 <td height="21"  valign=middle class="sangria">(g) Que LOS MUEBLES anteriormente descritos, se encuentran libres de todo gravamen y responsabilidad.</td>
@@ -164,8 +164,8 @@
 		<td height="21" valign=middle class="sangria">(a) Que es su deseo recibir de manera gratuita en forma de Comodato el uso de LOS MUEBLES.</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle class="sangria">(b) Que es una persona física de nacionalidad {{comodatario_nacionalidad}}, mayor de edad, de estado civil {{comodatario_estado_civil}}, 
-			con Clave Única de Registro de Población {{comodatario_curp}} y RFC {{comodatario_rfc}}.</td>
+		<td height="21" valign=middle class="sangria">(b) Que es una persona física de nacionalidad {{info.arrendatario.nacionalidad}}, mayor de edad, de estado civil {{info.arrendatario.estado_civil}}, 
+			con Clave Única de Registro de Población {{info.arrendatario.curp}} y RFC {{info.arrendatario.rfc}}.</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle class="sangria">(c) Que no tiene limitación o impedimento alguno para celebrar este acuerdo.</td>
@@ -191,7 +191,7 @@
 		</td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle>Tercera.- La vigencia del comodato será de {{duracion_meses}} meses contados a partir del {{fecha_firma_contrato}}.
+		<td height="21"  valign=middle>Tercera.- La vigencia del comodato será de {{info.datos_contratos.duracion}} meses contados a partir del {{info.datos_contratos.fecha_celebracion}}.
 		</td>
 	</tr>
 	<tr>
@@ -199,10 +199,10 @@
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>Quinta.- Las partes se someten a los tribunales de {{tribunal_jurisdiccion}}.</td>
+		<td height="21" valign=middle>Quinta.- Las partes se someten a los tribunales de {{info.datos_contratos.jurisdiccion}}.</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>Enteradas las partes del contenido del contrato, lo firman el {{fecha_firma_contrato}} en {{tribunal_jurisdiccion}}.</td>
+		<td height="21" valign=middle>Enteradas las partes del contenido del contrato, lo firman el {{info.datos_contratos.fecha_celebracion}} en {{info.datos_contratos.jurisdiccion}}.</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><br></td>
@@ -211,10 +211,10 @@
 		<td height="21" valign=middle>“EL COMODANTE”                   “EL COMODATARIO”</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>{{comodante_razon_social}}                   {{comodatario_nombre}}</td>
+		<td height="21" valign=middle>{{info.arrendador.razon_social}}                   {{info.arrendatario.nombre}}</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>{{comodante_representante_nombre}}   Por sus propios derechos</td>
+		<td height="21" valign=middle>{{info.arrendador.representante_legal}}   Por sus propios derechos</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><br></td>
@@ -226,13 +226,13 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>Pagaré por ${{pagaré_monto}} ({{pagaré_monto_letra}}) a pagar el día {{pagaré_fecha_pago}} en {{comodante_domicilio_muebles}} mediante Banco {{pagaré_banco}}, cuenta {{pagaré_num_cuenta}}, CLABE {{pagaré_clabe}}, referencia {{pagaré_referencia}}. Interés por mora: {{pagaré_interes_mora}} mensual.</td>
+		<td height="21" valign=middle>Pagaré por ${{info.datos_contratos.renta_decimal}} ({{info.datos_contratos.text_representation}}) a pagar el día {{info.datos_contratos.pagare_fecha_pago}} mediante Banco {{info.datos_contratos.pagare_banco}}, cuenta {{info.datos_contratos.pagare_num_cuenta}}, CLABE {{info.datos_contratos.pagare_clabe}}, referencia {{info.datos_contratos.pagare_referencia}}. Interés por mora: {{info.datos_contratos.pagare.interes_mora}} mensual.</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>Domicilio del suscriptor: {{comodatario_domicilio}}</td>
+		<td height="21" valign=middle>Domicilio del suscriptor: {{info.arrendatario.direccion}}</td>
 	</tr>
 	{% if info.datos_contratos.condicion1 %}
 		<tr>
