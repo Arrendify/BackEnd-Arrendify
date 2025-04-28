@@ -703,7 +703,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 print("vengo desde inmueble con poliza")
                 propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
                 info["inmueble"] = propiedad 
-                print("spy datos del inmueble en pagare-poliza",info["inmueble"])
+                print("Datos Inmueble Pagare:",info["inmueble"])
                 
                 #checamos que no tenga decimales
                 
@@ -1584,11 +1584,11 @@ class ContratosViewSet(viewsets.ModelViewSet):
 
                 info["arrendatario"] = inquilino
 
-            aval = dict(info["fiador"])         
-            if aval.get("aval"):
-                print("hay informacion del aval hay que hacer una busqueda de id")
-                fiador = Aval.objects.all().filter(id = info["fiador"]["aval"]).first()
-                info["fiador"] = fiador
+            # aval = dict(info["fiador"])         
+            # if aval.get("aval"):
+            #     print("hay informacion del aval hay que hacer una busqueda de id")
+            #     fiador = Aval.objects.all().filter(id = info["fiador"]["aval"]).first()
+            #     info["fiador"] = fiador
             
             propietario = dict(info["arrendador"])        
             if propietario.get("propietario"):
@@ -1672,7 +1672,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
                         
             context = {'info': info, 'text_representation':text_representation, 'renta_decimal':renta_decimal, "datos_inicio":datos_inicio, 'datos_termino':datos_termino}
             
-            template = 'home/dash/contrato_arrendamiento.html'
+            template = 'home/dash/contrato_comodato.html'
             html_string = render_to_string(template, context)
 
             # Genera el PDF utilizando weasyprint
@@ -1680,7 +1680,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
 
             # Devuelve el PDF como respuesta
             response = HttpResponse(content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="Contrato_arrendamiento.pdf"'
+            response['Content-Disposition'] = 'attachment; filename="Contrato_Comodato.pdf"'
             response.write(pdf_file)
             print("Se genero el contrato")
             return HttpResponse(response, content_type='application/pdf')

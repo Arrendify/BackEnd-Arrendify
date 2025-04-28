@@ -110,6 +110,66 @@ class InvestigacionLaboralViewSet(viewsets.ViewSet):
                          f"en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+    def enviar_archivo_investigaciones(self, archivo, info):
+        #cuando francis este registrado regresar todo como estaba
+        print("soy pdf content",archivo)
+        print("soy info de investigacion",info.__dict__)
+        print("info id",info.user_id)
+   
+        # Configura los detalles del correo electrónico
+        try:
+            remitente = 'notificaciones@arrendify.com'
+            destinatario = info.email
+            pdf_html = contenido_pdf_investigaciones(info)
+            print("destinatario normalito",destinatario)
+            
+            #hacemos una lista destinatarios para enviar el correo
+            #Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com']
+            Destino=['desarrolloarrendify@gmail.com']
+            asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
+            
+            # Crea un objeto MIMEMultipart para el correo electrónico
+            msg = MIMEMultipart()
+            msg['From'] = remitente
+            msg['To'] = ','.join(Destino)
+            msg['Subject'] = asunto
+            print("paso objeto mime")
+            
+            #Evalua si tiene este atributo
+            # if hasattr(info, 'fiador'):
+            #     print("SOY info.fiador",info.fiador)
+            
+            # Adjuntar el contenido HTML al mensaje
+            msg.attach(MIMEText(pdf_html, 'html'))
+            print("pase el msg attach 1")
+            # Adjunta el PDF al correo electrónico
+            pdf_part = MIMEBase('application', 'octet-stream')
+            pdf_part.set_payload(archivo.read())  # Lee los bytes del archivo
+            encoders.encode_base64(pdf_part)
+            pdf_part.add_header('Content-Disposition', 'attachment', filename='Reporte_de_investigación.pdf')
+            msg.attach(pdf_part)
+            print("pase el msg attach 2")
+            
+            # Establece la conexión SMTP y envía el correo electrónico
+            smtp_server = 'mail.arrendify.com'
+            smtp_port = 587
+            smtp_username = config('mine_smtp_u')
+            smtp_password = config('mine_smtp_pw')
+            with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
+                server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
+                print("tls")
+                server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
+                print("login")
+                server.sendmail(remitente, Destino, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
+                print("sendmail")
+            return Response({'message': 'Correo electrónico enviado correctamente.'}, status = 200)
+        except SMTPException as e:
+            print("Error al enviar el correo electrónico:", str(e))
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
+    
+        
 
     def investigacion_laboral (self, request, *args, **kwargs):
         print("Investigacion Laboral")
@@ -233,6 +293,8 @@ class InvestigacionLaboralViewSet(viewsets.ViewSet):
                 
                 print("PDF ENVIADO")
                 
+                archivo = ContentFile(pdf_file, name='Investigacion_Laboral.pdf')
+                
                 # return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = "200")
             
                 # de aqui hacia abajo Devuelve esl PDF como respuesta
@@ -240,7 +302,27 @@ class InvestigacionLaboralViewSet(viewsets.ViewSet):
                 response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
                 response.write(pdf_file)
                 print("Finalizamos el proceso de aprobado") 
-                return HttpResponse(response, content_type='application/pdf')
+            
+                print("antes de enviar_archivo",context)
+                correo = self.enviar_archivo_investigaciones(archivo, context["info"])
+                print("soy correo papito",correo)
+                if correo.status_code == 200:
+                        # Aprobar o desaprobar
+                    if status == "Aprobado_pe" or status == "Aprobado":  
+                        info.status = "Aprobado"
+                        info.save()
+                    else:
+                        info.status = "Rechazado"
+                        info.save()
+                    
+                    print("Correo ENVIADO")
+                
+                else:
+                    print("valio chetos")
+                    print("Correo NO ENVIADO")
+                    Response({"Error":"no se envio el correo"},status = 409)
+                
+                return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
         
         except Exception as e:
                 print(f"el error es: {e}")
@@ -329,23 +411,29 @@ class InvestigacionInquilinoViewSet(viewsets.ViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     def enviar_archivo(self, archivo, info, estatus):
-
+        #cuando francis este registrado regresar todo como estaba
+        # francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
         print("soy pdf content",archivo)
-        print("soy info", info)
         print("soy status",estatus)
         print("soy info de investigacion",info.__dict__)
         print("info id",info.user_id)
    
         # Configura los detalles del correo electrónico
         try:
-            remitente = 'notificaciones_arrendify@outlook.com'
+            remitente = 'notificaciones@arrendify.com'
+            # if info.user_id == francis.id:
+            #     print("Es el mismo usuaio, envialo a francis calete")
+            #     # destinatario = 'el que meden @francis o algo asi'
+            #     pdf_html = contenido_pdf_aprobado_francis(info,estatus)
+            #     print("destinatario Francis", destinatario)
+            # else:
+            #destinatario = 'jsepulvedaarrendify@gmail.com'
             destinatario = info.email
-            print("destinatario pasado")
             pdf_html = contenido_pdf_aprobado(info,estatus)
             print("destinatario normalito",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
-            Destino=['desarrolloarrendify@gmail.com',f'{destinatario}']
+            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com']
             asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
             
             # Crea un objeto MIMEMultipart para el correo electrónico
@@ -371,10 +459,10 @@ class InvestigacionInquilinoViewSet(viewsets.ViewSet):
             print("pase el msg attach 2")
             
             # Establece la conexión SMTP y envía el correo electrónico
-            smtp_server = 'smtp.office365.com'
+            smtp_server = 'mail.arrendify.com'
             smtp_port = 587
-            smtp_username = config('smtp_u')
-            smtp_password = config('smtp_pw')
+            smtp_username = config('mine_smtp_u')
+            smtp_password = config('mine_smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
                 print("tls")
@@ -382,10 +470,12 @@ class InvestigacionInquilinoViewSet(viewsets.ViewSet):
                 print("login")
                 server.sendmail(remitente, Destino, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
                 print("sendmail")
-            return Response({'message': 'Correo electrónico enviado correctamente.'})
+            return Response({'message': 'Correo electrónico enviado correctamente.'}, status = 200)
         except SMTPException as e:
             print("Error al enviar el correo electrónico:", str(e))
-            return Response({'message': 'Error al enviar el correo electrónico.'})
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
         
         
     def investigacion_inquilino(self, request, *args, **kwargs):

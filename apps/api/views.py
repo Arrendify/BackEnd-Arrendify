@@ -543,6 +543,7 @@ class investigaciones(viewsets.ModelViewSet):
             
             #hacemos una lista destinatarios para enviar el correo
             Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com']
+            #Destino=['desarrolloarrendify@gmail.com']
             asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
             
             # Crea un objeto MIMEMultipart para el correo electrónico
