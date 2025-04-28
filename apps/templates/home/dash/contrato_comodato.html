@@ -226,13 +226,13 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>Pagaré por ${{info.datos_contratos.renta_decimal}} ({{info.datos_contratos.text_representation}}) a pagar el día {{info.datos_contratos.pagare_fecha_pago}} mediante Banco {{info.datos_contratos.pagare_banco}}, cuenta {{info.datos_contratos.pagare_num_cuenta}}, CLABE {{info.datos_contratos.pagare_clabe}}, referencia {{info.datos_contratos.pagare_referencia}}. Interés por mora: {{info.datos_contratos.pagare.interes_mora}} mensual.</td>
+		<td height="21" valign=middle>Pagaré por ${{renta_decimal}} ({{text_representation}}) a pagar el día {{info.datos_contratos.pagare_fecha_pago}} mediante Banco {{info.datos_contratos.pagare_banco}}, cuenta {{info.datos_contratos.pagare_num_cuenta}}, CLABE {{info.datos_contratos.pagare_clabe}}, referencia {{info.datos_contratos.pagare_referencia}}. Interés por mora: {{info.datos_contratos.pagare.interes_mora}} mensual.</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>Domicilio del suscriptor: {{info.arrendatario.direccion}}</td>
+		<td height="21" valign=middle>Domicilio del suscriptor: {{info.arrendatario.direccion_completa}}</td>
 	</tr>
 	{% if info.datos_contratos.condicion1 %}
 		<tr>
