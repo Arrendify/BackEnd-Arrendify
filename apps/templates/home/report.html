@@ -827,7 +827,7 @@
         </div>
       </div>  
 
-      {% elif info.tipo_aval == "Obligado Solidario Persona Fisica" %}
+      {% elif aval.tipo_aval == "Obligado Solidario Persona Fisica" %}
 
       <hr class="hr" style="opacity: .9;" >  
           <h3 class="mb-2 mt-2">Obligado Solidario Persona Fisica</h2>
@@ -919,7 +919,7 @@
           </div>
         </div>
         
-      {% elif info.tipo_aval == "Obligado Solidario Persona Moral" %}
+      {% elif aval.tipo_aval == "Obligado Solidario Persona Moral" %}
 
         <hr class="hr" style="opacity: .9;" >  
         <h3 class="mb-2 mt-2">Obligado Solidario Persona Moral</h2>
@@ -1030,7 +1030,7 @@
       <p>{{referencias}}</p>
 
       {% comment %} <br>  {% endcomment %}
-      {% if aval and aval.fiador_obligado == "Obligado Solidario Persona Fisica" %}<br><br><br><br><br><br><br><br><br><br><br>{% else %}{% endif %}
+      {% if aval and aval.tipo_aval == "Obligado Solidario Persona Fisica" %}<br><br><br><br><br><br><br><br><br><br><br>{% else %}{% endif %}
 
       <article id="nueva_pag_4">
         <div style="width:100%" id="conclusion_final">
