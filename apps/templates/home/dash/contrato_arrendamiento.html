@@ -107,12 +107,12 @@
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle style=" font-size:18px"><b>CONTRATO DE ARRENDAMIENTO QUE EN TÉRMINOS DE LO QUE DISPONE EL CÓDIGO CIVIL VIGENTE PARA {% if info.datos_contratos.entidad_federativa == "Ciudad De México" %}CIUDAD DE MÉXICO{% else %}EL ESTADO DE {{info.datos_contratos.entidad_federativa | upper}}{% endif %}, QUE CELEBRAN, POR UNA PARTE {% if info.arrendador.regimen_fiscal == "Persona Fisica" %} {{info.arrendador.nombre_completo | upper}} {% else %}{{info.arrendador.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendador.nombre_completo_rl | upper}} {% endif %}, A QUIEN EN LO SUCESIVO SE LE LLAMARÁ "EL ARRENDADOR" 
-			Y POR LA OTRA PARTE {% if info.arrendatario.regimen_fiscal == "Persona Fisica" %}{{info.arrendatario.nombre_completo | upper}}{% else %}{{info.arrendatario.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendatario.nombre_completo_rl | upper}}{% endif %} 
+		<td height="21"  valign=middle style=" font-size:18px"><b>CONTRATO DE ARRENDAMIENTO QUE EN TÉRMINOS DE LO QUE DISPONE EL CÓDIGO CIVIL VIGENTE PARA {% if info.datos_contratos.entidad_federativa == "Ciudad De México" %}CIUDAD DE MÉXICO{% else %}EL ESTADO DE {{info.datos_contratos.entidad_federativa | upper}}{% endif %}, QUE CELEBRAN, POR UNA PARTE {% if info.arrendador.regimen_fiscal == "Persona Fisica" %}  EL ARRENDADOR {{info.arrendador.nombre_completo | upper}} {% else %}{{info.arrendador.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendador.nombre_completo_rl | upper}} {% endif %}, A QUIEN EN LO SUCESIVO SE LE LLAMARÁ "EL ARRENDADOR" 
+			Y POR LA OTRA PARTE {% if info.arrendatario.regimen_fiscal == "Persona Fisica" %}    {{info.arrendatario.nombre_completo | upper}}  A QUIEN SE LE DENOMINARÁ COMO "EL ARRENDATARIO" {% else %}{{info.arrendatario.nombre_empresa | upper}} REPRESENTADA POR {{info.arrendatario.nombre_completo_rl | upper}} A QUIEN SE LE DENOMINARÁ COMO "EL ARRENDATARIO"  {% endif %} 
 			{% if info.fiador.registro_aval == "Si" or info.fiador.id %}
-				{% if info.fiador.tipo_aval == 'Obligado Solidario Persona Moral' or info.fiador.tipo_aval == 'Fiador Solidario Persona Moral' %}Y {{ info.fiador.nombre_empresa | upper}} REPRESENTADA POR {{info.fiador.nombre_completo_rl | upper}} EN SU CARÁCTER DE "EL {{info.fiador.tipo_aval | upper}}"{% else %}Y {{ info.fiador.nombre_completo | upper}} EN SU CARÁCTER DE "EL {{info.fiador.tipo_aval | upper}}"{% endif %}
+				{% if info.fiador.tipo_aval == 'Obligado Solidario Persona Moral' or info.fiador.tipo_aval == 'Fiador Solidario Persona Moral' %} Y {{ info.fiador.nombre_empresa | upper}} REPRESENTADA POR {{info.fiador.nombre_completo_rl | upper}} EN SU CARÁCTER DE "EL {{info.fiador.tipo_aval | upper}}"{% else %}Y {{ info.fiador.nombre_completo | upper}} EN SU CARÁCTER DE "EL {{info.fiador.tipo_aval | upper}}"{% endif %}
 			{% else %}{% endif %}
-			, A QUIEN SE LE DENOMINARÁ COMO "EL ARRENDATARIO" QUIENES CUENTAN CON CAPACIDAD LEGAL PARA CONTRATAR Y OBLIGARSE AL TENOR DE LAS SIGUIENTES DECLARACIONES Y CLÁUSULAS QUE A CONTINUACIÓN SE DETALLAN:
+			,QUIENES CUENTAN CON CAPACIDAD LEGAL PARA CONTRATAR Y OBLIGARSE AL TENOR DE LAS SIGUIENTES DECLARACIONES Y CLÁUSULAS QUE A CONTINUACIÓN SE DETALLAN:
 		</b></td>
 	</tr>	
   <tr>
