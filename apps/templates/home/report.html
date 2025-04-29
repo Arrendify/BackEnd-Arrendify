@@ -718,7 +718,7 @@
         
         <div class="row" >
           <div class="col">
-              <label style="color:#8082a0;"><b>Dirección:</b></label>
+              <label style="color:#8082a0;"><b>Dirección Inmueble:</b></label>
               <input class="input-chido" style="width:100%;" type="text" value="{{aval.direccion_completa_escrituras}}. ">
           </div>
         </div>
@@ -882,40 +882,28 @@
             <input class="input-chido" style="width:100%;" type="text" value="{{aval.antiguedad_fiador}}">
           </div>
         </div>
+
+        <div class="row">
+          <div class="col">
+            <label style="color:#8082a0;"><b>Lugar de Empleo:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{aval.empresa_fiador}}">
+          </div>
+          &nbsp&nbsp&nbsp&nbsp
+          <div class="col">
+            <label style="color:#8082a0;"><b>Nombre Jefe:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{aval.jefe_directo}}">
+          </div>
+          &nbsp&nbsp&nbsp&nbsp
+          <div class="col">
+            <label style="color:#8082a0;"><b>Numero Jefe:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{aval.numero_jefe}}">
+          </div>
+        </div>
         
         <div class="row" >
           <div class="col">
               <label style="color:#8082a0;"><b>Dirección Empleo:</b></label>
-              <input class="input-chido" style="width:100%;" type="text" value="{{aval.direccion_completa_empleo_fiador}}. ">
-          </div>
-        </div>
-        <div class="row" >
-          <div class="col">
-              <label style="color:#8082a0; width:100%;"><b>Gravámenes:</b></label>
-              <input class="input-chido" style="width:100%;" type="text" value="No constan gravámenes.">
-          </div>
-          &nbsp&nbsp&nbsp&nbsp
-          <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Anotaciones Preventivas:</b></label>
-            <input class="input-chido" style="width:100%;" type="text" value="No constan para este folio.">
-          </div>
-        </div>
-        <div class="row" >
-          <div class="col">
-              <label style="color:#8082a0; width:100%;"><b>Avisos Preventivos/Otorgamiento vigentes:</b></label>
-              <input class="input-chido" style="width:100%;" type="text" value="No constan.">
-          </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            <label style="color:#8082a0;"><b>Entradas presentadas en proceso:</b></label>
-            <input class="input-chido" style="width:100%; font-size:12.90px;" type="text" value="No hay entradas pendientes para este folio.">
-          </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Observaciones:</b></label>
-            <input class="input-chido" style="width:100%;"  type="text" value="No constan.">
+              <input class="input-chido" style="width:100%;" type="text" value="{{aval.direccion_completa_empleo_fiador }}. ">
           </div>
         </div>
         
@@ -935,10 +923,10 @@
           <label style="color:#8082a0;"><b>RFC:</b></label>
           <input class="input-chido" type="text" style="width:100%;" value="{{aval.rfc_empresa}}">
         </div>
-      </div>
-    
-      <div class="row mt-2" > 
+        &nbsp&nbsp&nbsp&nbsp
         <div class="col">
+          <label style="color:#8082a0;"><b>Ingresos:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.ingreso_mensual_empresa}}">
         </div>
       </div>
 
@@ -950,48 +938,40 @@
       </div>
 
       <hr class="hr" >  
-      <h3 class="mb-2 mt-2">Datos del inmueble en garantía</h2>
+      <h3 class="mb-2 mt-2">Datos del Representante Legal</h2>
       <hr class="hr" >
-
-      <div class="row" >
-        <div class="col">
-            <label style="color:#8082a0;"><b>Escritura pública número:</b></label>
-            <input class="input-chido" style="width:100%; font-size:11px;" type="text" value="{{aval.escritura_publica_pm}} CONSTATADA BAJO LA FE DEL NOTARIO PÚBLICO NÚMERO:{{aval.numero_notario_pm}}, LIC.{{aval.nombre_notario_pm}}">
-        </div>
-      </div>
       
-      <div class="row" >
+      <div class="row">
         <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Dirección:</b></label>
-            <input class="input-chido" style="width:100%;" type="text" value="{{aval.direccion_completa_escrituras}}. ">
-        </div>
-      </div>
-      <div class="row" >
-        <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Gravámenes:</b></label>
-            <input class="input-chido" style="width:100%;" type="text" value="No constan gravámenes.">
+            <label style="color:#8082a0;"><b>Nombre:</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="{{aval.nombre_completo_rl}}">
         </div>
         &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-          <label style="color:#8082a0; width:100%;"><b>Anotaciones Preventivas:</b></label>
-          <input class="input-chido" style="width:100%;" type="text" value="No constan para este folio.">
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-            <label style="color:#8082a0;"><b>Avisos Preventivos/Otorgamiento vigentes:</b></label>
-            <input class="input-chido" type="text" style="width:100%;" value="No constan.">
+          <label style="color:#8082a0;"><b>RFC:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.rfc_rl}}">
         </div>
         &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-          <label style="color:#8082a0;"><b>Entradas presentadas en proceso:</b></label>
-          <input class="input-chido" type="text" style="width:100%;" value="Sin entradas para este folio.">
+          <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.nacionalidad_rl}}">
         </div>
       </div>
+
       <div class="row">
         <div class="col">
-          <label style="color:#8082a0; width:100%;"><b>Observaciones:</b></label>
-          <input class="input-chido" style="width:100%;"  type="text" value="No constan.">
+            <label style="color:#8082a0;"><b>Identificación:{{identificacion_rl}}</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="{{aval.no_ide_rl}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Email:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.email_rl}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Celular:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.celular_rl}}">
         </div>
       </div>
 
