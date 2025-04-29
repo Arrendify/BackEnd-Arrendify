@@ -515,7 +515,7 @@
         </div>
         &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-            <label style="color:#8082a0; width:100%;"><b>Antiguedad:</b></label>
+            <label style="color:#8082a0;"><b>Antiguedad:</b></label>
             <input class="input-chido" style="width:100%" type="text" value="{{info.antiguedad}}">
         </div>
         &nbsp&nbsp&nbsp&nbsp
@@ -527,29 +527,32 @@
       
       <div class="row mt-2" >
         <div class="col">
-          <label style="color:#8082a0;"><b>Dirección del empleo:</b></label>
-          <input class="input-chido" style="width:100%;" type="text" value="{{info.direccion_empleo}}">
-        </div>
-        <div class="col">
-          <label style="color:#8082a0;"><b>Ingreso mensual comprobado:</b></label>
-          <input class="input-chido" style="width:100%;" type="text"  value="${{info.ingreso_men}}.00">
-        </div>
-        &nbsp&nbsp&nbsp&nbsp
-        <div class="col">
           <label style="color:#8082a0; width:100%;"><b>Nombre del Jefe:</b></label>
-          <input class="input-chido" style="font-size:12px; width:100%;" type="text" value="{{info.nombre_jefe}}">
-        </div>
-      </div>  
-
-      <div class="row mt-2" >
-        <div class="col">
-            <label style="color:#8082a0;"><b>Teléfono del Jefe:</b></label>
-            <input class="input-chido" type="text" style=" width:100%;" value="{{info.telefono_jefe}}">
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.nombre_jefe}}">
         </div>
         &nbsp&nbsp&nbsp&nbsp
         <div class="col">
           <label style="color:#8082a0;"><b>Email del Jefe:</b></label>
-          <input class="input-chido" type="text" style="font-size:13px;  width:100%;" value="{{info.email_jefe}}">
+          <input class="input-chido" style="width:100%;" type="text"   value="{{info.email_jefe}}">
+        </div>
+      </div> 
+      
+      <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Teléfono del Jefe:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{info.telefono_jefe}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Ingreso mensual comprobado:</b></label>
+          <input class="input-chido" style="width:100%;" type="text"  value="${{info.ingreso_men}}.00">
+        </div> 
+      </div>
+
+      <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Dirección del empleo:</b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.direccion_empleo}}">
         </div>
       </div>
       
@@ -564,8 +567,6 @@
         </div>
       </div>
       <hr class="hr" > 
-
-      <br><br><br><br><br><br><br>
 
       {% elif info.regimen_fiscal == "Persona Moral" %}
 
@@ -669,11 +670,35 @@
       
     {% endif %}
 
+   {% if info.regimen_fiscal == "Persona Fisica"%} 
 
+      {% if aval.tipo_aval == "Fiador Solidario Persona Fisica" %}
+      <br><br><br><br><br><br>
+      {% elif aval.tipo_aval == "Fiador Solidario Persona Moral" %}
+      <br><br><br><br><br><br>
+      {% elif aval.tipo_aval == "Fiador Solidario Persona Moral" %}
+      <br><br><br><br><br><br>
+      {% elif aval.tipo_aval == "Fiador Solidario Persona Moral" %}
+      <br><br><br><br><br><br>
+      {% endif %}
+
+   {% elif info.regimen_fiscal == "Persona Moral"%}
+
+      {% if aval.tipo_aval == "Fiador Solidario Persona Fisica" %}
+      <br><br><br><br><br><br>
+      {% elif aval.tipo_aval == "Fiador Solidario Persona Moral" %}
+      <br><br><br><br><br><br>
+      {% elif aval.tipo_aval == "Fiador Solidario Persona Moral" %}
+      <br><br><br><br><br><br>
+      {% elif aval.tipo_aval == "Fiador Solidario Persona Moral" %}
+      <br><br><br><br><br><br>
+      {% endif %}
+
+   {% endif %}
 
       {% if aval.tipo_aval == "Fiador Solidario Persona Fisica" %}
         <hr class="hr" style="opacity: .9;" >  
-          <h3 class="mb-2 mt-2">Fiador Solidario Persona Fisica</h2>
+          <h3 class="mb-2 ">Fiador Solidario Persona Fisica</h2>
         <hr class="hr">
 
         <div class="row">
@@ -690,11 +715,6 @@
           <div class="col">
             <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
             <input class="input-chido" type="text" style="width:100%;" value="{{aval.nacionalidad}}">
-          </div>
-        </div>
-      
-        <div class="row mt-2" > 
-          <div class="col">
           </div>
         </div>
   
@@ -840,7 +860,7 @@
           </div>
           &nbsp&nbsp&nbsp&nbsp
           <div class="col">
-            <label style="color:#8082a0;"><b>{{aval.ide_fiador}}:</b></label>
+            <label style="color:#8082a0;"><b>Identificación: {{aval.ide_fiador}}</b></label>
             <input class="input-chido" type="text" style="width:100%; font-size:11px;" value="{{aval.no_ide}}">
           </div>
           &nbsp&nbsp&nbsp&nbsp
@@ -874,7 +894,7 @@
           &nbsp&nbsp&nbsp&nbsp
           <div class="col">
             <label style="color:#8082a0;"><b>Ingreso mensual:</b></label>
-            <input class="input-chido" style="width:100%;" type="text" value="{{aval.ingreso_men_fiador}}">
+            <input class="input-chido" style="width:100%;" type="text" value="${{aval.ingreso_men_fiador}}.00">
           </div>
           &nbsp&nbsp&nbsp&nbsp
           <div class="col">
@@ -926,7 +946,7 @@
         &nbsp&nbsp&nbsp&nbsp
         <div class="col">
           <label style="color:#8082a0;"><b>Ingresos:</b></label>
-          <input class="input-chido" type="text" style="width:100%;" value="{{aval.ingreso_mensual_empresa}}">
+          <input class="input-chido" type="text" style="width:100%;" value="${{aval.ingreso_mensual_empresa}}.00">
         </div>
       </div>
 
@@ -1010,8 +1030,6 @@
       <p>{{referencias}}</p>
 
       {% comment %} <br>  {% endcomment %}
-      {% if aval and aval.tipo_aval == "Obligado Solidario Persona Fisica" %}<br><br><br><br><br><br><br><br><br><br><br>{% else %}{% endif %}
-
       <article id="nueva_pag_4">
         <div style="width:100%" id="conclusion_final">
           <h2 class="mb-2 mt-2">Resultado de Investigación</h2>
@@ -1337,22 +1355,22 @@
         </div>
         <ul>
           {% if datos.tipo_score_ingreso == "Malo" %}
-            <li>Declara un ingreso mensual es de un valor neto de {{info.ingreso_men}}.</li>
+            <li>Declara un ingreso mensual es de un valor neto de ${{datos.ingreso_comprobado}}.00</li>
             <li>Según los ingresos comprobados del prospecto sus egresos son mayores al monto de renta y sus necesidades básicas.</li>
             <li>Su saldo final es insuficiente para atender imprevistos los cuales pueden llegar a perjudicar el pago de renta.</li>
           
           {% elif datos.tipo_score_ingreso == "Regular" %}
-            <li>Declara un ingreso mensual es de un valor neto de {{info.ingreso_men}}.</li>
+            <li>Declara un ingreso mensual es de un valor neto de ${{datos.ingreso_comprobado}}.00</li>
             <li>Según los ingresos comprobados del prospecto, llegan al limite de los egresos favorables.</li>
             <li>El saldo final es considera justo para los requerimientos de ARRENDIFY S.A.P.I. de C.V.</li>
           
           {% elif datos.tipo_score_ingreso == "Bueno" %}
-            <li>Declara un ingreso mensual es de un valor neto de {{info.ingreso_men}}.</li>
+            <li>Declara un ingreso mensual es de un valor neto de ${{datos.ingreso_comprobado}}.00</li>
             <li>Según los ingresos comprobados del prospecto, son acordes a sus egresos.</li>
             <li>Cuenta con un saldo total suficientes para el pago de una renta adicional.</li>
           
           {% elif datos.tipo_score_ingreso == "Excelente" %}
-            <li>Declara un ingreso mensual de un valor neto de {{info.ingreso_men}}.</li>
+            <li>Declara un ingreso mensual de un valor neto de ${{datos.ingreso_comprobado}}.00</li>
             <li>Cuenta con plena capacidad de pago.</li>
             <li>Cuenta con un saldo favorable para cubrir necesidades básicas, creditos y hasta un par rentas sin que le cause algún impedimento.</li>
           
