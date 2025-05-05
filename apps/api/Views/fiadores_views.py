@@ -185,6 +185,7 @@ class AvalViewSet(viewsets.ModelViewSet):
 class DocumentosFoo(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
+    
     queryset = DocumentosFiador.objects.all()
     serializer_class = DFSerializer
    
@@ -276,7 +277,6 @@ class DocumentosFoo(viewsets.ModelViewSet):
     
     
     def update(self, request, *args, **kwargs):
-        print("Entro a update fiadores docs")
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)

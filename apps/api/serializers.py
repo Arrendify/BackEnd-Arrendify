@@ -7,7 +7,6 @@ from ..accounts.models import *
 from django.conf import settings
 
 class DFSerializer(serializers.ModelSerializer):
-     
     class Meta:
         model = DocumentosFiador
         fields = '__all__'
@@ -19,6 +18,7 @@ class DISerializer(serializers.ModelSerializer):
 
 class AvalSerializer(serializers.ModelSerializer):
     arrendatario_nombre_completo = serializers.CharField(source='inquilino.nombre_completo', read_only=True)
+    empresa_nombre= serializers.CharField(source='inquilino.nombre_empresa', read_only=True)
     archivos = DFSerializer(many=True, read_only=True)
     user =  User2Serializer(read_only=True)
     class Meta:
