@@ -308,7 +308,7 @@ class InvestigacionLaboralViewSet(viewsets.ViewSet):
                 print("soy correo papito",correo)
                 if correo.status_code == 200:
                         # Aprobar o desaprobar
-                    if status == "Aprobado_pe" or status == "Aprobado":  
+                    if info.status == "Aprobado_pe" or status == "Aprobado":  
                         info.status = "Aprobado"
                         info.save()
                     else:
@@ -738,8 +738,10 @@ class InvestigacionFinancieraViewSet(viewsets.ViewSet):
     
     def create(self, request, *args, **kwargs):
         try:
+            print("Entre a crear investigacion financiera")
             data_documentos = {}
             data = request.data  # Crea una copia de los datos 
+            print("soy la data:",data)
             serializerfin = InvestigacionFinancieraSerializer(data=data)# Crear el serializer con los datos enviados en la petición
             if serializerfin.is_valid():  # Validar los datos antes de guardarlos
                 documentos = ['identificacion_doc','comprobante_domicilio','comprobante_ingresos','situacionfiscal','acta_constitutiva','estado_cuenta']

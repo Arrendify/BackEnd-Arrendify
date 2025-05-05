@@ -7,7 +7,7 @@ from rest_framework.authentication import TokenAuthentication,SessionAuthenticat
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 #modelos
-from ...home.models import Inquilino
+from ...home.models import *
 from ..serializers import *
 from ...accounts.models import CustomUser
 User = CustomUser

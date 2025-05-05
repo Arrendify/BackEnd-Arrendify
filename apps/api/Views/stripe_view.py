@@ -42,8 +42,8 @@ class CreateStripeCheckoutSession(viewsets.ModelViewSet):
                     },
                 ],
                 mode='payment',  # Puede ser 'subscription' si es un pago recurrente
-                success_url="https://arrendify.app/succes/",
-                cancel_url="https://arrendify.app/cancel/",
+                success_url="https://contrato.pro/succes/",
+                cancel_url="https://contrato.pro/cancel/",
             )
             print("")
             # print("soy session", session)
