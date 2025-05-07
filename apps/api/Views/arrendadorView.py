@@ -190,7 +190,7 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
                 print("soy agente", user_session.first_name)
                 agente_qs = Arrendador.objects.filter(user_id = user_session)
                 print(agente_qs)
-                pertenece = Arrendador.objects.filter(mi_agente_es__icontains = user_session.first_name)
+                pertenece = Arrendador.objects.filter(user_session.first_name)
                 print(pertenece)
                 arredores_a_cargo = agente_qs.union(pertenece).order_by('-id')
                 serializer = ArrendadorSerializer(arredores_a_cargo, many=True)
