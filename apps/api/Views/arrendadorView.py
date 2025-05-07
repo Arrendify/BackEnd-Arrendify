@@ -135,6 +135,7 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
         
     def list(self, request):
         user_session = self.request.user
+        print("soy el usuario", user_session.id)
         try:
             if user_session.is_staff:
                 # Crear una copia de los datos serializados
@@ -155,11 +156,12 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
             elif user_session.rol == "Inmobiliaria":  
                 #tengo que buscar a los arrendadores que tiene a un agente vinculado
                 print("soy inmobiliaria", user_session.name_inmobiliaria)
-                agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+                agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria)
+                print("Agentes de la inmobiliaria", agentes) 
                 
-                #busqueda de arrendadores propios y registrados por mis agentes
-                arrendadores_a_cargo = Arrendador.objects.filter(user_id__in = agentes)
-                arrendadores_mios = Arrendador.objects.filter(user_id = user_session)
+                # #busqueda de arrendadores propios y registrados por mis agentes
+                arrendadores_a_cargo = Propietario.objects.filter(user_id__in = agentes)
+                arrendadores_mios = Propietario.objects.filter(user_id = user_session)
                 mios = arrendadores_a_cargo.union(arrendadores_mios)
                 
                 #busqueda de inquilino vinculado
@@ -188,9 +190,9 @@ class ArrendadorViewSet(viewsets.ModelViewSet):
         
             elif user_session.rol == "Agente":  
                 print("soy agente", user_session.first_name)
-                agente_qs = Arrendador.objects.filter(user_id = user_session)
+                agente_qs = Propietario.objects.filter(user_id = user_session)
                 print(agente_qs)
-                pertenece = Arrendador.objects.filter(user_session.first_name)
+                pertenece = Propietario.objects.filter(mi_agente_es__icontains = user_session.first_name)
                 print(pertenece)
                 arredores_a_cargo = agente_qs.union(pertenece).order_by('-id')
                 serializer = ArrendadorSerializer(arredores_a_cargo, many=True)
