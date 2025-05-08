@@ -48,13 +48,13 @@ class inmueblesViewSet(viewsets.ModelViewSet):
                 agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
                 
                 #busqueda de arrendadores propios y registrados por mis agentes
-                arrendadores_a_cargo = Arrendador.objects.filter(user_id__in = agentes)
-                arrendadores_mios = Arrendador.objects.filter(user_id = user_session)
+                arrendadores_a_cargo = Propietario.objects.filter(user_id__in = agentes)
+                arrendadores_mios = Propietario.objects.filter(user_id = user_session)
                 mios = arrendadores_a_cargo.union(arrendadores_mios)
                
                 #busqueda de inquilino vinculado
-                pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
-                pertenece = Arrendador.objects.filter(mi_agente_es__in = agentes.values("first_name"))
+                pertenece2 = Propietario.objects.filter(mi_agente_es__icontains = agentes.values("first_name"))
+                pertenece = Propietario.objects.filter(mi_agente_es__in = agentes.values("first_name"))
                 pertenece = pertenece.union(pertenece2)
                 arrendadores_all = mios.union(pertenece)
                 print("Registrados por mi o por un agente directo", mios)
@@ -85,10 +85,10 @@ class inmueblesViewSet(viewsets.ModelViewSet):
         elif user_session.rol == "Agente":  
             print("soy Agente", user_session.first_name)
             #obtengo mis inquilinos
-            arrendadores_ag = Arrendador.objects.filter(user_id = user_session)
+            arrendadores_ag = Propietario.objects.filter(user_id = user_session)
             #tengo que obtener a mis inquilinos vinculados
-            pertenece2 = Arrendador.objects.filter(mi_agente_es__icontains = user_session.first_name)
-            pertenece = Arrendador.objects.filter(mi_agente_es__in = user_session.first_name)
+            pertenece2 = Propietario.objects.filter(mi_agente_es__icontains = user_session.first_name)
+            pertenece = Propietario.objects.filter(mi_agente_es__in = user_session.first_name)
             pertenece = pertenece.union(pertenece2)
             arrendadores_all = arrendadores_ag.union(pertenece)
             print("mis arrendadores propios:",arrendadores_ag)
