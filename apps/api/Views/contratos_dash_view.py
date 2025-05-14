@@ -630,6 +630,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
             print("Generar pagare preview")
             locale.setlocale(locale.LC_ALL,"es_MX.utf8")
             info = request.data
+            print("Soy la info",info)
 
             arrendatario = dict(info["arrendatario"]) 
             if arrendatario.get("inquilino"):
@@ -647,6 +648,20 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 print("hay informacion del propietario hay que hacer una busqueda de id")
                 arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
                 info["arrendador"] = arrendador
+            
+            if info.get("inmueble"):
+                inmueble = dict(info["inmueble"])
+
+                inmueble_id = inmueble.get("inmueble")
+                if inmueble_id:
+                    try:
+                        propiedad = Inmuebles.objects.filter(id=int(inmueble_id)).values().first()
+                        info["inmueble"] = propiedad
+                        print("Esta es la info del inmueble",info["inmueble"])
+                    except Inmuebles.DoesNotExist:
+                        info["inmueble"] = None      
+            
+                
                 
 
             print("Esto es el request data.",info)
@@ -682,14 +697,48 @@ class ContratosViewSet(viewsets.ModelViewSet):
             for month, year in fechas_iteradas:
                 print(f"Año: {year}, Mes: {month}")
                 
-            #obtenermos la renta para pasarla a letra
-            propiedad = dict(info["inmueble"])  
-            if propiedad.get("renta"):
+             
+            if info.get("inmueble"):
+            #obtenermos la renta para pasarla a letra     
+                if info["inmueble"].get("renta"):
+                    print("vengo desde pagare + arrendamiento")
+                    #obtenermos la renta para pasarla a letra
+                    if info["inmueble"]['renta']:
+                        print("no hay yaya")
+                        number = int(info["inmueble"]['renta'])
+                        renta_decimal = "00"
+                        text_representation = num2words(number, lang='es').capitalize()
+                    
+                    else:
+                        print("tengo punto en renta")
+                        renta_completa = info["inmueble"]['renta'].split(".")
+                        info.renta = renta_completa[0]
+                        renta_decimal = renta_completa[1]
+                        text_representation = num2words(renta_completa[0], lang='es').capitalize()
+                else:
+                    print("vengo desde inmueble sin poliza")
+                    #propiedad = Inmuebles.objects.all()
+                    propiedad = info["datos_contratos"]  
+                    #info["inmueble"] = propiedad 
+                    print("Datos Inmueble Pagare:",propiedad)
+                    
+                    #checamos que no tenga decimales
+                    
+                    # if info["datos_contratos"]["renta"]:
+                    #     print("no hay yaya")
+                    #     number = int(propiedad.renta)
+                    #     renta_decimal = "00"
+                    #     text_representation = num2words(number, lang='es').capitalize()
+                    # else:
+                    #     print("tengo punto en renta")
+                        
+            elif info["datos_contratos"].get("renta"):
+                
                 print("vengo desde pagare Sin Poliza")
                 #obtenermos la renta para pasarla a letra
-                if "." not in info["inmueble"]['renta']:
+                if "." not in info["datos_contratos"]['renta']:
                     print("no hay yaya")
-                    number = int(info["inmueble"]['renta'])
+                    number = int(info["datos_contratos"]['renta'])
                     renta_decimal = "00"
                     text_representation = num2words(number, lang='es').capitalize()
                 
@@ -700,22 +749,8 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     renta_decimal = renta_completa[1]
                     text_representation = num2words(renta_completa[0], lang='es').capitalize()
             else:
-                print("vengo desde inmueble con poliza")
-                #propiedad = Inmuebles.objects.all()
-                propiedad = dict(info["inmueble"])  
-                #info["inmueble"] = propiedad 
-                print("Datos Inmueble Pagare:",propiedad)
-                
-                #checamos que no tenga decimales
-                
-                if "." not in str(propiedad.renta):
-                    print("no hay yaya")
-                    number = int(propiedad.renta)
-                    renta_decimal = "00"
-                    text_representation = num2words(number, lang='es').capitalize()
-                else:
-                    print("tengo punto en renta")
-            
+                print("No hay nada :v")
+                                    
             print("")
             print(f"renta {number}, letra: {text_representation}")
             #imprimir el nombre de la las fechas
