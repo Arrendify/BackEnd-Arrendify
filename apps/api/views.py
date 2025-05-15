@@ -463,6 +463,7 @@ class investigaciones(viewsets.ModelViewSet):
     def enviar_archivo(self, archivo, info, estatus):
         #cuando francis este registrado regresar todo como estaba
         # francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
+        print("entre en el enviar archivo")
         print("soy pdf content",archivo)
         print("soy status",estatus)
         print("soy info de investigacion",info.__dict__)
@@ -483,8 +484,8 @@ class investigaciones(viewsets.ModelViewSet):
             print("destinatario normalito",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
-            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
-            #Destino=['desarrolloarrendify@gmail.com']
+            #Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
+            Destino=['desarrolloarrendify@gmail.com']
             asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
             
             # Crea un objeto MIMEMultipart para el correo electrónico
@@ -529,7 +530,8 @@ class investigaciones(viewsets.ModelViewSet):
             return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
     
     def enviar_archivo_arrendify(self, archivo, info, estatus):
-        #cuando francis este registrado regresar todo como estaba
+        #cuan(do francis este registrado regresar todo como estaba
+        print("entre en el enviar archivo arrendify")
         print("soy pdf content",archivo)
         print("soy status",estatus)
         print("soy info de investigacion",info.__dict__)
@@ -543,8 +545,8 @@ class investigaciones(viewsets.ModelViewSet):
             print("destinatario normalito",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
-            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
-            #Destino=['desarrolloarrendify@gmail.com']
+            #Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
+            Destino=['desarrolloarrendify@gmail.com']
             asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
             
             # Crea un objeto MIMEMultipart para el correo electrónico
