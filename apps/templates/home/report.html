@@ -680,7 +680,7 @@
       {% elif aval.tipo_aval == "Fiador Solidario Persona Moral" %}
       <br><br><br><br><br><br>
       {% elif aval.tipo_aval == "Obligado Solidario Persona Fisica" %}
-      <br><br><br><br><br><br>
+      <br><br><br><br><br>
       {% elif aval.tipo_aval == "Obligado Solidario Persona Moral" %}
       <br><br><br><br><br><br>
       {% endif %}
@@ -863,7 +863,9 @@
               <label style="color:#8082a0;"><b>Nombre:</b></label>
               <input class="input-chido" style="width:100%;" type="text" value="{{aval.nombre_completo}}">
           </div>
-          &nbsp&nbsp&nbsp&nbsp
+        </div>
+      
+        <div class="row mt-2" > 
           <div class="col">
             <label style="color:#8082a0;"><b>Identificación: {{aval.ide_fiador}}</b></label>
             <input class="input-chido" type="text" style="width:100%; font-size:11px;" value="{{aval.no_ide}}">
@@ -872,11 +874,6 @@
           <div class="col">
             <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
             <input class="input-chido" type="text" style="width:100%;" value="{{aval.nacionalidad}}">
-          </div>
-        </div>
-      
-        <div class="row mt-2" > 
-          <div class="col">
           </div>
         </div>
   
