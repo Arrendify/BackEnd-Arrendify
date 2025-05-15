@@ -460,12 +460,15 @@
       <div class="row" >
         <div class="col">
             <label style="color:#8082a0;"><b>Nombre Completo:</b></label>
-            <input class="input-chido" style="width:100%" type="text" value="{{info.nombre_completo}}">
+            <input class="input-chido" style="width:200%" type="text" value="{{info.nombre_completo}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
         </div>
         &nbsp&nbsp&nbsp&nbsp
         <div class="col">
           <label style="color:#8082a0;"><b>Celular:</b></label>
-          <input class="input-chido" style="width:80%" type="text" value="{{info.celular}}">
+          <input class="input-chido" style="width:100%" type="text" value="{{info.celular}}">
         </div>
       </div>
       
@@ -545,7 +548,7 @@
         &nbsp&nbsp&nbsp&nbsp
         <div class="col">
           <label style="color:#8082a0;"><b>Ingreso mensual comprobado:</b></label>
-          <input class="input-chido" style="width:100%;" type="text"  value="${{info.ingreso_men}}.00">
+          <input class="input-chido" style="width:100%;" type="text"  value="${{datos.ingreso_comprobado}}.00">
         </div> 
       </div>
 
@@ -706,7 +709,9 @@
               <label style="color:#8082a0;"><b>Nombre:</b></label>
               <input class="input-chido" style="width:100%;" type="text" value="{{aval.nombre_completo}}">
           </div>
-          &nbsp&nbsp&nbsp&nbsp
+        </div>
+
+        <div class="row">
           <div class="col">
             <label style="color:#8082a0;"><b>Identificación: {{aval.identificacion}}</b></label>
             <input class="input-chido" type="text" style="width:100%;" value="{{aval.no_ide}}">
