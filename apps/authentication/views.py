@@ -287,7 +287,7 @@ from .views import Register
 class ZohoUser(APIView): 
     def post(self, request):
         try:
-            data = json.loads(request.body)
+            data = request.data
 
             # Generar contraseña segura
             password_generada = generar_contrasena()
