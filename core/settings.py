@@ -105,7 +105,8 @@ MIDDLEWARE = [
 CORS_ORIGIN_WHITELIST = (
     # 'https://arrendify.app',
     'https://contrato.pro',
-    'https://crm.zoho.com',
+    "https://crm.zoho.com",
+    "https://creator.zoho.com",
     #saul
     'http://192.168.2.73:8000',
     'http://192.168.1.140:8000',
