@@ -290,22 +290,22 @@ from threading import Thread
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-from threading import Thread
 from django.http import JsonResponse
+from threading import Thread
 
 class ZohoUser(APIView):  
     def post(self, request):
         data = request.data
 
-        # Responder de inmediato para evitar timeout
-        response = JsonResponse({'status': 'ok'})
+        # Enviar respuesta inmediata a Zoho
+        response = JsonResponse({'status': 'recibido'})
         
-        # Ejecutar el procesamiento en segundo plano
-        Thread(target=self.registrar_usuario, args=(data,)).start()
-        
+        # Procesar en segundo plano
+        Thread(target=self.procesar_registro, args=(data,)).start()
+
         return response
 
-    def registrar_usuario(self, data):
+    def procesar_registro(self, data):
         try:
             password_generada = generar_contrasena()
             user_data = {
@@ -325,8 +325,9 @@ class ZohoUser(APIView):
 
             if response.status_code == 200:
                 self.enviar_contrasena_correo(user_data["email"], password_generada)
+
         except Exception as e:
-            print("Error en registro desde Zoho:", str(e))
+            print("❌ Error en ZohoUser:", str(e))
         
     def enviar_contrasena_correo(self, email_destino, contrasena):
         asunto = "Registro en Arrendify - Contraseña Generada"
