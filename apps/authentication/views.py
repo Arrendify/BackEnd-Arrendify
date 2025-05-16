@@ -275,6 +275,8 @@ import json
 import random
 import string
 
+from django.core.mail import EmailMultiAlternatives
+
 from django.http import JsonResponse
 from django.core.mail import send_mail
 from django.conf import settings
@@ -284,10 +286,14 @@ from rest_framework.test import APIRequestFactory
 
 from .views import Register 
 
-class ZohoUser(APIView): 
+class ZohoUser(APIView):  
+    authentication_classes = []  # Por si Register espera auth
+    permission_classes = []      # Idem
+
     def post(self, request):
         try:
             data = request.data
+            print("Recibido de Zoho:", data)
 
             # Generar contraseña segura
             password_generada = generar_contrasena()
@@ -298,7 +304,7 @@ class ZohoUser(APIView):
                 "email": data.get('email'),
                 "first_name": data.get('nombre_completo'),
                 "telefono": data.get('telefono'),
-                "rol": data.get('tipo'),  # Asegúrate que esto venga correctamente desde Zoho
+                "rol": data.get('tipo'),  # Debe coincidir con los valores aceptados
                 "password": password_generada,
                 "password2": password_generada,
             }
@@ -306,39 +312,36 @@ class ZohoUser(APIView):
             # Llamada interna a Register
             factory = APIRequestFactory()
             post_request = factory.post('/api/register/', user_data, format='json')
-            register_view = Register.as_view()
-            response = register_view(post_request)
 
-            # Si el registro fue exitoso, enviar correo
-            if response.status_code == 200:
+            # Si Register requiere autenticación, coméntalo para pruebas
+            # user = User.objects.get(email='admin@example.com')
+            # force_authenticate(post_request, user=user)
+
+            response = Register.as_view()(post_request)
+
+            if response.status_code in (200, 201):
                 self.enviar_contrasena_correo(user_data["email"], password_generada)
-            
+
             return response
 
         except Exception as e:
+            print("Error en ZohoUser:", str(e))
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-
+        
     def enviar_contrasena_correo(self, email_destino, contrasena):
         asunto = "Registro en Arrendify - Contraseña Generada"
-        mensaje = f"""
-        Hola,
-
-        Te has registrado exitosamente en Arrendify.
-        
-        Tu contraseña temporal es: **{contrasena}**
-        
-        Por favor, inicia sesión y cámbiala lo antes posible.
-
-        Saludos,
-        El equipo de Arrendify
+        texto = f"Tu contraseña temporal es: {contrasena}"
+        html = f"""
+        <p>Hola,</p>
+        <p>Te has registrado exitosamente en <strong>Arrendify</strong>.</p>
+        <p><strong>Tu contraseña temporal es:</strong> {contrasena}</p>
+        <p>Por favor, inicia sesión y cámbiala lo antes posible.</p>
+        <p>Saludos,<br>Equipo Arrendify</p>
         """
-        send_mail(
-            asunto,
-            mensaje,
-            settings.DEFAULT_FROM_EMAIL,
-            [email_destino],
-            fail_silently=False
-        )
+
+        msg = EmailMultiAlternatives(asunto, texto, settings.DEFAULT_FROM_EMAIL, [email_destino])
+        msg.attach_alternative(html, "text/html")
+        msg.send()
         
 def generar_contrasena(longitud=10):
     caracteres = string.ascii_letters + string.digits + "!@#$%^&*()"
