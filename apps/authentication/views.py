@@ -287,39 +287,35 @@ from rest_framework.test import APIRequestFactory
 from .views import Register 
 
 class ZohoUser(APIView):  
-    authentication_classes = []  # Por si Register espera auth
-    permission_classes = []      # Idem
+    authentication_classes = []
+    permission_classes = []
 
     def post(self, request):
         try:
             data = request.data
             print("Recibido de Zoho:", data)
 
-            # Generar contraseña segura
             password_generada = generar_contrasena()
 
-            # Preparar datos para la API Register
             user_data = {
                 "username": data.get('email'),
                 "email": data.get('email'),
                 "first_name": data.get('nombre_completo'),
                 "telefono": data.get('telefono'),
-                "rol": data.get('tipo'),  # Debe coincidir con los valores aceptados
+                "rol": data.get('tipo'),
                 "password": password_generada,
                 "password2": password_generada,
             }
 
-            # Llamada interna a Register
+            print("Enviando a Register:", user_data)
+
             factory = APIRequestFactory()
             post_request = factory.post('/api/register/', user_data, format='json')
-
-            # Si Register requiere autenticación, coméntalo para pruebas
-            # user = User.objects.get(email='admin@example.com')
-            # force_authenticate(post_request, user=user)
-
             response = Register.as_view()(post_request)
 
-            if response.status_code in (200, 201):
+            print("Respuesta de Register:", response.data)
+
+            if response.status_code in [200, 201]:
                 self.enviar_contrasena_correo(user_data["email"], password_generada)
 
             return response
