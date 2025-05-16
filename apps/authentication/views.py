@@ -297,40 +297,46 @@ class ZohoUser(APIView):
     @method_decorator(csrf_exempt)
     def post(self, request):
         try:
-            # Intenta obtener datos tanto de request.data como de request.body
-            if hasattr(request, 'data') and request.data:
-                data = request.data
-            else:
-                # Si los datos vienen en el body como JSON string
-                try:
-                    data = json.loads(request.body)
-                except:
+            # IMPORTANTE: Respondemos inmediatamente para evitar timeout en Zoho
+            # Capturamos los datos primero
+            try:
+                # Intenta obtener datos tanto de request.data como de request.body
+                if hasattr(request, 'data') and request.data:
+                    data = request.data
+                elif hasattr(request, 'body') and request.body:
+                    # Si los datos vienen en el body como JSON string
+                    try:
+                        data = json.loads(request.body)
+                    except:
+                        data = {}
+                else:
                     data = {}
-            
-            # Log para depuración
-            print(f"📥 Datos recibidos de Zoho: {data}")
-
-            # Guardamos los datos que se usarán en background
-            nombre_completo = data.get('nombre_completo', '')
-            email = data.get('email', '')
-            tipo = data.get('tipo', 'Cliente')  # Valor por defecto
-            telefono = data.get('telefono', '')
-            password = generar_contrasena()
-
-            # Validación básica
-            if not email:
-                return JsonResponse({'status': 'error', 'message': 'Email es requerido'}, status=400)
                 
-            if not nombre_completo:
-                return JsonResponse({'status': 'error', 'message': 'Nombre es requerido'}, status=400)
-
-            # Respondemos rápido a Zoho
-            Thread(target=self.procesar_usuario, args=(nombre_completo, email, tipo, telefono, password)).start()
-            return JsonResponse({'status': 'success', 'message': 'Datos recibidos correctamente'}, status=200)
+                # Log para depuración
+                print(f"📥 Datos recibidos de Zoho: {data}")
+                
+                # Guardamos los datos que se usarán en background
+                nombre_completo = data.get('nombre_completo', '')
+                email = data.get('email', '')
+                tipo = data.get('tipo', 'Cliente')  # Valor por defecto
+                telefono = data.get('telefono', '')
+                
+                # Solo procesamos si tenemos datos mínimos
+                if email and nombre_completo:
+                    password = generar_contrasena()
+                    # Iniciamos el procesamiento en segundo plano SIN ESPERAR
+                    Thread(target=self.procesar_usuario, args=(nombre_completo, email, tipo, telefono, password)).start()
+            except Exception as e:
+                print(f"⚠️ Error al capturar datos: {str(e)}")
+                # No retornamos error aquí, solo lo registramos
+            
+            # SIEMPRE respondemos OK a Zoho para evitar timeout
+            return JsonResponse({'status': 'success', 'message': 'Solicitud recibida'}, status=200)
 
         except Exception as e:
-            print(f"❌ Error al procesar datos de Zoho: {str(e)}")
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+            print(f"❌ Error crítico en endpoint Zoho: {str(e)}")
+            # Incluso en caso de error crítico, respondemos OK para evitar timeout
+            return JsonResponse({'status': 'received'}, status=200)
 
     def procesar_usuario(self, nombre, email, tipo, telefono, password):
         try:
