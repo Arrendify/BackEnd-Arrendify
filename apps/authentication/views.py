@@ -296,47 +296,58 @@ from threading import Thread
 class ZohoUser(APIView):
     @method_decorator(csrf_exempt)
     def post(self, request):
+        # RESPUESTA INMEDIATA - Prioridad absoluta
+        # Capturar los datos en segundo plano
         try:
-            # IMPORTANTE: Respondemos inmediatamente para evitar timeout en Zoho
-            # Capturamos los datos primero
-            try:
-                # Intenta obtener datos tanto de request.data como de request.body
-                if hasattr(request, 'data') and request.data:
-                    data = request.data
-                elif hasattr(request, 'body') and request.body:
-                    # Si los datos vienen en el body como JSON string
-                    try:
-                        data = json.loads(request.body)
-                    except:
-                        data = {}
-                else:
-                    data = {}
-                
-                # Log para depuración
-                print(f"📥 Datos recibidos de Zoho: {data}")
-                
-                # Guardamos los datos que se usarán en background
-                nombre_completo = data.get('nombre_completo', '')
-                email = data.get('email', '')
-                tipo = data.get('tipo', 'Cliente')  # Valor por defecto
-                telefono = data.get('telefono', '')
-                
-                # Solo procesamos si tenemos datos mínimos
-                if email and nombre_completo:
-                    password = generar_contrasena()
-                    # Iniciamos el procesamiento en segundo plano SIN ESPERAR
-                    Thread(target=self.procesar_usuario, args=(nombre_completo, email, tipo, telefono, password)).start()
-            except Exception as e:
-                print(f"⚠️ Error al capturar datos: {str(e)}")
-                # No retornamos error aquí, solo lo registramos
+            # Intentamos capturar el cuerpo de la solicitud como raw data
+            raw_body = request.body if hasattr(request, 'body') else None
             
-            # SIEMPRE respondemos OK a Zoho para evitar timeout
-            return JsonResponse({'status': 'success', 'message': 'Solicitud recibida'}, status=200)
-
+            # Iniciamos un hilo para procesar todo en segundo plano
+            # Esto garantiza que respondamos inmediatamente a Zoho
+            Thread(target=self._procesar_request, args=(raw_body, request)).start()
         except Exception as e:
-            print(f"❌ Error crítico en endpoint Zoho: {str(e)}")
-            # Incluso en caso de error crítico, respondemos OK para evitar timeout
-            return JsonResponse({'status': 'received'}, status=200)
+            # Solo registramos el error, no afectamos la respuesta
+            print(f"❌ Error al iniciar procesamiento: {str(e)}")
+        
+        # SIEMPRE respondemos 200 OK inmediatamente
+        return JsonResponse({'status': 'success'}, status=200)
+    
+    def _procesar_request(self, raw_body, request):
+        """Procesa la solicitud en segundo plano después de responder a Zoho"""
+        try:
+            # Extraer datos
+            data = {}
+            
+            # Intenta obtener datos de request.data
+            if hasattr(request, 'data') and request.data:
+                data = request.data
+            # Si no hay datos en request.data, intenta parsear el body
+            elif raw_body:
+                try:
+                    data = json.loads(raw_body)
+                except:
+                    print("⚠️ No se pudo parsear el body como JSON")
+            
+            # Log para depuración
+            print(f"📥 Datos recibidos de Zoho (procesamiento asíncrono): {data}")
+            
+            # Extraer campos
+            nombre_completo = data.get('nombre_completo', '')
+            email = data.get('email', '')
+            tipo = data.get('tipo', 'Cliente')  # Valor por defecto
+            telefono = data.get('telefono', '')
+            
+            # Verificar datos mínimos
+            if not email or not nombre_completo:
+                print(f"⚠️ Datos incompletos: email={email}, nombre={nombre_completo}")
+                return
+                
+            # Generar contraseña y procesar usuario
+            password = generar_contrasena()
+            self.procesar_usuario(nombre_completo, email, tipo, telefono, password)
+            
+        except Exception as e:
+            print(f"❌ Error en procesamiento asíncrono: {str(e)}")
 
     def procesar_usuario(self, nombre, email, tipo, telefono, password):
         try:
@@ -347,43 +358,85 @@ class ZohoUser(APIView):
             if existing_user:
                 print(f"ℹ️ Usuario ya existe: {email}")
                 return
-                
-            user_data = {
-                "username": email,
-                "email": email,
-                "first_name": nombre,
-                "telefono": telefono,
-                "rol": tipo,
-                "password": password,
-                "password2": password,
-            }
+            
+            # Intentar crear el usuario usando el registro estándar
+            try:
+                user_data = {
+                    "username": email,
+                    "email": email,
+                    "first_name": nombre,
+                    "telefono": telefono,
+                    "rol": tipo,
+                    "password": password,
+                    "password2": password,
+                }
 
-            factory = APIRequestFactory()
-            post_request = factory.post('/api/register/', user_data, format='json')
-            response = Register.as_view()(post_request)
+                factory = APIRequestFactory()
+                post_request = factory.post('/api/register/', user_data, format='json')
+                response = Register.as_view()(post_request)
 
-            if response.status_code == 200:
-                print(f"✅ Usuario creado exitosamente: {email}")
-                self.enviar_contrasena_correo(email, password)
-            else:
-                print(f"❌ Error al crear usuario: {response.data}")
+                if response.status_code == 200:
+                    print(f"✅ Usuario creado exitosamente: {email}")
+                    # Enviar correo en otro hilo para no bloquear
+                    Thread(target=self.enviar_contrasena_correo, args=(email, password)).start()
+                else:
+                    print(f"❌ Error al crear usuario: {getattr(response, 'data', 'No response data')}")
+            except Exception as e:
+                print(f"❌ Error al crear usuario mediante Register: {str(e)}")
+                # Intentar método alternativo si falla el registro estándar
+                try:
+                    # Crear usuario directamente
+                    user = User.objects.create_user(
+                        username=email,
+                        email=email,
+                        password=password,
+                        first_name=nombre,
+                        telefono=telefono,
+                        rol=tipo
+                    )
+                    print(f"✅ Usuario creado directamente: {email}")
+                    # Enviar correo en otro hilo
+                    Thread(target=self.enviar_contrasena_correo, args=(email, password)).start()
+                except Exception as direct_error:
+                    print(f"❌ Error al crear usuario directamente: {str(direct_error)}")
         except Exception as e:
-            print(f"❌ Error en proceso background: {str(e)}")
+            print(f"❌ Error general en proceso de usuario: {str(e)}")
         
     def enviar_contrasena_correo(self, email_destino, contrasena):
-        asunto = "Registro en Arrendify - Contraseña Generada"
-        texto = f"Tu contraseña temporal es: {contrasena}"
-        html = f"""
-        <p>Hola,</p>
-        <p>Te has registrado exitosamente en <strong>Arrendify</strong>.</p>
-        <p><strong>Tu contraseña temporal es:</strong> {contrasena}</p>
-        <p>Por favor, inicia sesión y cámbiala lo antes posible.</p>
-        <p>Saludos,<br>Equipo Arrendify</p>
-        """
+        try:
+            asunto = "Registro en Arrendify - Contraseña Generada"
+            texto = f"Tu contraseña temporal es: {contrasena}"
+            html = f"""
+            <p>Hola,</p>
+            <p>Te has registrado exitosamente en <strong>Arrendify</strong>.</p>
+            <p><strong>Tu contraseña temporal es:</strong> {contrasena}</p>
+            <p>Por favor, inicia sesión y cámbiala lo antes posible.</p>
+            <p>Saludos,<br>Equipo Arrendify</p>
+            """
 
-        msg = EmailMultiAlternatives(asunto, texto, settings.DEFAULT_FROM_EMAIL, [email_destino])
-        msg.attach_alternative(html, "text/html")
-        msg.send()
+            # Intentar enviar correo con EmailMultiAlternatives
+            try:
+                msg = EmailMultiAlternatives(asunto, texto, settings.DEFAULT_FROM_EMAIL, [email_destino])
+                msg.attach_alternative(html, "text/html")
+                msg.send()
+                print(f"✉️ Correo enviado exitosamente a {email_destino}")
+            except Exception as email_error:
+                print(f"❌ Error al enviar correo con EmailMultiAlternatives: {str(email_error)}")
+                # Método alternativo: send_mail básico
+                try:
+                    send_mail(
+                        asunto,
+                        texto,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [email_destino],
+                        fail_silently=False,
+                    )
+                    print(f"✉️ Correo enviado con método alternativo a {email_destino}")
+                except Exception as basic_email_error:
+                    print(f"❌ Error al enviar correo con método básico: {str(basic_email_error)}")
+        except Exception as e:
+            print(f"❌ Error general al enviar correo: {str(e)}")
+            # No propagamos la excepción para evitar interrumpir el flujo
         
 def generar_contrasena(longitud=10):
     caracteres = string.ascii_letters + string.digits + "!@#$%^&*()"
