@@ -288,6 +288,7 @@ from .views import Register
 
 from threading import Thread
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from django.http import JsonResponse
 from threading import Thread
