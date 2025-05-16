@@ -286,17 +286,26 @@ from rest_framework.test import APIRequestFactory
 
 from .views import Register 
 
-class ZohoUser(APIView):  
-    authentication_classes = []
-    permission_classes = []
+from threading import Thread
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
+@method_decorator(csrf_exempt, name='dispatch')
+class ZohoUser(APIView):  
     def post(self, request):
         try:
             data = request.data
-            print("Recibido de Zoho:", data)
 
+            # Responder rápido a Zoho
+            Thread(target=self.procesar_registro, args=(data,)).start()
+            return JsonResponse({'status': 'ok', 'message': 'Datos recibidos'}, status=200)
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+    def procesar_registro(self, data):
+        try:
             password_generada = generar_contrasena()
-
             user_data = {
                 "username": data.get('email'),
                 "email": data.get('email'),
@@ -307,22 +316,16 @@ class ZohoUser(APIView):
                 "password2": password_generada,
             }
 
-            print("Enviando a Register:", user_data)
-
             factory = APIRequestFactory()
             post_request = factory.post('/api/register/', user_data, format='json')
-            response = Register.as_view()(post_request)
+            register_view = Register.as_view()
+            response = register_view(post_request)
 
-            print("Respuesta de Register:", response.data)
-
-            if response.status_code in [200, 201]:
+            if response.status_code == 200:
                 self.enviar_contrasena_correo(user_data["email"], password_generada)
 
-            return response
-
         except Exception as e:
-            print("Error en ZohoUser:", str(e))
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+            print(f"[ERROR] Fallo procesando el registro desde Zoho: {e}")
         
     def enviar_contrasena_correo(self, email_destino, contrasena):
         asunto = "Registro en Arrendify - Contraseña Generada"
