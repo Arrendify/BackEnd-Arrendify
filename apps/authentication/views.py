@@ -39,6 +39,10 @@ from email.mime.base import MIMEBase
 from smtplib import SMTPException
 from decouple import config
 
+#ZOHO
+import json
+import random
+import string
 
 
 
@@ -266,3 +270,76 @@ def agente_inquilino(request):
 #         Inmobiliaria_serializer = User2Inmobiliaria(inmobiliaria, many=True)
 #         return Response(Inmobiliaria_serializer.data)    
 #     return Response({'error':"No existe inmobiliarias"}, status= status.HTTP_204_NO_CONTENT)
+
+import json
+import random
+import string
+
+from django.http import JsonResponse
+from django.core.mail import send_mail
+from django.conf import settings
+
+from rest_framework.views import APIView
+from rest_framework.test import APIRequestFactory
+
+from .views import Register 
+
+class ZohoUser(APIView): 
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+
+            # Generar contraseña segura
+            password_generada = generar_contrasena()
+
+            # Preparar datos para la API Register
+            user_data = {
+                "username": data.get('email'),
+                "email": data.get('email'),
+                "first_name": data.get('nombre_completo'),
+                "telefono": data.get('telefono'),
+                "rol": data.get('tipo'),  # Asegúrate que esto venga correctamente desde Zoho
+                "password": password_generada,
+                "password2": password_generada,
+            }
+
+            # Llamada interna a Register
+            factory = APIRequestFactory()
+            post_request = factory.post('/api/register/', user_data, format='json')
+            register_view = Register.as_view()
+            response = register_view(post_request)
+
+            # Si el registro fue exitoso, enviar correo
+            if response.status_code == 200:
+                self.enviar_contrasena_correo(user_data["email"], password_generada)
+            
+            return response
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+    def enviar_contrasena_correo(self, email_destino, contrasena):
+        asunto = "Registro en Arrendify - Contraseña Generada"
+        mensaje = f"""
+        Hola,
+
+        Te has registrado exitosamente en Arrendify.
+        
+        Tu contraseña temporal es: **{contrasena}**
+        
+        Por favor, inicia sesión y cámbiala lo antes posible.
+
+        Saludos,
+        El equipo de Arrendify
+        """
+        send_mail(
+            asunto,
+            mensaje,
+            settings.DEFAULT_FROM_EMAIL,
+            [email_destino],
+            fail_silently=False
+        )
+        
+def generar_contrasena(longitud=10):
+    caracteres = string.ascii_letters + string.digits + "!@#$%^&*()"
+    return ''.join(random.choices(caracteres, k=longitud))
