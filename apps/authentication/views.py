@@ -293,41 +293,45 @@ from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from threading import Thread
 
-class ZohoUser(APIView):  
+class ZohoUser(APIView):
     def post(self, request):
-        data = request.data
-
-        # Enviar respuesta inmediata a Zoho
-        response = JsonResponse({'status': 'recibido'})
-        
-        # Procesar en segundo plano
-        Thread(target=self.procesar_registro, args=(data,)).start()
-
-        return response
-
-    def procesar_registro(self, data):
         try:
-            password_generada = generar_contrasena()
+            data = request.data
+
+            # Guardamos los datos que se usarán en background
+            nombre_completo = data.get('nombre_completo')
+            email = data.get('email')
+            tipo = data.get('tipo')
+            telefono = data.get('telefono')
+            password = generar_contrasena()
+
+            # Respondemos rápido a Zoho
+            Thread(target=self.procesar_usuario, args=(nombre_completo, email, tipo, telefono, password)).start()
+            return Response({'status': 'recibido'})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+    def procesar_usuario(self, nombre, email, tipo, telefono, password):
+        try:
             user_data = {
-                "username": data.get('email'),
-                "email": data.get('email'),
-                "first_name": data.get('nombre_completo'),
-                "telefono": data.get('telefono'),
-                "rol": data.get('tipo'),
-                "password": password_generada,
-                "password2": password_generada,
+                "username": email,
+                "email": email,
+                "first_name": nombre,
+                "telefono": telefono,
+                "rol": tipo,
+                "password": password,
+                "password2": password,
             }
 
             factory = APIRequestFactory()
             post_request = factory.post('/api/register/', user_data, format='json')
-            register_view = Register.as_view()
-            response = register_view(post_request)
+            response = Register.as_view()(post_request)
 
             if response.status_code == 200:
-                self.enviar_contrasena_correo(user_data["email"], password_generada)
-
+                self.enviar_contrasena_correo(email, password)
         except Exception as e:
-            print("❌ Error en ZohoUser:", str(e))
+            print("Error en proceso background:", e)
         
     def enviar_contrasena_correo(self, email_destino, contrasena):
         asunto = "Registro en Arrendify - Contraseña Generada"
