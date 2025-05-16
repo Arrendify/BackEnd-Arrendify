@@ -288,32 +288,59 @@ from .views import Register
 
 from threading import Thread
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from django.http import JsonResponse
 from threading import Thread
 
 class ZohoUser(APIView):
+    @method_decorator(csrf_exempt)
     def post(self, request):
         try:
-            data = request.data
+            # Intenta obtener datos tanto de request.data como de request.body
+            if hasattr(request, 'data') and request.data:
+                data = request.data
+            else:
+                # Si los datos vienen en el body como JSON string
+                try:
+                    data = json.loads(request.body)
+                except:
+                    data = {}
+            
+            # Log para depuración
+            print(f"📥 Datos recibidos de Zoho: {data}")
 
             # Guardamos los datos que se usarán en background
-            nombre_completo = data.get('nombre_completo')
-            email = data.get('email')
-            tipo = data.get('tipo')
-            telefono = data.get('telefono')
+            nombre_completo = data.get('nombre_completo', '')
+            email = data.get('email', '')
+            tipo = data.get('tipo', 'Cliente')  # Valor por defecto
+            telefono = data.get('telefono', '')
             password = generar_contrasena()
+
+            # Validación básica
+            if not email:
+                return JsonResponse({'status': 'error', 'message': 'Email es requerido'}, status=400)
+                
+            if not nombre_completo:
+                return JsonResponse({'status': 'error', 'message': 'Nombre es requerido'}, status=400)
 
             # Respondemos rápido a Zoho
             Thread(target=self.procesar_usuario, args=(nombre_completo, email, tipo, telefono, password)).start()
-            return Response({'status': 'recibido'})
+            return JsonResponse({'status': 'success', 'message': 'Datos recibidos correctamente'}, status=200)
 
         except Exception as e:
+            print(f"❌ Error al procesar datos de Zoho: {str(e)}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
     def procesar_usuario(self, nombre, email, tipo, telefono, password):
         try:
+            print(f"🔄 Procesando usuario: {email}, tipo: {tipo}")
+            
+            # Verificar si el usuario ya existe
+            existing_user = User.objects.filter(email=email).first()
+            if existing_user:
+                print(f"ℹ️ Usuario ya existe: {email}")
+                return
+                
             user_data = {
                 "username": email,
                 "email": email,
@@ -329,9 +356,12 @@ class ZohoUser(APIView):
             response = Register.as_view()(post_request)
 
             if response.status_code == 200:
+                print(f"✅ Usuario creado exitosamente: {email}")
                 self.enviar_contrasena_correo(email, password)
+            else:
+                print(f"❌ Error al crear usuario: {response.data}")
         except Exception as e:
-            print("Error en proceso background:", e)
+            print(f"❌ Error en proceso background: {str(e)}")
         
     def enviar_contrasena_correo(self, email_destino, contrasena):
         asunto = "Registro en Arrendify - Contraseña Generada"
