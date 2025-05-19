@@ -418,7 +418,7 @@ class ZohoUser(APIView):
                         username=email,
                         email=email,
                         password=password,
-                        first_name=nombre,
+                        first_name=nombre_completo,
                         telefono=telefono,
                         rol=tipo
                     )
