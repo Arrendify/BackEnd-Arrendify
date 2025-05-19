@@ -330,6 +330,12 @@ class ZohoUser(APIView):
             # Extraer datos
             data = {}
             
+            # Función para limpiar valores en formato ${valor}
+            def limpiar_valor(valor):
+                if isinstance(valor, str) and valor.startswith('${') and valor.endswith('}'): 
+                    return valor[2:-1]  # Quita ${ del principio y } del final
+                return valor
+            
             # Intenta obtener datos de request.data
             if hasattr(request, 'data') and request.data:
                 data = request.data
@@ -350,11 +356,14 @@ class ZohoUser(APIView):
                         # Log para depuración
                         print(f"📥 Datos recibidos de Zoho (procesamiento asíncrono): {data}")
                 
-            # Extraer campos
-            nombre_completo = data.get('nombre_completo', '')
-            email = data.get('email', '')
-            tipo = data.get('tipo', 'Cliente')  # Valor por defecto
-            telefono = data.get('telefono', '')
+            # Extraer campos y limpiar formato ${...}
+            nombre_completo = limpiar_valor(data.get('nombre_completo', ''))
+            email = limpiar_valor(data.get('email', ''))
+            tipo = limpiar_valor(data.get('tipo', 'Cliente'))  # Valor por defecto
+            telefono = limpiar_valor(data.get('telefono', ''))
+            
+            # Log de los datos limpios
+            print(f"✅ Datos procesados: nombre={nombre_completo}, email={email}, tipo={tipo}, telefono={telefono}")
             
             # Verificar datos mínimos
             if not email or not nombre_completo:
