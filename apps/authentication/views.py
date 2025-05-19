@@ -296,8 +296,7 @@ from threading import Thread
 class ZohoUser(APIView):
     @method_decorator(csrf_exempt)
     def post(self, request):
-        # RESPUESTA INMEDIATA - Prioridad absoluta
-        # Capturar los datos en segundo plano
+        print("🔔 Webhook recibido")
         try:
             # Intentamos capturar el cuerpo de la solicitud como raw data
             raw_body = request.body if hasattr(request, 'body') else None
@@ -326,11 +325,18 @@ class ZohoUser(APIView):
                 try:
                     data = json.loads(raw_body)
                 except:
-                    print("⚠️ No se pudo parsear el body como JSON")
-            
-            # Log para depuración
-            print(f"📥 Datos recibidos de Zoho (procesamiento asíncrono): {data}")
-            
+                    try:
+            # Manejar datos como x-www-form-urlencoded
+                        from urllib.parse import parse_qs
+                        parsed = parse_qs(raw_body.decode('utf-8'))
+                        data = {k: v[0] for k, v in parsed.items()}
+                        print("📩 Datos parseados como form-urlencoded:", data)
+                    except Exception as e:
+                        print(f"⚠️ No se pudo parsear el body como form-urlencoded: {str(e)}")
+                        
+                        # Log para depuración
+                        print(f"📥 Datos recibidos de Zoho (procesamiento asíncrono): {data}")
+                
             # Extraer campos
             nombre_completo = data.get('nombre_completo', '')
             email = data.get('email', '')
