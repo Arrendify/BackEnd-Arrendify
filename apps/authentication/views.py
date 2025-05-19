@@ -469,3 +469,32 @@ class ZohoUser(APIView):
 def generar_contrasena(longitud=10):
     caracteres = string.ascii_letters + string.digits + "!@#$%^&*()"
     return ''.join(random.choices(caracteres, k=longitud))
+
+
+@api_view(['GET', 'POST'])
+@csrf_exempt
+def zoho_test(request):
+    """Endpoint sencillo para probar webhooks de Zoho"""
+    print("\n\n🔔 PRUEBA DE WEBHOOK RECIBIDA")
+    print(f"📝 Método: {request.method}")
+    print(f"🔑 Headers: {dict(request.headers)}")
+    
+    # Mostrar cuerpo de la solicitud
+    if request.body:
+        print(f"📦 Raw Body: {request.body}")
+        try:
+            body_json = json.loads(request.body)
+            print(f"📋 JSON Body: {body_json}")
+        except:
+            print("⚠️ No se pudo parsear el cuerpo como JSON")
+    
+    # Mostrar datos POST
+    if request.POST:
+        print(f"📬 POST data: {request.POST}")
+        
+    # Siempre devolver éxito
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Webhook de prueba recibido correctamente',
+        'timestamp': datetime.now().isoformat()
+    })

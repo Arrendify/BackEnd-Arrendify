@@ -1,6 +1,5 @@
 from django.urls import path
-from .views import  Login, Logout, UserToken,Register,ZohoUser, user_unico, agente_inmobiliaria
-
+from .views import  Login, Logout, UserToken, Register, ZohoUser, user_unico, agente_inmobiliaria, zoho_test
 
 urlpatterns = [
   
@@ -11,4 +10,5 @@ urlpatterns = [
     path("registro_zoho/",ZohoUser.as_view(), name='registro_zoho'),
     path("user_unico/", user_unico, name="user_unico"),
     path("agente_inmobiliaria/", agente_inmobiliaria, name="agente_inmobiliaria"),
+    path("zoho_test/", zoho_test, name="zoho_test"),
 ]
