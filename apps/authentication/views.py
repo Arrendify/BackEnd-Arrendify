@@ -294,13 +294,26 @@ from django.http import JsonResponse
 from threading import Thread
 
 class ZohoUser(APIView):
-    @method_decorator(csrf_exempt)
+    @method_decorator(csrf_exempt, name='dispatch')
     def post(self, request):
-        print("🔔 Webhook recibido")
+        print("🔔 Webhook recibido de Zoho")
+        print(f"📥 META: {request.META.get('REMOTE_ADDR')} - {request.META.get('HTTP_USER_AGENT')}")
+        print(f"🔑 Headers: {dict(request.headers)}")
         try:
             # Intentamos capturar el cuerpo de la solicitud como raw data
             raw_body = request.body if hasattr(request, 'body') else None
+            print(f"📦 Raw Body: {raw_body}")
             
+            # Intentar parsear el contenido como JSON para mostrarlo en logs
+            try:
+                if raw_body:
+                    body_json = json.loads(raw_body)
+                    print(f"📋 JSON Body: {body_json}")
+                else:
+                    print(f"📋 POST Data: {request.POST}")
+            except:
+                print("⚠️ No se pudo parsear el cuerpo como JSON")
+                
             # Iniciamos un hilo para procesar todo en segundo plano
             # Esto garantiza que respondamos inmediatamente a Zoho
             Thread(target=self._procesar_request, args=(raw_body, request)).start()
@@ -355,7 +368,7 @@ class ZohoUser(APIView):
         except Exception as e:
             print(f"❌ Error en procesamiento asíncrono: {str(e)}")
 
-    def procesar_usuario(self, nombre, email, tipo, telefono, password):
+    def procesar_usuario(self, nombre_completo, email, tipo, telefono, password):
         try:
             print(f"🔄 Procesando usuario: {email}, tipo: {tipo}")
             
@@ -370,7 +383,7 @@ class ZohoUser(APIView):
                 user_data = {
                     "username": email,
                     "email": email,
-                    "first_name": nombre,
+                    "first_name": nombre_completo,
                     "telefono": telefono,
                     "rol": tipo,
                     "password": password,
