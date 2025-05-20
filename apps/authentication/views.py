@@ -41,19 +41,6 @@ from decouple import config
 
 #ZOHO
 import json, string, random
-from django.http import JsonResponse
-from django.core.mail import send_mail
-from django.conf import settings
-
-from rest_framework.request import Request
-from rest_framework.test import APIRequestFactory
-
-from threading import Thread
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-
-from django.http import JsonResponse
-from threading import Thread
 
 
 
@@ -201,7 +188,7 @@ class Register(APIView):
                     user_serializar.save()
                     info = User.objects.get(username=entrada["username"])
                     self.enviar_codigo(info)
-                    if enviar_password:
+                    if enviar_password == True:
                         self.enviar_password(info.email, entrada['password'])
                     print("usuario guardado")
 
@@ -264,13 +251,18 @@ class Register(APIView):
         subject = "Tu cuenta generada por Arrendify"
         html = f"""
         <html>
-            <body>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="apps\static\assets\img\brand\logo_cpro.png" alt="Logo" width="120" style="display: block; margin: 0 auto;" />
+                </div>
+
                 <p>Hola,</p>
-                <p>El usuario para tu cuenta es:</p>
-                <h3>{email}</h3>
-                <p>Se ha generado una contraseña temporal para tu cuenta:</p>
-                <h3>{password}</h3>
-                <p>Por favor cámbiala después de iniciar sesión.</p>
+                <p>Tu cuenta ha sido creada exitosamente. A continuación encontrarás tus credenciales de acceso:</p>
+                
+                <p><strong>Usuario (correo electrónico):</strong><br>{email}</p>
+                <p><strong>Contraseña:</strong><br>{password}</p>
+                
+                <p>Saludos cordiales,<br>El equipo de Contrato.Pro</p>
             </body>
         </html>
         """
@@ -290,6 +282,7 @@ class Register(APIView):
             server.login(smtp_username, smtp_password)
             server.sendmail(smtp_username, email, msg.as_string())
             print("Contraseña enviada")
+            
 
 @api_view(['GET'])
 def user_unico(request):
@@ -332,75 +325,3 @@ def agente_inquilino(request):
 #         return Response(Inmobiliaria_serializer.data)    
 #     return Response({'error':"No existe inmobiliarias"}, status= status.HTTP_204_NO_CONTENT)
 
-
-
-class ZohoUser(APIView):
-    @method_decorator(csrf_exempt)
-    def post(self, request: Request):
-        print("🔔 Webhook recibido de Zoho")
-        raw_body = request.body
-
-        try:
-            # Intentar parsear como JSON o form-urlencoded
-            try:
-                data = json.loads(raw_body)
-            except:
-                from urllib.parse import parse_qs
-                data = {k: v[0] for k, v in parse_qs(raw_body.decode('utf-8')).items()}
-            
-            print("📦 Datos recibidos:", data)
-
-            # Limpiar posibles valores como ${email}
-            def clean(val):
-                return val[2:-1] if isinstance(val, str) and val.startswith("${") and val.endswith("}") else val
-
-            nombre = clean(data.get("nombre_completo", ""))
-            email = clean(data.get("email", ""))
-            tipo = clean(data.get("tipo", "Normal"))
-
-            if not email or not nombre:
-                print("⚠️ Faltan datos requeridos.")
-                return JsonResponse({'error': 'Datos incompletos'}, status=400)
-
-            password = self.generar_contrasena()
-            user_data = {
-                "username": email,
-                "email": email,
-                "first_name": nombre,
-                "rol": tipo,
-                "password": password,
-                "password2": password,
-            }
-
-            # Llamar al endpoint Register internamente
-            factory = APIRequestFactory()
-            internal_request = factory.post('/api/register/', user_data, format='json')
-            response = Register.as_view()(internal_request)
-
-            if response.status_code == 200:
-                print(f"✅ Usuario creado: {email}")
-                Thread(target=self.enviar_contrasena_correo, args=(email, password)).start()
-            else:
-                print(f"❌ Falló el registro: {getattr(response, 'data', 'Sin datos de respuesta')}")
-
-        except Exception as e:
-            print(f"❌ Error en ZohoUser: {str(e)}")
-
-        return JsonResponse({'status': 'success'})
-
-    def generar_contrasena(self, longitud=10):
-        return ''.join(random.choices(string.ascii_letters + string.digits, k=longitud))
-
-    def enviar_contrasena_correo(self, email, password):
-        from django.core.mail import EmailMultiAlternatives
-        from django.conf import settings
-        try:
-            asunto = "Tu contraseña temporal en Arrendify"
-            cuerpo = f"Tu contraseña temporal es: {password}"
-            html = f"<p>Tu contraseña temporal es: <strong>{password}</strong></p>"
-            mensaje = EmailMultiAlternatives(asunto, cuerpo, settings.DEFAULT_FROM_EMAIL, [email])
-            mensaje.attach_alternative(html, "text/html")
-            mensaje.send()
-            print(f"✉️ Correo enviado a {email}")
-        except Exception as e:
-            print(f"❌ Error al enviar correo: {str(e)}")
