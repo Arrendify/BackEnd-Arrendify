@@ -360,10 +360,9 @@ class ZohoUser(APIView):
             nombre_completo = limpiar_valor(data.get('nombre_completo', ''))
             email = limpiar_valor(data.get('email', ''))
             tipo = limpiar_valor(data.get('tipo', 'Cliente'))  # Valor por defecto
-            telefono = limpiar_valor(data.get('telefono', ''))
             
             # Log de los datos limpios
-            print(f"✅ Datos procesados: nombre={nombre_completo}, email={email}, tipo={tipo}, telefono={telefono}")
+            print(f"✅ Datos procesados: nombre={nombre_completo}, email={email}, tipo={tipo}")
             
             # Verificar datos mínimos
             if not email or not nombre_completo:
@@ -372,12 +371,12 @@ class ZohoUser(APIView):
                 
             # Generar contraseña y procesar usuario
             password = generar_contrasena()
-            self.procesar_usuario(nombre_completo, email, tipo, telefono, password)
+            self.procesar_usuario(nombre_completo, email, tipo, password)
             
         except Exception as e:
             print(f"❌ Error en procesamiento asíncrono: {str(e)}")
 
-    def procesar_usuario(self, nombre_completo, email, tipo, telefono, password):
+    def procesar_usuario(self, nombre_completo, email, tipo, password):
         try:
             print(f"🔄 Procesando usuario: {email}, tipo: {tipo}")
             
@@ -393,7 +392,6 @@ class ZohoUser(APIView):
                     "username": email,
                     "email": email,
                     "first_name": nombre_completo,
-                    "telefono": telefono,
                     "rol": tipo,
                     "password": password,
                     "password2": password,
@@ -419,7 +417,6 @@ class ZohoUser(APIView):
                         email=email,
                         password=password,
                         first_name=nombre_completo,
-                        telefono=telefono,
                         rol=tipo
                     )
                     print(f"✅ Usuario creado directamente: {email}")
