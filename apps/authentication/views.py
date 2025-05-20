@@ -211,7 +211,7 @@ class Register(APIView):
                     user_serializar.save()
                     info = User.objects.get(username=entrada["username"])
                     if enviar_password:
-                        self.enviar_password(info.email, entrada['password'])
+                        self.enviar_password(info.email, info.first_name, entrada['password'])
                     print("usuario guardado")
 
                 print("ya voy a retornar la info")
