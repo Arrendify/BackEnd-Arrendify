@@ -247,7 +247,7 @@ class Register(APIView):
             server.sendmail(smtp_username, email, msg.as_string())
             print("Código enviado")
 
-    def enviar_password(self, email, password, first_name):
+    def enviar_password(self, email, password):
         subject = "Tu cuenta generada por Arrendify"
         html = f"""
         <html>
@@ -256,7 +256,7 @@ class Register(APIView):
                     <img src="apps\static\assets\img\brand\logo_cpro.png" alt="Logo" width="120" style="display: block; margin: 0 auto;" />
                 </div>
 
-                <p>Hola {first_name},</p>
+                <p>Hola Usuari@,</p>
                 <p>Tu cuenta ha sido creada exitosamente. A continuación encontrarás tus credenciales de acceso:</p>
                 
                 <p><strong>Usuario (correo electrónico):</strong><br>{email}</p>
