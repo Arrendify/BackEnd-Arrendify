@@ -40,9 +40,20 @@ from smtplib import SMTPException
 from decouple import config
 
 #ZOHO
-import json
-import random
-import string
+import json, string, random
+from django.http import JsonResponse
+from django.core.mail import send_mail
+from django.conf import settings
+
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
+
+from threading import Thread
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+
+from django.http import JsonResponse
+from threading import Thread
 
 
 
@@ -271,227 +282,75 @@ def agente_inquilino(request):
 #         return Response(Inmobiliaria_serializer.data)    
 #     return Response({'error':"No existe inmobiliarias"}, status= status.HTTP_204_NO_CONTENT)
 
-import json
-import random
-import string
 
-from django.core.mail import EmailMultiAlternatives
-
-from django.http import JsonResponse
-from django.core.mail import send_mail
-from django.conf import settings
-
-from rest_framework.views import APIView
-from rest_framework.test import APIRequestFactory
-
-from .views import Register 
-
-from threading import Thread
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-
-from django.http import JsonResponse
-from threading import Thread
 
 class ZohoUser(APIView):
-    @method_decorator(csrf_exempt, name='dispatch')
-    def post(self, request):
+    @method_decorator(csrf_exempt)
+    def post(self, request: Request):
         print("🔔 Webhook recibido de Zoho")
-        print(f"📥 META: {request.META.get('REMOTE_ADDR')} - {request.META.get('HTTP_USER_AGENT')}")
-        print(f"🔑 Headers: {dict(request.headers)}")
+        raw_body = request.body
+
         try:
-            # Intentamos capturar el cuerpo de la solicitud como raw data
-            raw_body = request.body if hasattr(request, 'body') else None
-            print(f"📦 Raw Body: {raw_body}")
-            
-            # Intentar parsear el contenido como JSON para mostrarlo en logs
+            # Intentar parsear como JSON o form-urlencoded
             try:
-                if raw_body:
-                    body_json = json.loads(raw_body)
-                    print(f"📋 JSON Body: {body_json}")
-                else:
-                    print(f"📋 POST Data: {request.POST}")
+                data = json.loads(raw_body)
             except:
-                print("⚠️ No se pudo parsear el cuerpo como JSON")
-                
-            # Iniciamos un hilo para procesar todo en segundo plano
-            # Esto garantiza que respondamos inmediatamente a Zoho
-            Thread(target=self._procesar_request, args=(raw_body, request)).start()
+                from urllib.parse import parse_qs
+                data = {k: v[0] for k, v in parse_qs(raw_body.decode('utf-8')).items()}
+            
+            print("📦 Datos recibidos:", data)
+
+            # Limpiar posibles valores como ${email}
+            def clean(val):
+                return val[2:-1] if isinstance(val, str) and val.startswith("${") and val.endswith("}") else val
+
+            nombre = clean(data.get("nombre_completo", ""))
+            email = clean(data.get("email", ""))
+            tipo = clean(data.get("tipo", "Normal"))
+
+            if not email or not nombre:
+                print("⚠️ Faltan datos requeridos.")
+                return JsonResponse({'error': 'Datos incompletos'}, status=400)
+
+            password = self.generar_contrasena()
+            user_data = {
+                "username": email,
+                "email": email,
+                "first_name": nombre,
+                "rol": tipo,
+                "password": password,
+                "password2": password,
+            }
+
+            # Llamar al endpoint Register internamente
+            factory = APIRequestFactory()
+            internal_request = factory.post('/api/register/', user_data, format='json')
+            response = Register.as_view()(internal_request)
+
+            if response.status_code == 200:
+                print(f"✅ Usuario creado: {email}")
+                Thread(target=self.enviar_contrasena_correo, args=(email, password)).start()
+            else:
+                print(f"❌ Falló el registro: {getattr(response, 'data', 'Sin datos de respuesta')}")
+
         except Exception as e:
-            # Solo registramos el error, no afectamos la respuesta
-            print(f"❌ Error al iniciar procesamiento: {str(e)}")
-        
-        # SIEMPRE respondemos 200 OK inmediatamente
-        return JsonResponse({'status': 'success'}, status=200)
-    
-    def _procesar_request(self, raw_body, request):
-        """Procesa la solicitud en segundo plano después de responder a Zoho"""
+            print(f"❌ Error en ZohoUser: {str(e)}")
+
+        return JsonResponse({'status': 'success'})
+
+    def generar_contrasena(self, longitud=10):
+        return ''.join(random.choices(string.ascii_letters + string.digits, k=longitud))
+
+    def enviar_contrasena_correo(self, email, password):
+        from django.core.mail import EmailMultiAlternatives
+        from django.conf import settings
         try:
-            # Extraer datos
-            data = {}
-            
-            # Función para limpiar valores en formato ${valor}
-            def limpiar_valor(valor):
-                if isinstance(valor, str) and valor.startswith('${') and valor.endswith('}'): 
-                    return valor[2:-1]  # Quita ${ del principio y } del final
-                return valor
-            
-            # Intenta obtener datos de request.data
-            if hasattr(request, 'data') and request.data:
-                data = request.data
-            # Si no hay datos en request.data, intenta parsear el body
-            elif raw_body:
-                try:
-                    data = json.loads(raw_body)
-                except:
-                    try:
-            # Manejar datos como x-www-form-urlencoded
-                        from urllib.parse import parse_qs
-                        parsed = parse_qs(raw_body.decode('utf-8'))
-                        data = {k: v[0] for k, v in parsed.items()}
-                        print("📩 Datos parseados como form-urlencoded:", data)
-                    except Exception as e:
-                        print(f"⚠️ No se pudo parsear el body como form-urlencoded: {str(e)}")
-                        
-                        # Log para depuración
-                        print(f"📥 Datos recibidos de Zoho (procesamiento asíncrono): {data}")
-                
-            # Extraer campos y limpiar formato ${...}
-            nombre_completo = limpiar_valor(data.get('nombre_completo', ''))
-            email = limpiar_valor(data.get('email', ''))
-            tipo = limpiar_valor(data.get('tipo', 'Cliente'))  # Valor por defecto
-            
-            # Log de los datos limpios
-            print(f"✅ Datos procesados: nombre={nombre_completo}, email={email}, tipo={tipo}")
-            
-            # Verificar datos mínimos
-            if not email or not nombre_completo:
-                print(f"⚠️ Datos incompletos: email={email}, nombre={nombre_completo}")
-                return
-                
-            # Generar contraseña y procesar usuario
-            password = generar_contrasena()
-            self.procesar_usuario(nombre_completo, email, tipo, password)
-            
+            asunto = "Tu contraseña temporal en Arrendify"
+            cuerpo = f"Tu contraseña temporal es: {password}"
+            html = f"<p>Tu contraseña temporal es: <strong>{password}</strong></p>"
+            mensaje = EmailMultiAlternatives(asunto, cuerpo, settings.DEFAULT_FROM_EMAIL, [email])
+            mensaje.attach_alternative(html, "text/html")
+            mensaje.send()
+            print(f"✉️ Correo enviado a {email}")
         except Exception as e:
-            print(f"❌ Error en procesamiento asíncrono: {str(e)}")
-
-    def procesar_usuario(self, nombre_completo, email, tipo, password):
-        try:
-            print(f"🔄 Procesando usuario: {email}, tipo: {tipo}")
-            
-            # Verificar si el usuario ya existe
-            existing_user = User.objects.filter(email=email).first()
-            if existing_user:
-                print(f"ℹ️ Usuario ya existe: {email}")
-                return
-            
-            # Intentar crear el usuario usando el registro estándar
-            try:
-                user_data = {
-                    "username": email,
-                    "email": email,
-                    "first_name": nombre_completo,
-                    "rol": tipo,
-                    "password": password,
-                    "password2": password,
-                }
-
-                factory = APIRequestFactory()
-                post_request = factory.post('/api/register/', user_data, format='json')
-                response = Register.as_view()(post_request)
-
-                if response.status_code == 200:
-                    print(f"✅ Usuario creado exitosamente: {email}")
-                    # Enviar correo en otro hilo para no bloquear
-                    Thread(target=self.enviar_contrasena_correo, args=(email, password)).start()
-                else:
-                    print(f"❌ Error al crear usuario: {getattr(response, 'data', 'No response data')}")
-            except Exception as e:
-                print(f"❌ Error al crear usuario mediante Register: {str(e)}")
-                # Intentar método alternativo si falla el registro estándar
-                try:
-                    # Crear usuario directamente
-                    user = User.objects.create_user(
-                        username=email,
-                        email=email,
-                        password=password,
-                        first_name=nombre_completo,
-                        rol=tipo
-                    )
-                    print(f"✅ Usuario creado directamente: {email}")
-                    # Enviar correo en otro hilo
-                    Thread(target=self.enviar_contrasena_correo, args=(email, password)).start()
-                except Exception as direct_error:
-                    print(f"❌ Error al crear usuario directamente: {str(direct_error)}")
-        except Exception as e:
-            print(f"❌ Error general en proceso de usuario: {str(e)}")
-        
-    def enviar_contrasena_correo(self, email_destino, contrasena):
-        try:
-            asunto = "Registro en Arrendify - Contraseña Generada"
-            texto = f"Tu contraseña temporal es: {contrasena}"
-            html = f"""
-            <p>Hola,</p>
-            <p>Te has registrado exitosamente en <strong>Arrendify</strong>.</p>
-            <p><strong>Tu contraseña temporal es:</strong> {contrasena}</p>
-            <p>Por favor, inicia sesión y cámbiala lo antes posible.</p>
-            <p>Saludos,<br>Equipo Arrendify</p>
-            """
-
-            # Intentar enviar correo con EmailMultiAlternatives
-            try:
-                msg = EmailMultiAlternatives(asunto, texto, settings.DEFAULT_FROM_EMAIL, [email_destino])
-                msg.attach_alternative(html, "text/html")
-                msg.send()
-                print(f"✉️ Correo enviado exitosamente a {email_destino}")
-            except Exception as email_error:
-                print(f"❌ Error al enviar correo con EmailMultiAlternatives: {str(email_error)}")
-                # Método alternativo: send_mail básico
-                try:
-                    send_mail(
-                        asunto,
-                        texto,
-                        settings.DEFAULT_FROM_EMAIL,
-                        [email_destino],
-                        fail_silently=False,
-                    )
-                    print(f"✉️ Correo enviado con método alternativo a {email_destino}")
-                except Exception as basic_email_error:
-                    print(f"❌ Error al enviar correo con método básico: {str(basic_email_error)}")
-        except Exception as e:
-            print(f"❌ Error general al enviar correo: {str(e)}")
-            # No propagamos la excepción para evitar interrumpir el flujo
-        
-def generar_contrasena(longitud=10):
-    caracteres = string.ascii_letters + string.digits + "!@#$%^&*()"
-    return ''.join(random.choices(caracteres, k=longitud))
-
-
-@api_view(['GET', 'POST'])
-@csrf_exempt
-def zoho_test(request):
-    """Endpoint sencillo para probar webhooks de Zoho"""
-    print("\n\n🔔 PRUEBA DE WEBHOOK RECIBIDA")
-    print(f"📝 Método: {request.method}")
-    print(f"🔑 Headers: {dict(request.headers)}")
-    
-    # Mostrar cuerpo de la solicitud
-    if request.body:
-        print(f"📦 Raw Body: {request.body}")
-        try:
-            body_json = json.loads(request.body)
-            print(f"📋 JSON Body: {body_json}")
-        except:
-            print("⚠️ No se pudo parsear el cuerpo como JSON")
-    
-    # Mostrar datos POST
-    if request.POST:
-        print(f"📬 POST data: {request.POST}")
-        
-    # Siempre devolver éxito
-    return JsonResponse({
-        'status': 'success',
-        'message': 'Webhook de prueba recibido correctamente',
-        'timestamp': datetime.now().isoformat()
-    })
+            print(f"❌ Error al enviar correo: {str(e)}")
