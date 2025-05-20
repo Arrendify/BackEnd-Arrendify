@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import  Login, Logout, UserToken, Register, user_unico, agente_inmobiliaria
+from .views import  Login, Logout, UserToken, Register, ChangePasswordView, UserInfoView, user_unico, agente_inmobiliaria
 
 urlpatterns = [
   
@@ -9,4 +9,6 @@ urlpatterns = [
     path("registro_api/", Register.as_view(), name="registro"),
     path("user_unico/", user_unico, name="user_unico"),
     path("agente_inmobiliaria/", agente_inmobiliaria, name="agente_inmobiliaria"),
+    path("change_password/", ChangePasswordView.as_view(), name='change_password'),
+    path("user_info/",UserInfoView.as_view(), name='user_info'),
 ]

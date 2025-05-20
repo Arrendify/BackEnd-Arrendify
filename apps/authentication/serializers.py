@@ -10,6 +10,11 @@ class UserTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username','email','first_name')
+        
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__' 
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:

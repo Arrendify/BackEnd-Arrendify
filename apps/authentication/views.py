@@ -55,6 +55,33 @@ class UserToken(APIView):
             return Response({'error':'Credenciales enviadas incorrectas'},status=status.HTTP_400_BAD_REQUEST)
             
 
+class UserInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('password')
+        new_password = request.data.get('new_password')
+        new_password2 = request.data.get('new_password2')
+
+        if not user.check_password(old_password):
+            return Response({'error': 'La contraseña actual no es correcta.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_password != new_password2:
+            return Response({'error': 'Las nuevas contraseñas no coinciden.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'La contraseña se cambió exitosamente.'}, status=status.HTTP_200_OK)
+
 class Login(ObtainAuthToken):
   
     def post(self, request, *args, **kwargs):
