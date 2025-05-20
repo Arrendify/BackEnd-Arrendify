@@ -177,69 +177,116 @@ class Logout(APIView):
            return Response({'error':'No se ah encontrado Token en la peticion'}, status= status.HTTP_409_CONFLICT)
 
 class Register(APIView):
-    #EN API NO LLEGA EL REQUEST.POST, SE DEBE USAR EL REQUEST.DATA PARA OBTENER LOS DATOS
-    def post(self,request,*arg,**kwargs):
-       user_serializar = UserSerializer(data = request.data)
-       entrada = request.data     
-       print("soy requesta data",entrada)
- 
-       #agregar comprobacion del codigo de arrendify proporcionado
-       if request.data.get('password') == request.data.get('password2'):
-           if user_serializar.is_valid():
-               print("serializer valido")
-               if entrada["rol"] == "Inmobiliaria": 
+    def post(self, request, *args, **kwargs):
+        entrada = request.data.copy()  # Hacer copia para modificar sin afectar el original
+
+        # Generar contraseña aleatoria si está vacía
+        if not entrada.get('password') or not entrada.get('password2'):
+            generated_password = self.generar_password()
+            entrada['password'] = generated_password
+            entrada['password2'] = generated_password
+            enviar_password = True
+        else:
+            enviar_password = False
+
+        user_serializar = UserSerializer(data=entrada)
+        print("soy requesta data", entrada)
+
+        if entrada.get('password') == entrada.get('password2'):
+            if user_serializar.is_valid():
+                print("serializer valido")
+                if entrada["rol"] == "Inmobiliaria":
                     print("Soy Inmobiliaria")                  
                     user_serializar.save()
-                    info = User.objects.all().get(username = entrada["username"])
+                    info = User.objects.get(username=entrada["username"])
                     self.enviar_codigo(info)
+                    if enviar_password:
+                        self.enviar_password(info.email, entrada['password'])
                     print("usuario guardado")
-                
-               elif entrada["rol"] == "Agente":
+
+                elif entrada["rol"] == "Agente":
                     print("Soy Agente")
-                    #consulta para buscar la inmobiliaria para el codigo
-                    inmo_ag = User.objects.all().get(name_inmobiliaria = entrada["pertenece_a"])
+                    inmo_ag = User.objects.get(name_inmobiliaria=entrada["pertenece_a"])
                     codigo = entrada["c_inmobiliaria"]
                     if codigo == inmo_ag.code_inmobiliaria:
                         print("Bienvenido Agente, si tienes el codigo correcto")
                         user_serializar.save()
+                        info = User.objects.get(username=entrada["username"])
+                        if enviar_password:
+                            self.enviar_password(info.email, entrada['password'])
                         print("usuario guardado")
                     else:
-                        return Response({'error':"El codigo que proporcionaste no es correcto", 'status':101})
-                    
-               elif entrada["rol"] == "Normal":
-                   print("Normalito")
-                   user_serializar.save()
-                   print("usuario guardado")
-                  
-               print("ya voy a retornar la info")
-               return Response(user_serializar.data)
-       return Response({'error':user_serializar.errors, 'status':205})
-    
-    def enviar_codigo (self, info):
-         #variable
-            print("que onda")
-            print("soy info despues de entrar al metodo",info)
-            #hacemos una llamada a la base que nos devuelve el codigo
-            print(info.__dict__)
-            codigo = info.code_inmobiliaria
-            email = info.email
-            html = codigo_inmobiliaria(codigo)
-            # Envío de la notificación por correo electrónico
-            msg = MIMEMultipart()
-            msg['From'] = 'notificaciones_arrendify@outlook.com'
-            msg['To'] = email
-            msg['Subject'] = 'Registro Exitoso - Tu código de inmobiaria'
-            msg.attach(MIMEText(html, 'html'))
-            smtp_server = 'mail.arrendify.com'
-            smtp_port = 587
-            smtp_username = config('mine_smtp_u')
-            smtp_password = config('mine_smtp_pw')
+                        return Response({'error': "El codigo que proporcionaste no es correcto", 'status': 101})
 
-            with smtplib.SMTP(smtp_server, smtp_port) as server:
-                server.starttls()
-                server.login(smtp_username, smtp_password)
-                server.sendmail(smtp_username, email, msg.as_string())
-                print("Si envio")
+                elif entrada["rol"] == "Normal":
+                    print("Normalito")
+                    user_serializar.save()
+                    info = User.objects.get(username=entrada["username"])
+                    if enviar_password:
+                        self.enviar_password(info.email, entrada['password'])
+                    print("usuario guardado")
+
+                print("ya voy a retornar la info")
+                return Response(user_serializar.data)
+
+        return Response({'error': user_serializar.errors, 'status': 205})
+
+    def generar_password(self, length=10):
+        chars = string.ascii_letters + string.digits
+        return ''.join(random.choice(chars) for _ in range(length))
+
+    def enviar_codigo(self, info):
+        print("que onda")
+        print("soy info despues de entrar al metodo", info)
+        print(info.__dict__)
+        codigo = info.code_inmobiliaria
+        email = info.email
+        html = codigo_inmobiliaria(codigo)
+        msg = MIMEMultipart()
+        msg['From'] = 'notificaciones_arrendify@outlook.com'
+        msg['To'] = email
+        msg['Subject'] = 'Registro Exitoso - Tu código de inmobiliaria'
+        msg.attach(MIMEText(html, 'html'))
+
+        smtp_server = 'mail.arrendify.com'
+        smtp_port = 587
+        smtp_username = config('mine_smtp_u')
+        smtp_password = config('mine_smtp_pw')
+
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.sendmail(smtp_username, email, msg.as_string())
+            print("Código enviado")
+
+    def enviar_password(self, email, password):
+        subject = "Tu contraseña generada por Arrendify"
+        html = f"""
+        <html>
+            <body>
+                <p>Hola,</p>
+                <p>Se ha generado una contraseña temporal para tu cuenta:</p>
+                <h3>{password}</h3>
+                <p>Por favor cámbiala después de iniciar sesión.</p>
+            </body>
+        </html>
+        """
+        msg = MIMEMultipart()
+        msg['From'] = 'notificaciones_arrendify@outlook.com'
+        msg['To'] = email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(html, 'html'))
+
+        smtp_server = 'mail.arrendify.com'
+        smtp_port = 587
+        smtp_username = config('mine_smtp_u')
+        smtp_password = config('mine_smtp_pw')
+
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.sendmail(smtp_username, email, msg.as_string())
+            print("Contraseña enviada")
 
 @api_view(['GET'])
 def user_unico(request):
