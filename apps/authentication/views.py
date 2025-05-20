@@ -178,7 +178,10 @@ class Logout(APIView):
 
 class Register(APIView):
     def post(self, request, *args, **kwargs):
-        entrada = request.data.copy()  # Hacer copia para modificar sin afectar el original
+        entrada = request.data.copy() # Hacer copia para modificar sin afectar el original
+        user_serializar = UserSerializer(data=entrada)
+        print("soy requesta data", entrada)
+
 
         # Generar contraseña aleatoria si está vacía
         if not entrada.get('password') or not entrada.get('password2'):
@@ -189,8 +192,6 @@ class Register(APIView):
         else:
             enviar_password = False
 
-        user_serializar = UserSerializer(data=entrada)
-        print("soy requesta data", entrada)
 
         if entrada.get('password') == entrada.get('password2'):
             if user_serializar.is_valid():
@@ -260,11 +261,13 @@ class Register(APIView):
             print("Código enviado")
 
     def enviar_password(self, email, password):
-        subject = "Tu contraseña generada por Arrendify"
+        subject = "Tu cuenta generada por Arrendify"
         html = f"""
         <html>
             <body>
                 <p>Hola,</p>
+                <p>El usuario para tu cuenta es:</p>
+                <h3>{email}</h3>
                 <p>Se ha generado una contraseña temporal para tu cuenta:</p>
                 <h3>{password}</h3>
                 <p>Por favor cámbiala después de iniciar sesión.</p>
