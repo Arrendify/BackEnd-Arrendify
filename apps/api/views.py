@@ -547,8 +547,8 @@ class investigaciones(viewsets.ModelViewSet):
             
             #hacemos una lista destinatarios para enviar el correo
             #Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
-            #Destino=['desarrolloarrendify@gmail.com']
-            Destino=['juridico.arrendify1@gmail.com']
+            Destino=['desarrolloarrendify@gmail.com']
+            #Destino=['juridico.arrendify1@gmail.com']
             asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
             
             # Crea un objeto MIMEMultipart para el correo electrónico
@@ -762,36 +762,36 @@ class investigaciones(viewsets.ModelViewSet):
             print("Generando el pdf")
             pdf_file = HTML(string=html_string).write_pdf()
 
-            #aqui hacia abajo es para enviar por email
-            archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+            # #aqui hacia abajo es para enviar por email
+            # archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
         
-            print("antes de enviar_archivo",context)
-            correo = self.enviar_archivo_arrendify(archivo, context["info"], context["status"])
-            print("soy correo papito",correo)
-            if correo.status_code == 200:
-                 # Aprobar o desaprobar
-                if status == "Aprobado_pe" or status == "Aprobado":  
-                    info.status = "Aprobado"
-                    info.save()
-                else:
-                    info.status = "Rechazado"
-                    info.save()
-                
-                print("Correo ENVIADO")
-            
+            # print("antes de enviar_archivo",context)
+            # correo = self.enviar_archivo_arrendify(archivo, context["info"], context["status"])
+            # print("soy correo papito",correo)
+            # if correo.status_code == 200:
+            #      # Aprobar o desaprobar
+            if status == "Aprobado_pe" or status == "Aprobado":  
+                     info.status = "Aprobado"
+                     info.save()
             else:
-                print("valio chetos")
-                print("Correo NO ENVIADO")
-                Response({"Error":"no se envio el correo"},status = 409)
+                     info.status = "Rechazado"
+                     info.save()
+                
+            print("Correo ENVIADO")
             
-            return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
+            # else:
+            #     print("valio chetos")
+            #     print("Correo NO ENVIADO")
+            #     Response({"Error":"no se envio el correo"},status = 409)
+            
+            # return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
            
             #de aqui hacia abajo Devuelve el PDF como respuesta
-            # response = HttpResponse(content_type='application/pdf')
-            # response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
-            # response.write(pdf_file)
-            # print("Finalizamos el proceso de aprobado") 
-            # return HttpResponse(response, content_type='application/pdf')
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="Pagare.pdf"'
+            response.write(pdf_file)
+            print("Finalizamos el proceso de aprobado") 
+            return response
         
         except Exception as e:
             print(f"el error es: {e}")
