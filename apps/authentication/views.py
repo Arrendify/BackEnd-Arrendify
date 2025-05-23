@@ -27,7 +27,7 @@ User = CustomUser
 from rest_framework.authentication import TokenAuthentication,SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from apps.authentication.serializers import UserTokenSerializer, CustomUserSerializer, UserListSerializer, User2Inmobiliaria, UserSerializer,User2Serializer
+from apps.authentication.serializers import UserTokenSerializer, CustomUserSerializer, UserListSerializer, User2Inmobiliaria, UserSerializer,User2Serializer, PasswordSerializer
 from rest_framework.decorators import api_view
 #variables
 from ..api.variables import *
@@ -55,6 +55,31 @@ class UserToken(APIView):
             return Response({'error':'Credenciales enviadas incorrectas'},status=status.HTTP_400_BAD_REQUEST)
             
 
+class UserInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+
+        if not user.check_password(old_password):
+            return Response({'error': 'La contraseña actual no es correcta.'}, status=400)
+
+        serializer = PasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data['password'])
+            user.save()
+            return Response({'message': 'La contraseña se cambió exitosamente.'}, status=200)
+
+        return Response(serializer.errors, status=400)
 class Login(ObtainAuthToken):
   
     def post(self, request, *args, **kwargs):
@@ -165,10 +190,9 @@ class Logout(APIView):
 
 class Register(APIView):
     def post(self, request, *args, **kwargs):
-        entrada = request.data.copy() # Hacer copia para modificar sin afectar el original
+        entrada = request.data.copy()
         user_serializar = UserSerializer(data=entrada)
-        print("soy requesta data", entrada)
-
+        print("soy request data", entrada)
 
         # Generar contraseña aleatoria si está vacía
         if not entrada.get('password') or not entrada.get('password2'):
@@ -179,32 +203,35 @@ class Register(APIView):
         else:
             enviar_password = False
 
-
         if entrada.get('password') == entrada.get('password2'):
             if user_serializar.is_valid():
-                print("serializer valido")
+                print("serializer válido")
                 if entrada["rol"] == "Inmobiliaria":
                     print("Soy Inmobiliaria")                  
                     user_serializar.save()
                     info = User.objects.get(username=entrada["username"])
                     self.enviar_codigo(info)
-                    if enviar_password == True:
+                    if enviar_password:
                         self.enviar_password(info.email, entrada['password'])
                     print("usuario guardado")
 
                 elif entrada["rol"] == "Agente":
                     print("Soy Agente")
-                    inmo_ag = User.objects.get(name_inmobiliaria=entrada["pertenece_a"])
+                    try:
+                        inmo_ag = User.objects.get(name_inmobiliaria=entrada["pertenece_a"])
+                    except User.DoesNotExist:
+                        return Response({'error': "No se encontró la inmobiliaria indicada", 'status': 102})
+
                     codigo = entrada["c_inmobiliaria"]
                     if codigo == inmo_ag.code_inmobiliaria:
-                        print("Bienvenido Agente, si tienes el codigo correcto")
+                        print("Bienvenido Agente, código correcto")
                         user_serializar.save()
                         info = User.objects.get(username=entrada["username"])
                         if enviar_password:
                             self.enviar_password(info.email, entrada['password'])
                         print("usuario guardado")
                     else:
-                        return Response({'error': "El codigo que proporcionaste no es correcto", 'status': 101})
+                        return Response({'error': "El código que proporcionaste no es correcto", 'status': 101})
 
                 elif entrada["rol"] == "Normal":
                     print("Normalito")
@@ -216,7 +243,20 @@ class Register(APIView):
 
                 print("ya voy a retornar la info")
                 return Response(user_serializar.data)
+            else:
+                # Manejo de errores específicos de duplicado
+                errores = user_serializar.errors
+                if 'username' in errores and any('unique' in e.lower() for e in errores['username']):
+                    print("error de username")
+                    return Response({'error': "El nombre de usuario ya está registrado", 'status': 106})
+                if 'email' in errores and any('unique' in e.lower() for e in errores['email']):
+                    print("error de email")
+                    return Response({'error': "El correo electrónico ya está registrado", 'status': 107})
+                if 'name_inmobiliaria' in errores and any('unique' in e.lower() for e in errores['name_inmobiliaria']):
+                    print("error de name inmobiliaria")
+                    return Response({'error': "El nombre de la inmobiliaria ya está registrado", 'status': 108})
 
+        # Error por contraseñas diferentes o validaciones fallidas
         return Response({'error': user_serializar.errors, 'status': 205})
 
     def generar_password(self, length=10):
