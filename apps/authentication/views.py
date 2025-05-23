@@ -298,6 +298,7 @@ class Register(APIView):
 
                 <p>Hola Usuari@,</p>
                 <p>Tu cuenta ha sido creada exitosamente. A continuación encontrarás tus credenciales de acceso:</p>
+                <p>Puedes utilizarlas para ingresar a https://contrato.pro </p>
                 
                 <p><strong>Usuario (correo electrónico):</strong><br>{email}</p>
                 <p><strong>Contraseña:</strong><br>{password}</p>
