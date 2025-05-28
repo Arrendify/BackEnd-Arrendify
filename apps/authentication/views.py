@@ -33,12 +33,9 @@ from rest_framework.decorators import api_view
 from ..api.variables import *
 #correo
 import smtplib
-import os
-import base64
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage
 from smtplib import SMTPException
 from decouple import config
 
@@ -294,34 +291,12 @@ class Register(APIView):
 
     def enviar_password(self, email, password):
         subject = "Tu cuenta generada por Contrato.pro"
-        html = nuevo_usuario_zoho(password, email)  # Corregido el orden de los parámetros
-        
-        # Directorio base de las imágenes
-        base_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'static', 'assets', 'img', 'mail')
-        
-        # Convertir imágenes a base64 y reemplazar las rutas en el HTML
-        for i in range(1, 8):  # Del image-1.png al image-7.png
-            img_path = os.path.join(base_path, f'image-{i}.png')
-            if os.path.exists(img_path):
-                with open(img_path, 'rb') as img_file:
-                    # Convertir imagen a base64
-                    encoded_img = base64.b64encode(img_file.read()).decode('utf-8')
-                    # Determinar el tipo MIME según la extensión
-                    img_mime = 'image/png'
-                    # Crear la cadena de datos URI de base64
-                    img_data_uri = f'data:{img_mime};base64,{encoded_img}'
-                    # Reemplazar la ruta en el HTML con la imagen en base64
-                    html = html.replace(f'/apps/static/assets/img/mail/image-{i}.png', img_data_uri)
-        
-        # Crear mensaje
-        msg = MIMEMultipart('alternative')
+        html = nuevo_usuario_zoho(email,password)
+        msg = MIMEMultipart()
         msg['From'] = 'notificaciones@arrendify.com'
         msg['To'] = email
         msg['Subject'] = subject
-        
-        # Adjuntar parte HTML con imágenes en base64 ya incrustadas
-        msg_html = MIMEText(html, 'html')
-        msg.attach(msg_html)
+        msg.attach(MIMEText(html, 'html'))
 
         smtp_server = 'mail.arrendify.com'
         smtp_port = 587
