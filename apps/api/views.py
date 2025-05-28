@@ -777,14 +777,14 @@ class investigaciones(viewsets.ModelViewSet):
                      info.status = "Rechazado"
                      info.save()
                 
-            print("Correo ENVIADO")
+                print("Correo ENVIADO")
             
-            # else:
-            #     print("valio chetos")
-            #     print("Correo NO ENVIADO")
-            #     Response({"Error":"no se envio el correo"},status = 409)
+            else:
+                print("valio chetos")
+                print("Correo NO ENVIADO")
+                Response({"Error":"no se envio el correo"},status = 409)
             
-            # return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
+            return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
            
             #de aqui hacia abajo Devuelve el PDF como respuesta
             # response = HttpResponse(content_type='application/pdf')
