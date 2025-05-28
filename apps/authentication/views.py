@@ -42,7 +42,7 @@ from decouple import config
 #ZOHO
 import json, string, random
 #variables
-from variables import *
+from .variables import *
 
 
 
