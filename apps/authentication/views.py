@@ -41,6 +41,8 @@ from decouple import config
 
 #ZOHO
 import json, string, random
+#variables
+from variables import *
 
 
 
@@ -288,27 +290,10 @@ class Register(APIView):
             print("Código enviado")
 
     def enviar_password(self, email, password):
-        subject = "Tu cuenta generada por Arrendify"
-        html = f"""
-        <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <img src="apps\static\assets\img\brand\logo_cpro.png" alt="Logo" width="120" style="display: block; margin: 0 auto;" />
-                </div>
-
-                <p>Hola Usuari@,</p>
-                <p>Tu cuenta ha sido creada exitosamente. A continuación encontrarás tus credenciales de acceso:</p>
-                <p>Puedes utilizarlas para ingresar a https://contrato.pro </p>
-                
-                <p><strong>Usuario (correo electrónico):</strong><br>{email}</p>
-                <p><strong>Contraseña:</strong><br>{password}</p>
-                
-                <p>Saludos cordiales,<br>El equipo de Contrato.Pro</p>
-            </body>
-        </html>
-        """
+        subject = "Tu cuenta generada por Contrato.pro"
+        html = nuevo_usuario_zoho(email,password)
         msg = MIMEMultipart()
-        msg['From'] = 'notificaciones_arrendify@outlook.com'
+        msg['From'] = 'notificaciones@arrendify.com'
         msg['To'] = email
         msg['Subject'] = subject
         msg.attach(MIMEText(html, 'html'))

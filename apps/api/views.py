@@ -195,7 +195,7 @@ class investigaciones(viewsets.ModelViewSet):
    
     def list(self, request, *args, **kwargs):
         user_session = request.user       
-        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion" or user_session.username == "AndresMtzO" or user_session.username == "MIRIAM" or user_session.username == "jon_admin":
+        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion" or user_session.username == "AndresMtzO" or user_session.username == "MIRIAM" or user_session.username == "jon_admin" or user_session.username == "JohanV":
             print("Si eres el elegido")
             qs = request.GET.get('nombre')     
             try:
@@ -484,9 +484,9 @@ class investigaciones(viewsets.ModelViewSet):
             print("destinatario normalito",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
-            #Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
+            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
             #Destino=['desarrolloarrendify@gmail.com']
-            Destino=['juridico.arrendify1@gmail.com']
+            #Destino=['juridico.arrendify1@gmail.com']
             asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
             
             # Crea un objeto MIMEMultipart para el correo electrónico
@@ -546,8 +546,8 @@ class investigaciones(viewsets.ModelViewSet):
             print("destinatario normalito",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
-            #Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
-            Destino=['desarrolloarrendify@gmail.com']
+            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
+            #Destino=['desarrolloarrendify@gmail.com']
             #Destino=['juridico.arrendify1@gmail.com']
             asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
             
@@ -763,17 +763,17 @@ class investigaciones(viewsets.ModelViewSet):
             pdf_file = HTML(string=html_string).write_pdf()
 
             # #aqui hacia abajo es para enviar por email
-            # archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+            archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
         
-            # print("antes de enviar_archivo",context)
-            # correo = self.enviar_archivo_arrendify(archivo, context["info"], context["status"])
-            # print("soy correo papito",correo)
-            # if correo.status_code == 200:
-            #      # Aprobar o desaprobar
-            if status == "Aprobado_pe" or status == "Aprobado":  
+            print("antes de enviar_archivo",context)
+            correo = self.enviar_archivo_arrendify(archivo, context["info"], context["status"])
+            print("soy correo papito",correo)
+            if correo.status_code == 200:
+                 # Aprobar o desaprobar
+                if status == "Aprobado_pe" or status == "Aprobado":  
                      info.status = "Aprobado"
                      info.save()
-            else:
+                else:
                      info.status = "Rechazado"
                      info.save()
                 
@@ -787,11 +787,11 @@ class investigaciones(viewsets.ModelViewSet):
             # return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
            
             #de aqui hacia abajo Devuelve el PDF como respuesta
-            response = HttpResponse(content_type='application/pdf')
-            response['Content-Disposition'] = 'inline; filename="Pagare.pdf"'
-            response.write(pdf_file)
-            print("Finalizamos el proceso de aprobado") 
-            return response
+            # response = HttpResponse(content_type='application/pdf')
+            # response['Content-Disposition'] = 'inline; filename="Pagare.pdf"'
+            # response.write(pdf_file)
+            # print("Finalizamos el proceso de aprobado") 
+            # return response
         
         except Exception as e:
             print(f"el error es: {e}")
@@ -2418,6 +2418,3 @@ class notis_prueba(viewsets.ModelViewSet):
             print(f"el error es: {e} en la linea {exc_tb.tb_lineno}")
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
-        
-    
-        
