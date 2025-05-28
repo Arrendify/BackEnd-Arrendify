@@ -183,7 +183,7 @@ def nuevo_usuario_zoho(password, email):
     <p style="line-height: 140%; text-align: center; margin: 0px;">&nbsp;</p>
     <p style="line-height: 140%; text-align: left; margin: 0px;"><span style="font-family: Raleway, sans-serif; line-height: 19.6px;">Tus Credenciales</span></p>
     <p style="line-height: 140%; text-align: left; margin: 0px;">&nbsp;</p>
-    <p style="line-height: 140%; text-align: left; margin: 0px;"><span style="font-family: Raleway, sans-serif; line-height: 19.6px;">Usuario: """ f'{email}' """ <br>Contraseña: """ f'{password}' """ </span></p>
+    <p style="line-height: 140%; text-align: left; margin: 0px;"><span style="font-family: Raleway, sans-serif; line-height: 19.6px;">Usuario: """ f'{password}' """ <br>Contraseña: """ f'{email}' """ </span></p>
     <p style="line-height: 140%; text-align: left; margin: 0px;">&nbsp;</p>
     <p style="line-height: 140%; margin: 0px;"><span style="color: rgb(187, 187, 187); line-height: 19.6px;"><strong><span style="font-family: Raleway, sans-serif; line-height: 14px; font-size: 10px;">*Al iniciar sesi&oacute;n es recomendable realizar inmediatamente el cambio de contrase&ntilde;a </span></strong></span></p>
     </div>
