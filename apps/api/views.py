@@ -200,7 +200,7 @@ class investigaciones(viewsets.ModelViewSet):
             qs = request.GET.get('nombre')     
             try:
                 if qs:
-                    inquilino = Arrendatario.objects.all().filter(nombre_completo__icontains = qs)
+                    inquilino = Arrendatario.objects.all().order_by('-id')
                     serializer = InquilinoSerializers(inquilino, many=True)                    
                     return Response(serializer.data)
                     
