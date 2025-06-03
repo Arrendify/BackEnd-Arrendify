@@ -465,7 +465,7 @@ class Aval(models.Model):
     no_ide=models.CharField(max_length = 100, null = True, blank = True)
     parentesco=models.CharField(max_length=100, null=True, blank=True)
     estado_civil=models.CharField(max_length=100, null=True, blank=True)
-    direccion_completa=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa=models.CharField(max_length=500, null=True, blank=True)
     telefono=models.BigIntegerField(null=True, blank=True)
     celular=models.BigIntegerField(null=True, blank=True)
     email=models.EmailField(null=True, blank=True)

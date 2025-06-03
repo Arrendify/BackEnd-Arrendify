@@ -145,7 +145,7 @@ def nuevo_usuario_zoho(email, password):
         <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:20px 10px 10px;font-family:arial,helvetica,sans-serif;" align="left">
             
     <!--[if mso]><table role="presentation" width="100%"><tr><td><![endif]-->
-        <h1 class="v-font-size" style="margin: 0px; line-height: 140%; text-align: center; word-wrap: break-word; font-size: 25px; font-weight: 400;"><span>Tu Cuenta se ha generado con &eacute;xito!!</span></h1>
+        <h1 class="v-font-size" style="margin: 0px; line-height: 140%; text-align: center; word-wrap: break-word; font-size: 25px; font-weight: 400;"><span>Bienvenido a Contrato.pro la plataforma Partner de Arrendify en donde gestionaras tus Pólizas Jurídicas!!</span></h1>
     <!--[if mso]></td></tr></table><![endif]-->
 
         </td>
@@ -179,7 +179,7 @@ def nuevo_usuario_zoho(email, password):
         <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:10px 60px;font-family:arial,helvetica,sans-serif;" align="left">
             
     <div class="v-font-size" style="font-size: 14px; color: #616161; line-height: 140%; text-align: left; word-wrap: break-word;">
-        <p style="line-height: 140%; text-align: center; margin: 0px;"><span style="font-family: Raleway, sans-serif; line-height: 19.6px;">Tras realizar tu registro con nosotros es un placer brindarte las claves de acceso para nuestra plataforma de gesti&oacute;n de contratos inmobiliarios Contrato.pro</span></p>
+        <p style="line-height: 140%; text-align: center; margin: 0px;"><span style="font-family: Raleway, sans-serif; line-height: 19.6px;">Hemos realizado tu registro en nuestra plataforma en donde podrás Cotizar y Generar tu Póliza Jurídica Inmediatamente. Es un placer brindarte las claves de acceso a nuestra plataforma de gestión de contratos inmobiliarios Contrato.pro</span></p>
     <p style="line-height: 140%; text-align: center; margin: 0px;">&nbsp;</p>
     <p style="line-height: 140%; text-align: left; margin: 0px;"><span style="font-family: Raleway, sans-serif; line-height: 19.6px;">Tus Credenciales</span></p>
     <p style="line-height: 140%; text-align: left; margin: 0px;">&nbsp;</p>
