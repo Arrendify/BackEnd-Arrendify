@@ -861,6 +861,12 @@ class DocumentosInquilino(models.Model):
     comentarios_ingresos = models.CharField(max_length=200, null=True, blank=True)
     comentarios_extra = models.CharField(max_length=200, null=True, blank=True)
     comentarios_rl = models.CharField(max_length=200, null=True, blank=True)
+    validacion_cd = models.CharField(max_length=200, null=True, blank=True)
+    validacion_ine = models.CharField(max_length=200, null=True, blank=True)
+    validacion_rfc = models.CharField(max_length=200, null=True, blank=True)
+    validacion_ingresos = models.CharField(max_length=200, null=True, blank=True)
+    validacion_laboral = models.CharField(max_length=200, null=True, blank=True)
+    validacion_extras = models.CharField(max_length=200, null=True, blank=True)
     dateTimeOfUpload = models.DateTimeField(auto_now = True)
     class Meta:
         db_table = 'documentos_inquilino'
