@@ -1049,6 +1049,10 @@
             <p style="font-size:14px">{{conclusion}}</p>
             <br>
             <p style="font-size:20px">{{motivo | linebreaksbr}}</p>
+          {% elif status == "Aprobado" and motivo != "hola" %}
+            <p style="font-size:14px">{{conclusion}}</p>
+            <br>
+            <p style="font-size:20px">{{motivo | linebreaksbr}}</p>
           {% else %}
             <p style="font-size:14px">{{conclusion}}</p>
             <br>
