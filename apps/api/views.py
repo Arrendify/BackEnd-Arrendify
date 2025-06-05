@@ -195,7 +195,7 @@ class investigaciones(viewsets.ModelViewSet):
    
     def list(self, request, *args, **kwargs):
         user_session = request.user       
-        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion" or user_session.username == "AndresMtzO" or user_session.username == "MIRIAM" or user_session.username == "jon_admin" or user_session.username == "SUArrendify":
+        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion" or user_session.username == "AndresMtzO" or user_session.username == "MIRIAM" or user_session.username == "jon_admin" or user_session.username == "SUArrendify" or user_session.username == "Becarios":
             print("Si eres el elegido")
             qs = request.GET.get('nombre')     
             try:
