@@ -516,7 +516,7 @@ class Aval(models.Model):
     fecha_propiedad=models.DateField(auto_now=False, auto_now_add=False, null=True, blank=True)
     numero_notario=models.BigIntegerField(null=True, blank=True)
     nombre_notario=models.CharField(max_length=100, null=True, blank=True)
-    direccion_completa_escrituras=models.CharField(max_length=100, null=True, blank=True)
+    direccion_completa_escrituras=models.CharField(max_length=250, null=True, blank=True)
     
     #referencias personales
     nombre_refp1=models.CharField(max_length=100, null=True, blank=True)
