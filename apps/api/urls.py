@@ -1,4 +1,3 @@
-
 """
 Copyright (c) 2019 - present AppSeed.us
 """
@@ -48,6 +47,7 @@ urlpatterns = [
     path('fraterna/generar_contrato/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_contrato'}), name='generar_contrato_frat'),
     path('fraterna/generar_comodato/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_comodato'}), name='generar_comodato_frat'),
     path('fraterna/renovar_contrato/', fraterna_views.Contratos_fraterna.as_view({'post': 'renovar_contrato_fraterna'}), name='renovar_contrato_frat'),
+    path('fraterna/generar_paquete_completo/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_paquete_completo_fraterna'}), name='generar_paquete_completo_frat'),
 
     
     #contrato semillero purisima
@@ -97,4 +97,3 @@ urlpatterns = [
     path('', include(router.urls)),
 ]
 # urlpatterns += router.urls
-

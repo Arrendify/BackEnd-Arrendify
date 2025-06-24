@@ -1,4 +1,3 @@
-
 from rest_framework import viewsets
 from rest_framework.response import Response
 from ...home.models import *
@@ -45,9 +44,13 @@ from email import encoders
 from smtplib import SMTPException
 from django.core.files.base import ContentFile
 from decouple import config
-#variable para correo HTMl
 
-
+# Para combinación de PDFs
+import io
+import requests
+from pypdf import PdfReader, PdfWriter
+from datetime import datetime as dt
+from dateutil.relativedelta import relativedelta
 
 # ----------------------------------Metodos Extras----------------------------------------------- #
 def eliminar_archivo_s3(file_name):
@@ -293,7 +296,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             
             asunto = f"Resultado Investigación Arrendatario {arrendatario}"
             
-            destinatarios = [destinatario,destinatario2]
+           
             # Crea un objeto MIMEMultipart para el correo electrónico
             msg = MIMEMultipart()
             msg['From'] = remitente
@@ -330,7 +333,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
         except SMTPException as e:
             print("Error al enviar el correo electrónico:", str(e))
             return Response({'message': 'Error al enviar el correo electrónico.'})
-
+        
 class DocumentosRes(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -514,7 +517,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                serializer = self.get_serializer(contratos, many=True)
                serialized_data = serializer.data
                 
-               # Agregar el campo 'is_staff' en el arreglo de user
+               # Agregar el campo 'is_staff'
                for item in serialized_data:
                  item['is_staff'] = True
                 
@@ -948,6 +951,332 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
     
+    def generar_paquete_completo_fraterna(self, request, *args, **kwargs):
+        """
+        Genera un PDF combinado con todos los documentos de Fraterna en el siguiente orden:
+        1. Comodato
+        2. Contrato
+        3. Manual UTO (desde AWS bucket)
+        4. Póliza
+        5. Pagares
+        """
+        try:
+            print("Generando paquete completo Fraterna")
+            
+            # Activamos la librería de locale para obtener el mes en español
+            locale.setlocale(locale.LC_ALL, "es_MX.utf8")
+            
+            # Manejar tanto request.data como entero directo o diccionario
+            if isinstance(request.data, dict):
+                id_paq = request.data["id"]
+                pagare_distinto = request.data.get("pagare_distinto", "No")
+                cantidad_pagare = request.data.get("cantidad_pagare", "0")
+            else:
+                # Si request.data es un entero directamente
+                id_paq = request.data
+                pagare_distinto = "No"
+                cantidad_pagare = "0"
+            
+            print(f"ID del paquete: {id_paq}")
+            print(f"Pagare distinto: {pagare_distinto}")
+            
+            # Obtener información del contrato
+            info = self.queryset.filter(id=id_paq).first()
+            if not info:
+                return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Crear un writer para combinar los PDFs
+            pdf_writer = PdfWriter()
+            
+            # 1. GENERAR Y AGREGAR COMODATO
+            print("Generando Comodato...")
+            comodato_pdf = self._generar_comodato_interno(info)
+            comodato_reader = PdfReader(io.BytesIO(comodato_pdf))
+            for page in comodato_reader.pages:
+                pdf_writer.add_page(page)
+            
+            # 2. GENERAR Y AGREGAR CONTRATO
+            print("Generando Contrato...")
+            contrato_pdf = self._generar_contrato_interno(info)
+            contrato_reader = PdfReader(io.BytesIO(contrato_pdf))
+            for page in contrato_reader.pages:
+                pdf_writer.add_page(page)
+            
+            # 3. DESCARGAR Y AGREGAR MANUAL UTO DESDE AWS
+            print("Descargando Manual UTO desde AWS...")
+            manual_url = "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/ManualUtower.pdf"
+            try:
+                response_manual = requests.get(manual_url, timeout=30)
+                response_manual.raise_for_status()
+                manual_reader = PdfReader(io.BytesIO(response_manual.content))
+                for page in manual_reader.pages:
+                    pdf_writer.add_page(page)
+                print("Manual UTO agregado exitosamente")
+            except Exception as e:
+                print(f"Error al descargar manual UTO: {e}")
+                # Continuar sin el manual si hay error
+            
+            # 4. GENERAR Y AGREGAR PÓLIZA
+            print("Generando Póliza...")
+            poliza_pdf = self._generar_poliza_interno(info)
+            poliza_reader = PdfReader(io.BytesIO(poliza_pdf))
+            for page in poliza_reader.pages:
+                pdf_writer.add_page(page)
+            
+            # 5. GENERAR Y AGREGAR PAGARÉS
+            print("Generando Pagarés...")
+            pagare_pdf = self._generar_pagare_interno(info, pagare_distinto, cantidad_pagare)
+            pagare_reader = PdfReader(io.BytesIO(pagare_pdf))
+            for page in pagare_reader.pages:
+                pdf_writer.add_page(page)
+            
+            # Crear el PDF final combinado
+            output_pdf = io.BytesIO()
+            pdf_writer.write(output_pdf)
+            output_pdf.seek(0)
+            
+            # Generar nombre del archivo con fecha
+            fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
+            nombre_archivo = f"Paquete_Completo_Fraterna_{info.residente.nombre_arrendatario}_{fecha_actual}.pdf"
+            
+            # Devolver el PDF combinado
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+            response.write(output_pdf.getvalue())
+            
+            print("Paquete completo generado exitosamente")
+            return response
+            
+        except Exception as e:
+            print(f"Error en generar_paquete_completo_fraterna: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def _generar_comodato_interno(self, info):
+        """Función interna para generar el PDF del comodato"""
+        try:
+            # Obtener la duración para pasarla a letra
+            duracion_meses = info.duracion.split()
+            duracion_meses = int(duracion_meses[0])
+            duracion_texto = num2words(duracion_meses, lang='es')
+            
+            # Obtener renta y costo poliza para letra
+            renta = int(info.renta)
+            renta_texto = num2words(renta, lang='es').capitalize()
+            
+            # Obtener la tipología
+            opciones = {
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png"
+            }
+            
+            inventario = {
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.png"
+            }
+            
+            tipologia = info.tipologia
+            plano = opciones.get(tipologia, "")
+            tabla_inventario = inventario.get(tipologia, "")
+            
+            # Obtener la URL del plano que sube fraterna
+            plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
+            
+            context = {
+                'info': info, 
+                'duracion_meses': duracion_meses, 
+                'duracion_texto': duracion_texto, 
+                'renta_texto': renta_texto, 
+                'plano': plano, 
+                'plan_loc': plan_loc, 
+                'tabla_inventario': tabla_inventario
+            }
+            
+            template = 'home/comodato_fraterna.html'
+            html_string = render_to_string(template, context)
+            pdf_file = HTML(string=html_string).write_pdf()
+            
+            return pdf_file
+            
+        except Exception as e:
+            print(f"Error generando comodato interno: {e}")
+            raise e
+    
+    def _generar_contrato_interno(self, info):
+        """Función interna para generar el PDF del contrato"""
+        try:
+            # Obtener la cantidad de habitantes para pasarla a letra
+            habitantes = int(info.habitantes)
+            habitantes_texto = num2words(habitantes, lang='es')
+            
+            # Obtener renta y costo poliza para letra
+            renta = int(info.renta)
+            renta_texto = num2words(renta, lang='es').capitalize()
+            
+            # Obtener la tipología
+            opciones = {
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png"
+            }
+            
+            inventario = {
+                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.png",
+                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.png",
+                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.png",
+                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.png",
+                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.png"
+            }
+            
+            tipologia = info.tipologia
+            plano = opciones.get(tipologia, "")
+            tabla_inventario = inventario.get(tipologia, "")
+            
+            # Obtener la URL del plano que sube fraterna
+            plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
+            
+            context = {
+                'info': info, 
+                'habitantes_texto': habitantes_texto, 
+                'renta_texto': renta_texto, 
+                'plano': plano, 
+                'plan_loc': plan_loc, 
+                'tabla_inventario': tabla_inventario
+            }
+            
+            template = 'home/contrato_fraterna.html'
+            html_string = render_to_string(template, context)
+            pdf_file = HTML(string=html_string).write_pdf()
+            
+            return pdf_file
+            
+        except Exception as e:
+            print(f"Error generando contrato interno: {e}")
+            raise e
+    
+    def _generar_poliza_interno(self, info):
+        """Función interna para generar el PDF de la póliza"""
+        try:
+            # Generar el número de contrato
+            arrendatario = info.residente.nombre_arrendatario
+            primera_letra = arrendatario[0].upper()
+            ultima_letra = arrendatario[-1].upper()
+            
+            year = info.fecha_celebracion.strftime("%g")
+            month = info.fecha_celebracion.strftime("%m")
+            
+            nom_contrato = f"AFY{month}{year}CX51{info.id}CA{primera_letra}{ultima_letra}"
+            
+            # Obtener renta y costo poliza para letra
+            renta = int(info.renta)
+            renta_texto = num2words(renta, lang='es').capitalize()
+            
+            context = {
+                'info': info, 
+                'renta_texto': renta_texto, 
+                'nom_contrato': nom_contrato
+            }
+            
+            template = 'home/poliza_fraterna.html'
+            html_string = render_to_string(template, context)
+            pdf_file = HTML(string=html_string).write_pdf()
+            
+            return pdf_file
+            
+        except Exception as e:
+            print(f"Error generando póliza interna: {e}")
+            raise e
+    
+    def _generar_pagare_interno(self, info, pagare_distinto, cantidad_pagare):
+        """Función interna para generar el PDF del pagaré"""
+        try:
+            # Procesar cantidad del pagaré
+            if pagare_distinto == "Si":
+                if "." not in str(cantidad_pagare):
+                    cantidad_pagare_num = cantidad_pagare
+                    cantidad_decimal = "00"
+                    cantidad_letra = num2words(cantidad_pagare_num, lang='es')
+                else:
+                    cantidad_completa = str(cantidad_pagare).split(".")
+                    cantidad_pagare_num = cantidad_completa[0]
+                    cantidad_decimal = cantidad_completa[1]
+                    cantidad_letra = num2words(cantidad_pagare_num, lang='es')
+            else:
+                cantidad_pagare_num = 0
+                cantidad_decimal = "00"
+                cantidad_letra = num2words(cantidad_pagare_num, lang='es')
+            
+            # Definir la fecha inicial
+            fecha_inicial = info.fecha_move_in
+            dia = fecha_inicial.day
+            
+            # Definir la duración en meses
+            duracion_meses = info.duracion.split()
+            duracion_meses = int(duracion_meses[0])
+            
+            # Calcular la fecha final
+            fecha_final = fecha_inicial + relativedelta(months=duracion_meses)
+            
+            # Lista para almacenar las fechas iteradas
+            fechas_iteradas = []
+            fecha_temp = fecha_inicial
+            
+            while fecha_temp < fecha_final:
+                nombre_mes = fecha_temp.strftime("%B")
+                fechas_iteradas.append((nombre_mes.capitalize(), fecha_temp.year))
+                fecha_temp += relativedelta(months=1)
+            
+            # Obtener la renta para pasarla a letra
+            if "." not in info.renta:
+                number = int(info.renta)
+                renta_decimal = "00"
+                text_representation = num2words(number, lang='es').capitalize()
+            else:
+                renta_completa = info.renta.split(".")
+                number = int(renta_completa[0])
+                renta_decimal = renta_completa[1]
+                text_representation = num2words(number, lang='es').capitalize()
+            
+            context = {
+                'info': info, 
+                'dia': dia,
+                'lista_fechas': fechas_iteradas, 
+                'text_representation': text_representation, 
+                'duracion_meses': duracion_meses, 
+                'pagare_distinto': pagare_distinto,
+                'cantidad_pagare': cantidad_pagare_num, 
+                'cantidad_letra': cantidad_letra, 
+                'cantidad_decimal': cantidad_decimal, 
+                'renta_decimal': renta_decimal
+            }
+            
+            template = 'home/pagare_fraterna.html'
+            html_string = render_to_string(template, context)
+            pdf_file = HTML(string=html_string).write_pdf()
+            
+            return pdf_file
+            
+        except Exception as e:
+            print(f"Error generando pagaré interno: {e}")
+            raise e
+        
     def renovar_contrato_fraterna(self, request, *args, **kwargs):
         try:
             print("Renovar el contrato pa")
@@ -1384,7 +1713,7 @@ class Contratos_semillero(viewsets.ModelViewSet):
                serializer = self.get_serializer(contratos, many=True)
                serialized_data = serializer.data
                 
-               # Agregar el campo 'is_staff' en el arreglo de user
+               # Agregar el campo 'is_staff'
                for item in serialized_data:
                  item['is_staff'] = True
                 
@@ -1691,11 +2020,11 @@ class Contratos_semillero(viewsets.ModelViewSet):
             print("Generar contrato Semillero")
             print("rd",request.data)
             id_paq = request.data["id"]
-            print("el id que llega", id_paq)
             testigo1 = request.data["testigo1"]
             testigo2 = request.data["testigo2"]
             print(testigo1)
             print(testigo2)
+            print("el id que llega", id_paq)
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)    
             #obtenemos renta y costo poliza para letra
@@ -1765,5 +2094,3 @@ class Contratos_semillero(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
-        
-   
