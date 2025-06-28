@@ -1958,47 +1958,63 @@ class Contratos_semillero(viewsets.ModelViewSet):
     def generar_poliza_semillero(self, request, *args, **kwargs):
         try:
             print("Generar Poliza Semillero")
-            print("rd",request.data)
+            print("rd", request.data)
             id_paq = request.data["id"]
             testigo1 = request.data["testigo1"]
             testigo2 = request.data["testigo2"]
             print(testigo1)
             print(testigo2)
             print("el id que llega", id_paq)
-            info = self.queryset.filter(id = id_paq).first()
+            info = self.queryset.filter(id=id_paq).first()
             print(info.__dict__)
-            
-            print("vamos a generar el codigo")    
+
+            print("vamos a generar el codigo")
             na = str(info.arrendatario.nombre_arrendatario)[0:1] + str(info.arrendatario.nombre_arrendatario)[-1]
             fec = str(info.fecha_celebracion).split("-")
             if info.id < 9:
                 info.id = f"0{info.id}"
                 print("")
-            print("fec",fec)
-        
+            print("fec", fec)
+
             dia = fec[2]
             mes = fec[1]
             anio = fec[0][2:4]
-            nom_paquete = "AFY" + dia + mes + anio + "CX" + "24" +  f"{info.id}" + "CA" +  na 
-            print("paqueton",nom_paquete.upper())    
-            #obtenemos renta y costo poliza para letra
-            renta = int(info.renta)
+            nom_paquete = "AFY" + dia + mes + anio + "CX" + "24" + f"{info.id}" + "CA" + na
+            print("paqueton", nom_paquete.upper())
+
+            # ✅ Conversión correcta de renta
+            renta = float(info.renta)
             print("la renta es:", renta)
-            renta_texto = num2words(renta, lang='es').capitalize()
+            parte_entera = int(renta)
+            centavos = round((renta - parte_entera) * 100)
+
+            renta_texto = f"{num2words(parte_entera, lang='es')} pesos"
+            if centavos > 0:
+                renta_texto += f" con {num2words(centavos, lang='es')} centavos"
+            renta_texto = renta_texto.capitalize()
+
+            # ✅ Cálculo de la póliza
             if renta > 14999:
-                #redondeamos el resultado para que no salga numeros decimales en la operacion de resultado, ya que al trabajar un int con un float se producen decimales para cubrir el resto de la operacion
                 resultado = renta * 0.17
-                valor_poliza = int(round(resultado, 2))
-                print("resultado esperado",valor_poliza)
-                
+                valor_poliza = int(round(resultado))  # Redondear y convertir a int si se quiere solo entero
+                print("resultado esperado", valor_poliza)
             else:
                 valor_poliza = 2500
+
             poliza_texto = num2words(valor_poliza, lang='es').capitalize()
-            
-       
-            context = {'info': info, 'renta_texto':renta_texto, 'nom_paquete':nom_paquete, 'valor_poliza':valor_poliza, 'poliza_texto':poliza_texto, "testigo1":testigo1, "testigo2":testigo2}
+
+            context = {
+                'info': info,
+                'renta_texto': renta_texto,
+                'nom_paquete': nom_paquete,
+                'valor_poliza': valor_poliza,
+                'poliza_texto': poliza_texto,
+                "testigo1": testigo1,
+                "testigo2": testigo2
+            }
+
             template = 'home/poliza_semillero.html'
-            html_string = render_to_string(template,context)
+            html_string = render_to_string(template, context)
 
             # Genera el PDF utilizando weasyprint
             pdf_file = HTML(string=html_string).write_pdf()
@@ -2009,11 +2025,12 @@ class Contratos_semillero(viewsets.ModelViewSet):
             response.write(pdf_file)
             print("TERMINANDO PROCESO POLIZA")
             return HttpResponse(response, content_type='application/pdf')
+
         except Exception as e:
             print(f"el error es: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
-            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def generar_contrato_semillero(self, request, *args, **kwargs):
         try:
