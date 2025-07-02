@@ -16,6 +16,9 @@ class CustomUser(AbstractUser):
     name_inmobiliaria = models.CharField(max_length=100, unique=True, null=True, blank=True)
     code_inmobiliaria =  models.CharField(max_length=9, editable = False, unique=True,null=True, blank=True)
     pertenece_a = models.CharField(max_length=100, null=True, blank=True)
+    # Campos para recuperación de contraseña
+    reset_password_token = models.CharField(max_length=100, null=True, blank=True)
+    reset_password_token_created_at = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         print("ni siquiera se si entro")
