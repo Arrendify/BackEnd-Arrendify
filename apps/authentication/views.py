@@ -144,12 +144,12 @@ class Login(ObtainAuthToken):
             print('error: Contraseña o nombre de usuario incorrectos')
             return Response({'error': 'Contraseña o nombre de usuario incorrectos'}, status = status.HTTP_400_BAD_REQUEST)
         
-        return Response({
-                #'token': login_serializer.validated_data.get('access'),
-                #'refresh-token': login_serializer.validated_data.get('refresh'),
-                # 'user': user,
-                'message': 'Hola'
-            }, status=status.HTTP_200_OK)
+        # return Response({
+        #         #'token': login_serializer.validated_data.get('access'),
+        #         #'refresh-token': login_serializer.validated_data.get('refresh'),
+        #         # 'user': user,
+        #         'message': 'Hola'
+        #     }, status=status.HTTP_200_OK)
 
 class Logout(APIView):
     authentication_classes = [TokenAuthentication, SessionAuthentication]

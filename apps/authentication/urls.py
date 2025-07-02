@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import  Login, Logout, UserToken, Register, ChangePasswordView, UserInfoView, user_unico, agente_inmobiliaria
+from .views_password_recovery import RecuperarPasswordView, ResetPasswordView
 
 urlpatterns = [
   
@@ -11,4 +12,6 @@ urlpatterns = [
     path("agente_inmobiliaria/", agente_inmobiliaria, name="agente_inmobiliaria"),
     path("change_password/", ChangePasswordView.as_view(), name='change_password'),
     path("user_info/",UserInfoView.as_view(), name='user_info'),
+    path("RecuperarPassword/recupera_password/", RecuperarPasswordView.as_view(), name='recupera_password'),
+    path("RecuperarPassword/reset_password/", ResetPasswordView.as_view(), name='reset_password'),
 ]
