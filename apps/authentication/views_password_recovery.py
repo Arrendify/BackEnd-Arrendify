@@ -62,7 +62,8 @@ class RecuperarPasswordView(APIView):
         Envía un correo con un enlace para restablecer la contraseña.
         """
         # URL del frontend para restablecer contraseña
-        reset_url = f"https://contrato.pro/#/reset-password/{token}"
+        # Usar formato que funcione mejor con la mayoría de configuraciones de servidor
+        reset_url = f"https://contrato.pro/login/?reset_token={token}"
         #reset_url = f"https://192.168.1.141:8000/reset-password/{token}"
         
         # Crear el mensaje
