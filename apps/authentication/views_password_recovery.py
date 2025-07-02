@@ -128,9 +128,10 @@ class ResetPasswordView(APIView):
     Vista para establecer una nueva contraseña usando un token de restablecimiento.
     """
     
-    def post(self, request):
+    def put(self, request):
         """
         Recibe un token y una nueva contraseña, verifica el token y actualiza la contraseña.
+        Usa PUT ya que es una operación de actualización de recurso existente.
         """
         token = request.data.get('token')
         password = request.data.get('password')
