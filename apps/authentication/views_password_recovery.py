@@ -62,9 +62,9 @@ class RecuperarPasswordView(APIView):
         """
         Envía un correo con un enlace para restablecer la contraseña.
         """
-        # URL directa a la página de reset password con el token codificado en base64
-        # Este enfoque evita problemas de redirección y protección de rutas
-        reset_url = f"https://contrato.pro/page-reset-password.html?token_reset={token}"
+        # URL directa a la página de reset password con el token
+        # Usando la URL definida en urls.py
+        reset_url = f"https://contrato.pro/guardar_password/?token_reset={token}"
         
         # Crear el mensaje
         subject = "Recuperación de contraseña - Arrendify"
