@@ -129,6 +129,7 @@ class RecuperarPasswordView(APIView):
 class ResetPasswordView(APIView):
     """
     Vista para establecer una nueva contraseña usando un token de restablecimiento.
+    Esta vista maneja la validación y actualización de contraseñas.
     """
     
     def put(self, request):
