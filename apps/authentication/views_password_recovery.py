@@ -11,6 +11,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from decouple import config
+from ..authentication.serializers import UserSerializer, PasswordSerializer
 
 User = CustomUser
 
@@ -123,6 +124,8 @@ class RecuperarPasswordView(APIView):
             print(f"Error al enviar correo: {str(e)}")
 
 
+
+
 class ResetPasswordView(APIView):
     """
     Vista para establecer una nueva contraseña usando un token de restablecimiento.
@@ -135,6 +138,7 @@ class ResetPasswordView(APIView):
         """
         token = request.data.get('token')
         password = request.data.get('password')
+        password2 = request.data.get('password2', password)  # Usar password como fallback si no viene password2
         
         if not token or not password:
             return Response({'error': 'Se requiere token y contraseña'}, status=status.HTTP_400_BAD_REQUEST)
@@ -151,6 +155,13 @@ class ResetPasswordView(APIView):
         if not user.reset_password_token_created_at or user.reset_password_token_created_at < tiempo_limite:
             return Response({'error': 'El token ha expirado'}, status=status.HTTP_400_BAD_REQUEST)
         
+        # Validar la contraseña usando PasswordSerializer
+        password_data = {'password': password, 'password2': password2}
+        serializer = PasswordSerializer(data=password_data)
+        
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
         # Actualizar contraseña
         user.set_password(password)
         # Limpiar token después de usar
@@ -158,4 +169,14 @@ class ResetPasswordView(APIView):
         user.reset_password_token_created_at = None
         user.save()
         
-        return Response({'message': 'Contraseña restablecida exitosamente'}, status=status.HTTP_200_OK)
+        # Retornar datos del usuario usando UserSerializer (sin datos sensibles)
+        user_data = UserSerializer(user).data
+        # Filtramos datos sensibles que no queremos devolver
+        for field in ['password', 'reset_password_token', 'reset_password_token_created_at']:
+            if field in user_data:
+                del user_data[field]
+                
+        return Response({
+            'message': 'Contraseña restablecida exitosamente',
+            'user': user_data
+        }, status=status.HTTP_200_OK)
