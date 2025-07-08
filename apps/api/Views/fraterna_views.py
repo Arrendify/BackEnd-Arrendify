@@ -33,7 +33,7 @@ import sys
 logger = logging.getLogger(__name__)
 
 #variables para el correo
-from ..variables import aprobado_fraterna, renovacion_aviso_fraterna
+from ..variables import *
 
 #enviar por correo
 import smtplib
@@ -795,7 +795,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             nom_contrato = f"AFY{month}{year}CX51{info.id}CA{primera_letra}{ultima_letra}"  
             print("Nombre del contrato", nom_contrato)     
             #obtenemos renta y costo poliza para letra
-            renta = int(info.renta)
+            # Convertir primero a float para manejar valores decimales como '8400.00'
+            renta = int(float(info.renta))
             renta_texto = num2words(renta, lang='es').capitalize()
             
        
@@ -829,7 +830,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             habitantes = int(info.habitantes)
             habitantes_texto = num2words(habitantes, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
             #obtenemos renta y costo poliza para letra
-            renta = int(info.renta)
+            # Convertir primero a float para manejar valores decimales como '8400.00'
+            renta = int(float(info.renta))
             renta_texto = num2words(renta, lang='es').capitalize()
             
             #obtener la tipologia
@@ -896,7 +898,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             duracion_meses = int(duracion_meses[0])
             duracion_texto = num2words(duracion_meses, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
             #obtenemos renta y costo poliza para letra
-            renta = int(info.renta)
+            # Convertir primero a float para manejar valores decimales como '8400.00'
+            renta = int(float(info.renta))
             renta_texto = num2words(renta, lang='es').capitalize()
             
             #obtener la tipologia
@@ -1062,7 +1065,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             duracion_texto = num2words(duracion_meses, lang='es')
             
             # Obtener renta y costo poliza para letra
-            renta = int(info.renta)
+            # Convertir primero a float para manejar valores decimales como '8400.00'
+            renta = int(float(info.renta))
             renta_texto = num2words(renta, lang='es').capitalize()
             
             # Obtener la tipología
@@ -1121,7 +1125,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             habitantes_texto = num2words(habitantes, lang='es')
             
             # Obtener renta y costo poliza para letra
-            renta = int(info.renta)
+            # Convertir primero a float para manejar valores decimales como '8400.00'
+            renta = int(float(info.renta))
             renta_texto = num2words(renta, lang='es').capitalize()
             
             # Obtener la tipología
@@ -1185,7 +1190,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             nom_contrato = f"AFY{month}{year}CX51{info.id}CA{primera_letra}{ultima_letra}"
             
             # Obtener renta y costo poliza para letra
-            renta = int(info.renta)
+            # Convertir primero a float para manejar valores decimales como '8400.00'
+            renta = int(float(info.renta))
             renta_texto = num2words(renta, lang='es').capitalize()
             
             context = {
@@ -2125,3 +2131,645 @@ class Contratos_semillero(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+
+
+class InvestigacionSemillero(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    queryset = Arrendatario.objects.all()
+    serializer_class = InquilinoSerializers
+   
+    def list(self, request, *args, **kwargs):
+        user_session = request.user       
+        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion" or user_session.username == "AndresMtzO" or user_session.username == "MIRIAM" or user_session.username == "jon_admin" or user_session.username == "SUArrendify" or user_session.username == "Becarios":
+            print("Si eres el elegido")
+            qs = request.GET.get('nombre')     
+            try:
+                if qs:
+                    inquilino = Arrendatario.objects.all().order_by('-id')
+                    serializer = InquilinoSerializers(inquilino, many=True)                    
+                    return Response(serializer.data)
+                    
+                else:
+                        print("Esta entrando a listar inquilino desde invetigacion")
+                        print("sin barra de busqueda")
+                        #todo el codigo comentado es el filtro para separar las investigaciones de francis con las demas que haya 
+                        # francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
+                        # inquilino = Arrendatario.objects.all().filter(user_id = francis.id)
+                        # print("excluimos el resultado:",inquilino)
+                        # id_inq = []
+                        # for inq in inquilino:
+                        #     id_inq.append(inq.id)
+                        # investigar = Investigacion.objects.all().exclude(inquilino__in = id_inq)
+                        investigar = Arrendatario.objects.all().order_by('-id')
+                        serializer = InquilinoSerializers(investigar, many=True)
+                        return Response(serializer.data)
+                
+                #    return Response(serializer.data, status= status.HTTP_200_OK)
+            except Exception as e:
+                print(f"el error es: {e}")
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+                return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'No estas autorizado'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    def investigacion_francis(self, request, *args, **kwargs):
+        user_session = request.user       
+        if user_session.username == "Arrendatario1" or user_session.username == "Legal":
+            print("Si eres el elegido")
+            qs = request.GET.get('nombre')     
+            try:
+                if qs:
+                    inquilino = Arrendatario.objects.all().filter(nombre__icontains = qs)
+                    id_inq = []
+                    for inq in inquilino:
+                        id_inq.append(inq.id)
+                    investigar = Investigacion.objects.all().filter(inquilino__in = id_inq)
+                    serializer = self.get_serializer(investigar, many=True)
+                    return Response(serializer.data)
+                    
+                else:
+                        print("Esta entrando a listar inquilino desde investigacion francis calete")
+                        francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
+                        print(francis)
+                        print(francis.id)
+                        inquilino = Arrendatario.objects.all().filter(user_id = francis.id)
+                        print(inquilino)
+                        id_inq = []
+                        for inq in inquilino:
+                            id_inq.append(inq.id)
+                        investigar = Investigacion.objects.all().filter(inquilino__in = id_inq)
+                        # investigar =  Investigacion.objects.filter(user_id = user_session)
+                        serializer = self.get_serializer(investigar, many=True)
+                        return Response(serializer.data)
+                
+                #    return Response(serializer.data, status= status.HTTP_200_OK)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'No estas autorizado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def update(self, request, *args, **kwargs):
+        pass
+        # try:
+        #     print("Esta entrando a actualizar inv")
+        #     partial = kwargs.pop('partial', False)
+        #     print("partials",partial)
+        #     print("soy el request",request.data)
+        #     print("soy el status que llega",request.data["status"])
+        #     instance = self.get_object()
+        #     print("instance",instance)
+        #     print("id",instance.id)
+            
+        #     #Consulata para obtener el inquilino y establecemos fecha de hoy
+        #     today = date.today().strftime('%d/%m/%Y')
+        #     inquilino_mod =  Arrendatario.objects.all().filter(id = instance.id)
+        #     primer_inquilino = inquilino_mod.first()
+        #     print("soy nombre de inquilino",primer_inquilino.nombre)
+        #     #Consulata para obtener el fiador confirme a la fk y releated name 
+        #     fiador = primer_inquilino.aval.all().first()
+        #     #primero comprobar si hay aval
+        #     if fiador:
+        #         print("si hay fiador")
+        #         print("yo soy info de los fiadores",fiador.__dict__)
+                
+        #         #si hay fiador hacemos el proceso de aprobar           
+        #         if request.data["status"] == "Aprobado":
+        #             print("APROBADO")
+        #             primer_inquilino.status = "1"
+        #             print("status cambiado",primer_inquilino.status)
+        #             primer_inquilino.save()
+        #             print("fiador.fiador_obligado",fiador.fiador_obligado)
+        #             #asignacion de variables dependiendo del Regimen fiscal del Fiador
+        #             if primer_inquilino.p_fom == "Persona Moral":
+        #                 print("Soy persona moral")
+        #             else: 
+                        
+        #                 if fiador.fiador_obligado == "Obligado Solidario Persona Moral":
+        #                     print("No agregamos nada")
+        #                 else:
+        #                     ingreso = request.data["roe_inquilino"]
+        #                     ine_inquilino = request.data["ine_inquilino"]
+        #                     ine_fiador = request.data["ine_fiador"]
+                            
+        #                     if fiador.recibos == "Si":
+        #                         ingreso_obligado = "Recibo de nómina"   
+        #                     else:
+        #                         ingreso_obligado = "Estado de cuenta" 
+        #                         #combierte el salario mensual a letra prospecto
+                                
+        #                     number = primer_inquilino.ingreso_men
+        #                     number = int(number)
+        #                     text_representation = num2words(number, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+        #                     text_representation = text_representation.capitalize()
+        #                     #combierte el salario mensual de aval
+        #                     number_2 = fiador.ingreso_men_fiador
+        #                     number_2 = int(number_2)
+        #                     text_representation2 = num2words(number_2, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
+        #                     text_representation2 = text_representation2.capitalize()
+        #             print("Pasamo el if de obligado ")
+                
+        #             #hacer el proceso de enviar archivo especial para persona moral
+        #             if primer_inquilino.p_fom == "Persona Moral":
+        #                 print("soy persona moral")
+        #                 archivo = request.data["doc_rec"]                        
+        #                 archivo = request.data["doc_rec"]
+        #                 comentario = "nada"
+        #                 self.enviar_archivo(archivo,primer_inquilino,comentario)
+                           
+        #             else:    
+        #                 if fiador.fiador_obligado == "Fiador Solidario":
+        #                     print("Hola soy Fiador Solidario")
+        #                     context = {
+        #                     'info':primer_inquilino,
+        #                     'fiador':fiador,
+        #                     'fecha_actual':today,
+        #                     'ine_inquilino':ine_inquilino,
+        #                     'ine_fiador':ine_fiador,
+        #                     'number': number,
+        #                     'number_2': number_2,
+        #                     'text_representation': text_representation,
+        #                     'text_representation2': text_representation2,
+        #                     'ingreso':ingreso,
+        #                     'ingreso_obligado':ingreso_obligado,
+        #                     'template':"home/aprobado_fiador.html",
+        #                     }
+        #                     self.generar_archivo(context)  
+                        
+        #                 elif fiador.fiador_obligado == "Obligado Solidario Persona Fisica":
+        #                     context = {
+        #                     'info':primer_inquilino,
+        #                     'fiador':fiador,
+        #                     'fecha_actual':today,
+        #                     'ine_inquilino':ine_inquilino,
+        #                     'ine_fiador':ine_fiador,
+        #                     'number': number,
+        #                     'number_2': number_2,
+        #                     'text_representation': text_representation,
+        #                     'text_representation2': text_representation2,
+        #                     'ingreso':ingreso,
+        #                     'ingreso_obligado':ingreso_obligado,
+        #                     'template':"home/aprobado_obligado.html",
+        #                     }
+        #                     self.generar_archivo(context)  
+                        
+        #                 else:
+        #                     print("Obligado Solidario Persona Moral")
+        #                     print("Otro proceso")
+        #                     archivo = request.data["doc_rec"]
+        #                     comentario = "nada"
+        #                     self.enviar_archivo(archivo,primer_inquilino,comentario)      
+                
+        #         if request.data["status"] == "Rechazado":
+        #             print("rechazado con aval")
+        #             primer_inquilino.status = "0"
+        #             print("status cambiado",primer_inquilino.status)
+        #             primer_inquilino.save()
+        #             comentario = request.data["comentario"]
+        #             archivo =request.data["doc_rec"]
+        #             self.enviar_archivo(archivo,primer_inquilino,comentario)   
+                
+
+        #         elif request.data["status"] == "En espera":
+        #             primer_inquilino.status = "1"
+        #             print("status cambiado",primer_inquilino.status)
+        #             primer_inquilino.save()
+        #             print("paso save")
+        #     # S I N A V A L            
+        #     else:
+        #         print("no hay aval aprobado")
+        #         if request.data["status"] == "Aprobado":
+        #             print("APROBADO SIN AVAL")
+        #             primer_inquilino.status = "1"
+        #             primer_inquilino.fiador = "no hay"
+        #             primer_inquilino.save()
+        #             print("status cambiado",primer_inquilino.status)
+        #             comentario = "nada"
+        #             print(comentario)
+                    
+        #             if "doc_sa" in request.data:
+        #                 print("si existo")
+        #                 archivo_sa = request.data["doc_sa"]
+        #                 print(archivo_sa)
+        #             else:
+        #                 print("no existo")
+        #                 archivo_sa = request.data["doc_rec"] 
+        #                 print(archivo_sa)
+                    
+        #             self.enviar_archivo(archivo_sa,primer_inquilino,comentario)  
+                
+        #         if request.data["status"] == "Rechazado":
+        #                 print("Rechazado sin Aval")
+        #                 primer_inquilino.status = "0"
+        #                 primer_inquilino.fiador = "no hay"
+        #                 print("status cambiado",primer_inquilino.status)
+        #                 primer_inquilino.save()
+        #                 comentario = request.data["comentario"]
+        #                 archivo =request.data["doc_rec"]
+        #                 self.enviar_archivo(archivo,primer_inquilino,comentario)    
+            
+        #         elif request.data["status"] == "En espera":
+        #             primer_inquilino.status = "1"
+        #             primer_inquilino.fiador = "no hay"
+        #             print("status cambiado",primer_inquilino.status)
+        #             primer_inquilino.save()
+        #             print("paso save")  
+            
+        #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            
+        #     if serializer.is_valid(raise_exception=True):
+        #         self.perform_update(serializer)
+        #         print("edite investigacion")
+            
+        #         return Response(serializer.data, status=status.HTTP_200_OK)
+        #     else:
+        #         return Response({'errors': serializer.errors})
+        # except Exception as e:
+        #     return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        user_session = request.user
+        try:
+            print("Entrando a retrieve")
+            modelos = Investigacion.objects.all() #Toma los datos de Inmuebles.objects.all() que esta al inicio de la clase viewset
+            # id = 3
+            print(pk)
+            inv = modelos.filter(id=pk)
+            if inv:
+                serializer_investigacion = InvestigacionSerializers(inv, many=True)
+                return Response(serializer_investigacion.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'No hay investigacion en estos datos'}, status = status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)             
+        
+    def enviar_archivo(self, archivo, info, estatus):
+        #cuando francis este registrado regresar todo como estaba
+        # francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
+        print("entre en el enviar archivo")
+        print("soy pdf content",archivo)
+        print("soy status",estatus)
+        print("soy info de investigacion",info.__dict__)
+        print("info id",info.user_id)
+   
+        # Configura los detalles del correo electrónico
+        try:
+            remitente = 'notificaciones@arrendify.com'
+            # if info.user_id == francis.id:
+            #     print("Es el mismo usuaio, envialo a francis calete")
+            #     # destinatario = 'el que meden @francis o algo asi'
+            #     pdf_html = contenido_pdf_aprobado_francis(info,estatus)
+            #     print("destinatario Francis", destinatario)
+            # else:
+            #destinatario = 'jsepulvedaarrendify@gmail.com'
+            destinatario = info.email
+            pdf_html = contenido_pdf_aprobado(info,estatus)
+            print("destinatario normalito",destinatario)
+            
+            #hacemos una lista destinatarios para enviar el correo
+            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
+            #Destino=['desarrolloarrendify@gmail.com']
+            #Destino=['juridico.arrendify1@gmail.com']
+            asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
+            
+            # Crea un objeto MIMEMultipart para el correo electrónico
+            msg = MIMEMultipart()
+            msg['From'] = remitente
+            msg['To'] = ','.join(Destino)
+            msg['Subject'] = asunto
+            print("paso objeto mime")
+            
+            #Evalua si tiene este atributo
+            # if hasattr(info, 'fiador'):
+            #     print("SOY info.fiador",info.fiador)
+            
+            # Adjuntar el contenido HTML al mensaje
+            msg.attach(MIMEText(pdf_html, 'html'))
+            print("pase el msg attach 1")
+            # Adjunta el PDF al correo electrónico
+            pdf_part = MIMEBase('application', 'octet-stream')
+            pdf_part.set_payload(archivo.read())  # Lee los bytes del archivo
+            encoders.encode_base64(pdf_part)
+            pdf_part.add_header('Content-Disposition', 'attachment', filename='Reporte_de_investigación.pdf')
+            msg.attach(pdf_part)
+            print("pase el msg attach 2")
+            
+            # Establece la conexión SMTP y envía el correo electrónico
+            smtp_server = 'mail.arrendify.com'
+            smtp_port = 587
+            smtp_username = config('mine_smtp_u')
+            smtp_password = config('mine_smtp_pw')
+            with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
+                server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
+                print("tls")
+                server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
+                print("login")
+                server.sendmail(remitente, Destino, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
+                print("sendmail")
+            return Response({'message': 'Correo electrónico enviado correctamente.'}, status = 200)
+        except SMTPException as e:
+            print("Error al enviar el correo electrónico:", str(e))
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
+    
+    def enviar_archivo_arrendify(self, archivo, info, estatus):
+        #cuan(do francis este registrado regresar todo como estaba
+        print("entre en el enviar archivo arrendify")
+        print("soy pdf content",archivo)
+        print("soy status",estatus)
+        print("soy info de investigacion",info.__dict__)
+        print("info id",info.user_id)
+   
+        # Configura los detalles del correo electrónico
+        try:
+            remitente = 'notificaciones@arrendify.com'
+            destinatario = info.email
+            pdf_html = contenido_pdf_aprobado(info,estatus)
+            print("destinatario normalito",destinatario)
+            
+            #hacemos una lista destinatarios para enviar el correo
+            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
+            #Destino=['desarrolloarrendify@gmail.com']
+            #Destino=['juridico.arrendify1@gmail.com']
+            asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
+            
+            # Crea un objeto MIMEMultipart para el correo electrónico
+            msg = MIMEMultipart()
+            msg['From'] = remitente
+            msg['To'] = ','.join(Destino)
+            msg['Subject'] = asunto
+            print("paso objeto mime")
+            
+            #Evalua si tiene este atributo
+            # if hasattr(info, 'fiador'):
+            #     print("SOY info.fiador",info.fiador)
+            
+            # Adjuntar el contenido HTML al mensaje
+            msg.attach(MIMEText(pdf_html, 'html'))
+            print("pase el msg attach 1")
+            # Adjunta el PDF al correo electrónico
+            pdf_part = MIMEBase('application', 'octet-stream')
+            pdf_part.set_payload(archivo.read())  # Lee los bytes del archivo
+            encoders.encode_base64(pdf_part)
+            pdf_part.add_header('Content-Disposition', 'attachment', filename='Reporte_de_investigación.pdf')
+            msg.attach(pdf_part)
+            print("pase el msg attach 2")
+            
+            # Establece la conexión SMTP y envía el correo electrónico
+            smtp_server = 'mail.arrendify.com'
+            smtp_port = 587
+            smtp_username = config('mine_smtp_u')
+            smtp_password = config('mine_smtp_pw')
+            with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
+                server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
+                print("tls")
+                server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
+                print("login")
+                server.sendmail(remitente, Destino, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
+                print("sendmail")
+            return Response({'message': 'Correo electrónico enviado correctamente.'}, status = 200)
+        except SMTPException as e:
+            print("Error al enviar el correo electrónico:", str(e))
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
+    
+        
+    def aprobar_prospecto(self, request, *args, **kwargs):
+        try:
+            print("entrando en Aprobar prospecto")
+            #Consulata para obtener el inquilino y establecemos fecha de hoy
+            today = date.today().strftime('%d/%m/%Y')
+            req_dat = request.data
+            info = Arrendatario.objects.filter(id = req_dat["id"]).first()
+            print("soy INFO",info.__dict__)   
+                 
+                 
+            aval = info.aval.all().first()
+            redes_negativo = req_dat.get("redes_negativo")
+            print("request.data",req_dat)
+            print("el id que llega", req_dat["id"])
+            print("")
+            print("soy la info del",info.nombre_completo)       
+            print(info.__dict__)
+            print("")        
+            print("soy la info del aval",aval)                                                           
+            print("")
+            print("redes negativo", redes_negativo)            
+            print("")
+            
+            requisitos = ['referencia1', 'referencia2', 'referencia3'] # una lista para verificar las referencias 1,2 y 3
+            presentes = [req for req in requisitos if req in request.data and request.data[req]]
+            print("Referencias presentes: ",presentes)
+            if len(presentes) == 3:
+                referencias = "En consideración a lo referido por las referencias podemos constatar que la informacion brindada por el prospecto al inicio del tramite es verídica, lo cual nos permite estimar que cuenta con buenos comentarios hacia su persona."
+            elif len(presentes) > 0:
+                referencias = "En cuanto a la recolección de información por parte de las referencias se nos imposibilita aseverar la cabalidad de la persona a investigar referente a su ámbito social, toda vez que no se logró entablar comunicación con alguna(s) referencias proporcionadas, por lo tanto, no podemos corroborar por completo la veracidad de la información proporcionada en la solicitud de arrendamiento. "
+            else:
+                referencias = "En cuanto a la recolección de información por parte de las referencias se nos imposibilita aseverar la cabalidad de la persona a investigar referente a su ámbito social, toda vez que no se logró entablar comunicación con ninguna de las referencias proporcionadas, por lo tanto, no podemos corroborar la veracidad de la información proporcionada en la solicitud de arrendamiento. "
+            
+            #comentarios de redes para walden
+            if redes_negativo:
+                redes_negativo = dict(redes_negativo)
+                #inicializamos la lista 
+                redes_comentarios = []
+                #establecemos las frases
+                conductas = {
+                'conducta_violenta': "Conducta violenta o agresiva: Publicaciones que muestran armas de fuego u otros objetos peligrosos.",
+                'conducta_discriminatoria': "Conducta discriminatoria o racista: Comentarios, imágenes o memes que promueven el racismo, sexismo, homofobia, transfobia u otro tipo de discriminación.",
+                'contenido_ofensivo_odio': "Contenido ofensivo o de odio: Publicaciones que contienen discursos de odio contra diversos grupos étnicos, religiosos, de orientación sexual, género, etc",
+                'bullying_acoso': "Bullying o acoso: Participación en o incitación al acoso, ya sea ciberacoso o en la vida real.",
+                'contenido_inapropiado': "Contenido inapropiado o explícito: Publicaciones de contenido sexual explícito o inapropiado.",
+                'desinformacion_teoria': "Desinformación y teorías conspirativas: Difusión de información falsa o engañosa, así como la promoción de teorías conspirativas sin fundamento que puedan poner en peligro la tranquilidad y orden dentro de la comunidad.",
+                'lenguaje_vulgar': "Lenguaje vulgar o inapropiado: Uso excesivo de lenguaje vulgar o soez en sus publicaciones.",
+                'contenido_poco_profesional': "Conducta poco profesional: Publicaciones que muestran comportamientos inapropiados en contextos profesionales.",
+                'falta_integridad': "Falta de integridad: Inconsistencias en la información compartida en diferentes plataformas, o indicios de comportamientos engañosos o fraudulentos.",
+                'divulgacion_info': "Divulgación de información confidencial: Publicaciones que revelan información privada o confidencial de empresas, clientes o individuos.",
+                'exceso_negatividad': "Exceso de negatividad: Publicaciones predominantemente negativas o quejumbrosas.",
+                'falta_respeto_priv': "Falta de respeto hacia la privacidad: Compartir información privada de otras personas sin su consentimiento.",
+                'ausencia_diversidad': "Ausencia de diversidad y tolerancia: Falta de representación de diversas perspectivas y falta de respeto por la diversidad en sus publicaciones."
+                }
+                # Bucle para generar las frases basadas en los valores de redes_negativo
+                for clave, valor in redes_negativo.items(): #hacemos un for basado en la clave valor del dicciones redes_negativo en el .items al ser un diccionario
+                    if valor == "Si" and clave in conductas:
+                        frase = conductas[clave]
+                        #lo agregamos a la lista redes_comentarios
+                        redes_comentarios.append(frase)
+                        print("clave:", clave)
+                        print("frase:", frase)
+                        print("lista finalizada:", redes_comentarios)
+                    elif valor == "Si" and clave not in conductas:
+                        print(f"No hay una frase definida para la clave: {clave}")
+            else:
+                redes_comentarios = "no tengo datos"
+                print("redes coments",redes_comentarios)
+        
+            #opciones para el score interno de nosotros
+            opciones = {
+                'Excelente': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/medidores/medidor_excelente.png",
+                'Bueno': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/medidores/medidor_bueno.png",
+                'Regular': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/medidores/medidor_regular.png",
+                'Malo': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/medidores/medidor_malo.png"
+            }
+            
+            tipo_score_ingreso = req_dat["tipo_score_ingreso"]
+            tipo_score_pp = req_dat["tipo_score_pp"]
+            tipo_score_credito = req_dat["tipo_score_credito"]
+            
+            if tipo_score_ingreso and tipo_score_pp and tipo_score_credito in opciones:
+                tsi = opciones[tipo_score_ingreso]
+                tspp = opciones[tipo_score_pp]
+                tsc = opciones[tipo_score_credito]
+                print(f"Tu Tipo de score ingresos es: {tipo_score_ingreso}, URL: {tsi}")
+                print(f"Tu Tipo de score de pagos puntuales es: {tipo_score_pp}, URL: {tspp}")
+                print(f"Tu Tipo de score de credito es: {tipo_score_credito}, URL: {tsc}")
+            
+               
+            #Dar conclusion dinamica
+            antecedentes = request.data.get('antecedentes') # Obtenemos todos los antecedentes del prospecto
+            print("ANTECEDENTES",antecedentes)
+            if antecedentes:
+                # del antecedentes["civil_mercantil_demandado"] 
+                print("tienes antecedences, vamos a ver si es civil o familiar",antecedentes)
+                if antecedentes.get("civil_mercantil_demandado") and len(antecedentes) == 1: #tiene antecedentes de civil o de familiar? los excentamos si no delincuente
+                    print("Tiene antecedentes civiles o familiares")
+                    print("Checamos el historial")
+                    #evaluar el historial crediticio  
+                    
+                    if tipo_score_pp == "Malo" or tipo_score_ingreso == "Malo":
+                        print("rechazado")
+                        conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                        status = "Declinado"
+                        motivo = "1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente."
+                    
+                    elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
+                        print("aprobado")
+                        conclusion = f"Nos complace informar que el prospecto {info.nombre_completo} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
+                        status = "Aprobado"
+                        motivo = "No hay motivo de rechazo"
+                    
+                    elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Malo":
+                        print("a considerar")
+                        conclusion = "Nos complace informar que el candidato ha sido aprobado tras una rigurosa investigación llevada a cabo por ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa, confirmando así que el candidato cumple con los requisitos exigidos. \n \n No obstante, es importante considerar que la investigación ha revelado ciertos puntos que deben tomarse en cuenta, los cuales se detallado en lo expuesto anteriormente respecto a:"
+                        status = "Aprobado_pe"
+                        motivo = "1.- Antecedentes: Se cuenta con demanda en materia civil o familiar.\n2.- Buro: Historial crediticio con algunas áreas que podrían mejorarse."
+                        
+                elif antecedentes.get("antecedentes_aval_si") and len(antecedentes) == 1: #tiene antecedentes de aval
+                        print("el aval tiene antecedentes")
+                        print("Cambiamos el Aval")
+                        
+                        if tipo_score_pp == "Malo" or tipo_score_ingreso == "Malo":
+                            print("rechazado")
+                            conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                            status = "Declinado"
+                            motivo = f"1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente.\n2.-Derivado a lo anterior, a fin de concretar la relación contractual que se busca generar, es necesario buscar a una nueva figura de AVAL ya que el C.{aval}, presenta diversos procedimientos en materia mercantil en su contra, lo cual nos imposibilita celebrar el contrato de arrendamiento ante tales supuestos."
+                        
+                        elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
+                            print("aprobado imprimi la primer conclusion")
+                            conclusion = f"Nos complace informar que el prospecto {info.nombre_completo} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
+                            status = "Aprobado"
+                            motivo =  f"Derivado a lo anterior, a fin de concretar la relación contractual que se busca generar, es necesario buscar a una nueva figura de AVAL ya que el C.{aval}, presenta diversos procedimientos en materia mercantil en su contra, lo cual nos imposibilita celebrar el contrato de arrendamiento ante tales supuestos."
+                        
+                        elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Malo":
+                            print("a considerar")
+                            conclusion = "Nos complace informar que el candidato ha sido aprobado tras una rigurosa investigación llevada a cabo por ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa, confirmando así que el candidato cumple con los requisitos exigidos. \n \n No obstante, es importante considerar que la investigación ha revelado ciertos puntos que deben tomarse en cuenta, los cuales se detallado en lo expuesto anteriormente respecto a:"
+                            status = "Aprobado_pe"
+                            motivo = f"1.- Antecedentes: Se cuenta con demanda en materia civil o familiar.\n2.- Buro: Historial crediticio con algunas áreas que podrían mejorarse.\n3.-Derivado a lo anterior, a fin de concretar la relación contractual que se busca generar, es necesario buscar a una nueva figura de AVAL ya que el C.{aval}, presenta diversos procedimientos en materia mercantil en su contra, lo cual nos imposibilita celebrar el contrato de arrendamiento ante tales supuestos."
+                    
+                elif antecedentes and tipo_score_pp == "Malo" or antecedentes and tipo_score_ingreso == "Malo":
+                        print("rechazado")
+                        conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                        status = "Declinado"
+                        motivo = "1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente.\n2.- Antecedentes: Se cuenta con antecedentes legales, que se detallan en el apartado correspondiente."    
+                        
+                else:
+                    print("eres un delincuente")
+                    conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                    status = "Declinado"
+                    motivo = "1.- Antecedentes: Se cuenta con antecedentes legales, que se detallan en el apartado correspondiente."
+            else: #No tiene Antecedentes
+                
+                #evaluar el historial crediticio  
+                if tipo_score_pp == "Malo":
+                    print("rechazado")
+                    conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                    status = "Declinado"
+                    motivo = "1.- Buro: Se cuenta con un buro con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente."
+                
+                elif tipo_score_ingreso == "Malo":
+                    print("rechazado")
+                    conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
+                    status = "Declinado"
+                    motivo = "1.- Ingresos: Los ingresos comprobados no son suficientes para garantizar el cumplimiento de sus obligaciones financieras."
+                
+                elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
+                    print("aprobado")
+                    conclusion = f"Nos complace informar que el prospecto {info.nombre_completo} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
+                    status = "Aprobado"
+                    motivo = ""   
+                
+                elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente" and antecedentes.get("antecedentes_aval_si") and antecedentes != None :
+                    print("aprobado imprimi la segunda conclusion")
+                    conclusion = f"Nos complace informar que el prospecto {info.nombre_completo} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
+                    status = "Aprobado"
+                    motivo = f"Derivado a lo anterior, a fin de concretar la relación contractual que se busca generar, es necesario buscar a una nueva figura de AVAL ya que el C.{aval}, presenta diversos procedimientos en materia mercantil en su contra, lo cual nos imposibilita celebrar el contrato de arrendamiento ante tales supuestos." 
+                
+                elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Malo":
+                    print("a considerar")
+                    conclusion = "Nos complace informar que el candidato ha sido aprobado tras una rigurosa investigación llevada a cabo por ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa, confirmando así que el candidato cumple con los requisitos exigidos. \n \n No obstante, es importante considerar que la investigación ha revelado ciertos puntos que deben tomarse en cuenta, los cuales se detallado en lo expuesto anteriormente respecto a:"
+                    status = "Aprobado_pe"
+                    motivo = "1.- Buro: Historial crediticio con algunas áreas que podrían mejorarse."
+                
+                 
+                    
+            context = {'info': info, 'aval':aval, "fecha_consulta":today, 'datos':req_dat, 'tsi':tsi, 'tspp':tspp, 'tsc':tsc, 
+                       "redes_comentarios":redes_comentarios, 'referencias':referencias, 'antecedentes':antecedentes,'status':status, 'conclusion':conclusion, 'motivo':motivo}
+            
+            template = 'home/report.html'
+            html_string = render_to_string(template, context)
+
+            # Genera el PDF utilizando weasyprint
+            print("Generando el pdf")
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            # #aqui hacia abajo es para enviar por email
+            archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+        
+            print("antes de enviar_archivo",context)
+            correo = self.enviar_archivo_arrendify(archivo, context["info"], context["status"])
+            print("soy correo papito",correo)
+            if correo.status_code == 200:
+                 # Aprobar o desaprobar
+                if status == "Aprobado_pe" or status == "Aprobado":  
+                     info.status = "Aprobado"
+                     info.save()
+                else:
+                     info.status = "Rechazado"
+                     info.save()
+                
+                print("Correo ENVIADO")
+            
+            else:
+                print("valio chetos")
+                print("Correo NO ENVIADO")
+                Response({"Error":"no se envio el correo"},status = 409)
+            
+            return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
+           
+            #de aqui hacia abajo Devuelve el PDF como respuesta
+            # response = HttpResponse(content_type='application/pdf')
+            # response['Content-Disposition'] = 'inline; filename="Pagare.pdf"'
+            # response.write(pdf_file)
+            # print("Finalizamos el proceso de aprobado") 
+            # return response
+        
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status = "404")  
