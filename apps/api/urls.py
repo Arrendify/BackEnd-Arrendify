@@ -56,6 +56,7 @@ urlpatterns = [
     path('semillero/generar_pagare/', fraterna_views.Contratos_semillero.as_view({'post': 'generar_pagare_semillero'}), name='generar_pagare_semillero'),
     path('semillero/generar_poliza/', fraterna_views.Contratos_semillero.as_view({'post': 'generar_poliza_semillero'}), name='generar_poliza_semillero'),
     path('semillero/generar_contrato/', fraterna_views.Contratos_semillero.as_view({'post': 'generar_contrato_semillero'}), name='generar_contrato_semillero'),
+    path('semillero/aprobar_residente/',fraterna_views.InvestigacionSemillero.as_view({'post': 'aprobar_residente_semillero'}), name='aprobar_residente_semillero'),
     
     
     #notificaiones por usuario
