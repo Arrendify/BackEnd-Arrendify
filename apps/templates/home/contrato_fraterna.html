@@ -1242,54 +1242,63 @@
 	</tr>
 	{% comment %} FIRMAS {% endcomment %}
 	<tr>
-		<td style="height:5px" align="center" valign=middle></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><b><div style="text-align:center" class="fuente">El Arrendador</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><br></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><br></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">_____________________________________</div></b></td>
-	</tr>
-	
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">Carlos Manuel Padilla Silva</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">Representante Legal</div></b></td>
-	</tr>
-
-
-	<tr>
-		<td height="21" valign=middle><br></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">El Arrendatario</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><br></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><br></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">_____________________________________</div></b></td>
-	</tr>
-	
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">{{info.residente.nombre_arrendatario}}</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" style="text-align:center" valign=middle><b><div style="text-align:center" class="fuente">Por sus propios derechos.</div></b></td>
-	</tr>
+	<td style="height:20px"></td>
+</tr>
+<tr><td colspan="3" height="20"><br></td></tr>
+<tr>
+	<td>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-right: 0.5cm; width: calc(100% - 0.5cm);">
+			<tr>
+				<td width="45%" valign="top" style="text-align:center">
+					<b><span class="fuente">El Arrendador</span></b>
+				</td>
+				<td width="10%"></td>
+				<td width="45%" valign="top" style="text-align:center">
+					<b><span class="fuente">El Arrendatario</span></b>
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" style="text-align:center">
+					<b><span class="fuente">FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</span></b>
+				</td>
+				<td></td>
+				<td valign="top" style="text-align:center">
+				</td>
+			</tr>
+			<tr><td colspan="3" height="20"><br></td></tr>
+			<tr><td colspan="3" height="20"><br></td></tr>
+			<tr>
+				<td valign="bottom" style="text-align:center">
+					<b><span class="fuente">_____________________________________</span></b>
+				</td>
+				<td></td>
+				<td valign="bottom" style="text-align:center">
+					<b><span class="fuente">_____________________________________</span></b>
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" style="text-align:center">
+					<b><span class="fuente" style="word-wrap:break-word; display:inline-block;">Carlos Manuel Padilla Silva</span></b>
+				</td>
+				<td></td>
+				<td valign="top" style="text-align:center">
+					<b><span class="fuente" style="word-wrap:break-word; display:inline-block;">{{info.residente.nombre_arrendatario}}</span></b>
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" style="text-align:center">
+					<b><span class="fuente">Representante Legal</span></b>
+				</td>
+				<td></td>
+				<td valign="top" style="text-align:center">
+					<b><span class="fuente">Por sus propios derechos.</span></b>
+				</td>
+			</tr>
+		</table>
+	</td>
+	<tr><td colspan="3" height="20"><br></td></tr>
+	<tr><td colspan="3" height="20"><br></td></tr>
+</tr>
 
 	{% if info.residente.aval == "Si" and info.residente.edad >= "18" %}
 	<tr>
