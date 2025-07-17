@@ -2149,6 +2149,7 @@ class Arrendatarios_semillero(models.Model):
     direccion_arrendatario=models.CharField(max_length = 250, null = True, blank = True)
     curp=models.CharField(max_length=100, null=True, blank=True)
     estado_civil=models.CharField(max_length=100, null=True, blank=True, default="Soltero")
+    giro=models.CharField(max_length=100, null=True, blank=True)
     
     # arrendatario persona moral
     arr_nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
