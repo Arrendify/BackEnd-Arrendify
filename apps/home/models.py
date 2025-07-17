@@ -1984,7 +1984,7 @@ class Residentes(models.Model):
     identificacion_residente=models.CharField(max_length = 100, null = True, blank = True)
     no_ide_residente=models.CharField(max_length = 100, null = True, blank = True)
     sexo=models.CharField(max_length = 100, null = True, blank = True)
-    fecha_nacimiento=models.DateField(auto_now_add=True, null=True, blank=True)
+    fecha_nacimiento=models.DateField(null=True, blank=True)
     edad=models.CharField(max_length = 100, null = True, blank = True)
     celular_residente=models.CharField(max_length = 100, null = True, blank = True)
     correo_residente=models.EmailField(null=True, blank=True)
