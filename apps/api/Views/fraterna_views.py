@@ -207,9 +207,14 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             print("instance",instance)
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
-            print(serializer)
+            #print(serializer)
             if serializer.is_valid(raise_exception=True):
+                # Guardar los cambios explícitamente
                 self.perform_update(serializer)
+                # Refrescar la instancia desde la base de datos para asegurar que tenemos los datos actualizados
+                instance.refresh_from_db()
+                # Volver a serializar para obtener los datos actualizados
+                serializer = self.get_serializer(instance)
                 print("edito residente")
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
