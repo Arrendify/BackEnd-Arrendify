@@ -2096,7 +2096,7 @@ class Contratos_semillero(viewsets.ModelViewSet):
                 "testigo2": testigo2
             }
 
-            template = 'home/contrato_arr_frat.html'
+            template = 'home/contrato_arr_sem_com.html'
             html_string = render_to_string(template, context)
 
             # Genera el PDF utilizando weasyprint
