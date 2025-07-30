@@ -1969,7 +1969,7 @@ class Contratos_semillero(viewsets.ModelViewSet):
     def generar_poliza_semillero(self, request, *args, **kwargs):
         try:
             print("Generar Poliza Semillero")
-            print("rd", request.data)
+            print("Data ====>", request.data)
             id_paq = request.data["id"]
             testigo1 = request.data["testigo1"]
             testigo2 = request.data["testigo2"]
@@ -2046,15 +2046,15 @@ class Contratos_semillero(viewsets.ModelViewSet):
     def generar_contrato_semillero(self, request, *args, **kwargs):
         try:
             print("Generar contrato Semillero")
-            print("rd", request.data)
+            print("Data Entrante ====>", request.data)
             id_paq = request.data["id"]
             testigo1 = request.data["testigo1"]
             testigo2 = request.data["testigo2"]
-            print(testigo1)
-            print(testigo2)
-            print("el id que llega", id_paq)
+            print("Testigo 1 ====>",testigo1)
+            print("Testigo 2 ====>",testigo2)
+            print("ID ====>", id_paq)
             info = self.queryset.filter(id=id_paq).first()
-            print(info.__dict__)
+            print("Diccionario ====>",info.__dict__)
             
             # 🧠 Convertir renta con centavos a texto
             renta = float(info.renta)
@@ -2070,22 +2070,21 @@ class Contratos_semillero(viewsets.ModelViewSet):
             num_vigencia = vigencia[0]
             print(num_vigencia)
 
-            print("vamos agenerar el codigo")
+            print("Generando Codigo de paquete...")
             na = str(info.arrendatario.nombre_arrendatario)[0:1] + str(info.arrendatario.nombre_arrendatario)[-1]
             fec = str(info.fecha_celebracion).split("-")
             if info.id < 9:
                 info.id = f"0{info.id}"
-                print("")
-            print("fec", fec)
+            print("Fecha Celebracion ====>", fec)
 
             dia = fec[2]
             mes = fec[1]
             anio = fec[0][2:4]
-            print("dia", dia)
-            print("mes", mes)
-            print("año", anio)
+            print("Dia ====>", dia)
+            print("Mes ====>", mes)
+            print("Año ====>", anio)
             nom_paquete = "AFY" + dia + mes + anio + "CX" + "24" + f"{info.id}" + "CA" + na
-            print("paqueton", nom_paquete.upper())
+            print("Numero Paquete ====>", nom_paquete.upper())
 
             context = {
                 'info': info,
@@ -2095,6 +2094,8 @@ class Contratos_semillero(viewsets.ModelViewSet):
                 "testigo1": testigo1,
                 "testigo2": testigo2
             }
+            # Para depurar el contexto
+            print("Context ===> ",context)
 
             template = 'home/contrato_arr_sem_com.html'
             html_string = render_to_string(template, context)
@@ -2106,7 +2107,7 @@ class Contratos_semillero(viewsets.ModelViewSet):
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="Poliza.pdf"'
             response.write(pdf_file)
-            print("finalizado")
+            print("Generado con Exito")
 
             return HttpResponse(response, content_type='application/pdf')
 
@@ -2118,16 +2119,16 @@ class Contratos_semillero(viewsets.ModelViewSet):
         
     def renovar_contrato_semillero(self, request, *args, **kwargs):
         try:
-            print("Renovar el contrato pa")
-            print("Request",request.data)
+            print("Renovacion de contrato Semillero")
+            print("Data ====>",request.data)
             instance = self.queryset.get(id = request.data["id"])
-            print("mi id es: ",instance.id)
+            print("ID ====>",instance.id)
             print(instance.__dict__)
             #Mandar Whats con lo datos del contrato a Miri
             
             #se utiliza el "get" en lugar del filter para obtener el objeto y no un queryset
             proceso = ProcesoContrato_semillero.objects.all().get(contrato_id = instance.id)
-            print("proceso",proceso.__dict__)
+            print("Proceso ====>",proceso.__dict__)
             proceso.status_proceso = request.data["status"]
             proceso.save()
             return Response({'Exito': 'Se cambio el estatus a aprobado'}, status= status.HTTP_200_OK)
@@ -2148,7 +2149,7 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         user_session = request.user       
         if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion" or user_session.username == "AndresMtzO" or user_session.username == "MIRIAM" or user_session.username == "jon_admin" or user_session.username == "SUArrendify" or user_session.username == "Becarios":
-            print("Si eres el elegido")
+            print("USUARIO STAFF")
             qs = request.GET.get('nombre')     
             try:
                 if qs:
@@ -2157,16 +2158,7 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
                     return Response(serializer.data)
                     
                 else:
-                        print("Esta entrando a listar inquilino desde invetigacion")
-                        print("sin barra de busqueda")
-                        #todo el codigo comentado es el filtro para separar las investigaciones de francis con las demas que haya 
-                        # francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
-                        # inquilino = Arrendatario.objects.all().filter(user_id = francis.id)
-                        # print("excluimos el resultado:",inquilino)
-                        # id_inq = []
-                        # for inq in inquilino:
-                        #     id_inq.append(inq.id)
-                        # investigar = Investigacion.objects.all().exclude(inquilino__in = id_inq)
+                        print("Listar Investigacion Semillero")
                         investigar = Arrendatario.objects.all().order_by('-id')
                         serializer = InquilinoSerializers(investigar, many=True)
                         return Response(serializer.data)
@@ -2401,7 +2393,6 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
         try:
             print("Entrando a retrieve")
             modelos = Investigacion.objects.all() #Toma los datos de Inmuebles.objects.all() que esta al inicio de la clase viewset
-            # id = 3
             print(pk)
             inv = modelos.filter(id=pk)
             if inv:
@@ -2415,11 +2406,11 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
     def enviar_archivo(self, archivo, info, estatus):
         #cuando francis este registrado regresar todo como estaba
         # francis = User.objects.all().filter(name_inmobiliaria = "Francis Calete").first()
-        print("entre en el enviar archivo")
-        print("soy pdf content",archivo)
-        print("soy status",estatus)
-        print("soy info de investigacion",info.__dict__)
-        print("info id",info.user_id)
+        print("Enviar Investigacion Semillero")
+        print("PDF ====>",archivo)
+        print("Estatus Investigacion ====>",estatus)
+        print("DATA ====>",info.__dict__)
+        print("ID USUARIO ====>",info.user_id)
    
         # Configura los detalles del correo electrónico
         try:
@@ -2433,7 +2424,7 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
             #destinatario = 'jsepulvedaarrendify@gmail.com'
             destinatario = info.email
             pdf_html = contenido_pdf_aprobado(info,estatus)
-            print("destinatario normalito",destinatario)
+            print("Destinatario ====> ",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
             Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
@@ -2454,14 +2445,14 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
             
             # Adjuntar el contenido HTML al mensaje
             msg.attach(MIMEText(pdf_html, 'html'))
-            print("pase el msg attach 1")
+            print("Creacion de Mail ====>")
             # Adjunta el PDF al correo electrónico
             pdf_part = MIMEBase('application', 'octet-stream')
             pdf_part.set_payload(archivo.read())  # Lee los bytes del archivo
             encoders.encode_base64(pdf_part)
             pdf_part.add_header('Content-Disposition', 'attachment', filename='Reporte_de_investigación.pdf')
             msg.attach(pdf_part)
-            print("pase el msg attach 2")
+            print("Mail Creado ====>")
             
             # Establece la conexión SMTP y envía el correo electrónico
             smtp_server = 'mail.arrendify.com'
@@ -2470,11 +2461,11 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
             smtp_password = config('mine_smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
-                print("tls")
+                print("TLS ====>")
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
-                print("login")
+                print("LOGIN ====>")
                 server.sendmail(remitente, Destino, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
-                print("sendmail")
+                print("CORREO ENVIADO ====>")
             return Response({'message': 'Correo electrónico enviado correctamente.'}, status = 200)
         except SMTPException as e:
             print("Error al enviar el correo electrónico:", str(e))
@@ -2484,18 +2475,18 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
     
     def enviar_archivo_semillero(self, archivo, info, estatus):
         #cuan(do francis este registrado regresar todo como estaba
-        print("entre en el enviar archivo semillero")
-        print("soy pdf content",archivo)
-        print("soy status",estatus)
-        print("soy info de investigacion",info.__dict__)
-        print("info id",info.user_id)
+        print("Enviar Archivo Investigacion Semillero ====>")
+        print("PDF ====>",archivo)
+        print("Estatus Investigacion ====>",estatus)
+        print("INFO Investigacion ====>",info.__dict__)
+        print("ID USUARIO ====>",info.user_id)
    
         # Configura los detalles del correo electrónico
         try:
             remitente = 'notificaciones@arrendify.com'
             destinatario = info.correo_arrendatario
             pdf_html = contenido_pdf_aprobado_semillero(info,estatus)
-            print("destinatario normalito",destinatario)
+            print("Destinatario ====>",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
             Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
@@ -2516,14 +2507,14 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
             
             # Adjuntar el contenido HTML al mensaje
             msg.attach(MIMEText(pdf_html, 'html'))
-            print("pase el msg attach 1")
+            print("Creacion de Mail ====>")
             # Adjunta el PDF al correo electrónico
             pdf_part = MIMEBase('application', 'octet-stream')
             pdf_part.set_payload(archivo.read())  # Lee los bytes del archivo
             encoders.encode_base64(pdf_part)
             pdf_part.add_header('Content-Disposition', 'attachment', filename='Reporte_de_investigación.pdf')
             msg.attach(pdf_part)
-            print("pase el msg attach 2")
+            print("Mail Creado ====>")
             
             # Establece la conexión SMTP y envía el correo electrónico
             smtp_server = 'mail.arrendify.com'
@@ -2532,11 +2523,11 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
             smtp_password = config('mine_smtp_pw')
             with smtplib.SMTP(smtp_server, smtp_port) as server:   #Crea una instancia del objeto SMTP proporcionando el servidor SMTP y el puerto correspondiente 
                 server.starttls() # Inicia una conexión segura (TLS) con el servidor SMTP
-                print("tls")
+                print("TLS ====>")
                 server.login(smtp_username, smtp_password) # Inicia sesión en el servidor SMTP utilizando el nombre de usuario y la contraseña proporcionados. 
-                print("login")
+                print("LOGIN ====>")
                 server.sendmail(remitente, Destino, msg.as_string()) # Envía el correo electrónico utilizando el método sendmail del objeto SMTP.
-                print("sendmail")
+                print("CORREO ENVIADO ====>")
             return Response({'message': 'Correo electrónico enviado correctamente.'}, status = 200)
         except SMTPException as e:
             print("Error al enviar el correo electrónico:", str(e))
@@ -2547,28 +2538,28 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
         
     def aprobar_residente_semillero(self, request, *args, **kwargs):
         try:
-            print("entrando en Aprobar prospecto semillero")
+            print("Aprobar Prospecto semillero")
             #Consulata para obtener el inquilino y establecemos fecha de hoy
             today = date.today().strftime('%d/%m/%Y')
             req_dat = request.data
             info = Arrendatarios_semillero.objects.filter(id = req_dat["id"]).first()
-            print("soy INFO",info.__dict__)   
+            print("DATA ====>",info.__dict__)   
                  
                  
             redes_negativo = req_dat.get("redes_negativo")
-            print("request.data",req_dat)
-            print("el id que llega", req_dat["id"])
+            print("DATA ====>",req_dat)
+            print("ID DATA ====>", req_dat["id"])
             print("")
-            print("soy la info del",info.nombre_arrendatario)       
-            print(info.__dict__)
+            print("Arrendatario ====>",info.nombre_arrendatario)       
+            print("Diccionario ====>",info.__dict__)
             print("")                                                                 
             print("")
-            print("redes negativo", redes_negativo)            
+            print("Redes Negativas ====>", redes_negativo)            
             print("")
             
             requisitos = ['referencia1', 'referencia2', 'referencia3'] # una lista para verificar las referencias 1,2 y 3
             presentes = [req for req in requisitos if req in request.data and request.data[req]]
-            print("Referencias presentes: ",presentes)
+            print("Referencias presentes ====>",presentes)
             if len(presentes) == 3:
                 referencias = "En consideración a lo referido por las referencias podemos constatar que la informacion brindada por el prospecto al inicio del tramite es verídica, lo cual nos permite estimar que cuenta con buenos comentarios hacia su persona."
             elif len(presentes) > 0:
@@ -2603,14 +2594,14 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
                         frase = conductas[clave]
                         #lo agregamos a la lista redes_comentarios
                         redes_comentarios.append(frase)
-                        print("clave:", clave)
-                        print("frase:", frase)
-                        print("lista finalizada:", redes_comentarios)
+                        print("Clave ====>", clave)
+                        print("Frase ====>", frase)
+                        print("Comentarios Redes ====>", redes_comentarios)
                     elif valor == "Si" and clave not in conductas:
                         print(f"No hay una frase definida para la clave: {clave}")
             else:
                 redes_comentarios = "no tengo datos"
-                print("redes coments",redes_comentarios)
+                print("Comentarios Redes ====>",redes_comentarios)
         
             #opciones para el score interno de nosotros
             opciones = {
@@ -2635,63 +2626,62 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
                
             #Dar conclusion dinamica
             antecedentes = request.data.get('antecedentes') # Obtenemos todos los antecedentes del prospecto
-            print("ANTECEDENTES",antecedentes)
+            print("ANTECEDENTES ====>",antecedentes)
             if antecedentes:
                 # del antecedentes["civil_mercantil_demandado"] 
-                print("tienes antecedences, vamos a ver si es civil o familiar",antecedentes)
+                print("CIVIL O FAMILIAR ====>",antecedentes)
                 if antecedentes.get("civil_mercantil_demandado") and len(antecedentes) == 1: #tiene antecedentes de civil o de familiar? los excentamos si no delincuente
-                    print("Tiene antecedentes civiles o familiares")
-                    print("Checamos el historial")
+                    print("Historial Crediticio ====>")
                     #evaluar el historial crediticio  
                     
                     if tipo_score_pp == "Malo" or tipo_score_ingreso == "Malo":
-                        print("rechazado")
+                        print("Rechazado ====>")
                         conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                         status = "Declinado"
                         motivo = "1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente."
                     
                     elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
-                        print("aprobado")
+                        print("Aprobado ====>")
                         conclusion = f"Nos complace informar que el prospecto {info.nombre_arrendatario} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
                         status = "Aprobado"
                         motivo = "No hay motivo de rechazo"
                     
                     elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Malo":
-                        print("a considerar")
+                        print("A Considerar ====>")
                         conclusion = "Nos complace informar que el candidato ha sido aprobado tras una rigurosa investigación llevada a cabo por ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa, confirmando así que el candidato cumple con los requisitos exigidos. \n \n No obstante, es importante considerar que la investigación ha revelado ciertos puntos que deben tomarse en cuenta, los cuales se detallado en lo expuesto anteriormente respecto a:"
                         status = "Aprobado_pe"
                         motivo = "1.- Antecedentes: Se cuenta con demanda en materia civil o familiar.\n2.- Buro: Historial crediticio con algunas áreas que podrían mejorarse."
                         
                 elif antecedentes.get("antecedentes_aval_si") and len(antecedentes) == 1: #tiene antecedentes de aval
-                        print("el aval tiene antecedentes")
-                        print("Cambiamos el Aval")
+                        print("AVAL CON ANTECEDENTES")
+                        print("Solicitar cambio Aval")
                         
                         if tipo_score_pp == "Malo" or tipo_score_ingreso == "Malo":
-                            print("rechazado")
+                            print("Rechazado ====>")
                             conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                             status = "Declinado"
                             motivo = f"1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente.\n2.-Derivado a lo anterior, a fin de concretar la relación contractual que se busca generar, es necesario buscar a una nueva figura de AVAL ya que el C.{aval}, presenta diversos procedimientos en materia mercantil en su contra, lo cual nos imposibilita celebrar el contrato de arrendamiento ante tales supuestos."
                         
                         elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
-                            print("aprobado imprimi la primer conclusion")
+                            print("Aprobado ====>")
                             conclusion = f"Nos complace informar que el prospecto {info.nombre_arrendatario} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
                             status = "Aprobado"
                             motivo =  f"Derivado a lo anterior, a fin de concretar la relación contractual que se busca generar, es necesario buscar a una nueva figura de AVAL ya que el C.{info.nombre_obligado or info.obligado_nombre_empresa}, presenta diversos procedimientos en materia mercantil en su contra, lo cual nos imposibilita celebrar el contrato de arrendamiento ante tales supuestos."
                         
                         elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Malo":
-                            print("a considerar")
+                            print("A Considerar ====>")
                             conclusion = "Nos complace informar que el candidato ha sido aprobado tras una rigurosa investigación llevada a cabo por ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa, confirmando así que el candidato cumple con los requisitos exigidos. \n \n No obstante, es importante considerar que la investigación ha revelado ciertos puntos que deben tomarse en cuenta, los cuales se detallado en lo expuesto anteriormente respecto a:"
                             status = "Aprobado_pe"
                             motivo = f"1.- Antecedentes: Se cuenta con demanda en materia civil o familiar.\n2.- Buro: Historial crediticio con algunas áreas que podrían mejorarse.\n3.-Derivado a lo anterior, a fin de concretar la relación contractual que se busca generar, es necesario buscar a una nueva figura de AVAL ya que el C.{aval}, presenta diversos procedimientos en materia mercantil en su contra, lo cual nos imposibilita celebrar el contrato de arrendamiento ante tales supuestos."
                     
                 elif antecedentes and tipo_score_pp == "Malo" or antecedentes and tipo_score_ingreso == "Malo":
-                        print("rechazado")
+                        print("Rechazado ====>")
                         conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                         status = "Declinado"
                         motivo = "1.- Buro: Se cuenta con un buro en con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente.\n2.- Antecedentes: Se cuenta con antecedentes legales, que se detallan en el apartado correspondiente."    
                         
                 else:
-                    print("eres un delincuente")
+                    print("Antecedentes")
                     conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                     status = "Declinado"
                     motivo = "1.- Antecedentes: Se cuenta con antecedentes legales, que se detallan en el apartado correspondiente."
@@ -2699,31 +2689,31 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
                 
                 #evaluar el historial crediticio  
                 if tipo_score_pp == "Malo":
-                    print("rechazado")
+                    print("Rechazado ====>")
                     conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                     status = "Declinado"
                     motivo = "1.- Buro: Se cuenta con un buro con atrasos y/o adeudos, estos datos se detallan en el apartado correspondiente."
                 
                 elif tipo_score_ingreso == "Malo":
-                    print("rechazado")
+                    print("Rechazado ====>")
                     conclusion = "Lamentamos informar que el candidato ha sido rechazado tras el análisis de riesgo realizado por ARRENDIFY S.A.P.I. de C.V. Los resultados de la investigación determinan que es inseguro arrendar el inmueble al prospecto debido a los aspectos que se han detallado en lo expuesto anteriormente respecto a:"    
                     status = "Declinado"
                     motivo = "1.- Ingresos: Los ingresos comprobados no son suficientes para garantizar el cumplimiento de sus obligaciones financieras."
                 
                 elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente":
-                    print("aprobado")
+                    print("Aprobado ====>")
                     conclusion = f"Nos complace informar que el prospecto {info.nombre_arrendatario} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
                     status = "Aprobado"
                     motivo = ""   
                 
                 elif tipo_score_pp == "Excelente" and tipo_score_ingreso == "Excelente" or tipo_score_pp == "Excelente" and tipo_score_ingreso == "Bueno" or tipo_score_pp == "Bueno" and tipo_score_ingreso == "Excelente" and antecedentes.get("antecedentes_aval_si") and antecedentes != None :
-                    print("aprobado imprimi la segunda conclusion")
+                    print("Aprobado ====>")
                     conclusion = f"Nos complace informar que el prospecto {info.nombre_arrendatario} ha sido aprobado tras una rigurosa investigación llevada a cabo por el equipo legal de ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa. Esto confirma que el candidato cumple con los requisitos y estándares exigidos, validando así su idoneidad para el arrendamiento en cuestión."
                     status = "Aprobado"
                     motivo = f"Derivado a lo anterior, a fin de concretar la relación contractual que se busca generar, es necesario buscar a una nueva figura de AVAL ya que el C.{info.nombre_obligado or info.obligado_nombre_empresa}, presenta diversos procedimientos en materia mercantil en su contra, lo cual nos imposibilita celebrar el contrato de arrendamiento ante tales supuestos." 
                 
                 elif tipo_score_pp != "Malo" and tipo_score_ingreso != "Malo":
-                    print("a considerar")
+                    print("A Considerar ====>")
                     conclusion = "Nos complace informar que el candidato ha sido aprobado tras una rigurosa investigación llevada a cabo por ARRENDIFY S.A.P.I. de C.V. Los resultados obtenidos en todos los parámetros evaluados se encuentran dentro del rango de tolerancia establecido por los criterios de evaluación de la empresa, confirmando así que el candidato cumple con los requisitos exigidos. \n \n No obstante, es importante considerar que la investigación ha revelado ciertos puntos que deben tomarse en cuenta, los cuales se detallado en lo expuesto anteriormente respecto a:"
                     status = "Aprobado_pe"
                     motivo = "1.- Buro: Historial crediticio con algunas áreas que podrían mejorarse."
@@ -2737,15 +2727,15 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
             html_string = render_to_string(template, context)
 
             # Genera el PDF utilizando weasyprint
-            print("Generando el pdf")
+            print("Generando PDF")
             pdf_file = HTML(string=html_string).write_pdf()
 
             # #aqui hacia abajo es para enviar por email
             archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
         
-            print("antes de enviar_archivo",context)
+            print("DATOS ARCHIVO ====>",context)
             correo = self.enviar_archivo_semillero(archivo, context["info"], context["status"])
-            print("soy correo papito",correo)
+            print("CORREO ====>",correo)
             if correo.status_code == 200:
                  # Aprobar o desaprobar
                 if status == "Aprobado_pe" or status == "Aprobado":  
@@ -2758,7 +2748,6 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
                 print("Correo ENVIADO")
             
             else:
-                print("valio chetos")
                 print("Correo NO ENVIADO")
                 Response({"Error":"no se envio el correo"},status = 409)
             
