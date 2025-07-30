@@ -1245,76 +1245,62 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         url = f'{API_URL_ZAPSIGN}docs/'
 
         try:
-            # response = requests.post(
-            #     url,
-            #     headers=headers,
-            #     json=payload,
-            #     timeout=60
-            # )
-            # response.raise_for_status()
+            response = requests.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=60
+            )
+            response.raise_for_status()
 
-            # try:
-            #     response_data = response.json()
-            # except ValueError:
-            #     print("⚠️ La respuesta no está en formato JSON.")
-            #     response_data = {"raw_response": response.text}
+            try:
+                response_data = response.json()
+            except ValueError:
+                print("⚠️ La respuesta no está en formato JSON.")
+                response_data = {"raw_response": response.text}
 
-            # # Extraer token del documento
-            # doc_token = response_data.get("token")
+            # Extraer token del documento
+            doc_token = response_data.get("token")
 
-            # # Extraer tokens de firmantes
-            # signer_tokens = [s.get("token") for s in response_data.get("signers", []) if s.get("token")]
+            # Extraer tokens de firmantes
+            signer_tokens = [s.get("token") for s in response_data.get("signers", []) if s.get("token")]
 
-            # if not doc_token:
-            #     raise ValueError("No se pudo obtener el token del documento desde la respuesta.")
+            if not doc_token:
+                raise ValueError("No se pudo obtener el token del documento desde la respuesta.")
 
-            # print("Token del documento generado:", doc_token)
-            # print("ID del contrato que se va a actualizar:", contrato_data["id"])
+            print("Token del documento generado:", doc_token)
+            print("ID del contrato que se va a actualizar:", contrato_data["id"])
 
-            # # Guardar token en la base de datos
-            # info = self.queryset.filter(id=contrato_data["id"]).first()
-            # if not info:
-            #     raise ValueError("Contrato no encontrado en la base de datos.")
+            # Guardar token en la base de datos
+            info = self.queryset.filter(id=contrato_data["id"]).first()
+            if not info:
+                raise ValueError("Contrato no encontrado en la base de datos.")
 
-            # info.token = doc_token
-            # info.save()
-            # print("Token guardado exitosamente en la base de datos.")
-
-            signer_tokens = [
-                "da9573c2-2ac6-418a-8c8a-df35345a5176", # carlos (Arrendador - dueño)
-                "0b0d9e0c-c9d3-4bd8-a932-1a89e52057b1", # justo sierrra (Arrendatario)
-                "538bfbd7-d1d6-4c2c-9e27-1e3056c6af77", # salvador humano (Residente)
-                "b5099ae6-93a0-4668-99f8-4c7196f048b5", # Jonathan Guadarrama (Representante arrendify)
-            ]    
-            total_paginas = {
-                'comodato': 4, 
-                'arrendamiento': 18, 
-                'manual': 24, 
-                'poliza': 4, 
-                'pagares': 8 # este valor cambia y 
-                }
+            info.token = doc_token
+            info.save()
+            print("Token guardado exitosamente en la base de datos.")            
 
             # Armar y enviar payload de rubricas
             rubricas_payload = self.armar_payload_posiciones_firma(signer_tokens, contrato_data["total_paginas"], contrato_data["residente"])
-            # posicionar_url = f'{API_URL_ZAPSIGN}docs/{doc_token}/place-signatures/'
-            # print("📤 Enviando posiciones de firmas...")
+            posicionar_url = f'{API_URL_ZAPSIGN}docs/{doc_token}/place-signatures/'
+            print("📤 Enviando posiciones de firmas...")
 
-            # posicionar_response = requests.post(
-            #     posicionar_url,
-            #     headers=headers,
-            #     json=rubricas_payload,
-            #     timeout=60
-            # )
+            posicionar_response = requests.post(
+                posicionar_url,
+                headers=headers,
+                json=rubricas_payload,
+                timeout=60
+            )
 
-            # posicionar_response.raise_for_status()
-            # print("Posiciones de firmas configuradas correctamente.")
+            posicionar_response.raise_for_status()
+            print("Posiciones de firmas configuradas correctamente.")
 
             return {
                 "payload": payload,
-                # "doc_token": doc_token,
-                # "zapsign_new_doc": response_data,
+                "doc_token": doc_token,
+                "zapsign_new_doc": response_data,
                 "rubricas_payload": rubricas_payload,
-                # "rubricas_response": posicionar_response.text or "Sin contenido"
+                "rubricas_response": posicionar_response.text or "Sin contenido"
             }
 
         except requests.exceptions.Timeout:
