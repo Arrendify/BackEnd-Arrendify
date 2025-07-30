@@ -2111,6 +2111,7 @@ class FraternaContratos(models.Model):
     fecha_move_out=models.DateField(null=True, blank=True)
 
     plano_localizacion = models.FileField(null=True, blank=True, upload_to=get_plano_upload_path, max_length=255)
+    token = models.CharField(max_length = 100, null = True, blank = True)
     
     class Meta:
             db_table = 'fraterna_contrato'

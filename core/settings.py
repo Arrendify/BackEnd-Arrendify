@@ -278,3 +278,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 # SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 # SESSION_CACHE_ALIAS = 'default'
 # SESSION_COOKIE_SECURE = True
+
+#ZAPSIGN
+API_TOKEN_ZAPSIGN = config("API_TOKEN_ZAPSIGN", "tu_clave_secreta")
+API_URL_ZAPSIGN = config("API_URL_ZAPSIGN", "https://api.zapsign.com.br")
