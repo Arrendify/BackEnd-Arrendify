@@ -1040,86 +1040,57 @@ class ContratosViewSet(viewsets.ModelViewSet):
     def generar_preview_poliza(self, request, *args, **kwargs):
         try:
             print("")
-            print("Generar Poliza")
+            print("Generar Preview Poliza")
             locale.setlocale(locale.LC_ALL,"es_MX.utf8")
             info = request.data
             
             print("")
-            print("Esto es el request data.",info)
+            print("DATA Poliza ====>",info)
             print("")
 
             arrendatario = dict(info["arrendatario"]) 
-            print("soy el arrendatario vamos a ver quye pdo",arrendatario)
+            print("Arrendatario ====>",arrendatario)
             if arrendatario.get("inquilino"):
-                print("hay informacion del arrendatarios hay que hacer una busqueda de id")
-                print("Inquilino ID", info["arrendatario"]["inquilino"])
+                print("Inquilino ID ====>", info["arrendatario"]["inquilino"])
                 inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
-                print("Inquilino", inquilino)
+                print("Inquilino ====>", inquilino)
                 info["arrendatario"] = inquilino
 
             aval = dict(info["fiador"])         
             if aval.get("aval"):
-                print("hay informacion del aval hay que hacer una busqueda de id")
+                print("Aval ID ====>", info["fiador"]["aval"])
                 fiador = Aval.objects.all().filter(id = info["fiador"]["aval"]).first()
                 info["fiador"] = fiador
             
             propietario = dict(info["arrendador"])        
             if propietario.get("propietario"):
-                print("hay informacion del propietario hay que hacer una busqueda de id")
+                print("Propietario ID ====>", info["arrendador"]["propietario"])
                 arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
                 info["arrendador"] = arrendador
             
              
-            inmueble= dict(info["inmueble"])
-            print("Esto es el inmueble", inmueble) 
-            
+            inmueble= dict(info["inmueble"])           
             if inmueble.get("inmueble"):
-                print("hay informacion del propietario hay que hacer una busqueda de id")
+                print("Inmueble ID ====>", info["inmueble"]["inmueble"]) 
                 propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
                 
-                #checamos que no tenga decimales
-                
+                #Verificacion de decimales en monto de renta
                 if "." not in str(propiedad.renta):
-                    print("no hay yaya")
-                    number = int(propiedad.renta)
+                    print("Sin Decimales")
+                    renta_inmueble = int(propiedad.renta)
                     renta_decimal = "00"
-                    text_representation = num2words(number, lang='es').capitalize()
+                    text_representation = num2words(renta_inmueble, lang='es').capitalize()
                 else:
-                    print("tengo punto en renta")
-                    # if info["inmueble"]['renta']:
-                    #     renta_completa = info["inmueble"]['renta'].split(".")
-                    # else:
-                    #     renta_completa = propiedad.renta.split(".")
+                    print("Con Decimales")
+                    if info["inmueble"]['renta']:
+                        renta_completa = info["inmueble"]['renta'].split(".")
+                    else:
+                        renta_completa = propiedad.renta.split(".")
                     
-                    # info["inmueble"]['renta'] = renta_completa[0]
-                    # renta_decimal = renta_completa[1]
-                    # text_representation = num2words(renta_completa[0], lang='es').capitalize()
+                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
                 
-                print("hay que sacar sus impuestos")
-                info["inmueble"] = propiedad  
-                impuestos = propiedad.impuestos  
-            else: #ahora si no hay inmueble registrado
-                print("no hay informacion del inmueble")
-                print("hay que sacar sus impuestos",info["inmueble"]['impuestos'])
-                impuestos = info["inmueble"]['impuestos']
-                
-                if "." not in info["inmueble"]['renta']:
-                    print("no hay yaya")
-                    number = int(info["inmueble"]['renta'])
-                    renta_decimal = "00"
-                    text_representation = num2words(number, lang='es').capitalize()
-                
-                else:
-                    print("tengo punto en renta")
-                    # if info["inmueble"]['renta']:
-                    #     renta_completa = info["inmueble"]['renta'].split(".")
-                    # else:
-                    #     renta_completa = propiedad.renta.split(".")
-                    
-                    # info["inmueble"]['renta'] = renta_completa[0]
-                    # renta_decimal = renta_completa[1]
-                    # text_representation = num2words(renta_completa[0], lang='es').capitalize()
-
             # obtenermos el monto de la poliza
             plata = 3920 
             oro = 4900
@@ -1128,54 +1099,40 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 #Declaramos el template
                 template = 'home/dash/poliza_plata_preview.html'
                 #Despues evaluamos el impueto y el valos de la poliza
-                if number <= 14000:
-                    if impuestos == "Si":
-                        info["datos_contratos"]["monto_total"] = plata + (plata*0.16)
-                    else:
-                        info["datos_contratos"]["monto_total"] = plata
+                if renta_inmueble <= 14000:
+                    print("Monto de renta menor a 14000")
+                    info["datos_contratos"]["monto_total"] = renta_inmueble + plata + (plata*0.16)
+                    print("Monto total con impuesto", info["datos_contratos"]["monto_total"])
+
                 else:
-                    total_poliza = (number * 0.28)
-                    if impuestos == "Si":
-                        info["datos_contratos"]["monto_total"] = total_poliza + (total_poliza*0.16)
-                    else:
-                        info["datos_contratos"]["monto_total"] = total_poliza
+                    total_poliza = (renta_inmueble * 0.28)
+                    info["datos_contratos"]["monto_total"] = total_poliza + (total_poliza*0.16)
+                    info["datos_contratos"]["monto_total"] = total_poliza
                     
             elif info["tipo_poliza"] == "Oro":
                 #Declaramos el template
                 template = 'home/dash/poliza_oro.html'
                 #Despues evaluamos el impueto y el valos de la poliza
-                if number <= 14000:
-                    if impuestos == "Si":
-                        info["datos_contratos"]["monto_total"] = oro + (oro*0.16)
-                    else:
-                        info["datos_contratos"]["monto_total"] = oro
+                if renta_inmueble<= 14000:
+                    info["datos_contratos"]["monto_total"] = oro + (oro*0.16)
                 else:
-                    total_poliza = (number * 0.35)
-                    if impuestos == "Si":
-                        info["datos_contratos"]["monto_total"] = total_poliza + (total_poliza*0.16)
-                    else:
-                        info["datos_contratos"]["monto_total"] = total_poliza
+                    total_poliza = (renta_inmueble * 0.35)
+                    info["datos_contratos"]["monto_total"] = total_poliza + (total_poliza*0.16)
             
             elif info["tipo_poliza"] == "Platino":
                 #Declaramos el template
                 template = 'home/dash/poliza_platino.html'
-                #Despues evaluamos el impueto y el valos de la poliza
-                if number <= 14000:
-                    if impuestos == "Si":
-                        info["datos_contratos"]["monto_total"] = platino + (platino*0.16)
-                    else:
-                        info["datos_contratos"]["monto_total"] = platino
+                #Despues evaluamos el impuesto y el valor de la poliza
+                if renta_inmueble <= 14000:
+                    info["datos_contratos"]["monto_total"] = platino + (platino*0.16)
                 else:
-                    total_poliza = (number * 0.70);
-                    if impuestos == "Si":
-                        info["datos_contratos"]["monto_total"] = total_poliza + (total_poliza*0.16)
-                    else:
-                        info["datos_contratos"]["monto_total"] = total_poliza
+                    total_poliza = (renta_inmueble * 0.70)
+                    info["datos_contratos"]["monto_total"] = total_poliza + (total_poliza*0.16)
                         
             # obtenermos la renta para pasarla a letra        
                 
             print("")
-            print(f"renta {number}, letra: {text_representation}")
+            print(f"renta {renta_inmueble}, letra: {text_representation}")
             
             # Definir la fecha inicial
             fecha_inicial = info["datos_contratos"]['fecha_celebracion']
@@ -1192,7 +1149,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
             #obtenermos el precio de la poliza para pasarla a letra
             precio = int(info["datos_contratos"]["monto_total"])
            
-            print("Mi precio es: ",precio)
+            print("Precio ====>",precio)
             precio_texto = num2words(precio, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
             precio_texto = precio_texto.capitalize()
             
@@ -1207,7 +1164,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="Contrato_arrendamiento.pdf"'
             response.write(pdf_file)
-            print("Se genero el contrato")
+            print("Se genero preview de la poliza")
             return HttpResponse(response, content_type='application/pdf')
         
         except Exception as e:

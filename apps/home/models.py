@@ -2149,7 +2149,6 @@ class Arrendatarios_semillero(models.Model):
     direccion_arrendatario=models.CharField(max_length = 250, null = True, blank = True)
     curp=models.CharField(max_length=100, null=True, blank=True)
     estado_civil=models.CharField(max_length=100, null=True, blank=True, default="Soltero")
-    giro=models.CharField(max_length=100, null=True, blank=True)
     
     # arrendatario persona moral
     arr_nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
@@ -2170,13 +2169,15 @@ class Arrendatarios_semillero(models.Model):
     nacionalidad_obligado=models.CharField(max_length=100, null=True, blank=True, default="Mexicana")
     identificacion_obligado=models.CharField(max_length = 100, null = True, blank = True)
     no_ide_obligado=models.CharField(max_length = 100, null = True, blank = True)
-  
+    curp_obligado=models.CharField(max_length=100, null=True, blank=True)
+    estado_civil_obligado=models.CharField(max_length=100, null=True, blank=True, default="Soltero")
     celular_obligado=models.CharField(max_length = 100, null = True, blank = True)
     correo_obligado=models.EmailField(null=True, blank=True)
     direccion_obligado=models.CharField(max_length = 250, null = True, blank = True)
     
     # obligado persona moral
     obligado_nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
+    obligado_rfc_empresa=models.CharField(max_length=13, null=True, blank=True)
     obligado_direccion_fiscal = models.CharField(max_length=250, null=True, blank=True)
     obligado_escritura_publica=models.CharField(max_length=100, null=True, blank=True)
     obligado_fecha_acta = models.DateField(null=True, blank=True)

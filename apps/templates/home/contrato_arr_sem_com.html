@@ -12,8 +12,8 @@
 		<style type="text/css">
 			@page {
 				size: letter;
-				margin: 1.2cm 1.2cm 2.5cm 1.2cm;
-	
+				margin: 2.5cm 1.2cm 2.5cm 1.2cm;
+
 				@bottom-right {
 				  color: black;
 				  content: counter(page);
@@ -22,21 +22,58 @@
 				  width: 1cm;
 				}
 				
+				@top-right {
+				  content: element(header);
+				  height: 1cm;
+				}
+			  }
+			  
+			  #header {
+				position: running(header);
+				text-align: right;
+				font-size: 12px;
+				font-family:Segoe UI; 
+				color: #c1bebd;
+				margin-bottom: 20px;
+				margin-top: -20px;
 			  } 
 	
-		  body,div,table,thead,tbody,tfoot,th,p {
-		  font-family:Segoe UI; 
-		  font-size:13px;
-		  text-align:justify;
-		  display: block;
-		
+		body, div, p {
+		font-family:Segoe UI; 
+		font-size:13px;
+		text-align:justify;
 		}
-		tr{
-			font-family:Segoe UI; 
-		  	font-size:13px;
-			display: block;
+
+		table {
+		  font-family: Segoe UI;
+		  font-size: 13px;
+		  width: 90%;
+		  margin: 0 auto;
+		  border-collapse: collapse;
+		  table-layout: auto;
+		  max-width: 100%;
 		}
-	 
+
+		/* Reglas para el centrado correcto */
+		td[style*="text-align: center"], .subtitle, tr.subtitle td {
+		  text-align: center !important;
+		}
+
+		/* Mejora la estructura de la tabla principal */
+		td[colspan="2"] {
+		  width: 100% !important;
+		}
+
+		/* Asegura que las filas ocupen el ancho completo */
+		tr {
+		  width: 100%;
+		}
+		td.align-center {
+		  text-align: center !important;
+		}
+		td.grid{
+			display: grid !important;
+		}
 		.contenedor-imagenes {
 			display: block;
 		  }
@@ -69,13 +106,13 @@
 		  }
 		.space{
 			width: 50px;	
-		}
+		} 
 		.subtitle{			
     		text-align: center;
 			margin-bottom: 25px;
 		}
 		.parrafo{
-			margin-bottom: 10px;
+			padding-bottom: 1em;
 		}  
 	
 		article {
@@ -100,20 +137,17 @@
 		</style>
 	</head>
 <body>
-<table align="left" cellspacing="0" border="0">
-	<colgroup width="100"></colgroup>
-	<colgroup span="18" width="85"></colgroup>
+<!-- Elemento de encabezado para todas las páginas -->
+<div id="header">Contrato de Arrendamiento No. {{nom_paquete | upper}} - Semillero Purísima<br> {{info.arrendatario.nombre_arrendatario}} - {{info.fecha_celebracion}}</div>
+
+<table cellspacing="0" border="0" style="table-layout:fixed;">
+	<!-- Tabla principal con layout automático para mejor distribución -->
 	<tr>
-		<td height="21" valign=middle style="font-size:15px; justify-self: right;">Contrato No. {{nom_paquete | upper}}</td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle>
-			<br><br><br>
-		</td>
+		<td colspan="2" height="20" align="right" valign=middle style="width:100%;"></td>
   	</tr>
 {% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}
 	<tr>
-		<td height="21"  valign=middle style="font-size:15px"><b>CONTRATO DE ARRENDAMIENTO</b> DENOMINADO EN LO SUCESIVO <b>“EL CONTRATO”</b>, QUE CELEBRAN POR UNA PARTE LA PERSONA MORAL DENOMINADA 
+		<td height="21" colspan="2" valign=middle style="font-size:15px; text-align:justify; width:100%;"><b>CONTRATO DE ARRENDAMIENTO</b> DENOMINADO EN LO SUCESIVO <b>“EL CONTRATO”</b>, QUE CELEBRAN POR UNA PARTE LA PERSONA MORAL DENOMINADA 
 			<b>DESARROLLOS FRATERNA COMERCIALIZADORA, S.A. DE C.V.</b>, REPRESENTADA EN ESTE ACTO POR <b>CARLOS MANUEL PADILLA SILVA</b>, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ COMO 
 			<b>“LA ARRENDADORA”</b>, Y POR LA OTRA PARTE &nbsp; {{info.arrendatario.nombre_arrendatario | upper}} POR DERECHO PROPIO, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ COMO <b>“LA ARRENDATARIA”</b>
 			{% if info.arrendatario.aval == "Si" %}
@@ -128,191 +162,170 @@
 	</tr>	
 {% else %}
 	<tr>
-		<td height="21"  valign=middle style="font-size:15px"><b>CONTRATO DE ARRENDAMIENTO QUE EN TÉRMINOS DE LO QUE DISPONE EL CÓDIGO CIVIL VIGENTE PARA EL ESTADO DE NUEVO LEÓN, 
-			QUE CELEBRAN, POR UNA PARTE ''FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR CARLOS MANUEL PADILLA SILVA, A QUIEN EN LO SUCESIVO SE LE LLAMARÁ "EL ARRENDADOR" 
-			Y POR LA OTRA PARTE &nbsp; {{info.arrendatario.arr_nombre_empresa | upper}} REPRESENTADA POR {{info.arrendatario.nombre_arrendatario | upper}}
+		<td height="21" colspan="2" valign=middle style="font-size:15px; text-align:justify; width:100%;"><b>CONTRATO DE ARRENDAMIENTO</b> DENOMINADO EN LO SUCESIVO <b>“EL CONTRATO”</b>, QUE CELEBRAN POR UNA PARTE LA PERSONA MORAL DENOMINADA 
+			<b>DESARROLLOS FRATERNA COMERCIALIZADORA, S.A. DE C.V.</b>, REPRESENTADA EN ESTE ACTO POR <b>CARLOS MANUEL PADILLA SILVA</b>, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ COMO 
+			<b>“LA ARRENDADORA”</b>, Y POR LA OTRA PARTE &nbsp; {{info.arrendatario.arr_nombre_empresa| upper}} REPRESENTADA EN ESTE ACTO POR {{info.arrendatario.obligado_nombre_rl| upper}}, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ COMO <b>“LA ARRENDATARIA”</b>
 			{% if info.arrendatario.aval == "Si" %}
 				{% comment %} Preguntamos si es Persona fisica o moral  {% endcomment %}
-				{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} Y {{info.arrendatario.nombre_obligado | upper}} EN SU CARÁCTER DE "EL OBLIGADO SOLIDARIO" 
-				{% else %} Y {{info.arrendatario.obligado_nombre_empresa | upper}} REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}} EN SU CARÁCTER DE "EL OBLIGADO SOLIDARIO"{% endif %} 
+				{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}, CON LA COMPARECENCIA DE <b>{{info.arrendatario.nombre_obligado | upper}}</b>, POR DERECHO PROPIO,A QUIEN EN LO SUCESIVO 
+				SE LE DENOMINARÁ COMO <b>“EL FIADOR SOLIDARIO”</b>; LAS PARTESRECONOCIÉNDOSE LA PERSONALIDAD CON LA CUAL COMPARECEN EN ESTE ACTO, ESTÁN DE ACUERDO Y DE CONFORMIDAD CON LAS DECLARACIONES Y CLAUSULAS SIGUIENTES: 
+				{% else %} Y <b>{{info.arrendatario.obligado_nombre_empresa | upper}}</b> REPRESENTADA POR <b>{{info.arrendatario.obligado_nombre_rl | upper}}</b> EN SU CARÁCTER DE "EL OBLIGADO SOLIDARIO"{% endif %} 
 			{% else %} 
-			{% endif %},
-			A QUIEN SE LE DENOMINARÁ COMO "EL ARRENDATARIO" QUIENES CUENTAN CON CAPACIDAD LEGAL PARA CONTRATAR Y OBLIGARSE AL TENOR DE LAS SIGUIENTES DECLARACIONES Y CLÁUSULAS QUE A CONTINUACIÓN SE DETALLAN:</b>
+			{% endif %}, 
+			; LAS PARTES RECONOCIÉNDOSE LA PERSONALIDAD CON LA CUAL COMPARECEN EN ESTE ACTO, ESTÁN DE ACUERDO Y DE CONFORMIDAD CON LAS DECLARACIONES Y CLAUSULAS SIGUIENTES:
 		</td>
-	</tr>	
+	</tr>		
 {% endif %}
 
-  <tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-  </tr>
-    {% comment %} Parte I {% endcomment %}
-  <tr class="subtitle">
-	<td height="21" valign=middle><b><u>D E C L A R A C I O N E S</u></b></td>
-  </tr>
-  <br>	
-  <tr class="parrafo">
-	<td height="21"  valign=middle>l.- Declara <b>“LA ARRENDADORA”</b>, por conducto de su representante legal, lo siguiente:</td>
-  </tr>
-  <tr class="parrafo">
-	<td class="space espaciado" height="21" valign=middle></td>
-	<td height="21" valign=middle>1.1.- Que su representada es una sociedad mercantil constituida conforme a las leyes de la República Mexicana 
-		según consta en la Escritura Pública No. 17,671 (diecisiete mil setecientos sesenta uno), de fecha 19 (diecinueve) de diciembre del 2017 (dos mil diecisiete), 
-		otorgada ante la fe del Licenciado Ignacio Gerardo Martínez González, Titular de la Notaría Pública No. 75 (setenta y cinco), con ejercicio en el 
-		Primer Distrito Registral y Notarial del Estado de Nuevo León y debidamente registrada con fecha 15 (quince) de febrero del 2018 (dos mil dieciocho) ante el 
-		Registro Público de la Propiedad y del Comercio de Monterrey, Nuevo León bajo el No. de Folio Mercantil Electrónico N-2018012559.</td>
-  </tr>
-    <tr class="parrafo">
-	<td class="space" height="21" valign=middle></td>
-	 <td height="21"  valign=middle>1.2.- Que su mandante no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y cuenta con facultades 
+	<tr>
+			<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+		{% comment %} Parte I {% endcomment %}
+	<tr class="subtitle" >
+		<td colspan="2" height="21" style="text-align: center; width:100%; margin-bottom: 25px;" valign=middle><b><u>D E C L A R A C I O N E S</u></b></td>
+	</tr>
+	<tr>
+			<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+			<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign=middle style="width:100%;">l.- Declara <b>“LA ARRENDADORA”</b>, por conducto de su representante legal, lo siguiente:</td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.1.- Que su representada es una sociedad mercantil constituida conforme a las leyes de la República Mexicana 
+			según consta en la Escritura Pública No. 17,671 (diecisiete mil setecientos sesenta uno), de fecha 19 (diecinueve) de diciembre del 2017 (dos mil diecisiete), 
+			otorgada ante la fe del Licenciado Ignacio Gerardo Martínez González, Titular de la Notaría Pública No. 75 (setenta y cinco), con ejercicio en el 
+			Primer Distrito Registral y Notarial del Estado de Nuevo León y debidamente registrada con fecha 15 (quince) de febrero del 2018 (dos mil dieciocho) ante el 
+			Registro Público de la Propiedad y del Comercio de Monterrey, Nuevo León bajo el No. de Folio Mercantil Electrónico N-2018012559.
+		</td>
+	</tr>
+	<br><br>
+    <tr>
+	<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.2.- Que su mandante no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y cuenta con facultades 
 		suficientes para obligarse en los términos del clausulado, mismas que a la fecha no le han sido revocadas, restringidas o modificadas de manera alguna, mismas 
 		que se encuentran establecidas en la Escritura Pública referida en el inciso anterior.</td>
     </tr>
-    <tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21"  valign=middle>1.3.- Que el objeto social de su representada le permite la celebración del presente Contrato.</td>
+    <tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.3.- Que el objeto social de su representada le permite la celebración del presente Contrato.</td>
     </tr>	
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21"  valign=middle>1.4.- Que el Registro Federal de Contribuyentes de su mandante es <b>DFC1712193A2</b>.</td>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.4.- Que el Registro Federal de Contribuyentes de su mandante es <b>DFC1712193A2</b>.</td>
 	</tr>	
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21"  valign = middle>1.5.- Que la institución de crédito Scotiabank Inverlat, S.A., Institución de Banca Múltiple, Grupo Financiero Scotiabank Inverlat, 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.5.- Que la institución de crédito Scotiabank Inverlat, S.A., Institución de Banca Múltiple, Grupo Financiero Scotiabank Inverlat, 
 			División Fiduciaria, por virtud del <b><u>Contrato de Fideicomiso de Administración de Inmueble con Reserva del Derecho de Reversión identificado bajo el número 1451028292</u></b>, 
 			contenido en la Escritura Pública No. 15,745 (quince mil setecientos cuarenta y cinco) de fecha 20 (veinte) del mes de febrero del año 2017 (dos mil diecisiete), 
 			pasada ante la fe del Licenciado Ignacio Gerardo Martínez González, Titular de la Notaría Pública número 75 (setenta y cinco) con ejercicio en el 
 			Primer Distrito Registral en el Estado e inscrito ante el Registro Público de la Propiedad y del Comercio en el Estado, bajo el número 3240 (tres mil doscientos cuarenta), 
 			volumen 297 (doscientos noventa y siete), libro 130 (ciento treinta), sección Propiedad, Unidad Monterrey, de fecha 05 (cinco) de abril de 2017 (dos diecisiete), 
-			es la legítima propietaria y poseedora del inmueble en donde se encuentra el proyecto inmobiliario mixto denominado “Semillero Purísima”, 
+			es la legítima propietaria y poseedora del inmueble en donde se encuentra el proyecto inmobiliario mixto denominado "Semillero Purísima", 
 			ubicado en la Calle Padre Mier No. 653 (seiscientos cincuenta y tres), Colonia Centro, C.P. 64000, en el municipio de 
 			Monterrey, Nuevo León, México con una superficie de 3,432.48 m2 (tres mil cuatrocientos treinta y dos punto cuarenta y ocho metros cuadrados).</td>
 	</tr>
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21"  valign = middle>1.6.- Que su representada tiene la autorización expresa tanto de la Fiduciaria referida con antelación, como de los inversionistas de dicho Fideicomiso, 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.6.- Que su representada tiene la autorización expresa tanto de la Fiduciaria referida con antelación, como de los inversionistas de dicho Fideicomiso, 
 			así como las facultades necesarias para llevar a cabo la celebración del presente Contrato, según se desprenden del Contrato de Arrendamiento y del Contrato de 
-			Administración de Inmuebles “Pool de Rentas” que tiene celebrados con los inversionistas del referido fideicomiso; facultades todas las anteriores que se tienen por insertadas 
+			Administración de Inmuebles "Pool de Rentas" que tiene celebrados con los inversionistas del referido fideicomiso; facultades todas las anteriores que se tienen por insertadas 
 			al presente documento.</td>
 	</tr>
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign = middle>1.7.- Que el proyecto inmobiliario “Semillero Purísima” cuenta con una zona comercial y una habitacional (en lo sucesivo se denominará como el “Centro Comercial”).</td>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.7.- Que el proyecto inmobiliario "Semillero Purísima" cuenta con una zona comercial y una habitacional (en lo sucesivo se denominará como el "Centro Comercial").</td>
 	</tr>
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign = middle>1.8.- Que el local objeto del presente Contrato de Arrendamiento (que forma parte del Centro Comercial) es el identificado como <b>“Local XXXX”</b>, (en lo sucesivo el “LOCAL”), 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.8.- Que el local objeto del presente Contrato de Arrendamiento (que forma parte del Centro Comercial) es el identificado como <b>“Local XXXX”</b>, (en lo sucesivo el “LOCAL”), 
 			con una superficie de <b>XXXXX m2 (xxxxxxx metros cuadrados)</b> aproximados, y con las características que se indican en el plano que firmado por LAS PARTES forma parte integral de este Contrato como <b>“Anexo I”</b>.</td>
 	</tr>
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign = middle>1.9.- Que tiene interés en que “LA ARRENDATARIA” tome en arrendamiento el LOCAL para que lo destine única y exclusivamente a la instalación y funcionamiento de <b>un negocio de xxxxxxxxxxxxxx</b>.</td>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.9.- Que tiene interés en que "LA ARRENDATARIA" tome en arrendamiento el LOCAL para que lo destine única y exclusivamente a la instalación y funcionamiento de <b>un negocio de xxxxxxxxxxxxxx</b>.</td>
 	</tr>
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign = middle>1.10.- Que el LOCAL a su entrega, contará con el uso de suelo, así como los permisos y autorizaciones suficientes para que “LA ARRENDATARIA” tramite para su operación y por su cuenta las 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.10.- Que el LOCAL a su entrega, contará con el uso de suelo, así como los permisos y autorizaciones suficientes para que "LA ARRENDATARIA" tramite para su operación y por su cuenta las 
 			licencias y permisos para que se establezca  <b>un negocio de xxxxxxxxxxxxxx</b>.</td>
 	</tr>
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign = middle>1.11.- Que el LOCAL se encuentra libre de: (i) cargas, litigios, afectaciones o limitaciones de dominio de cualquier tipo, (ii) cualesquiera ocupaciones, permisos, autorizaciones o 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.11.- Que el LOCAL se encuentra libre de: (i) cargas, litigios, afectaciones o limitaciones de dominio de cualquier tipo, (ii) cualesquiera ocupaciones, permisos, autorizaciones o 
 			concesiones otorgadas a favor de terceros o reclamadas por terceros, incluyendo sin limitación litigios y restricciones sobre el pleno dominio o posesión del Local, y (iii) igualmente de cualquier responsabilidad, 
 			obligación u contingencia ambiental, urbana, laboral, contenciosa o de cualquier tipo que pudiera afectar, restringir o excluir su uso, goce o posesión del LOCAL.</td>
 	</tr>
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign = middle>1.12.- Que es voluntad e intención expresa de su representada, celebrar el presente Contrato de Arrendamiento de conformidad con los términos y condiciones que se pactan más adelante en 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.12.- Que es voluntad e intención expresa de su representada, celebrar el presente Contrato de Arrendamiento de conformidad con los términos y condiciones que se pactan más adelante en 
 			el clausulado del mismo.</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle> </td>
 	</tr>
-	<tr class="parrafo">
-		<td height="21"  valign=middle>II.- Declara <b>“LA ARRENDATARIA”</b>, por conducto de su representante legal, lo siguiente:</td>
+	<tr>
+		<td colspan="2" height="21" valign=middle style="width:100%;">II.- Declara <b>“LA ARRENDATARIA”</b>, por conducto de su representante legal, lo siguiente:</td>
 	</tr>
-	{% comment %} condicino para arrendador persona f o m  {% endcomment %}
 	{% comment %} Parte II {% endcomment %}
 	{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21" valign=middle>2.1.- Que es una persona física de nacionalidad <b>mexicana</b>, mayor de edad, de estado civil <b>xxxxxxxxxxxxxx</b>, empleado, 
-				con Clave Única de Registro de Población <b>XXXXXXXXXXXXXX</b>, con plena capacidad para obligarse en los términos del presente Contrato. </td>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.1.- Que es una persona física de nacionalidad <b>mexicana</b>, mayor de edad, de estado civil <b>{{info.arrendatario.estado_civil | upper}}</b>, empleado, 
+				con Clave Única de Registro de Población <b>{{info.arrendatario.curp | upper}}</b>, con plena capacidad para obligarse en los términos del presente Contrato. </td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21"  valign=middle>2.2.- Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe restricción 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.2.- Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe restricción 
 				contractual u orden de cualquier tribunal, organismo gubernamental o autoridad que pudiera afectar la celebración de este acto jurídico.</td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21"  valign=middle>2.3.- Que cuenta con el Registro Federal de Contribuyentes <b>XXXXXXXXXXXXXX</b>.</td>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.3.- Que cuenta con el Registro Federal de Contribuyentes <b>{{info.arrendatario.rfc | upper}}</b>.</td>
 		</tr>	
 			
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21"  valign = middle>2.4.- Que es su voluntad tomar en arrendamiento el LOCAL y celebrar el presente Contrato de Arrendamiento de conformidad 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.4.- Que es su voluntad tomar en arrendamiento el LOCAL y celebrar el presente Contrato de Arrendamiento de conformidad 
 				con los términos y condiciones que se pactan en el clausulado del mismo y de acuerdo a los anexos.</td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21"  valign = middle>2.5.- Que está de acuerdo en que deberá someterse a los lineamientos dispuestos por el reglamento del Centro Comercial 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.5.- Que está de acuerdo en que deberá someterse a los lineamientos dispuestos por el reglamento del Centro Comercial 
 				(en lo sucesivo “Reglamento”), que se adjunta al presente Contrato como “Anexo II” y que es parte integral del mismo y en su caso del Régimen en Condominio Maestro.</td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21" valign = middle>2.6.- Que cuenta con la capacidad económica necesaria y suficiente para cumplir puntualmente con todas y cada una de las rentas mensuales 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.6.- Que cuenta con la capacidad económica necesaria y suficiente para cumplir puntualmente con todas y cada una de las rentas mensuales 
 				que se pacten a su cargo, y demás prestaciones accesorias que sean consecuencia de la Ley o del presente contrato.</td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21" valign = middle>2.7.- Que tiene los recursos económicos para responder de los daños y perjuicios que origine al LOCAL por el uso temporal del que se servirá por 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.7.- Que tiene los recursos económicos para responder de los daños y perjuicios que origine al LOCAL por el uso temporal del que se servirá por 
 				virtud de este Contrato.</td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21" valign = middle>2.8.- Que bajo protesta de decir verdad manifiesta que el dinero que utilice para el pago de las rentas mensuales y de cualquier otra obligación 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.8.- Que bajo protesta de decir verdad manifiesta que el dinero que utilice para el pago de las rentas mensuales y de cualquier otra obligación 
 				de pago relacionada con el presente contrato, no será instrumento, objeto o producto de ningún delito, por lo que la procedencia del dinero es lícita.</td>
 		</tr>
 
 	{% else %}
 	{% comment %} persona moral {% endcomment %}
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21" valign=middle>2.1.- Que es una persona moral de nacionalidad <b>mexicana</b>, mayor de edad, de estado civil <b>xxxxxxxxxxxxxx</b>, empleado, 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.1.- Que es una persona moral de nacionalidad <b>mexicana</b>, mayor de edad, de estado civil <b>xxxxxxxxxxxxxx</b>, empleado, 
 				con Clave Única de Registro de Población <b>XXXXXXXXXXXXXX</b>, con plena capacidad para obligarse en los términos del presente Contrato. </td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21"  valign=middle>2.2.- Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe restricción 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.2.- Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe restricción 
 				contractual u orden de cualquier tribunal, organismo gubernamental o autoridad que pudiera afectar la celebración de este acto jurídico.</td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21"  valign=middle>2.3.- Que cuenta con el Registro Federal de Contribuyentes <b>XXXXXXXXXXXXXX</b>.</td>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.3.- Que cuenta con el Registro Federal de Contribuyentes <b>XXXXXXXXXXXXXX</b>.</td>
 		</tr>	
 			
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21"  valign = middle>2.4.- Que es su voluntad tomar en arrendamiento el LOCAL y celebrar el presente Contrato de Arrendamiento de conformidad 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign = middle>2.4.- Que es su voluntad tomar en arrendamiento el LOCAL y celebrar el presente Contrato de Arrendamiento de conformidad 
 				con los términos y condiciones que se pactan en el clausulado del mismo y de acuerdo a los anexos.</td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21"  valign = middle>2.5.- Que está de acuerdo en que deberá someterse a los lineamientos dispuestos por el reglamento del Centro Comercial 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign = middle>2.5.- Que está de acuerdo en que deberá someterse a los lineamientos dispuestos por el reglamento del Centro Comercial 
 				(en lo sucesivo “Reglamento”), que se adjunta al presente Contrato como “Anexo II” y que es parte integral del mismo y en su caso del Régimen en Condominio Maestro.</td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21" valign = middle>2.6.- Que cuenta con la capacidad económica necesaria y suficiente para cumplir puntualmente con todas y cada una de las rentas mensuales 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.6.- Que cuenta con la capacidad económica necesaria y suficiente para cumplir puntualmente con todas y cada una de las rentas mensuales 
 				que se pacten a su cargo, y demás prestaciones accesorias que sean consecuencia de la Ley o del presente contrato.</td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21" valign = middle>2.7.- Que tiene los recursos económicos para responder de los daños y perjuicios que origine al LOCAL por el uso temporal del que se servirá por 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.7.- Que tiene los recursos económicos para responder de los daños y perjuicios que origine al LOCAL por el uso temporal del que se servirá por 
 				virtud de este Contrato.</td>
 		</tr>
-		<tr class="parrafo">
-			<td class="space" height="21" valign=middle></td>
-			<td height="21" valign = middle>2.8.- Que bajo protesta de decir verdad manifiesta que el dinero que utilice para el pago de las rentas mensuales y de cualquier otra obligación 
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>2.8.- Que bajo protesta de decir verdad manifiesta que el dinero que utilice para el pago de las rentas mensuales y de cualquier otra obligación 
 				de pago relacionada con el presente contrato, no será instrumento, objeto o producto de ningún delito, por lo que la procedencia del dinero es lícita.</td>
 		</tr>
 	{% endif %}
@@ -320,50 +333,43 @@
 	<tr>
 		<td height="21" valign=middle> </td>
 	</tr>
+	{% comment %} Parte III {% endcomment %}
 	{% if info.arrendatario.aval == "Si" %}
-		<tr class="parrafo">
-			<td height="21"  valign=middle>III.- Declara <b>EL FIADOR SOLIDARIO</b>, lo siguiente:</td>
+		<tr>	
+			<td class="parrafo" colspan="2" height="21" valign=middle style="width:100%;">III.- Declara <b>EL FIADOR SOLIDARIO</b>, lo siguiente:</td>
 		</tr>
 
 		{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} 
-			<tr class="parrafo">
-				<td class="space" height="21" valign=middle></td>
-				<td height="21" valign=middle>3.1.- Que es una persona física de nacionalidad mexicana, mayor de edad, de estado civil <b>xxxxxxxxxxxxxx</b> por sociedad conyugal, empleada, 
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>3.1.- Que es una persona física de nacionalidad mexicana, mayor de edad, de estado civil <b>{{info.arrendatario.obligado_nombre_empresa | upper}}</b> por sociedad conyugal, empleada, 
 					con Clave Única de Registro de Población <b>xxxxxxxxxxxxxx</b>, con plena capacidad para obligarse en los términos del presente Contrato. </td>
 			</tr>
-			<tr class="parrafo">
-				<td class="space" height="21" valign=middle></td>
-				<td height="21"  valign=middle>3.2.- Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe restricción contractual u 
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>3.2.- Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe restricción contractual u 
 					orden de cualquier tribunal, organismo gubernamental o autoridad que pudiera afectar la celebración de este acto jurídico.</td>
 			</tr>
-			<tr class="parrafo">
-				<td class="space" height="21" valign=middle></td>
-				<td height="21"  valign=middle>3.3.- Que cuenta con la capacidad económica necesaria y suficiente para cumplir puntualmente con todas y cada una de las obligaciones que contrae en el presente Contrato.</td>
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>3.3.- Que cuenta con la capacidad económica necesaria y suficiente para cumplir puntualmente con todas y cada una de las obligaciones que contrae en el presente Contrato.</td>
 			</tr>			
-			<tr class="parrafo">
-				<td class="space" height="21" valign=middle></td>
-				<td height="21"  valign = middle>3.4.- Que tiene los recursos económicos para responder de los daños y perjuicios que se originen al LOCAL en los términos del presente Contrato.</td>
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign = middle>3.4.- Que tiene los recursos económicos para responder de los daños y perjuicios que se originen al LOCAL en los términos del presente Contrato.</td>
 			</tr>
 		
 		{% else %}
 		{% comment %} Persona Moral {% endcomment %}
-			<tr class="parrafo">
-				<td class="space" height="21" valign=middle></td>
-				<td height="21" valign=middle>3.1.- Que es una persona moral de nacionalidad mexicana, mayor de edad, de estado civil <b>xxxxxxxxxxxxxx</b> por sociedad conyugal, empleada, 
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>3.1.- Que es una persona moral de nacionalidad mexicana, mayor de edad, de estado civil <b>xxxxxxxxxxxxxx</b> por sociedad conyugal, empleada, 
 					con Clave Única de Registro de Población <b>xxxxxxxxxxxxxx</b>, con plena capacidad para obligarse en los términos del presente Contrato. </td>
 			</tr>
-			<tr class="parrafo">
-				<td class="space" height="21" valign=middle></td>
-				<td height="21"  valign=middle>3.2.- Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe restricción contractual u 
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>3.2.- Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe restricción contractual u 
 					orden de cualquier tribunal, organismo gubernamental o autoridad que pudiera afectar la celebración de este acto jurídico.</td>
 			</tr>
-			<tr class="parrafo">
-				<td class="space" height="21" valign=middle></td>
-				<td height="21"  valign=middle>3.3.- Que cuenta con la capacidad económica necesaria y suficiente para cumplir puntualmente con todas y cada una de las obligaciones que contrae en el presente Contrato.</td>
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>3.3.- Que cuenta con la capacidad económica necesaria y suficiente para cumplir puntualmente con todas y cada una de las obligaciones que contrae en el presente Contrato.</td>
 			</tr>			
-			<tr class="parrafo">
-				<td class="space" height="21" valign=middle></td>
-				<td height="21"  valign = middle>3.4.- Que tiene los recursos económicos para responder de los daños y perjuicios que se originen al LOCAL en los términos del presente Contrato.</td>
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign = middle>3.4.- Que tiene los recursos económicos para responder de los daños y perjuicios que se originen al LOCAL en los términos del presente Contrato.</td>
 			</tr>
 		
 		{% endif %} 
@@ -376,69 +382,62 @@
 	<tr>
 		<td height="21" valign=middle> </td>
 	</tr>
+	{% comment %} Parte IV {% endcomment %}
 	{% if info.arrendatario.aval == "Si" %}
-	<tr class="parrafo">
-		<td height="21" valign=middle>IV.- Declaran <b>LAS PARTES</b>, lo siguiente:</td>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign=middle style="width:100%;">IV.- Declaran <b>LAS PARTES</b>, lo siguiente:</td>
 	</tr>
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign=middle>4.1.- Que se reconocen mutuamente la personalidad con la que comparecen, por lo que, expresamente, se obligan 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>4.1.- Que se reconocen mutuamente la personalidad con la que comparecen, por lo que, expresamente, se obligan 
 			a no invocar la nulidad del Contrato por falta de personalidad de alguno de los comparecientes, o por cualquier causa derivada de lo declarado 
 			por cada una de ellas.
 		</td>
 	</tr>	
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign=middle>4.2.- Conocen las disposiciones contenidas en la Ley Federal de Extinción de Dominio y sus correlativas de las 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>4.2.- Conocen las disposiciones contenidas en la Ley Federal de Extinción de Dominio y sus correlativas de las 
 			demás entidades federativas de la República Mexicana y específicamente de la entidad federativa en donde se encuentra ubicado el LOCAL, y 
 			que se obligan a cumplir con ellas.
 		</td>
 	</tr>	
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign=middle>4.3.- Conocen y se obligan a cumplir con la legislación en materia de prevención de lavado de dinero y financiamiento 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>4.3.- Conocen y se obligan a cumplir con la legislación en materia de prevención de lavado de dinero y financiamiento 
 			al terrorismo, a proporcionarse entre sí cualesquier documentos que requieran para dar cumplimiento a lo señalado en dichos ordenamientos y en 
 			este acto se autorizan mutuamente para que los datos y documentos relativos a su identificación se puedan proporcionar a cualquier autoridad que 
 			pueda auditar la transparencia de las operaciones de ambas Partes, siempre y cuando se dé previo aviso por escrito a la otra parte de la 
 			información que se pretende compartir. 
 		</td>
 	</tr>	
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign=middle>4.4.- Que en la celebración de este Contrato no ha habido error, mala fe, ni dolo entre éstas y con base en las declaraciones 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>4.4.- Que en la celebración de este Contrato no ha habido error, mala fe, ni dolo entre éstas y con base en las declaraciones 
 			y manifestaciones anteriores, ambas partes están de acuerdo en otorgar y obligarse en los términos de las siguientes:
 		</td>
 	</tr>
 	{% else %}	
-	<tr class="parrafo">
-		<td height="21" valign=middle>III.- Declaran <b>LAS PARTES</b>, lo siguiente:</td>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign=middle style="width:100%;">III.- Declaran <b>LAS PARTES</b>, lo siguiente:</td>
 	</tr>
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign=middle>3.1.- Que se reconocen mutuamente la personalidad con la que comparecen, por lo que, expresamente, se obligan 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>3.1.- Que se reconocen mutuamente la personalidad con la que comparecen, por lo que, expresamente, se obligan 
 			a no invocar la nulidad del Contrato por falta de personalidad de alguno de los comparecientes, o por cualquier causa derivada de lo declarado 
 			por cada una de ellas.
 		</td>
 	</tr>	
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign=middle>3.2.- Conocen las disposiciones contenidas en la Ley Federal de Extinción de Dominio y sus correlativas de las 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>3.2.- Conocen las disposiciones contenidas en la Ley Federal de Extinción de Dominio y sus correlativas de las 
 			demás entidades federativas de la República Mexicana y específicamente de la entidad federativa en donde se encuentra ubicado el LOCAL, y 
 			que se obligan a cumplir con ellas.
 		</td>
 	</tr>	
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign=middle>3.3.- Conocen y se obligan a cumplir con la legislación en materia de prevención de lavado de dinero y financiamiento 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>3.3.- Conocen y se obligan a cumplir con la legislación en materia de prevención de lavado de dinero y financiamiento 
 			al terrorismo, a proporcionarse entre sí cualesquier documentos que requieran para dar cumplimiento a lo señalado en dichos ordenamientos y en 
 			este acto se autorizan mutuamente para que los datos y documentos relativos a su identificación se puedan proporcionar a cualquier autoridad que 
 			pueda auditar la transparencia de las operaciones de ambas Partes, siempre y cuando se dé previo aviso por escrito a la otra parte de la 
 			información que se pretende compartir. 
 		</td>
 	</tr>	
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign=middle>3.4.- Que en la celebración de este Contrato no ha habido error, mala fe, ni dolo entre éstas y con base en las declaraciones 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>3.4.- Que en la celebración de este Contrato no ha habido error, mala fe, ni dolo entre éstas y con base en las declaraciones 
 			y manifestaciones anteriores, ambas partes están de acuerdo en otorgar y obligarse en los términos de las siguientes:
 		</td>
 	</tr>
@@ -446,12 +445,18 @@
 	<tr>
 		<td height="41" valign=middle><br></td>
 	</tr>
-			{% comment %} clausulas {% endcomment %}
+	{% comment %} Clausulas {% endcomment %}
 	<tr class="subtitle">
-		<td height="21" valign="middle"><b><u>C L Á U S U L A S</u></b></td>
+		<td colspan="2" height="21" style="text-align: center; width:100%; margin-bottom: 25px;"><b><u>C L Á U S U L A S</u></b></td>
     </tr>
-	<tr class="parrafo">
-		<td height="21" valign=middle><b>PRIMERA. - OBJETO. -</b> En este acto “LA ARRENDADORA” se obliga a entregar en arrendamiento a “LA ARRENDATARIA” quien a su vez se 
+	<tr>
+    	<td height="21" valign=middle><br></td>
+    </tr>
+	<tr>
+    	<td height="21" valign=middle><br></td>
+    </tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle><b>PRIMERA. - OBJETO. -</b> En este acto “LA ARRENDADORA” se obliga a entregar en arrendamiento a “LA ARRENDATARIA” quien a su vez se 
 			obliga a recibir bajo dicho concepto el uso y goce temporal del LOCAL, identificado como <b>“Local XXXX”</b>, el que recibe a su entera satisfacción, y entendiéndose 
 			que “LA ARRENDATARIA” llevará a cabo por su cuenta, el acondicionamiento y la decoración del mismo, de conformidad con lo previamente autorizado por “LA ARRENDADORA”, 
 			absteniéndose en todo momento de alterar la estructura del inmueble y sus instalaciones eléctricas, hidráulicas y sanitarias entregadas, salvo pacto en contrario que 
@@ -461,7 +466,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr class="parrafo">
-		<td height="21"  valign=middle><b>SEGUNDA. - DURACIÓN. -</b> La vigencia del arrendamiento materia de este Contrato, será por el término forzoso de <b>XX (xx) año y XX (xx) meses</b> 
+		<td colspan="2" height="21" valign=middle><b>SEGUNDA. - DURACIÓN. -</b> La vigencia del arrendamiento materia de este Contrato, será por el término forzoso de <b>XX (xx) año y XX (xx) meses</b> 
 			para ambas PARTES, contados a partir de la fecha de entrega del LOCAL arrendado (la “Fecha de Entrega”), de manera que concluirá en el día fijado previamente conforme al 
 			término antes señalado, independientemente de cuál sea la fecha en que “LA ARRENDATARIA” abra materialmente su establecimiento al público.<br> 
 		    
@@ -475,7 +480,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr class="parrafo">
-		<td height="21"  valign=middle><font size=3 color="#000000"><b>TERCERA. - TERMINACIÓN ANTICIPADA. -</b> En caso de que la terminación anticipada fuera solicitada de manera voluntaria por cualquiera de 
+		<td colspan="2" height="21" valign=middle><b>TERCERA. - TERMINACIÓN ANTICIPADA. -</b> En caso de que la terminación anticipada fuera solicitada de manera voluntaria por cualquiera de 
 			las partes, sin existir una causal de terminación que lo justifique, esta deberá de ser notificada por escrito por lo menos <b>03 (tres) meses antes</b> a la otra Parte, para lo cual, la Parte que 
 			está dando el aviso previo, deberá pagar una pena convencional equivalente a <b>03 (tres) meses</b> de la Renta Mensual vigente al momento de la terminación. <br>
 			
@@ -487,7 +492,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr class="parrafo">
-		<td height="21"  valign=middle><font size=3 color="#000000"><b>TERCERA BIS. - REUBICACIÓN DE LOCAL. -</b> "LA ARRENDADORA" tendrá el derecho de reubicar a "LA ARRENDATARIA" en un Local similar dentro del mismo 
+		<td colspan="2" height="21" valign=middle><b>TERCERA BIS. - REUBICACIÓN DE LOCAL. -</b> "LA ARRENDADORA" tendrá el derecho de reubicar a "LA ARRENDATARIA" en un Local similar dentro del mismo 
 			Centro Comercial, siempre y cuando la nueva ubicación mantenga condiciones similares de tamaño, accesibilidad y características generales del Local originalmente arrendado. <br>
 
 			La reubicación podrá llevarse a cabo en cualquier momento durante la vigencia del presente contrato, por causas justificadas que podrán incluir, de manera enunciativa mas no limitativa, la realización 
@@ -504,7 +509,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr class="parrafo">
-		<td height="21"  valign=middle><b>CUARTA. - DESOCUPACIÓN Y DEVOLUCIÓN DEL LOCAL. -</b> El día del término del Contrato o de su terminación anticipada, “LA ARRENDATARIA” deberá desocupar y devolver a “LA ARRENDADORA” el LOCAL, 
+		<td colspan="2" height="21" valign=middle><b>CUARTA. - DESOCUPACIÓN Y DEVOLUCIÓN DEL LOCAL. -</b> El día del término del Contrato o de su terminación anticipada, “LA ARRENDATARIA” deberá desocupar y devolver a “LA ARRENDADORA” el LOCAL, 
 			incluyendo el finiquito de los servicios del LOCAL arrendado, sin que se requiera previa notificación o requerimiento judicial por parte de “LA ARRENDADORA”, o de autoridad competente con todas aquellas mejoras o 
 			adiciones hechas al LOCAL, que se consideren adheridas al mismo y no puedan ser retiradas, como pudieran ser de manera enunciativa más no limitativa los muros, plafones, instalaciones de aire acondicionado y calefacción, 
 			eléctricas e hidrosanitarias, las cuales serán sin costo alguno para “LA ARRENDADORA”, inclusive el Impuesto Sobre la Renta que se pudiera configurar. Quedan excluidos los equipos eléctricos y de aire acondicionado que 
@@ -526,7 +531,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr class="parrafo">
-		<td height="21"  valign=middle><b>QUINTA. - GIRO Y NOMBRE COMERCIAL. -</b> El LOCAL materia del presente, será destinado por “LA ARRENDATARIA” única y exclusivamente a la instalación y funcionamiento de un negocio de 
+		<td colspan="2" height="21" valign=middle><b>QUINTA. - GIRO Y NOMBRE COMERCIAL. -</b> El LOCAL materia del presente, será destinado por “LA ARRENDATARIA” única y exclusivamente a la instalación y funcionamiento de un negocio de 
 			<b>XXXXXXXXXXXXXX</b>, denominado <b>“NOMBRE COMERCIAL”</b> debiendo “LA ARRENDATARIA” acreditar a “LA ARRENDADORA”, contar con los derechos, licencia, franquicia o autorización para el giro y para el uso de la marca o nombre 
 			a establecer, en un término no mayor a 15 (quince) días siguientes a la solicitud de “LA ARRENDADORA”, no pudiendo “LA ARRENDATARIA” modificar ni destinar el LOCAL a un giro distinto, excepto con el consentimiento de 
 			“LA ARRENDADORA” dando previo aviso por escrito.<br><br>
@@ -552,7 +557,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr class="parrafo">
-		<td height="21" valign=middle><b>SEXTA. - ANUNCIOS Y LETREROS DEL LOCAL. -</b> “LA ARRENDATARIA” se obliga a identificar su negocio de conformidad con lo establecido en el manual de adaptación del Centro Comercial 
+		<td colspan="2" height="21" valign=middle><b>SEXTA. - ANUNCIOS Y LETREROS DEL LOCAL. -</b> “LA ARRENDATARIA” se obliga a identificar su negocio de conformidad con lo establecido en el manual de adaptación del Centro Comercial 
 			(el “Manual de Adaptación”), proyecto de anuncio y letrero de “LA ARRENDATARIA” el cual se anexará al presente Contrato como parte del <b>Anexo III</b>. <br><br>
 
 			“LA ARRENDATARIA” se obliga a conservar los anuncios en buen estado de funcionamiento y mantenimiento, así como a cubrir el costo total de su fabricación, de las modificaciones que deban hacerse a la estructura 
@@ -572,7 +577,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b>SÉPTIMA. - ACONDICIONAMIENTO, ENTREGA Y APERTURA DEL LOCAL. -</b> “LA ARRENDADORA” entregará a “LA ARRENDATARIA” un Manual de Adaptación en el cual se establecerán los lineamientos 
+		<td colspan="2" height="21" valign=middle><b>SÉPTIMA. - ACONDICIONAMIENTO, ENTREGA Y APERTURA DEL LOCAL. -</b> “LA ARRENDADORA” entregará a “LA ARRENDATARIA” un Manual de Adaptación en el cual se establecerán los lineamientos 
 			que deberán seguirse para el acondicionamiento del LOCAL. Asimismo, ambas partes están de acuerdo en que “LA ARRENDATARIA” dispondrá de hasta <b>30 (treinta) días naturales</b> contados a partir de la fecha de firma 
 			del presente Contrato para someter a la aprobación de “LA ARRENDADORA” el anteproyecto de acondicionamiento del LOCAL, el cual deberá estar ajustado a los lineamientos mencionados en el Manual de Adaptación, 
 			mismos a los que “LA ARRENDATARIA” deberá someterse en todo momento; asimismo “LA ARRENDADORA” dispondrá de un término de hasta <b>15 (quince) días naturales</b> a partir de la fecha en que “LA ARRENDATARIA” 
@@ -599,33 +604,44 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b>OCTAVA. - INAUGURACIÓN DEL LOCAL. -</b> “LA ARRENDATARIA” se obliga a llevar a cabo la apertura del LOCAL materia de arrendamiento abriendo sus puertas al público en general <b>a más tardar XXX (xxx) 
-			meses posteriores a la Fecha de Entrega</b>, (la “Fecha de Apertura”).</td>
+		<td colspan="2" height="21" valign=middle><b>OCTAVA. - INAUGURACIÓN DEL LOCAL. -</b> “LA ARRENDATARIA” se obliga a llevar a cabo la apertura del LOCAL materia de arrendamiento abriendo sus puertas al público en general <b>a más tardar XXX (xxx) 
+			meses posteriores a la Fecha de Entrega</b>, (la “Fecha de Apertura”).<br><br>
+
+			En caso de que “LA ARRENDATARIA”, no abra el LOCAL al público dentro de los 10 (diez) días naturales siguientes al plazo señalado en el párrafo anterior, “LA ARRENDATARIA” adicional al pago de la renta tendrá la obligación de cubrir a 
+			“LA ARRENDADORA” por concepto de pena convencional el pago doble de la cantidad equivalente a un día del monto de la Renta Mensual, más el IVA correspondiente, por cada día en que se encuentre en incumplimiento, desde la fecha en que debió abrir 
+			al público y hasta la fecha efectiva de apertura de la misma, sin requerir notificación previa para la aplicación de dicha pena, la cual iniciaría automáticamente a partir del incumplimiento, esto siempre y cuando las causas de apertura de su Local 
+			sean directamente imputables a “LA ARRENDATARIA”. En caso que las causas de apertura sean no atribuibles a “LA ARRENDATARIA” no habrá ningún cargo por concepto de pena convención por la apertura del LOCAL.</td>
 	</tr>	
-	<tr class="parrafo">
-		<td class="space" height="21" valign=middle><br> - </td>
-		<td height="21" valign=middle><br>La cantidad de <b>$XXXXXX (xxxxxxxx pesos XX/100 Moneda Nacional)</b> más el correspondiente Impuesto al Valor Agregado, por concepto de Renta Mínima Mensual (“La Renta”), la cual es equivalente a 
-			<b>$XXXXXX (xxxxxxxx pesos XX/100 Moneda Nacional)</b> por metro cuadrado, el cual incrementará anualmente de acuerdo al Índice Nacional de Precios al Consumidor (“INPC”).</td><br>
+	<tr>
+		<td height="21" valign=middle><br></td>
 	</tr>
-	<tr class="parrafo">
-		<td height="21" valign=middle>El pago de la Renta Mensual se hará por adelantado en los primeros cinco <b>(05) días de cada mes</b>, en términos de la presente cláusula. <br>
+	<tr>
+		<td colspan="2" height="21" valign=middle>NOVENA. - DE LA RENTA Y SU PAGO. - “LA ARRENDATARIA” se obliga incondicional e irrevocablemente a pagar a “LA ARRENDADORA”, por concepto de renta mensual por el uso y goce del LOCAL arrendado objeto y materia del presente instrumento 
+			y a partir de la terminación del Periodo de Gracia, la renta mensual que se establece (la “Renta Mensual”), de conformidad con lo siguiente:</td>
+	</tr>	
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><br>La cantidad de <b>$XXXXXX (xxxxxxxx pesos XX/100 Moneda Nacional)</b> más el correspondiente Impuesto al Valor Agregado, por concepto de Renta Mínima Mensual (“La Renta”), la cual es equivalente a 
+			<b>$XXXXXX (xxxxxxxx pesos XX/100 Moneda Nacional)</b> por metro cuadrado, el cual incrementará anualmente de acuerdo al Índice Nacional de Precios al Consumidor (“INPC”).</td>
+
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign=middle>El pago de la Renta Mensual se hará por adelantado en los primeros cinco <b>(05) días de cada mes</b>, en términos de la presente cláusula. <br>
 		El pago que en su caso deba realizar “LA ARRENDATARIA” a “LA ARRENDADORA” por concepto de Renta y cualquier otro pago bajo este contrato deberá ser realizado mediante transferencia electrónica 
 		de fondos a la siguiente cuenta de LA “ARRENDADORA” en pesos cuyos datos se detallan a continuación:</td>
 	</tr>
 	<tr>
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign=middle><b>Banco:</b> Banregio<br>
+		<td colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>Banco:</b> Banregio<br>
 		<b>CLABE:</b> 058580210452100386<br>
 		<b>Beneficiario:</b> Desarrollos Fraterna Comercializadora, S.A. de C.V.<br>
 		<b>Referencia:</b> Mes y No. de Factura.<br><br>
 		</td>
 	</tr>
-	<tr>
-		<td height="21" valign=middle>o a cualquier otra cuenta que “LA ARRENDADORA” le indique por escrito. Para cumplir con lo anterior, “LA ARRENDADORA” se obliga a entregarle a “LA ARRENDATARIA”, de forma electrónica 
+	<tr> 
+		<td colspan="2" height="21" valign=middle>o a cualquier otra cuenta que “LA ARRENDADORA” le indique por escrito. Para cumplir con lo anterior, “LA ARRENDADORA” se obliga a entregarle a “LA ARRENDATARIA”, de forma electrónica 
 			a la dirección de <b>correo electrónico: correo del cliente</b> o físicamente en el LOCAL arrendado, la factura o el recibo fiscalmente requerido que cumpla con todos los requisitos fiscales y que ampare el pago de Rentas 
 			que corresponda, con por lo menos 05 (cinco) días hábiles de anticipación a la fecha en que ésta deba efectuar dicho pago de la Renta, y “LA ARRENDATARIA” se obliga a realizar el pago dentro de los primeros 05 (cinco) 
 			días hábiles siguientes al haber recibido la factura correspondiente por parte de la “ARRENDADORA”. <br><br>
-			
+
 			Asimismo, en este mismo acto “LA ARRENDATARIA” reconoce que “LA ARRENDADORA” podrá ceder todos los derechos de cobro derivados del presente Contrato a una institución bancaria que esta última elija a su discreción, 
 			previa notificación o aviso previo a “LA ARRENDATARIA”. Lo anterior sin que “LA ARRENDADORA” pierda cualquier tipo de derecho consagrado en el presente instrumento, incluyendo el reclamar cualquier obligación pendiente 
 			derivadas del presente instrumento. <br><br>
@@ -659,25 +675,25 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b>DÉCIMA. - RENTAS ANTICIPADAS. -</b> Asimismo, ambas partes están de acuerdo y “LA ARRENDATARIA” se obliga a constituir en el acto en que se firme este Contrato, un importe de <b>XX (xx) mes</b> 
+		<td colspan="2" height="21" valign=middle><b>DÉCIMA. - RENTAS ANTICIPADAS. -</b> Asimismo, ambas partes están de acuerdo y “LA ARRENDATARIA” se obliga a constituir en el acto en que se firme este Contrato, un importe de <b>XX (xx) mes</b> 
 			de la Renta Mínima Mensual, equivalente a <b>$XXXXXX (XXXXXXXX PESOS XX/100 MONEDA NACIONAL)</b> más el correspondiente Impuesto al Valor Agregado.</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b>DÉCIMA. BIS- DEPÓSITO EN GARANTÍA. -</b> Asimismo, ambas partes están de acuerdo y “LA ARRENDATARIA” se obliga a constituir en el acto en que se firme este Contrato, un importe de 01 (un) mes 
-			de la Renta Mínima Mensual, equivalente a <b>$XXXXXX (xxxxxxxx pesos XX/100 Moneda Nacional)</b> el cual será liquidado contra entrega de este instrumento. <br>
+		<td colspan="2" height="21" valign=middle><b>DÉCIMA. BIS- DEPÓSITO EN GARANTÍA. -</b> Asimismo, ambas partes están de acuerdo y “LA ARRENDATARIA” se obliga a constituir en el acto en que se firme este Contrato, un importe de 01 (un) mes 
+			de la Renta Mínima Mensual, equivalente a <b>$XXXXXX (xxxxxxxx pesos XX/100 Moneda Nacional)</b> el cual será liquidado contra entrega de este instrumento. <br><br>
 
 			El depósito en garantía será aplicable al pago de los 01 (un) último mes de arrendamiento o en su caso, para garantizar a la terminación del presente Contrato o su prórroga, enunciativa mas no limitativamente los 
-			siguientes conceptos y <br>
+			siguientes conceptos y <br><br>
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>&nbsp;</td>
-		<td height="21" valign=middle>a)   El pago de cualquier obligación insoluta a su cargo, derivada de este Contrato. <br>
 
-			b)   El pago de cualquier reparación que requiera el LOCAL por desperfectos causados por su personal, empleados, contratistas, clientes o visitantes. <br>
+		<td colspan="2" height="21" style="padding-left: 50px;" valign=middle>a)   El pago de cualquier obligación insoluta a su cargo, derivada de este Contrato. <br><br>
+
+			b)   El pago de cualquier reparación que requiera el LOCAL por desperfectos causados por su personal, empleados, contratistas, clientes o visitantes. <br><br>
 
 			c)   El pago de cualquier servicio que haya dejado de cubrir al término del Contrato y a la entrega del LOCAL, tales como servicio telefónico, energía eléctrica, consumo de agua, impuestos o derechos y otros. <br>
 		</td>
@@ -686,7 +702,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>“LA ARRENDATARIA” deberá en la terminación del presente contrato entregar a “LA ARRENDADORA” la documentación que sea evidencia de que no se adeuda cantidad alguna por servicios, derechos, 
+		<td colspan="2"height="21" valign=middle>“LA ARRENDATARIA” deberá en la terminación del presente contrato entregar a “LA ARRENDADORA” la documentación que sea evidencia de que no se adeuda cantidad alguna por servicios, derechos, 
 			impuestos, reparaciones o por cualquier obligación derivada del presente contrato. <br><br>
 
 			Ambas partes convienen que el importe establecido en la presente cláusula, no generará interés financiero o producto económico alguno a favor de “LA ARRENDATARIA”. <br><br>
@@ -698,21 +714,20 @@
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
-	<tr>
+	<tr class="parrafo">
 		<td height="21" valign=middle><b>DÉCIMA PRIMERA. - AUTORIZACIÓN DE OBRAS. -</b> Ambas partes están de acuerdo en que:</td>
 	</tr>
 	<tr>
-		<td class="space" height="21" valign=middle></td>
-		<td height="21" valign=middle>a)   Serán a cargo y por cuenta exclusiva de “LA ARRENDATARIA” todos los gastos que se originen por las obras de acondicionamiento, así como el mantenimiento del LOCAL y la tramitación de los permisos y avisos correspondientes a las autoridades que se requieran para la operación de su giro comercial. <br>
-			b)   Durante la vigencia del presente arrendamiento, “LA ARRENDATARIA” requerirá del consentimiento previo y por escrito de “LA ARRENDADORA” para realizar cualquier tipo de obras dentro del LOCAL, tanto internas con previo aviso a “LA ARRENDADORA” como externas con previo aviso y autorización por “LA ARRENDADORA”, según lo establecido previamente, siempre y cuando sea apego al Manual de Adecuaciones y Reglamento de Operaciones del Centro Comercial. <br>
-			c)   “LA ARRENDATARIA” dará en su momento la autorización mediante previa notificación con anticipación para que “LA ARRENDADORA” pueda realizar en el LOCAL trabajos de mantenimiento, adiciones, cambios o mejoras, incluso de carácter estructural, sin otra limitación que la de no privar ni afectar, el uso y goce del LOCAL a “LA ARRENDATARIA”.
+		<td colspan="2" height="21" style="padding-left: 50px;" valign=middle>a)&nbsp;&nbsp;&nbsp;&nbsp;Serán a cargo y por cuenta exclusiva de “LA ARRENDATARIA” todos los gastos que se originen por las obras de acondicionamiento, así como el mantenimiento del LOCAL y la tramitación de los permisos y avisos correspondientes a las autoridades que se requieran para la operación de su giro comercial. <br><br>
+			b)&nbsp;&nbsp;&nbsp;&nbsp;Durante la vigencia del presente arrendamiento, “LA ARRENDATARIA” requerirá del consentimiento previo y por escrito de “LA ARRENDADORA” para realizar cualquier tipo de obras dentro del LOCAL, tanto internas con previo aviso a “LA ARRENDADORA” como externas con previo aviso y autorización por “LA ARRENDADORA”, según lo establecido previamente, siempre y cuando sea apego al Manual de Adecuaciones y Reglamento de Operaciones del Centro Comercial. <br><br>
+			c)&nbsp;&nbsp;&nbsp;&nbsp;“LA ARRENDATARIA” dará en su momento la autorización mediante previa notificación con anticipación para que “LA ARRENDADORA” pueda realizar en el LOCAL trabajos de mantenimiento, adiciones, cambios o mejoras, incluso de carácter estructural, sin otra limitación que la de no privar ni afectar, el uso y goce del LOCAL a “LA ARRENDATARIA”.
 		</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b>DÉCIMA SEGUNDA. - ACTOS DE TERCEROS. -</b> En caso de que el LOCAL sufriera algún daño con motivo de actos de terceros o en caso de que “LA ARRENDADORA” se viera afectada por algún conflicto 
+		<td colspan="2" height="21" valign=middle><b>DÉCIMA SEGUNDA. - ACTOS DE TERCEROS. -</b> En caso de que el LOCAL sufriera algún daño con motivo de actos de terceros o en caso de que “LA ARRENDADORA” se viera afectada por algún conflicto 
 			judicial o extrajudicial relacionado con “LA ARRENDATARIA”, ésta última responderá de los daños y perjuicios que con tal motivo se causaren a “LA ARRENDADORA”, incluyendo de manera enunciativa más no limitativa la 
 			reparación de daños al propio LOCAL o a las instalaciones del Centro Comercial. <br><br>
 
@@ -724,15 +739,15 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>DÉCIMA TERCERA. - VIGILANCIA. -</b> Ambas PARTES convienen que “LA ARRENDATARIA” podrá tomar a su cargo el servicio de vigilancia que considere adecuado para la protección del LOCAL, sus 
+		<td colspan="2" height="21" valign=middle><b>DÉCIMA TERCERA. - VIGILANCIA. -</b> Ambas PARTES convienen que “LA ARRENDATARIA” podrá tomar a su cargo el servicio de vigilancia que considere adecuado para la protección del LOCAL, sus 
 			instalaciones y bienes existentes en él, siempre y cuando notifique a “LA ARRENDADORA” por escrito, entregue una copia del contrato y se responsabilice por su gestión.
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign = "middle"><br></td>
+		<td height="21" valign=middle><br></td>
 	</tr>
-	<tr class="parrafo">
-		<td height="21" valign = "middle"><b>DÉCIMA CUARTA. - MANTENIMIENTO DE ÁREAS COMUNES. -</b> Los gastos de mantenimiento como agua, luz, jardinería, limpieza, seguridad, reparación, servicios y demás concernientes a las áreas 
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign=middle><b>DÉCIMA CUARTA. - MANTENIMIENTO DE ÁREAS COMUNES. -</b> Los gastos de mantenimiento como agua, luz, jardinería, limpieza, seguridad, reparación, servicios y demás concernientes a las áreas 
 			comunes del Centro Comercial serán pagados incondicional e irrevocablemente por “LA ARRENDATARIA” a “LA ARRENDADORA” por la cantidad mensual equivalente a <b>$XXXXXX (xxxxxxxx pesos XX/100 Moneda Nacional)</b> más el 
 			IVA correspondiente. El pago deberá ser efectuado a partir de Fecha de Entrega del LOCAL. <br><br>
 
@@ -741,8 +756,7 @@
 		</td>
 	</tr>
 	<tr>
-		<td class="space" height="21" valign=middle><br></td>
-		<td height="21" valign=middle><b>Banco:</b> Banregio<br>
+		<td colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>Banco:</b> Banregio<br>
 		<b>CLABE:</b> 058580217264700113<br>
 		<b>Beneficiario:</b> Semillero Purísima, Comercio y Oficinas, A.C.<br>
 		<b>Referencia:</b> Mes y No. de Factura.<br></td>
@@ -751,7 +765,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle">El pago por concepto de gastos de mantenimiento incrementará anualmente con base a un presupuesto que “LA ARRENDADORA” realizará de forma previa y que tendrá la obligación de compartir y 
+		<td colspan="2" height="21" valign="middle">El pago por concepto de gastos de mantenimiento incrementará anualmente con base a un presupuesto que “LA ARRENDADORA” realizará de forma previa y que tendrá la obligación de compartir y 
 			notificarle a “LA ARRENDATARIA”, a fin de hacerla de su conocimiento. Dicho presupuesto será realizado con base en los aumentos generados por cada uno de los conceptos mencionados en el primer párrafo de este clausulado. <br><br>
 
 			En caso de que el mantenimiento de las áreas comunes no se esté llevando de conformidad con lo dispuesto en la presente cláusula, y que el incumplimiento de lo anterior de cualquier manera obstruya o impida el correcto 
@@ -786,7 +800,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>DÉCIMA QUINTA. - SEGUROS. -</b> “LA ARRENDATARIA” se obliga en contratar a favor de “LA ARRENDADORA” con alguna compañía aseguradora acreditada en México por la Comisión Nacional de Seguros 
+		<td colspan="2" height="21" valign="middle"><b>DÉCIMA QUINTA. - SEGUROS. -</b> “LA ARRENDATARIA” se obliga en contratar a favor de “LA ARRENDADORA” con alguna compañía aseguradora acreditada en México por la Comisión Nacional de Seguros 
 			los seguros necesarios para garantizar la responsabilidad civil, daños y perjuicios a terceros así como contra todo riesgo, daños materiales u otros que pudieran ser causados al LOCAL por fuego, rayo, temblor, terremoto, 
 			huelgas, alborotos populares o vandalismo, o cualquier otro evento asegurable; debiendo entregar a “LA ARRENDADORA” copias de las pólizas correspondientes dentro de los 15 (quince) días naturales siguientes a partir de 
 			la fecha de celebración del presente Contrato. Dicha póliza no podrá ser cancelada durante toda la vigencia del presente instrumento, obligándose “LA ARRENDATARIA” a pagar cualquier monto que por concepto de deducible o 
@@ -815,7 +829,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>DÉCIMA SEXTA. - PAGO DE SERVICIOS DEL LOCAL ARRENDADO. -</b> La contratación, instalación o recontratación o reinstalación y pago de los consumos de los servicios de agua, gas, luz, teléfono, 
+		<td colspan="2" height="21" valign="middle"><b>DÉCIMA SEXTA. - PAGO DE SERVICIOS DEL LOCAL ARRENDADO. -</b> La contratación, instalación o recontratación o reinstalación y pago de los consumos de los servicios de agua, gas, luz, teléfono, 
 			internet, televisión y/o audio restringido y cualquier otro servicio que se cause en el LOCAL objeto de este arrendamiento correrán a cargo de “LA ARRENDATARIA”, debiendo contar en su caso, con medidores independientes. 
 			En el supuesto de que no cuente con los medidores mencionados, “LA ARRENDADORA” compartirá el/los monto/s del recibo adeudado, obligándose así “LA ARRENDATARIA” de cubrir los pagos correspondientes. <br><br>
 
@@ -831,7 +845,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>DÉCIMA SÉPTIMA. - ESTACIONAMIENTO. -</b> El destino del Estacionamiento será única y especialmente el de servir como estacionamiento no exclusivo para el uso y aprovechamiento de los propietarios, 
+		<td colspan="2" height="21" valign="middle"><b>DÉCIMA SÉPTIMA. - ESTACIONAMIENTO. -</b> El destino del Estacionamiento será única y especialmente el de servir como estacionamiento no exclusivo para el uso y aprovechamiento de los propietarios, 
 			arrendatarios o terceros con derechos de uso de las unidades privativas del Centro Comercial, así como para el uso de los Clientes (los “Clientes”) para efectos de lo dispuesto en la presente cláusula, significa (i) 
 			los clientes de las unidades privativas y demás locales comerciales fijos o semifijos del Centro Comercial, (ii) público en general, (iii) arrendatarios de dichas unidades privativas, (iv) clientes de los arrendatarios 
 			de dichas unidades privativas, y (v) cualesquiera otra persona que tenga derecho de acceso al Centro Comercial o sus áreas y/o unidades integrantes). En tal virtud, “LA ARRENDATARIA” y sus clientes podrán utilizar el 
@@ -842,7 +856,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>DÉCIMA OCTAVA. - INSPECCIÓN DEL LOCAL. -</b> “LA ARRENDADORA” estará facultada para inspeccionar el LOCAL en cualquier momento que considere conveniente, previo aviso por escrito a “LA ARRENDATARIA”, 
+		<td colspan="2" height="21" valign="middle"><b>DÉCIMA OCTAVA. - INSPECCIÓN DEL LOCAL. -</b> "LA ARRENDADORA" estará facultada para inspeccionar el LOCAL en cualquier momento que considere conveniente, previo aviso por escrito a "LA ARRENDATARIA", 
 			excepto en los casos de siniestro, de caso fortuito o fuerza mayor.
 		</td>
 	</tr>
@@ -850,35 +864,34 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><b>DÉCIMA NOVENA. - USO Y OPERACIÓN DEL LOCAL. -</b> “LA ARRENDATARIA” se obliga en los términos de este Contrato a cumplir las siguientes normas relativas al uso y operación del LOCAL :<br></td>
+		<td class="parrafo" colspan="2" height="21" valign=middle><b>DÉCIMA NOVENA. - USO Y OPERACIÓN DEL LOCAL. -</b> “LA ARRENDATARIA” se obliga en los términos de este Contrato a cumplir las siguientes normas relativas al uso y operación del LOCAL :<br></td>
 	</tr>
 	<tr>
-		<td class="space" height="21" valign=middle><br></td>
-		<td height="21" valign="middle">I.   La cancelería e instalaciones del LOCAL, deberán mantenerse en el mismo estado de conservación que tenga en el momento de apertura del negocio comercial, salvo el deterioro que por su uso normal se cause; <br><br>
-			II.   El uso del LOCAL deberá ajustarse al horario y calendario de funcionamiento del Centro Comercial; <br><br>
-			III.   Queda prohibido a “LA ARRENDATARIA” otorgar o permitir la concesión de áreas del LOCAL a terceros, con excepción de que medie previa autorización por escrito de “LA ARRENDADORA”; <br><br>
-			IV.   Está prohibido realizar en el LOCAL actos contrarios a la Ley, a la moral o a las buenas costumbres, así como realizar en los locales toda clase de encuestas, salvo las impuestas por la Ley o las autorizadas por “LA ARRENDADORA”. <br>
-			V.   No realizar actos o incurrir en omisiones que afecten la estabilidad, seguridad o comodidad del LOCAL; <br><br>
-			VI.   No instalar entrepisos, tapancos o desvanes, salvo autorización previa y por escrito de “LA ARRENDADORA”. Adicionalmente se requerirá revisión estructural por parte del perito autorizado por el Administrador del Centro Comercial y esta construcción podrá ser utilizada únicamente como bodega y no deberá estar a la vista del público; <br><br>
-			VII.   Conservar el LOCAL en aceptables condiciones de higiene y limpieza, y mantener los pasillos de servicio limpios, razón por la cual deberá de prever un espacio para depositar la basura en el LOCAL; asimismo los restaurantes, expendios de alimentos y aquellos negocios que por su giro comercial produzcan abundantes desperdicios, deberán además conservar en aceptables condiciones de higiene y limpieza, un área contigua al LOCAL de que se trate comprendida en un radio de 10 (diez) metros medidos a partir del punto central de acceso o entrada principal.; <br><br>
-			VIII.   Obtener y mantener vigentes todas las licencias, autorizaciones y permisos que se requieran para la apertura, uso y funcionamiento del negocio comercial establecido en el LOCAL y cumplir con todas las leyes, reglamentos y demás disposiciones que rijan la apertura, uso y funcionamiento y operación del negocio comercial y del LOCAL; <br><br>
-			IX.   No introducir o conservar en el LOCAL substancias tóxicas, inflamables o explosivas, excepto con autorización previa y por escrito del Administrador y de conformidad con la legislación aplicable; no se consideran como tales, aquellas que son inherentes a la actividad o giro comercial del LOCAL, como lo son aquellas necesarias para operar una cafetería y una cocina. <br><br>
-			X.   Se requerirá de autorización, previa y por escrito, de “LA ARRENDADORA”, para instalar anuncios o cualquier tipo de publicidad en la fachada exterior del mismo, con excepción de los anuncios que se acompañan como Anexo III.; <br><br>
-			XI.   El Administrador o la persona o personas por él autorizadas, tendrán derecho a ingresar al LOCAL para verificar que se esté cumpliendo con las obligaciones contenidas en el presente Contrato, siempre y cuando den aviso por escrito “LA ARRENDATARIA” con por lo menos 24 horas de anticipación, para lo anterior, desde este momento “LA ARRENDADORA” autoriza al Administrador para llevar a cabo dichas acciones o bien, la persona o personas autorizadas previamente por él; <br><br>
-			XII.   La carga, descarga e introducción de mercancías o desperdicios al Centro Comercial y al LOCAL, deberá hacerse con sujeción a los términos y condiciones establecidos por el Reglamento. <br><br>
-			XIII.   Ningún radio, televisión, alto parlante, fonógrafo, o aparato similar, podrá ser instalado fuera del LOCAL, a excepción de los anuncios establecidos en el Anexo III. Dentro del LOCAL sólo podrán instalarse y funcionar alguno de estos aparatos con la autorización, previa, expresa y por escrito de “LA ARRENDADORA”, siempre que el aparato utilizado no funcione a un volumen que pueda percibirse en el exterior del LOCAL; <br><br>
-			XIV.   Colectar y conservar la basura y los desperdicios del LOCAL en los recipientes y lugares que se especifiquen, salvo que el giro que funcione en un determinado LOCAL sea el Restaurante, caso en el cual el propietario o usuario autorizado tendrá la obligación de sacar la basura y desperdicios del Centro Comercial por su cuenta y a su cargo; <br><br>
-			XV.   Los aparadores, anuncios y luces exteriores del LOCAL deberán estar iluminados todos los días, dentro del horario establecido en el Reglamento del Centro Comercial; <br><br>
-			XVI.   No tener dentro del LOCAL, clase alguna de animales, salvo que estos sean propios del giro comercial que funcione en determinado Local, caso en el cual la restricción no será aplicable; <br><br>
-			XVII.   No utilizar aparatos que funcionen con gas L.P. o cualquier otro combustible inflamable o explosivo, salvo con el permiso previo y por escrito de “LA ARRENDADORA”. Tampoco podrá instalarse ningún equipo electrónico que sobrecargue las líneas de electricidad establecidas en el Centro Comercial; <br><br>
-			XVIII.   El LOCAL contará con un seguro de responsabilidad civil y daños a terceros con la cobertura mínima que fijará la Administración del Centro Comercial; <br><br>
-			XIX.   Los restaurantes y locales con preparación de alimentos deberán contar con trampas de grasa con divisiones adecuadas para el gasto de aguas grasosas, y éstas deberán ser limpiadas periódicamente, asentándose debidamente en la bitácora de mantenimiento. También deberán contar con un sistema adecuado de extracción de calor y humo para cualquier tipo de aparato para alimentos calientes y realizar los servicios de desinfección y fumigación dos veces al mes y entregar los reportes correspondientes a “LA ARRENDADORA”. Asimismo, se deberá cumplir la Norma Oficial Mexicana relativa a la cantidad y calidad de las aguas residuales; <br><br>
-			XX.   En ningún momento “LA ARRENDATARIA” podrá efectuar actos u operaciones que signifiquen competencia desleal con los otros comercios establecidos en el Centro Comercial, tales como bienes o artículos usados, deteriorados, provenientes de algún siniestro o aquellos que no sean de la existencia regular del giro autorizado para cada Local Comercial. Tampoco podrá hacer promociones u ofertas que no cumplan con los requisitos establecidos por la Ley. <br><br>
-			XXI.   Para efectos fiscales “LA ARRENDATARIA” está obligada a llevar a cabo la tramitación y apertura del negocio a instalar en el LOCAL, así como a cancelarla en caso de que deje de operar. También se encargará de dar aviso del cambio de domicilio a las autoridades correspondientes. <br><br>
+		<td colspan="2" height="21" style="padding-left: 50px;" valign="middle">I.&nbsp;&nbsp;&nbsp;&nbsp;La cancelería e instalaciones del LOCAL, deberán mantenerse en el mismo estado de conservación que tenga en el momento de apertura del negocio comercial, salvo el deterioro que por su uso normal se cause; <br><br>
+			II.&nbsp;&nbsp;&nbsp;&nbsp;El uso del LOCAL deberá ajustarse al horario y calendario de funcionamiento del Centro Comercial; <br><br>
+			III.&nbsp;&nbsp;&nbsp;&nbsp;Queda prohibido a “LA ARRENDATARIA” otorgar o permitir la concesión de áreas del LOCAL a terceros, con excepción de que medie previa autorización por escrito de “LA ARRENDADORA”; <br><br>
+			IV.&nbsp;&nbsp;&nbsp;&nbsp;Está prohibido realizar en el LOCAL actos contrarios a la Ley, a la moral o a las buenas costumbres, así como realizar en los locales toda clase de encuestas, salvo las impuestas por la Ley o las autorizadas por “LA ARRENDADORA”. <br>
+			V.&nbsp;&nbsp;&nbsp;&nbsp;No realizar actos o incurrir en omisiones que afecten la estabilidad, seguridad o comodidad del LOCAL; <br><br>
+			VI.&nbsp;&nbsp;&nbsp;&nbsp;No instalar entrepisos, tapancos o desvanes, salvo autorización previa y por escrito de “LA ARRENDADORA”. Adicionalmente se requerirá revisión estructural por parte del perito autorizado por el Administrador del Centro Comercial y esta construcción podrá ser utilizada únicamente como bodega y no deberá estar a la vista del público; <br><br>
+			VII.&nbsp;&nbsp;&nbsp;&nbsp;Conservar el LOCAL en aceptables condiciones de higiene y limpieza, y mantener los pasillos de servicio limpios, razón por la cual deberá de prever un espacio para depositar la basura en el LOCAL; asimismo los restaurantes, expendios de alimentos y aquellos negocios que por su giro comercial produzcan abundantes desperdicios, deberán además conservar en aceptables condiciones de higiene y limpieza, un área contigua al LOCAL de que se trate comprendida en un radio de 10 (diez) metros medidos a partir del punto central de acceso o entrada principal.; <br><br>
+			VIII.&nbsp;&nbsp;&nbsp;&nbsp;Obtener y mantener vigentes todas las licencias, autorizaciones y permisos que se requieran para la apertura, uso y funcionamiento del negocio comercial establecido en el LOCAL y cumplir con todas las leyes, reglamentos y demás disposiciones que rijan la apertura, uso y funcionamiento y operación del negocio comercial y del LOCAL; <br><br>
+			IX.&nbsp;&nbsp;&nbsp;&nbsp;No introducir o conservar en el LOCAL substancias tóxicas, inflamables o explosivas, excepto con autorización previa y por escrito del Administrador y de conformidad con la legislación aplicable; no se consideran como tales, aquellas que son inherentes a la actividad o giro comercial del LOCAL, como lo son aquellas necesarias para operar una cafetería y una cocina. <br><br>
+			X.&nbsp;&nbsp;&nbsp;&nbsp;Se requerirá de autorización, previa y por escrito, de “LA ARRENDADORA”, para instalar anuncios o cualquier tipo de publicidad en la fachada exterior del mismo, con excepción de los anuncios que se acompañan como Anexo III.; <br><br>
+			XI.&nbsp;&nbsp;&nbsp;&nbsp;El Administrador o la persona o personas por él autorizadas, tendrán derecho a ingresar al LOCAL para verificar que se esté cumpliendo con las obligaciones contenidas en el presente Contrato, siempre y cuando den aviso por escrito “LA ARRENDATARIA” con por lo menos 24 horas de anticipación, para lo anterior, desde este momento “LA ARRENDADORA” autoriza al Administrador para llevar a cabo dichas acciones o bien, la persona o personas autorizadas previamente por él; <br><br>
+			XII.&nbsp;&nbsp;&nbsp;&nbsp;La carga, descarga e introducción de mercancías o desperdicios al Centro Comercial y al LOCAL, deberá hacerse con sujeción a los términos y condiciones establecidos por el Reglamento. <br><br>
+			XIII.&nbsp;&nbsp;&nbsp;&nbsp;Ningún radio, televisión, alto parlante, fonógrafo, o aparato similar, podrá ser instalado fuera del LOCAL, a excepción de los anuncios establecidos en el Anexo III. Dentro del LOCAL sólo podrán instalarse y funcionar alguno de estos aparatos con la autorización, previa, expresa y por escrito de “LA ARRENDADORA”, siempre que el aparato utilizado no funcione a un volumen que pueda percibirse en el exterior del LOCAL; <br><br>
+			XIV.&nbsp;&nbsp;&nbsp;&nbsp;Colectar y conservar la basura y los desperdicios del LOCAL en los recipientes y lugares que se especifiquen, salvo que el giro que funcione en un determinado LOCAL sea el Restaurante, caso en el cual el propietario o usuario autorizado tendrá la obligación de sacar la basura y desperdicios del Centro Comercial por su cuenta y a su cargo; <br><br>
+			XV.&nbsp;&nbsp;&nbsp;&nbsp;Los aparadores, anuncios y luces exteriores del LOCAL deberán estar iluminados todos los días, dentro del horario establecido en el Reglamento del Centro Comercial; <br><br>
+			XVI.&nbsp;&nbsp;&nbsp;&nbsp;No tener dentro del LOCAL, clase alguna de animales, salvo que estos sean propios del giro comercial que funcione en determinado Local, caso en el cual la restricción no será aplicable; <br><br>
+			XVII.&nbsp;&nbsp;&nbsp;&nbsp;No utilizar aparatos que funcionen con gas L.P. o cualquier otro combustible inflamable o explosivo, salvo con el permiso previo y por escrito de “LA ARRENDADORA”. Tampoco podrá instalarse ningún equipo electrónico que sobrecargue las líneas de electricidad establecidas en el Centro Comercial; <br><br>
+			XVIII.&nbsp;&nbsp;&nbsp;&nbsp;El LOCAL contará con un seguro de responsabilidad civil y daños a terceros con la cobertura mínima que fijará la Administración del Centro Comercial; <br><br>
+			XIX.&nbsp;&nbsp;&nbsp;&nbsp;Los restaurantes y locales con preparación de alimentos deberán contar con trampas de grasa con divisiones adecuadas para el gasto de aguas grasosas, y éstas deberán ser limpiadas periódicamente, asentándose debidamente en la bitácora de mantenimiento. También deberán contar con un sistema adecuado de extracción de calor y humo para cualquier tipo de aparato para alimentos calientes y realizar los servicios de desinfección y fumigación dos veces al mes y entregar los reportes correspondientes a “LA ARRENDADORA”. Asimismo, se deberá cumplir la Norma Oficial Mexicana relativa a la cantidad y calidad de las aguas residuales; <br><br>
+			XX.&nbsp;&nbsp;&nbsp;&nbsp;En ningún momento “LA ARRENDATARIA” podrá efectuar actos u operaciones que signifiquen competencia desleal con los otros comercios establecidos en el Centro Comercial, tales como bienes o artículos usados, deteriorados, provenientes de algún siniestro o aquellos que no sean de la existencia regular del giro autorizado para cada Local Comercial. Tampoco podrá hacer promociones u ofertas que no cumplan con los requisitos establecidos por la Ley. <br><br>
+			XXI.&nbsp;&nbsp;&nbsp;&nbsp;Para efectos fiscales “LA ARRENDATARIA” está obligada a llevar a cabo la tramitación y apertura del negocio a instalar en el LOCAL, así como a cancelarla en caso de que deje de operar. También se encargará de dar aviso del cambio de domicilio a las autoridades correspondientes. <br><br>
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>Para el caso de incumplimiento a lo establecido en todos o en cualquiera de los numerales de la presente cláusula, el responsable será sancionado con el pago del equivalente al importe de 01 (una) mensualidad 
+		<td colspan="2" height="21" valign=middle>Para el caso de incumplimiento a lo establecido en todos o en cualquiera de los numerales de la presente cláusula, el responsable será sancionado con el pago del equivalente al importe de 01 (una) mensualidad 
 			de la cuota que por mantenimiento corresponda al LOCAL, independientemente de las acciones que legalmente procediera en su contra. En todo caso, el Administrador del Centro Comercial estará facultado para realizar los actos necesarios 
 			para corregir el incumplimiento a costa del infractor, debiendo éste resarcir su costo dentro de los 15 (quince) días naturales siguientes a la fecha en que sea requerido de pago. No obstante, lo anterior “LA ARRENDATARIA” tendrá 
 			derecho a un período de 30 (treinta) días naturales para subsanar cualquier incumplimiento antes de aplicar dicha penalidad, siempre y cuando sean imputables a ella.
@@ -888,15 +901,16 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA.   -   RENTA   EN   CASO   DE   CIERRE   TEMPORAL   DEL   LOCAL ARRENDADO. -</b> Cuando el LOCAL arrendado permanezca cerrado por causas directamente imputables a “LA ARRENDATARIA” la 
+		<td colspan="2" height="21" valign="middle"><b>VIGÉSIMA.   -   RENTA   EN   CASO   DE   CIERRE   TEMPORAL   DEL   LOCAL ARRENDADO. -</b> Cuando el LOCAL arrendado permanezca cerrado por causas directamente imputables a “LA ARRENDATARIA” la 
 			Renta que se pagará mensualmente será la Renta que se encuentre vigente para el período que corresponda, el LOCAL no deberá permanecer cerrado por más de 48 (cuarenta y ocho) horas consecutivas, salvo caso fortuito o fuerza 
-			mayor o previa autorización por escrito de “LA ARRENDADORA”.</td>
+			mayor o previa autorización por escrito de “LA ARRENDADORA”.
+		</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA PRIMERA. - CESIÓN. -</b> Ambas partes están de acuerdo, en que “LA ARRENDATARIA”, solo podrá subarrendar en todo o en parte, o ceder bajo cualquier título sus derechos y obligaciones 
+		<td colspan="2" height="21" valign="middle"><b>VIGÉSIMA PRIMERA. - CESIÓN. -</b> Ambas partes están de acuerdo, en que “LA ARRENDATARIA”, solo podrá subarrendar en todo o en parte, o ceder bajo cualquier título sus derechos y obligaciones 
 			consignados en el presente Contrato, mediante autorización previa y por escrito de “LA ARRENDADORA”, a excepción de empresas subsidiarias y afiliadas de “LA ARRENDATARIA” lo cual sólo será necesario dar aviso por escrito 
 			a “LA ARRENDADORA”, dentro de los 30 (treinta) días siguientes al cambio que desee realiza “LA ARRENDATARIA”, que se considerará como cesión de los derechos del presente Contrato según sea el caso. <br><br>
 
@@ -911,7 +925,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA SEGUNDA. - DERECHO DE PREFERENCIA. -</b> “LA ARRENDADORA” en este acto otorga, de manera irrevocable e incondicional, a favor de “LA ARRENDATARIA” el derecho de preferencia para 
+		<td colspan="2" height="21" valign="middle"><b>VIGÉSIMA SEGUNDA. - DERECHO DE PREFERENCIA. -</b> “LA ARRENDADORA” en este acto otorga, de manera irrevocable e incondicional, a favor de “LA ARRENDATARIA” el derecho de preferencia para 
 			arrendar el LOCAL al término de las Prórrogas correspondientes, obligándose aquel a mostrar a “LA ARRENDATARIA”, por escrito y de buena fe, toda oferta de arrendamiento que tenga sobre dicho LOCAL, en un término de 
 			15 (quince) días naturales contados a partir de la fecha en que reciba cualquier propuesta u oferta de arrendamiento. En caso de que la respuesta de “LA ARRENDATARIA” sea negativa, o que no se reciba ésta por escrito 
 			con acuse de recibo dentro del plazo aquí citado, podrá “LA ARRENDADORA” proceder a rentar el LOCAL. En caso de que la respuesta sea afirmativa, “LA ARRENDATARIA” pagará la renta correspondiente, en dinero y se 
@@ -922,81 +936,81 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA TERCERA. - DOCUMENTACIÓN. -</b> “LA ARRENDADORA” se obliga a (i) entregar a “LA ARRENDATARIA” en debido tiempo y forma cualquier tipo de documentación solicitada por las 
-			autoridades competentes y que llegare a disponer o que sea necesaria para efectuar cualquier tipo de trámite ante autoridades tendientes a que “LA ARRENDATARIA” pueda operar el negocio en el LOCAL, incluyendo sin 
-			limitación a permisos, autorizaciones, licencias y trámites relacionados con servicios y (ii) colaborar con “LA ARRENDATARIA” para obtener dichos trámites.</td>
+		<td colspan="2" height="21" valign="middle"><b>VIGÉSIMA TERCERA. - DOCUMENTACIÓN. -</b> "LA ARRENDADORA" se obliga a (i) entregar a "LA ARRENDATARIA" en debido tiempo y forma cualquier tipo de documentación solicitada por las 
+			autoridades competentes y que llegare a disponer o que sea necesaria para efectuar cualquier tipo de trámite ante autoridades tendientes a que "LA ARRENDATARIA" pueda operar el negocio en el LOCAL, incluyendo sin 
+			limitación a permisos, autorizaciones, licencias y trámites relacionados con servicios y (ii) colaborar con "LA ARRENDATARIA" para obtener dichos trámites.</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA CUARTA. - CAUSAS DE RESCISIÓN DE LA ARRENDATARIA. -</b> Ambas PARTES están de acuerdo en que para el caso de que “LA ARRENDATARIA” incumpliera cualquiera de las obligaciones 
-			que asume en este Contrato “LA ARRENDADORA” tendrá el derecho a rescindir o de dar por terminado el mismo, obligándose “LA ARRENDATARIA” a devolver la posesión física y jurídica del LOCAL, dentro de un término 
-			que no excederá de 20 (veinte) días naturales siguientes a la notificación que por escrito le haga “LA ARRENDADORA” a “LA ARRENDATARIA” sin que para ello se requiera declaración judicial; además se obliga desde 
-			este momento a pagar sin reserva ni limitación alguna a “LA ARRENDADORA” dentro de los 15 (quince) días siguientes a su notificación, como pena convencional, independientemente de las demás obligaciones contenidas 
+		<td colspan="2" height="21" valign="middle"><b>VIGÉSIMA CUARTA. - CAUSAS DE RESCISIÓN DE LA ARRENDATARIA. -</b> Ambas PARTES están de acuerdo en que para el caso de que "LA ARRENDATARIA" incumpliera cualquiera de las obligaciones 
+			que asume en este Contrato "LA ARRENDADORA" tendrá el derecho a rescindir o de dar por terminado el mismo, obligándose "LA ARRENDATARIA" a devolver la posesión física y jurídica del LOCAL, dentro de un término 
+			que no excederá de 20 (veinte) días naturales siguientes a la notificación que por escrito le haga "LA ARRENDADORA" a "LA ARRENDATARIA" sin que para ello se requiera declaración judicial; además se obliga desde 
+			este momento a pagar sin reserva ni limitación alguna a "LA ARRENDADORA" dentro de los 15 (quince) días siguientes a su notificación, como pena convencional, independientemente de las demás obligaciones contenidas 
 			en el presente, la establecida en el párrafo segundo de la cláusula tercera del presente instrumento. <br><br>
 
-			Enunciativa más no limitativamente, serán causas de rescisión cualquiera de las siguientes, independientemente de cualquier causa establecida en específico en el presente Contrato:
+			Enunciativa más no limitativamente, serán causas de rescisión cualquiera de las siguientes, independientemente de cualquier causa establecida en específico en el presente Contrato:<br><br>
 		</td>
 	</tr>	
 	<tr>
-		<td height="21" valign=middle>&nbsp;</td>
-		<td height="21" valign=middle>a)   Que “LA ARRENDATARIA” deje de pagar dos o más mensualidades de Renta consecutivas, Cuotas de Mantenimiento, o los Servicios. <br>
-			b)   Que “LA ARRENDATARIA” subarriende o en cualquier forma ceda a terceros el uso o goce de todo o parte del LOCAL, con excepción de lo dispuesto en la cláusula vigésima primera del presente instrumento. <br>
-			c)   En caso de que posterior a la Fecha de Apertura el LOCAL deje de operar por más de 48 (cuarenta y ocho) horas consecutivas, sin autorización previa de “LA ARRENDADORA”. <br>
-			d)   En caso de que “LA ARRENDATARIA” efectúe declaraciones falsas o de información equívoca dentro del presente Contrato.
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a)&nbsp;&nbsp;&nbsp;&nbsp;Que "LA ARRENDATARIA" deje de pagar dos o más mensualidades de Renta consecutivas, Cuotas de Mantenimiento, o los Servicios. <br><br>
+			b)&nbsp;&nbsp;&nbsp;&nbsp;Que "LA ARRENDATARIA" subarriende o en cualquier forma ceda a terceros el uso o goce de todo o parte del LOCAL, con excepción de lo dispuesto en la cláusula vigésima primera del presente instrumento. <br><br>
+			c)&nbsp;&nbsp;&nbsp;&nbsp;En caso de que posterior a la Fecha de Apertura el LOCAL deje de operar por más de 48 (cuarenta y ocho) horas consecutivas, sin autorización previa de "LA ARRENDADORA". <br><br>
+			d)&nbsp;&nbsp;&nbsp;&nbsp;En caso de que "LA ARRENDATARIA" efectúe declaraciones falsas o de información equívoca dentro del presente Contrato.
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>En cualquiera de los casos anteriores, así como en el caso de cualquier incumplimiento o violación al presente contrato, “LA ARRENDADORA” podrá previo a rescindir el presente Contrato, 
-			notificar por escrito a “LA ARRENDATARIA” informando el motivo de la rescisión, con el propósito de que ésta subsane cualquier irregularidad, incumplimiento u omisión en un plazo máximo de 10 (diez) días naturales 
-			contados a partir de la notificación por escrito que efectúe “LA ARRENDADORA”. Lo anterior, no deberá de ser tomado como una acción previa al ejercicio de la respectiva acción legal a favor de LA ARRENDADORA. 
+		<td colspan="2" height="21" valign=middle>En cualquiera de los casos anteriores, así como en el caso de cualquier incumplimiento o violación al presente contrato, "LA ARRENDADORA" podrá previo a rescindir el presente Contrato, 
+			notificar por escrito a "LA ARRENDATARIA" informando el motivo de la rescisión, con el propósito de que ésta subsane cualquier irregularidad, incumplimiento u omisión en un plazo máximo de 10 (diez) días naturales 
+			contados a partir de la notificación por escrito que efectúe "LA ARRENDADORA". Lo anterior, no deberá de ser tomado como una acción previa al ejercicio de la respectiva acción legal a favor de LA ARRENDADORA. 
 			Por tanto, LAS PARTES reconocen que el ejercicio de la respectiva acción legal, no se encuentra sujeta a la práctica de la referida notificación, LAS PARTES pueden ejercerla en cualquier momento. En caso de que 
-			“LA ARRENDADORA” opte por la rescisión, “LA ARRENDATARIA” deberá pagar por concepto de pena convencional la cantidad equivalente a <b>03 (tres) meses</b> de la Renta Mínima Mensual, así como los daños y perjuicios.
+			"LA ARRENDADORA" opte por la rescisión, "LA ARRENDATARIA" deberá pagar por concepto de pena convencional la cantidad equivalente a <b>03 (tres) meses</b> de la Renta Mínima Mensual, así como los daños y perjuicios.
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA QUINTA. - CAUSAS DE RESCISIÓN DE LA ARRENDADORA. -</b> Ambas PARTES están de acuerdo en que para el caso de que “LA ARRENDADORA” incumpliera cualquiera de las obligaciones que 
-			asume en este Contrato “LA ARRENDATARIA” tendrá el derecho de dar por terminado el mismo. Enunciativa más no limitativamente, serán causas de rescisión cualquiera de las siguientes:
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign="middle"><b>VIGÉSIMA QUINTA. - CAUSAS DE RESCISIÓN DE LA ARRENDADORA. -</b> Ambas PARTES están de acuerdo en que para el caso de que "LA ARRENDADORA" incumpliera cualquiera de las obligaciones que 
+			asume en este Contrato "LA ARRENDATARIA" tendrá el derecho de dar por terminado el mismo. Enunciativa más no limitativamente, serán causas de rescisión cualquiera de las siguientes:
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle>&nbsp;</td>
-		<td height="21" valign=middle>a)   En todo caso que “LA ARRENDADORA” no proporcione los documentos correspondientes a “LA ARRENDATARIA” en términos de la cláusula vigésima tercera de este Contrato, siempre y cuando le correspondan a “LA ARRENDADORA” entregarlos por su cuenta; <br>
-			b)   En caso de que “LA ARRENDADORA” no entregue el LOCAL en términos de la cláusula séptima de este Contrato y dicha entrega se retrase por más de 10 (diez) días siguientes a la Fecha de Entrega; <br>
-			c)   En todo caso que “LA ARRENDATARIA” se vea obstruida o impedida, total o parcialmente, del uso y goce del LOCAL por más de 10 (diez) días naturales; y <br>
-			d)   En caso de que el mantenimiento de las áreas comunes no se esté llevando de conformidad con la cláusula décima cuarta y que el incumplimiento de lo anterior de cualquier manera obstruya o impida el correcto funcionamiento del negocio operado en el LOCAL.
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a)&nbsp;&nbsp;&nbsp;&nbsp;En todo caso que “LA ARRENDADORA” no proporcione los documentos correspondientes a “LA ARRENDATARIA” en términos de la cláusula vigésima tercera de este Contrato, siempre y cuando le correspondan a “LA ARRENDADORA” entregarlos por su cuenta; <br><br>
+			b)&nbsp;&nbsp;&nbsp;&nbsp;En caso de que “LA ARRENDADORA” no entregue el LOCAL en términos de la cláusula séptima de este Contrato y dicha entrega se retrase por más de 10 (diez) días siguientes a la Fecha de Entrega; <br><br>
+			c)&nbsp;&nbsp;&nbsp;&nbsp;En todo caso que “LA ARRENDATARIA” se vea obstruida o impedida, total o parcialmente, del uso y goce del LOCAL por más de 10 (diez) días naturales; y <br><br>
+			d)&nbsp;&nbsp;&nbsp;&nbsp;En caso de que el mantenimiento de las áreas comunes no se esté llevando de conformidad con la cláusula décima cuarta y que el incumplimiento de lo anterior de cualquier manera obstruya o impida el correcto funcionamiento del negocio operado en el LOCAL.
+		</td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle>En cualquiera de los casos anteriores, así como en el caso de cualquier incumplimiento o violación al presente contrato, "LA ARRENDATARIA" deberá previo a rescindir el contrato notificar 
+			por escrito a "LA ARRENDADORA" informando el motivo de la rescisión, con el propósito de que ésta subsane cualquier irregularidad, incumplimiento u omisión en un plazo máximo de 10 (diez) días naturales contados 
+			a partir de la notificación por escrito que efectúe "LA ARRENDATARIA". <br><br>
 
-		</td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle>En cualquiera de los casos anteriores, así como en el caso de cualquier incumplimiento o violación al presente contrato, “LA ARRENDATARIA” deberá previo a rescindir el contrato notificar 
-			por escrito a “LA ARRENDADORA” informando el motivo de la rescisión, con el propósito de que ésta subsane cualquier irregularidad, incumplimiento u omisión en un plazo máximo de 10 (diez) días naturales contados 
-			a partir de la notificación por escrito que efectúe “LA ARRENDATARIA”. <br><br>
-
-			En el supuesto de que exista un Incumplimiento de “LA ARRENDADORA”, “LA ARRENDATARIA” tendrá derecho para exigir el cumplimiento forzoso de las obligaciones o la rescisión, ésta último operando de pleno derecho 
+			En el supuesto de que exista un Incumplimiento de "LA ARRENDADORA", "LA ARRENDATARIA" tendrá derecho para exigir el cumplimiento forzoso de las obligaciones o la rescisión, ésta último operando de pleno derecho 
 			y sin necesidad de resolución judicial o cualquier otro procedimiento administrativo o judicial de por medio. 
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><br></td>
+		<td colspan="2" height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA SEXTA. - USO Y GOCE DEL LOCAL. -</b> “LA ARRENDADORA” se obliga a garantizar el uso o goce pacifico del LOCAL a favor de “LA ARRENDATARIA”. En caso de expropiación, aseguramiento 
-			o embargo, total o parcial del LOCAL, el presente Contrato se dará por terminado sin necesidad de declaración judicial alguna y sin responsabilidad alguna, si así lo solicita “LA ARRENDATARIA”.
+		<td colspan="2" height="21" valign="middle"><b>VIGÉSIMA SEXTA. - USO Y GOCE DEL LOCAL. -</b> "LA ARRENDADORA" se obliga a garantizar el uso o goce pacifico del LOCAL a favor de "LA ARRENDATARIA". En caso de expropiación, aseguramiento 
+			o embargo, total o parcial del LOCAL, el presente Contrato se dará por terminado sin necesidad de declaración judicial alguna y sin responsabilidad alguna, si así lo solicita "LA ARRENDATARIA".
 		</td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><br><br></td>
+		<td colspan="2" height="21" valign=middle><br><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA SÉPTIMA. - CONFIDENCIALIDAD Y AVISO DE PRIVACIDAD. -</b> LAS PARTES reconocen que derivado de la relación que tendrán acceso a cierta información confidencial, y aceptan y 
+		<td colspan="2" height="21" valign="middle"><b>VIGÉSIMA SÉPTIMA. - CONFIDENCIALIDAD Y AVISO DE PRIVACIDAD. -</b> LAS PARTES reconocen que derivado de la relación que tendrán acceso a cierta información confidencial, y aceptan y 
 			se obligan a no reproducir ni divulgar, por ningún motivo, información financiera, contable, legal, de investigación y desarrollo, conocimientos técnicos, conceptos, diseños, procesos, técnicas, equipo, ideas, 
 			muestras, escritos, notas, planes de negocios, de mercadeo y comercialización, productos, servicios, listas de precios, proyectos o cualquier información que se les entregue o permita el acceso a ella, 
-			(la “Información Confidencial”) salvo autorización que previamente y por escrito sea otorgada para tales efectos. La Información Confidencial se le dará el tratamiento de Secreto Industrial de acuerdo al 
-			concepto del mismo previsto en la legislación aplicable. <br><br>
+			(la "Información Confidencial") salvo autorización que previamente y por escrito sea otorgada para tales efectos. La Información Confidencial se le dará el tratamiento de Secreto Industrial de acuerdo al 
+			artículo 82 de la Ley de la Propiedad Industrial, así como a lo estipulado por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares. <br><br>
 
-			Así mismo “LA ARRENDATARIA” reconoce que los datos personales de contacto, patrimoniales, y todos los plasmados en el presente instrumento (los “Datos”), son tratados por “LA ARRENDADORA”, con domicilio en la 
+			Así mismo "LA ARRENDATARIA" reconoce que los datos personales de contacto, patrimoniales, y todos los plasmados en el presente instrumento (los "Datos"), son tratados por "LA ARRENDADORA", con domicilio en la 
 			calle Padre Mier número 1545 (mil quinientos cuarenta y cinco), piso 5 (cinco), local 501 (quinientos uno), en la Colonia María Luisa, en la ciudad de Monterrey, Nuevo León, C.P. 64040, con motivo del 
 			arrendamiento del LOCAL, para todo lo relacionado con el presente arrendamiento, señalando de manera enunciativa como tal, temas de contabilidad, mercadotecnia, legales, administrativos, facturación, 
 			cobranza, acondicionamiento y adaptación del LOCAL y en su caso, tratarlos exclusivamente para los fines del presente Contrato. Motivo de lo anterior sus Datos serán utilizados para el cumplimiento de las 
@@ -1014,7 +1028,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA OCTAVA. - CASO FORTUITO Y FUERZA MAYOR. -</b> Ninguna de LAS PARTES será responsable de cualquier retraso o incumplimiento de este Contrato que resulte directa o 
+		<td colspan="2" height="21" valign="middle"><b>VIGÉSIMA OCTAVA. - CASO FORTUITO Y FUERZA MAYOR. -</b> Ninguna de LAS PARTES será responsable de cualquier retraso o incumplimiento de este Contrato que resulte directa o 
 			indirectamente de caso fortuito o fuerza mayor, sin embargo, en situaciones originadas por casos fortuitos o de fuerza mayor que se interrumpa el uso o goce del LOCAL se procederá conforme a lo establecido 
 			en la cláusula novena del presente Contrato.
 		</td>
@@ -1023,7 +1037,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA NOVENA. – AVISO AL ADMINISTRADOR. -</b> “LA ARRENDADORA” se obliga a dar aviso al Administrador del Centro Comercial de la celebración del presente Contrato, dentro de 
+		<td colspan="2" height="21" valign="middle"><b>VIGÉSIMA NOVENA. – AVISO AL ADMINISTRADOR. -</b> “LA ARRENDADORA” se obliga a dar aviso al Administrador del Centro Comercial de la celebración del presente Contrato, dentro de 
 			los 10 (diez) días siguientes a la firma del mismo.
 		</td>
 	</tr>
@@ -1031,7 +1045,7 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>VIGÉSIMA NOVENA BIS. - FIADOR SOLIDARIO. -</b> Para garantizar el debido cumplimiento de todas las obligaciones que asume “LA ARRENDATARIA” por virtud de este Contrato y en particular 
+		<td colspan="2" height="21" valign="middle"><b>VIGÉSIMA NOVENA BIS. - FIADOR SOLIDARIO. -</b> Para garantizar el debido cumplimiento de todas las obligaciones que asume "LA ARRENDATARIA" por virtud de este Contrato y en particular 
 			el pago de la Renta, en este acto se constituye como FIADOR SOLIDARIO, sin reserva ni limitación a XXXXXXXX, quien expresamente renuncia a los beneficios de orden, excusión y división previstos en el Código Civil 
 			del Estado de Nuevo León, de manera enunciativa, mas no limitativa, los artículos 2706 (dos mil setecientos seis), 2707 (dos mil setecientos siete), 2708 (dos mil setecientos ocho), 2734 (dos mil setecientos 
 			treinta y cuatro), 2737 (dos mil setecientos treinta y siete), 2738 (dos mil setecientos treinta y ocho), 2739 (dos mil setecientos treinta y nueve), 2740 (dos mil setecientos cuarenta) y 2741 (dos mil setecientos 
@@ -1054,12 +1068,14 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>TRIGÉSIMA. - DOMICILIOS. -</b> Para toda notificación, tanto judicial como extra judicial o requerimientos relacionados con este Contrato LAS PARTES señalan los siguientes domicilios: <br><br>
-			<b>“LA ARRENDATARIA”</b>. XXXXXXXXXXXXXXXXX <br><br>
-			<b>“EL FIADOR SOLIDARIO”</b>. XXXXXXXXXXXXXXXXX <br><br>
-			<b>“LA ARRENDADORA”</b>. Calle Padre Mier No. 1545 (mil quinientos cuarenta y cinco), Piso 5 (cinco), int. 501 (quinientos uno), Colonia María Luisa, C.P. 64040, Monterrey, Nuevo León, México. <br><br>
-
-			Todas las notificaciones o comunicados requeridos o permitidos conforme al presente Contrato deberán hacerse por escrito y se considerará que se notificaron debidamente si se entregan personalmente o por correo 
+		<td colspan="2" height="21" valign="middle"><b>TRIGÉSIMA. - DOMICILIOS. -</b> Para toda notificación, tanto judicial como extra judicial o requerimientos relacionados con este Contrato LAS PARTES señalan los siguientes domicilios: <br><br>
+			<b>"LA ARRENDATARIA"</b>. XXXXXXXXXXXXXXXXX <br><br>
+			<b>"EL FIADOR SOLIDARIO"</b>. XXXXXXXXXXXXXXXXX <br><br>
+			<b>"LA ARRENDADORA"</b>. Calle Padre Mier No. 1545 (mil quinientos cuarenta y cinco), Piso 5 (cinco), int. 501 (quinientos uno), Colonia María Luisa, C.P. 64040, Monterrey, Nuevo León, México. <br><br>
+		</td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign="middle">Todas las notificaciones o comunicados requeridos o permitidos conforme al presente Contrato deberán hacerse por escrito y se considerará que se notificaron debidamente si se entregan personalmente o por correo 
 			electrónico (una vez que el receptor conteste dicho correo electrónico evidenciándose su recepción). <br><br>
 
 			Cualquier cambio al domicilio de LAS PARTES deberá ser notificado previamente por escrito a la otra Parte en los términos señalados en esta cláusula y en tanto no exista dicha notificación en forma fehaciente, 
@@ -1070,13 +1086,13 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>TRIGÉSIMA PRIMERA. - RELACIONES LABORALES. -</b> Cada una de LAS PARTES será la única responsable respecto del personal que ocupe a su servicio y estará a su exclusivo cargo cumplir 
+		<td colspan="2" height="21" valign="middle"><b>TRIGÉSIMA PRIMERA. - RELACIONES LABORALES. -</b> Cada una de LAS PARTES será la única responsable respecto del personal que ocupe a su servicio y estará a su exclusivo cargo cumplir 
 			con las obligaciones que como patrón le impone la Ley Federal del Trabajo, la Ley del Seguro Social y todas aquellas que sean aplicables en materia de seguridad social, así como de aquellas obligaciones que adquiera 
 			por Contrato, por lo cual se obliga a defender y sacar en paz y a salvo a la otra parte de cualquier controversia que el personal de la otra parte intentara en su contra, sus funcionarios o accionistas, obligándose 
 			además a pagar todos los gastos que se causaren por este concepto, incluidos de manera enunciativa más no limitativa las indemnizaciones, liquidaciones, compensaciones, gratificaciones, honorarios profesionales o en 
 			su caso a reembolsar a la parte afectada todos los gastos que tuviera que erogar por este motivo. <br><br>
 
-			“LA ARRENDATARIA” conviene en entregar a “LA ARRENDADORA” en un plazo de 30 (treinta) días naturales contados a partir de la Fecha de Apertura, una copia de los documentos que acrediten el registro de su 
+			"LA ARRENDATARIA" conviene en entregar a "LA ARRENDADORA" en un plazo de 30 (treinta) días naturales contados a partir de la Fecha de Apertura, una copia de los documentos que acrediten el registro de su 
 			establecimiento mercantil ante el Instituto Mexicano del Seguro Social y de su Cédula de Identificación Fiscal, o en su defecto, copia de su Aviso de Alta ante la Secretaría de Hacienda y Crédito Público.
 		</td>
 	</tr>
@@ -1084,9 +1100,9 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>TRIGÉSIMA SEGUNDA. – DELIMITACIÓN DE RESPONSABILIDAD. -</b> “LA ARRENDADORA” no será responsable de ningún incumplimiento, daño o perjuicio causado directa o indirectamente por alguna huelga, 
+		<td colspan="2" height="21" valign="middle"><b>TRIGÉSIMA SEGUNDA. – DELIMITACIÓN DE RESPONSABILIDAD. -</b> "LA ARRENDADORA" no será responsable de ningún incumplimiento, daño o perjuicio causado directa o indirectamente por alguna huelga, 
 			paro, mitin, conmoción civil, operación, bélica, invasión, acción militar o usurpación de poder, sabotaje, incapacidad para tener cualquier material, servicio, financiamiento o cualquier otro motivo derivado del caso 
-			fortuito o de fuerza mayor. Tampoco será responsable “LA ARRENDADORA” de ningún daño, pérdida o robo en los bienes de “LA ARRENDATARIA” o de terceros, independientemente de que se encuentren dentro del LOCAL arrendado 
+			fortuito o de fuerza mayor. Tampoco será responsable "LA ARRENDADORA" de ningún daño, pérdida o robo en los bienes de "LA ARRENDATARIA" o de terceros, independientemente de que se encuentren dentro del LOCAL arrendado 
 			o en las áreas de uso común. <br><br>
 
 			Todos los bienes de “LA ARRENDATARIA” que se encuentren dentro del LOCAL arrendado, están bajo el cuidado y riesgo de este último, y expresamente libera a “LA ARRENDADORA” de toda responsabilidad de lo que ocurra 
@@ -1096,14 +1112,14 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>TRIGÉSIMA TERCERA. – MODIFICACIONES AL CONTRATO. -</b> El presente es un CONTRATO total entre LAS PARTES y cualquier modificación al mismo deberá constar por escrito y firmado de plena 
-			conformidad por ambas partes para que surta sus efectos entre ellas.
+		<td colspan="2" height="21" valign="middle"><b>TRIGÉSIMA TERCERA. – MODIFICACIONES AL CONTRATO. -</b> El presente es un CONTRATO total entre LAS PARTES y cualquier modificación al mismo deberá constar por escrito y firmado de plena 
+			conformidad por ambas partes para que surta sus efectos entre ellas.</td>
 	</tr>
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>TRIGÉSIMA CUARTA. - INDEMNIZACIÓN. -</b> “LA ARRENDATARIA” conviene en guardar defender y mantener a “LA ARRENDADORA” a salvo de y contra cualquier responsabilidad, obligaciones, pérdidas, 
+		<td colspan="2" height="21" valign="middle"><b>TRIGÉSIMA CUARTA. - INDEMNIZACIÓN. -</b> “LA ARRENDATARIA” conviene en guardar defender y mantener a “LA ARRENDADORA” a salvo de y contra cualquier responsabilidad, obligaciones, pérdidas, 
 			daños en propiedad, lesiones, muerte de cualquier persona, multas, demandas, juicios, acciones, costos, cargos y gastos, incluyendo los honorarios razonables de abogados, que pudieran imponerse a “LA ARRENDADORA”, 
 			debido a actos u omisiones directamente imputables a “LA ARRENDATARIA” o a causas 100% imputables de “LA ARRENDATARIA” o de sus empleados, por lo tanto, “LA ARRENDATARIA” se subroga en todas y cada una de las obligaciones 
 			en que “LA ARRENDADORA” pudiera incurrir como consecuencia del presente Contrato por cualquier tipo de accidente o reclamación de terceros que se hiciere con relación a la instalación, adecuación, operación o 
@@ -1114,14 +1130,14 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>TRIGÉSIMA QUINTA. - TÍTULOS DE LAS CLÁUSULAS. -</b> Los títulos de las cláusulas que aparecen en el presente instrumento, se han puesto con el exclusivo propósito de facilitar su lectura, 
-			por tanto, no definen ni limitan el contenido de las mismas. Para efectos de interpretación de cada cláusula deberá atenderse exclusivamente a su contenido y de ninguna manera a su título.
+		<td colspan="2" height="21" valign="middle"><b>TRIGÉSIMA QUINTA. - TÍTULOS DE LAS CLÁUSULAS. -</b> Los títulos de las cláusulas que aparecen en el presente instrumento, se han puesto con el exclusivo propósito de facilitar su lectura, 
+			por tanto, no definen ni limitan el contenido de las mismas. Para efectos de interpretación de cada cláusula deberá atenderse exclusivamente a su contenido y de ninguna manera a su título.</td>
 	</tr>	
 	<tr>
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>TRIGÉSIMA SEXTA. - JURISDICCIÓN. -</b> Para todo lo relativo al presente Contrato LAS PARTES se someten expresamente a la legislación de Monterrey, Nuevo León y a la jurisdicción de los 
+		<td colspan="2" height="21" valign="middle"><b>TRIGÉSIMA SEXTA. - JURISDICCIÓN. -</b> Para todo lo relativo al presente Contrato LAS PARTES se someten expresamente a la legislación de Monterrey, Nuevo León y a la jurisdicción de los 
 			tribunales competentes de los Estados Unidos Mexicanos localizados en la Ciudad de Monterrey, Nuevo León, renunciando en forma expresa a cualquier otra legislación o jurisdicción que pudiere corresponderles por razón 
 			de sus domicilios presentes o futuros.
 	</tr>	
@@ -1129,12 +1145,13 @@
 		<td height="21" valign=middle><br></td>
 	</tr>
 	<tr>
-		<td height="21" valign="middle"><b>TRIGÉSIMA SÉPTIMA. - ANEXOS. - Todos los Anexos del presente convenio están debidamente rubricados por LAS PARTES para efectos de identificación e incorporados al presente convenio 
-			como parte integrante del mismo. <br>
+		<td colspan="2" height="21" valign="middle"><b>TRIGÉSIMA SÉPTIMA. - ANEXOS. -</b> Todos los Anexos del presente convenio están debidamente rubricados por LAS PARTES para efectos de identificación e incorporados al presente convenio 
+			como parte integrante del mismo. <br><br>
 
 			Leído el presente Contrato y enteradas LAS PARTES de su contenido, alcance y fuerza legal, no existiendo vicio alguno del consentimiento que pueda provocar su invalidez ni causa alguna que genere enriquecimiento 
 			ilegítimo para cualquiera de ellos y en virtud de que el presente Contrato contiene su voluntad expresa en cuanto a lo que en el mismo se especifica, LAS PARTES lo firman por <b>triplicado</b> de común acuerdo en <b>Monterrey, 
 			Nuevo León, a XXXX de XXXX del año 2025 dos mil veinticinco.</b> 
+		</td>	
 	</tr>
 </table>
 {% comment %} FIRMAS {% endcomment %}
@@ -1145,12 +1162,12 @@
 				<article>
 					<div style="text-align: center;">
 						<b>
-							<h4>LA ARRENDADORA<br>Desarrollos Fraterna Comercializadora, S.A. de C.V.</h4>
+							LA ARRENDADORA<br>Desarrollos Fraterna Comercializadora, S.A. de C.V.
 							<div style="height:20px;"></div>
 							
 						
 							______________________________________</b><br>
-							Representada en este acto por:
+							Representada en este acto por:<br>
 							<b>Carlos Manuel Padilla Silva</b>
 					</div>
 				</article>
@@ -1231,7 +1248,7 @@
 			
 	{% elif info.arrendatario.regimen_obligado == "Persona Moral" %}
 	{% comment %} persona fisica con obligado persona moral {% endcomment %}
-	<div style="margin-top:-60px;">
+	<div style="margin-top:20px;">
 		<section>
 			<article>
 				<div style="text-align: center;">
@@ -1240,83 +1257,71 @@
 						<div style="height:20px;"></div>
 						
 					
-						______________________________________</b><br>
-						Representada en este acto por:
+						____________________________________________________</b><br>
+						Representada en este acto por:<br>
 						<b>Carlos Manuel Padilla Silva</b>
 				</div>
 			</article>
-		
+		</section>
+		<section>
 			<article>
 			<div style="text-align: center;">
 				<b>
-					<h4>LA ARRENDATARIA</h4>
-					<div style="height:20px;"></div>
+					<h4>LA ARRENDATARIA<br>{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{{info.arrendatario.nombre_arrendatario | upper}}{% else %}{{info.arrendatario.arr_nombre_empresa | upper}}{% endif %} 
+					{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{% else %}<br>REPRESENTADA POR {{info.arrendatario.nombre_arrendatario | upper}}{% endif %}</h4>
+					<div style="height:37px;"></div>
 					
 					
-					______________________________________
-					{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{{info.arrendatario.nombre_arrendatario | upper}}{% else %}{{info.arrendatario.arr_nombre_empresa | upper}}{% endif %} 
-					<br>
-					{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.nombre_arrendatario | upper}}{% endif %}
+					____________________________________________________<br>
 		
 				</b>
 			</div>
 			
 			</article>
-		</section>
-
-			<section style="margin-top:-10px;">
-				<article>
+			
+			<article>
 				<div style="text-align: center;">
 					<b>
-						<h4>FIADOR SOLIDARIO</h4>
+						<h4>FIADOR SOLIDARIO<br>{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}{% endif %}
+							{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}<br>REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}{% endif %}</h4>
 						<div style="height:20px;"></div>
 						
-					
-						______________________________________<br>
-						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
-						<br>
-						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
+						
+						____________________________________________________<br>
+
 					</b>
 				</div>
-				</article>
-			
-				<article>
+			</article>
+		</section>
+		<section style="margin-top:-10px;">
+			<article>
 				<div style="text-align: center;">
 					<b>
 						<h4>Testigo</h4>
 						<div style="height:20px;"></div>
 						
 						
-						______________________________________<br>
+						____________________________________________________<br>
 						{{testigo1 | upper}}
 			
 					</b>
 				</div>
 				
-				</article>
-			</section>
-
-			<section style="margin-top:-10px;">
-				<article>
-					<div style="text-align: center;">
+			</article>
+			<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>Testigo</h4>
+						<div style="height:20px;"></div>
 						
-					</div>
-				</article>
+						
+						____________________________________________________<br>
+						{{testigo2 | upper}}
 			
-				<article>
-					<div style="text-align: center;">
-						<b>
-							<h4>Testigo</h4>
-							<div style="height:20px;"></div>
-							
-							
-							______________________________________<br>
-							{{testigo2 | upper}}
-				
-						</b>
-					</div>
-				</article>
-			</section>
+					</b>
+				</div>
+			</article>
+		</section>
 	</div>
 	
 	{% else %}
@@ -1331,7 +1336,7 @@
 							
 						
 							______________________________________</b><br>
-							Representada en este acto por:
+							Representada en este acto por:<br>
 							<b>Carlos Manuel Padilla Silva</b>
 					</div>
 				</article>
@@ -1343,7 +1348,7 @@
 						<div style="height:20px;"></div>
 						
 						
-						______________________________________
+						______________________________________<br>
 						{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{{info.arrendatario.nombre_arrendatario | upper}}{% else %}{{info.arrendatario.arr_nombre_empresa | upper}}{% endif %} 
 						<br>
 						{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.nombre_arrendatario | upper}}{% endif %}
@@ -1423,7 +1428,7 @@
 						
 					
 						______________________________________</b><br>
-						Representada en este acto por:
+						Representada en este acto por:<br>
 						<b>Carlos Manuel Padilla Silva</b>
 				</div>
 			</article>
@@ -1435,7 +1440,7 @@
 					<div style="height:20px;"></div>
 					
 				
-					______________________________________
+					______________________________________<br>
 					{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{{info.arrendatario.nombre_arrendatario | upper}}{% else %}{{info.arrendatario.arr_nombre_empresa | upper}}{% endif %} 
 					<br>
 					{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.nombre_arrendatario | upper}}{% endif %}
@@ -1478,5 +1483,7 @@
 {% endif %}
 
 </body>
+
+</html>
 
 </html>
