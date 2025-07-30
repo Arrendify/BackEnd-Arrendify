@@ -48,6 +48,9 @@ urlpatterns = [
     path('fraterna/generar_comodato/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_comodato'}), name='generar_comodato_frat'),
     path('fraterna/renovar_contrato/', fraterna_views.Contratos_fraterna.as_view({'post': 'renovar_contrato_fraterna'}), name='renovar_contrato_frat'),
     path('fraterna/generar_paquete_completo/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_paquete_completo_fraterna'}), name='generar_paquete_completo_frat'),
+    path('fraterna/generar_urls_firma/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_urls_firma_fraterna'}), name='generar_urls_firma_frat'),
+    path('fraterna/mostrar_urls_firma_documento/', fraterna_views.Contratos_fraterna.as_view({'post': 'mostrar_urls_firma_documento_fraterna'}), name='mostrar_urls_firma_documento_frat'),
+    
 
     
     #contrato semillero purisima

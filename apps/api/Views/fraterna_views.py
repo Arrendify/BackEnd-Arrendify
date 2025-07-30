@@ -14,7 +14,7 @@ import boto3
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
 from django.db.models import Q
-from core.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+from core.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN_ZAPSIGN, API_URL_ZAPSIGN
 #weasyprint
 from weasyprint import HTML, CSS
 from django.template.loader import render_to_string
@@ -48,6 +48,7 @@ from decouple import config
 # Para combinación de PDFs
 import io
 import requests
+import base64
 from pypdf import PdfReader, PdfWriter
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
@@ -959,108 +960,502 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
     
-    def generar_paquete_completo_fraterna(self, request, *args, **kwargs):
+    def _generar_paquete_fraterna_pdf(self, id_paq, pagare_distinto="No", cantidad_pagare="0"):
         """
-        Genera un PDF combinado con todos los documentos de Fraterna en el siguiente orden:
+        Función auxiliar que genera un paquete PDF combinado con los siguientes documentos:
         1. Comodato
         2. Contrato
-        3. Manual UTO (desde AWS bucket)
+        3. Manual UTO (descargado desde AWS)
         4. Póliza
-        5. Pagares
+        5. Pagarés
+
+        Parámetros:
+            - id_paq: ID del contrato
+            - pagare_distinto: "Sí" o "No"
+            - cantidad_pagare: Cantidad de pagarés si aplica
+
+        Devuelve:
+            - tuple: (nombre_archivo, bytes del PDF combinado)
+        """
+        # Guardar el registro de paginas totales para usar en coordenadas de firmantes
+        total_paginas = {
+            "comodato": 0,
+            "arrendamiento": 0,
+            "manual": 0,
+            "poliza": 0,
+            "pagares": 0,
+        }
+
+        print("Generando paquete PDF para Fraterna...")
+        locale.setlocale(locale.LC_ALL, "es_MX.utf8")
+
+        # Obtener información del contrato
+        info = self.queryset.filter(id=id_paq).first()
+        if not info:
+            raise ValueError("Contrato no encontrado")
+
+        pdf_writer = PdfWriter()
+
+        # 1. Comodato
+        print("Generando Comodato...")
+        comodato_pdf = self._generar_comodato_interno(info)
+        comodato_reader = PdfReader(io.BytesIO(comodato_pdf))
+        total_paginas["comodato"] = len(comodato_reader.pages)
+        for page in comodato_reader.pages:
+            pdf_writer.add_page(page)
+
+        # 2. Contrato
+        print("Generando Contrato...")
+        contrato_pdf = self._generar_contrato_interno(info)
+        contrato_reader = PdfReader(io.BytesIO(contrato_pdf))
+        total_paginas["arrendamiento"] = len(contrato_reader.pages)
+        for page in contrato_reader.pages:
+            pdf_writer.add_page(page)
+
+        # 3. Manual UTO desde AWS
+        print("Descargando Manual UTO desde AWS...")
+        manual_url = "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/ManualUtower.pdf"
+        try:
+            response_manual = requests.get(manual_url, timeout=30)
+            response_manual.raise_for_status()
+            manual_reader = PdfReader(io.BytesIO(response_manual.content))
+            total_paginas["manual"] = len(manual_reader.pages)
+            for page in manual_reader.pages:
+                pdf_writer.add_page(page)
+            print("Manual UTO agregado exitosamente")
+        except Exception as e:
+            print(f"Error al descargar manual UTO: {e}")
+
+        # 4. Póliza
+        print("Generando Póliza...")
+        poliza_pdf = self._generar_poliza_interno(info)
+        poliza_reader = PdfReader(io.BytesIO(poliza_pdf))
+        total_paginas["poliza"] = len(poliza_reader.pages)
+        for page in poliza_reader.pages:
+            pdf_writer.add_page(page)
+
+        # 5. Pagarés
+        print("Generando Pagarés...")
+        pagare_pdf = self._generar_pagare_interno(info, pagare_distinto, cantidad_pagare)
+        pagare_reader = PdfReader(io.BytesIO(pagare_pdf))
+        total_paginas["pagares"] = len(pagare_reader.pages)
+        for page in pagare_reader.pages:
+            pdf_writer.add_page(page)
+
+        # PDF final
+        output_pdf = io.BytesIO()
+        pdf_writer.write(output_pdf)
+        output_pdf.seek(0)
+
+        # Nombre con fecha
+        fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
+        nombre_archivo = f"Paquete_Completo_Fraterna_{info.residente.nombre_arrendatario}_{fecha_actual}.pdf"
+
+        return nombre_archivo, output_pdf.getvalue(), total_paginas
+
+
+    def build_payload_to_zapsign(self, contrato_data):
+        """ Datos del contrado: contrato_data = {"id", "filename", "base64_pfd", "residente"}
+            Aquí armamos el payload que se va enviar para la solicitud
+            de creacion del documento 
+
+        """
+        data = contrato_data
+        singer = data["residente"]
+        brand_logo = "https://pagosprueba.s3.us-east-1.amazonaws.com/ZapSign/logo-contratodearrendamiento.webp"
+
+        return {
+            "name": data["filename"],                                          # Nombre del documento que verá el usuario
+            "base64_pdf": data["base64_pfd"],                                  # PDF codificado en base64 (sin encabezado data:...)
+            "external_id": data["id"],                                         # ID opcional para enlazar con sistema externo
+
+            "signers": [  # Lista de personas que deben firmar
+                {
+                    "name": "FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR CARLOS MANUEL PADILLA SILVA",
+                    "phone_country": "52",
+
+                },
+                {
+                    "name": singer["nombre_arrendatario"],
+                    "email": singer["correo_arrendatario"],
+                    "phone_country": "52",
+                    "phone_number": singer["celular_arrendatario"],
+                    "send_automatic_email": True,
+                    "send_automatic_whatsapp": False,
+                },
+                {
+                    "name": singer["nombre_residente"],
+                    "email": singer["correo_residente"],
+                    "phone_country": "52",
+                    "phone_number": singer["celular_residente"],
+                    "send_automatic_email": True,
+                    "send_automatic_whatsapp": False,
+                },
+                {
+                    "name": "JONATHAN GUADARRAMA SALGADO",
+                    "email": "genaro.guadarrama@arrendify.com",
+                    "phone_country": "52",
+                    "phone_number": "5531398629",
+                    "send_automatic_email": True,
+                }
+                # Campos extras para el firmante, consultar documentación, 
+                # ya que algunos tienen costos extra
+                # {
+                #     "name": "Uriel Aguilar Ortega",                          # Nombre del firmante
+                #     "email": "desarrolloewmx2024@gmail.com",                 # Email al que se enviará solicitud de firma
+                #     "auth_mode": "assinaturaTela",                           # Tipo de autenticación (pantalla sin verificación extra)
+                #     "send_automatic_email": True,                            # Enviar correo automáticamente
+                #     "send_automatic_whatsapp": False,                        # Enviar WhatsApp automáticamente (si hay teléfono)
+                #     "order_group": None,                                     # Agrupación para firmar por orden (si se activa)
+                #     "custom_message": "",                                    # Mensaje personalizado en correo de firma
+                #     "phone_country": "52",                                   # Código de país (México = 52)
+                #     "lock_email": False,                                     # Evita que edite su correo en la pantalla de firma
+                #     "blank_email": False,                                    # Oculta email en la interfaz
+                #     "hide_email": False,                                     # Oculta completamente el campo email
+                #     "lock_phone": False,                                     # Bloquea el número telefónico
+                #     "blank_phone": False,                                    # Oculta teléfono en la interfaz
+                #     "hide_phone": False,                                     # Oculta completamente el campo teléfono
+                #     "lock_name": False,                                      # Bloquea el nombre (no editable)
+                #     "require_cpf": False,                                    # Exigir CPF (solo Brasil)
+                #     "cpf": "",                                               # Número de CPF (si se requiere)
+                #     #"require_selfie_photo": True,                            # Solicita selfie al firmar
+                #     "require_document_photo": True,                          # Solicita foto de documento (INE, pasaporte)
+                #     "selfie_validation_type": "liveness-document-match",     # Tipo de validación de selfie (verifica con documento)
+                #     "selfie_photo_url": "",                                  # URL opcional de la selfie previa
+                #     "document_photo_url": "",                                # URL de la foto del documento frontal
+                #     "document_verse_photo_url": "",                          # URL del reverso del documento (si aplica)
+                #     "qualification": "",                                     # Cargo o rol (opcional, visible en certificado)
+                #     "external_id": "",                                       # ID externo único para este firmante
+                #     "redirect_link": ""                                      # URL de redirección post-firma (opcional)
+                # }
+            ],
+
+            "lang": "es",                                                    # Idioma del documento e interfaz de firma
+            "disable_signer_emails": False,                                  # Desactiva todos los correos a firmantes
+            "brand_logo": brand_logo,                                        # URL del logotipo de tu marca
+            "brand_primary_color": "#672584",                                # Color primario (hex) de tu marca
+            "brand_name": "Arrendify",                                       # Nombre de la marca que aparece en la firma
+            "folder_path": "/FRATERNA",                                      # Carpeta donde se guarda el documento
+            "created_by": "juridico.arrendify1@gmail.com",                    # Email del creador del documento
+            #"date_limit_to_sign": "2025-07-18T17:45:00.000000Z",             # Fecha límite para firmar el documento
+            "signature_order_active": False,                                 # Requiere que los firmantes firmen en orden
+            # "observers": [                                                   # Lista de emails que solo observarán el proceso
+            #     "urielaguilarortega@gmail.com",
+            #     "desarrolloweb.ewmx@gmail.com"
+            # ],
+            "reminder_every_n_days": 0,                                      # Intervalo de recordatorios automáticos (0 = sin recordatorios)
+            "allow_refuse_signature": True,                                  # Permite al firmante rechazar la firma
+            "disable_signers_get_original_file": False                       # Bloquea que los firmantes descarguen el documento final
+        }
+    
+    def armar_payload_posiciones_firma(self, signer_tokens, total_paginas, residente):
+        rubricas = []
+
+        # Calcular offsets por sección
+        offsets = {}
+        acumulador = 0
+        for nombre, paginas in total_paginas.items():
+            offsets[nombre] = acumulador
+            acumulador += paginas
+
+        # Definir posiciones por sección
+        posiciones_por_seccion = {
+            "comodato": [
+                (0, 5.0, 5.0, 0),
+                (0, 5.0, 75.0, 1),
+                (1, 13.0, 18.0, 0),
+                (1, 13.0, 65.0, 1),
+                (2, 5.0, 75.0, 1),
+                (3, 26.5, 18.0, 1)
+            ],
+            "arrendamiento": [],
+            "manual": [],
+            "poliza": [],
+            "pagares": []
+        }
+
+        # ARRRENDAMIENTO: [0, 1, 2] en cada página (izq-centro-der)
+        arr_total = total_paginas["arrendamiento"]
+        for i in range(arr_total):
+            posiciones_por_seccion["arrendamiento"].extend([
+                (i, 5.0, 5.0, 0),
+                (i, 5.0, 40.0, 1),
+                (i, 5.0, 75.0, 2)
+            ])
+
+        # MANUAL: [1, 2] más separados en la parte baja derecha
+        man_total = total_paginas["manual"]
+        for i in range(man_total):
+            posiciones_por_seccion["manual"].extend([
+                (i, 5.0, 55.0, 1),
+                (i, 5.0, 80.0, 2)
+            ])
+
+        # POLIZA: [0, 1, 3] (izq-centro-der)
+        pol_total = total_paginas["poliza"]
+        for i in range(pol_total):
+            posiciones_por_seccion["poliza"].extend([
+                (i, 5.0, 5.0, 0),
+                (i, 5.0, 40.0, 1),
+                (i, 5.0, 75.0, 3)
+            ])
+
+        # PAGARES: firmantes condicionales según residente.aval y edad
+        pag_total = total_paginas["pagares"]
+
+        aval = residente.get("aval", "").strip()
+        edad = int(residente.get("edad", 0))
+
+        for i in range(pag_total):
+            # Firmante 2 (residente) siempre firma
+            posiciones_por_seccion["pagares"].append((i, 16.0, 55.0, 2))
+
+            # Si la condición se cumple, también firma el firmante 1 (arrendatario)
+            if aval == "Si" and edad >= 18:
+                posiciones_por_seccion["pagares"].append((i, 33.0, 55.0, 1))
+
+        # Construcción final del payload con offset aplicado
+        for seccion, posiciones in posiciones_por_seccion.items():
+            offset = offsets[seccion]
+            for page, bottom, left, signer_index in posiciones:
+                if signer_index < len(signer_tokens):
+                    rubricas.append({
+                        "page": page + offset,
+                        "relative_position_bottom": bottom,
+                        "relative_position_left": left,
+                        "relative_size_x": 19.55,
+                        "relative_size_y": 9.42,
+                        "type": "signature",
+                        "signer_token": signer_tokens[signer_index]
+                    })
+
+        return {"rubricas": rubricas}
+
+
+    def subir_documento_a_zapsign(self, contrato_data):
+        # Armar payload para subir documento
+        payload = self.build_payload_to_zapsign(contrato_data)
+
+        headers = {
+            'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}',
+            'Content-Type': 'application/json'
+        }
+        print("Solicitando documento a Zapsign")
+
+        url = f'{API_URL_ZAPSIGN}docs/'
+
+        try:
+            # response = requests.post(
+            #     url,
+            #     headers=headers,
+            #     json=payload,
+            #     timeout=60
+            # )
+            # response.raise_for_status()
+
+            # try:
+            #     response_data = response.json()
+            # except ValueError:
+            #     print("⚠️ La respuesta no está en formato JSON.")
+            #     response_data = {"raw_response": response.text}
+
+            # # Extraer token del documento
+            # doc_token = response_data.get("token")
+
+            # # Extraer tokens de firmantes
+            # signer_tokens = [s.get("token") for s in response_data.get("signers", []) if s.get("token")]
+
+            # if not doc_token:
+            #     raise ValueError("No se pudo obtener el token del documento desde la respuesta.")
+
+            # print("Token del documento generado:", doc_token)
+            # print("ID del contrato que se va a actualizar:", contrato_data["id"])
+
+            # # Guardar token en la base de datos
+            # info = self.queryset.filter(id=contrato_data["id"]).first()
+            # if not info:
+            #     raise ValueError("Contrato no encontrado en la base de datos.")
+
+            # info.token = doc_token
+            # info.save()
+            # print("Token guardado exitosamente en la base de datos.")
+
+            signer_tokens = [
+                "da9573c2-2ac6-418a-8c8a-df35345a5176", # carlos (Arrendador - dueño)
+                "0b0d9e0c-c9d3-4bd8-a932-1a89e52057b1", # justo sierrra (Arrendatario)
+                "538bfbd7-d1d6-4c2c-9e27-1e3056c6af77", # salvador humano (Residente)
+                "b5099ae6-93a0-4668-99f8-4c7196f048b5", # Jonathan Guadarrama (Representante arrendify)
+            ]    
+            total_paginas = {
+                'comodato': 4, 
+                'arrendamiento': 18, 
+                'manual': 24, 
+                'poliza': 4, 
+                'pagares': 8 # este valor cambia y 
+                }
+
+            # Armar y enviar payload de rubricas
+            rubricas_payload = self.armar_payload_posiciones_firma(signer_tokens, contrato_data["total_paginas"], contrato_data["residente"])
+            # posicionar_url = f'{API_URL_ZAPSIGN}docs/{doc_token}/place-signatures/'
+            # print("📤 Enviando posiciones de firmas...")
+
+            # posicionar_response = requests.post(
+            #     posicionar_url,
+            #     headers=headers,
+            #     json=rubricas_payload,
+            #     timeout=60
+            # )
+
+            # posicionar_response.raise_for_status()
+            # print("Posiciones de firmas configuradas correctamente.")
+
+            return {
+                "payload": payload,
+                # "doc_token": doc_token,
+                # "zapsign_new_doc": response_data,
+                "rubricas_payload": rubricas_payload,
+                # "rubricas_response": posicionar_response.text or "Sin contenido"
+            }
+
+        except requests.exceptions.Timeout:
+            print("Error: Tiempo de espera agotado al comunicar con ZapSign.")
+        except requests.exceptions.RequestException as e:
+            print(f"Error en la solicitud a Zap-Sign: {e}")
+        except Exception as e:
+            print(f"Error inesperado: {e}")
+
+        return None
+
+    def generar_urls_firma_fraterna(self, request, *args, **kwargs):
+        """
+        Devuelve el paquete combinado en base64 para uso en proceso de firma
+        con la plataforma de zapsign.
+        """
+        try:
+            print("Generando urls zapsign")
+            data = request.data
+            if isinstance(data, dict):
+                id_paq = data["id_contrato"]
+                pagare_distinto = data.get("pagare_distinto", "No")
+                cantidad_pagare = data.get("cantidad_pagare", "0")
+            else:
+                id_paq = data
+                pagare_distinto = "No"
+                cantidad_pagare = "0"
+
+            
+            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_fraterna_pdf(id_paq, pagare_distinto, cantidad_pagare)
+            base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+            print("Paquete EN BASE 64")
+
+            contrato_data = {
+                "id": id_paq, 
+                "filename": nombre_archivo, 
+                "base64_pfd": base64_pdf, 
+                "residente": data["residente_contrato"],
+                "total_paginas": total_paginas
+                }
+            #funcion de prueba solicitar documento a zapsign
+            resultado = self.subir_documento_a_zapsign(contrato_data)
+            return Response({
+                "filename": "simula nombre",
+                "pdf_base64": "base64_pdfj89d789a8su39889",
+                "respuestaZS": resultado
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"Error en generar_urls_a_firmar_paquete_fraterna: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{dt.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, "
+                        f"en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def generar_paquete_completo_fraterna(self, request, *args, **kwargs):
+        """
+        Devuelve el paquete combinado en formato PDF descargable para visualizar en el front.
         """
         try:
             print("Generando paquete completo Fraterna")
-            
-            # Activamos la librería de locale para obtener el mes en español
-            locale.setlocale(locale.LC_ALL, "es_MX.utf8")
-            
-            # Manejar tanto request.data como entero directo o diccionario
-            if isinstance(request.data, dict):
-                id_paq = request.data["id"]
-                pagare_distinto = request.data.get("pagare_distinto", "No")
-                cantidad_pagare = request.data.get("cantidad_pagare", "0")
+            data = request.data
+            if isinstance(data, dict):
+                id_paq = data["id"]
+                pagare_distinto = data.get("pagare_distinto", "No")
+                cantidad_pagare = data.get("cantidad_pagare", "0")
             else:
-                # Si request.data es un entero directamente
-                id_paq = request.data
+                id_paq = data
                 pagare_distinto = "No"
                 cantidad_pagare = "0"
-            
-            print(f"ID del paquete: {id_paq}")
-            print(f"Pagare distinto: {pagare_distinto}")
-            
-            # Obtener información del contrato
-            info = self.queryset.filter(id=id_paq).first()
-            if not info:
-                return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-            
-            # Crear un writer para combinar los PDFs
-            pdf_writer = PdfWriter()
-            
-            # 1. GENERAR Y AGREGAR COMODATO
-            print("Generando Comodato...")
-            comodato_pdf = self._generar_comodato_interno(info)
-            comodato_reader = PdfReader(io.BytesIO(comodato_pdf))
-            for page in comodato_reader.pages:
-                pdf_writer.add_page(page)
-            
-            # 2. GENERAR Y AGREGAR CONTRATO
-            print("Generando Contrato...")
-            contrato_pdf = self._generar_contrato_interno(info)
-            contrato_reader = PdfReader(io.BytesIO(contrato_pdf))
-            for page in contrato_reader.pages:
-                pdf_writer.add_page(page)
-            
-            # 3. DESCARGAR Y AGREGAR MANUAL UTO DESDE AWS
-            print("Descargando Manual UTO desde AWS...")
-            manual_url = "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/ManualUtower.pdf"
-            try:
-                response_manual = requests.get(manual_url, timeout=30)
-                response_manual.raise_for_status()
-                manual_reader = PdfReader(io.BytesIO(response_manual.content))
-                for page in manual_reader.pages:
-                    pdf_writer.add_page(page)
-                print("Manual UTO agregado exitosamente")
-            except Exception as e:
-                print(f"Error al descargar manual UTO: {e}")
-                # Continuar sin el manual si hay error
-            
-            # 4. GENERAR Y AGREGAR PÓLIZA
-            print("Generando Póliza...")
-            poliza_pdf = self._generar_poliza_interno(info)
-            poliza_reader = PdfReader(io.BytesIO(poliza_pdf))
-            for page in poliza_reader.pages:
-                pdf_writer.add_page(page)
-            
-            # 5. GENERAR Y AGREGAR PAGARÉS
-            print("Generando Pagarés...")
-            pagare_pdf = self._generar_pagare_interno(info, pagare_distinto, cantidad_pagare)
-            pagare_reader = PdfReader(io.BytesIO(pagare_pdf))
-            for page in pagare_reader.pages:
-                pdf_writer.add_page(page)
-            
-            # Crear el PDF final combinado
-            output_pdf = io.BytesIO()
-            pdf_writer.write(output_pdf)
-            output_pdf.seek(0)
-            
-            # Generar nombre del archivo con fecha
-            fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
-            nombre_archivo = f"Paquete_Completo_Fraterna_{info.residente.nombre_arrendatario}_{fecha_actual}.pdf"
-            
-            # Devolver el PDF combinado
+
+            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_fraterna_pdf(id_paq, pagare_distinto, cantidad_pagare)
+
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
-            response.write(output_pdf.getvalue())
-            
+            response.write(pdf_bytes)
+
             print("Paquete completo generado exitosamente")
             return response
-            
+
         except Exception as e:
             print(f"Error en generar_paquete_completo_fraterna: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+            logger.error(f"{dt.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, "
+                        f"en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def mostrar_urls_firma_documento_fraterna(self, request, *args, **kwargs):
+        try:
+            doc_token = request.data.get("token")
+            if not doc_token or not isinstance(doc_token, str):
+                return Response({'error': 'Token inválido o no proporcionado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            print(f"Solicitando documento a Zapsign {API_URL_ZAPSIGN}docs/{doc_token}/")
+            url = f'{API_URL_ZAPSIGN}docs/{doc_token}/'
+            headers = {'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}'}
+
+            response = requests.get(url, headers=headers, timeout=10)
+
+            if response.status_code != 200:
+                return Response({
+                    'error': 'Error al obtener información de ZapSign.',
+                    'status_code': response.status_code,
+                    'response': response.text
+                }, status=response.status_code)
+
+            try:
+                response_data = response.json()
+            except ValueError:
+                return Response({
+                    'error': 'La respuesta de ZapSign no es un JSON válido.',
+                    'raw_response': response.text
+                }, status=status.HTTP_502_BAD_GATEWAY)
+
+            # Validar que existan campos clave
+            required_keys = ['name', 'status', 'original_file', 'signed_file', 'signers']
+            if not all(k in response_data for k in required_keys):
+                return Response({
+                    'error': 'Respuesta incompleta de ZapSign.',
+                    'received_keys': list(response_data.keys())
+                }, status=status.HTTP_502_BAD_GATEWAY)
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"{dt.now()} Error de conexión con ZapSign: {e}")
+            return Response({
+                'error': 'Error de conexión con ZapSign.',
+                'details': str(e)
+            }, status=status.HTTP_504_GATEWAY_TIMEOUT)
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{dt.now()} Error inesperado en {exc_tb.tb_frame.f_code.co_name} línea {exc_tb.tb_lineno}: {e}")
+            return Response({
+                'error': 'Error inesperado al procesar la solicitud.',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     
+
     def _generar_comodato_interno(self, info):
         """Función interna para generar el PDF del comodato"""
         try:
