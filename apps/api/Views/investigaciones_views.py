@@ -485,7 +485,7 @@ class InvestigacionInquilinoViewSet(viewsets.ViewSet):
             today = date.today().strftime('%d/%m/%Y')
             req_dat = request.data
             info = Investigacion_Inquilino.objects.filter(id = req_dat["id"]).first()
-            print("soy INFO",info.__dict__)          
+            print("soy INFO",info)     
             
             aval = info.nombre_completo_fiador
             redes_negativo = req_dat.get("redes_negativo")
