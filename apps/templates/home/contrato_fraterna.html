@@ -78,7 +78,7 @@
 	{% comment %} datos arrendatario {% endcomment %}
 	<tr>
 		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6>
-			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_arrendatario}}</b> / Nacionalidad: {{info.residente.nacionalidad_arrendatario}} / RFC: {{info.residente.rfc_arrendatario}} / Identificación Oficial: {{info.residente.identificacion_arrendatario}} {{info.residente.no_ide_arrendatario}}<div>
+			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_arrendatario}}</b> / Nacl: {{info.residente.nacionalidad_arrendatario}} / RFC: {{info.residente.rfc_arrendatario}} / Identificación Oficial: {{info.residente.identificacion_arrendatario}} {{info.residente.no_ide_arrendatario}}<div>
 		</td>
 	</tr>
 	<tr>
@@ -87,7 +87,7 @@
 	{% if info.residente.aval == "Si" %}
 	<tr>
 		<td style="border-bottom: 1px solid #000000;border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
-			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_residente}}</b> / Nacionalidad: {{info.residente.nacionalidad_residente}} / Identificación Oficial: {{info.residente.identificacion_residente}} {{info.residente.no_ide_residente}}<div>
+			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_residente}}</b> / Nacl: {{info.residente.nacionalidad_residente}} / Identificación Oficial: {{info.residente.identificacion_residente}} {{info.residente.no_ide_residente}}<div>
 		</td>
 	</tr>
 	{% else %}
@@ -309,14 +309,11 @@
 <table align="left" cellspacing="0" border="0">
 	<colgroup width="753"></colgroup>
 	<colgroup span="18" width="85"></colgroup>
-
 	<tr>
-		<td height="21"  valign=middle>
-			<div class="fuente">
+		<td class="fuente" height="21"  valign=middle>
 				El Arrendador, el Arrendatario y el Obligado Solidario aceptan que los términos establecidos en la presente carátula (la “<u>Carátula</u>”) 
 				son parte integrante del Contrato que sigue a esta Carátula, firmando al efecto las Partes de conformidad. Asimismo, reconocen que los términos definidos en la presente Carátula 
 				podrán utilizarse en cualquier otra sección del presente Contrato.
-			</div>
 		</td>
 	</tr>	
 	<tr>
