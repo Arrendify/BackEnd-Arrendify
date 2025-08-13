@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+		<title>Contrato Garza Sada</title>
+		<meta name="generator" content="LibreOffice 7.4.2.3 (Linux)"/>
+		<meta name="created" content="2021-04-08T17:59:28"/>
+		<meta name="changedby" content="GM Integraciones"/>
+		<meta name="changed" content="2023-07-05T17:55:17"/>
+		<meta name="AppVersion" content="16.0300"/>
+		<style type="text/css">
+			@page {
+				size: letter;
+				margin: 2cm 1.2cm 2cm 1.2cm;
+
+				@bottom-right {
+				  color: black;
+				  content: counter(page);
+				  height: 1cm;
+				  text-align: center;
+				  width: 1cm;
+				}
+				
+			  }
+			  
+			  #header {
+				position: running(header);
+				text-align: right;
+				font-size: 12px;
+				font-family:Segoe UI; 
+				color: #c1bebd;
+				margin-top: -20px;
+			  } 
+
+			  #footer {
+				position: running(footer);
+				text-align: center;
+				font-size: 10px;
+				font-family: Segoe UI;
+				color: #c1bebd;
+				margin-top: 20px;
+				border-top: 1px solid #e0e0e0;
+				padding-top: 10px;
+			  }
+
+			  @page {
+				@top-right {
+				  content: element(header);
+				}
+				@bottom-center {
+				  content: element(footer);
+				}
+			  }
+	
+		body, div, p {
+		font-family:Segoe UI; 
+		font-size:13px;
+		text-align:justify;
+		}
+
+		table {
+		  font-family: Segoe UI;
+		  font-size: 13px;
+		  width: 90%;
+		  margin: 0 auto;
+		  border-collapse: collapse;
+		  table-layout: auto;
+		  max-width: 100%;
+		}
+
+		/* Reglas para el centrado correcto */
+		td[style*="text-align: center"], .subtitle, tr.subtitle td {
+		  text-align: center !important;
+		}
+
+		/* Mejora la estructura de la tabla principal */
+		td[colspan="2"] {
+		  width: 100% !important;
+		}
+
+		/* Asegura que las filas ocupen el ancho completo */
+		tr {
+		  width: 100%;
+		}
+		td.align-center {
+		  text-align: center !important;
+		}
+		td.grid{
+			display: grid !important;
+		}
+		.contenedor-imagenes {
+			display: block;
+		  }
+		  
+		.contenedor-imagenes img:first-child {
+			margin-right: 1px;
+		  }
+		 
+		 .container {
+			display: flex;
+			width: 100%
+		}
+	
+		.section {
+			flex: 1;
+			border-top: 1px solid #000000; 
+			border-left: 1px solid #000000;
+		}
+	
+		.section2 {
+			border-right: 1px solid #000000;  
+		}
+	
+		.section3 {
+			border-bottom: 1px solid #000000;
+		}
+	
+		section {
+			display: flex;
+		  }
+		.space{
+			width: 50px;	
+		} 
+		.subtitle{			
+    		text-align: center;
+			margin-bottom: 25px;
+		}
+		.parrafo{
+			padding-bottom: 1em;
+		}  
+	
+		article {
+			padding: 10px;
+			margin: 10px;
+			flex: 1 200px;
+			font-family:Times New Roman; 
+			font-size:14px;
+			text-align:justify;
+		  }
+	
+		  article:nth-of-type(3) {
+			flex: 2 200px;
+		  }
+	
+		  .firmapm *{
+			font-size:12px;
+		  }
+		.espaciado {
+			letter-spacing: 2px; /* Ajusta el valor según tus necesidades */
+		}
+		</style>
+	</head>
+<body>
+<!-- Elemento de encabezado para todas las páginas -->
+<div id="header">Contrato de Arrendamiento <b>No. {{nom_paquete | upper}}</b> - Garza Sada<br> <b>{{info.arrendatario.nombre_arrendatario}}</b> - {{info.fecha_celebracion}}</div>
+
+<!-- Elemento de pie de página para todas las páginas -->
+<div id="footer">Esta página forma parte integral del contrato de arrendamiento celebrado por una parte <b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, en su carácter como <b>Arrendador</b> y por la otra parte 
+	<b>{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %} {{info.arrendatario.nombre_arrendatario| upper}} {% else %} {{info.arrendatario.nombre_empresa_pm| upper}} representada por <b>
+		{{info.arrendatario.nombre_rl| upper}} {% endif %} </b> en su carácter como Arrendatario.</div>
+
+<table cellspacing="0" border="0" style="table-layout:fixed;">
+	<!-- Tabla principal con layout automático para mejor distribución -->
+
+{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}	<!-- Verificacion de Regimen Fiscal-->
+	<tr>
+		<td height="21" colspan="2" valign=middle style="font-size:15px; text-align:justify; width:100%;">CONTRATO DE ARRENDAMIENTO QUE CELEBRAN POR UNA PARTE <b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, REPRESENTADA POR 
+			<b>CARLOS MANUEL PADILLA SILVA</b>, A QUIEN EN LO SUCESIVO Y PARA LOS EFECTOS DEL PRESENTE INSTRUMENTO SE LE DENOMINARA <b>“EL ARRENDADOR”</b>, POR LA OTRA {{info.arrendatario.nombre_arrendatario | upper}} A QUIEN EN 
+			LO SUCESIVO SE LE DENOMINARA “EL ARRENDATARIO”, QUIEN SE SUJETA A LAS SIGUIENTES DECLARACIONES Y CLAUSULAS:
+			{% if info.arrendatario.aval == "Si" %}	<!-- Verificacion de Aval-->
+				{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}, CON LA COMPARECENCIA DE <b>{{info.arrendatario.nombre_obligado | upper}}</b>, POR DERECHO PROPIO,A QUIEN EN LO SUCESIVO 
+				SE LE DENOMINARÁ COMO <b>“EL FIADOR SOLIDARIO”</b>; LAS PARTESRECONOCIÉNDOSE LA PERSONALIDAD CON LA CUAL COMPARECEN EN ESTE ACTO, ESTÁN DE ACUERDO Y DE CONFORMIDAD CON LAS DECLARACIONES Y CLAUSULAS SIGUIENTES: 
+				{% else %} Y <b>{{info.arrendatario.obligado_nombre_empresa | upper}}</b> REPRESENTADA POR <b>{{info.arrendatario.obligado_nombre_rl | upper}}</b> EN SU CARÁCTER DE "EL OBLIGADO SOLIDARIO"{% endif %} 
+			{% else %} 
+			{% endif %}, 
+		</td>
+	</tr>	
+{% else %}
+	<tr>
+		<td height="21" colspan="2" valign=middle style="font-size:15px; text-align:justify; width:100%;">CONTRATO DE ARRENDAMIENTO QUE CELEBRAN POR UNA PARTE <b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, REPRESENTADA POR 
+			<b>CARLOS MANUEL PADILLA SILVA</b>, A QUIEN EN LO SUCESIVO Y PARA LOS EFECTOS DEL PRESENTE INSTRUMENTO SE LE DENOMINARA <b>“EL ARRENDADOR”</b>, POR LA OTRA <b>{{info.arrendatario.nombre_empresa_pm| upper}}</b>, REPRESENTADA 
+			POR <b>{{info.arrendatario.nombre_rl| upper}}</b> A QUIEN EN LO SUCESIVO SE LE DENOMINARA “EL ARRENDATARIO”, QUIENES SE SUJETAN A LAS SIGUIENTES DECLARACIONES Y CLAUSULAS:
+			{% if info.arrendatario.aval == "Si" %}<!-- Verificacion de Aval-->
+				{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}, CON LA COMPARECENCIA DE <b>{{info.arrendatario.nombre_obligado | upper}}</b>, POR DERECHO PROPIO,A QUIEN EN LO SUCESIVO 
+				SE LE DENOMINARÁ COMO <b>“EL FIADOR SOLIDARIO”</b>; LAS PARTESRECONOCIÉNDOSE LA PERSONALIDAD CON LA CUAL COMPARECEN EN ESTE ACTO, ESTÁN DE ACUERDO Y DE CONFORMIDAD CON LAS DECLARACIONES Y CLAUSULAS SIGUIENTES: 
+				{% else %} Y <b>{{info.arrendatario.obligado_nombre_empresa | upper}}</b> REPRESENTADA POR <b>{{info.arrendatario.obligado_nombre_rl | upper}}</b> EN SU CARÁCTER DE "EL OBLIGADO SOLIDARIO"{% endif %} 
+			{% else %} 
+			{% endif %}, 
+		</td>
+	</tr>		
+{% endif %}
+
+	<tr>
+			<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+		{% comment %} Parte I {% endcomment %}
+	<tr class="subtitle" >
+		<td colspan="2" height="21" style="text-align: center; width:100%; margin-bottom: 25px;" valign=middle><b><u>DECLARACIONES</u></b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign=middle style="width:100%;"><b>I.- DECLARA “EL ARRENDADOR” por medio de su apoderado legal:</b></td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Es una sociedad mercantil legalmente constituida y existente de conformidad con 
+			las leyes mexicanas vigentes, según consta en la Escritura Pública número 28,281, de fecha 26 de abril del 2022, otorgada ante la fe del Lic. Ignacio Gerardo Martínez González, 
+			Titular de la Notaría Pública No. 75, con ejercicio en el Primer Distrito Registral y Notarial del Estado de Nuevo León, con residencia en la ciudad de San Pedro Garza García, N.L., 
+			y debidamente registrada con fecha 5 de mayo del 2022 ante el Registro Público de la Propiedad y del Comercio de Monterrey, Nuevo León bajo el No. de Folio Mercantil Electrónico N-2022031789.
+		</td>
+	</tr>
+	<br><br>
+    <tr>
+	<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Su representante legal cuenta con las facultades suficientes para obligar a su representada 
+		en los términos y condiciones del presente Contrato, mismas que no le han sido revocadas ni modificadas en forma alguna, según consta en la escritura pública descrita en el 
+		inciso anterior.</td>
+    </tr>
+    <tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que el objeto social de su representada le permite la celebración del presente Contrato.</td>
+    </tr>	
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que el Registro Federal de Contribuyentes de su representada es <b>FAP220426Q49</b>.</td>
+	</tr>	
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que COPACHISA S.A. de C.V. y Desarrollos Comerciales Fraterna, S.A. de C.V. son copropietarios 
+			legítimos y poseedores del inmueble en donde se encuentra el proyecto inmobiliario denominado “Garza Sada 5.0”, ubicado en la calle Eugenio Garza Sada, No. 4601, Colonia La Condesa, 
+			en el municipio de Monterrey, Nuevo León, México. </td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>f) Que su representada tiene la autorización expresa de los copropietarios del inmueble referido con 
+			antelación, así como las facultades necesarias para llevar a cabo la celebración del presente Contrato, según se desprenden del Contrato de Administración y Comercialización de Inmuebles 
+			que tiene celebrado con la empresa Fraterna Administradora de Proyectos, S.A. de C.V., de fecha 31 de octubre de 2022; facultades todas las anteriores que se tienen por insertadas al 
+			presente documento.</td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>g) Que es voluntad e intención expresa de su representada, celebrar el presente Contrato de Arrendamiento 
+			de conformidad con los términos y condiciones que se pactan más adelante en el clausulado del mismo y dar en arrendamiento el departamento identificado con el número <b>{{info.no_depa}}</b>, 
+			el cual cuenta con una superficie aproximada de <b>{{info.superficie}}m² - {{superficie_texto}}</b>, ubicado en Calle Eugenio Garza Sada, No. 4601, Colonia La Condesa, en el municipio de Monterrey, Nuevo León, México. Asimismo, 
+			y en la misma dirección se incluye en el arrendamiento mencionado un acceso de estacionamiento.</td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>h) Que para efectos de este contrato señala como su domicilio para recibir y oír toda clase de 
+			notificaciones el ubicado en Padre Mier número 1545, piso 5, local 501, en la Colonia María Luisa, en la ciudad de Monterrey, Nuevo León, C.P. 64040.</td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>i) Que su número de contacto es 8119322600.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle style="width:100%;"><b>II.- DECLARA “EL ARRENDATARIO” por sus propios derechos:</b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	{% comment %} Parte II {% endcomment %}
+	{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.arrendatario.nombre_arrendatario}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.arrendatario.direccion_arrendatario}}</b>.</td>
+		</tr>	
+			
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.arrendatario.celular_arrendatario}}</b> .</td>
+		</tr>
+
+	{% else %}
+	{% comment %} persona moral {% endcomment %}
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.arrendatario.nombre_empresa_pm}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.arrendatario.direccion_fiscal_pm}}</b>.</td>
+		</tr>	
+			
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.arrendatario.telefono_empresa_pm}}</b> .</td>
+		</tr>
+	{% endif %}
+
+	{% if info.num_inq == "1" %} {% comment %}Caso con 1 inquilino extra{% endcomment %}
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.n_inq1}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.d_inq1}}</b>.</td>
+		</tr>	
+			
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.t_inq1}}</b> .</td>
+		</tr>
+
+	{% elif info.num_inq == "2" %}	{% comment %}Caso con 2 inquilinos extra{% endcomment %}
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.n_inq1}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.d_inq1}}</b>.</td>
+		</tr>	
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.t_inq1}}</b> .</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle> </td>{% comment %}Segundo Inquilino{% endcomment %}
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.n_inq2}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.d_inq2}}</b>.</td>
+		</tr>	
+			
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.t_inq2}}</b> .</td>
+		</tr>
+
+	{% elif info.num_inq == "3" %}	{% comment %}Caso con 3 inquilinos extra{% endcomment %}
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.n_inq1}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.d_inq1}}</b>.</td>
+		</tr>	
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.t_inq1}}</b> .</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle> </td>{% comment %}Segundo Inquilino{% endcomment %}
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.n_inq2}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.d_inq2}}</b>.</td>
+		</tr>	
+			
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.t_inq2}}</b> .</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle> </td>{% comment %}Tercer Inquilino{% endcomment %}
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.n_inq3}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.d_inq3}}</b>.</td>
+		</tr>	
+			
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.t_inq3}}</b> .</td>
+		</tr>
+	{% elif info.num_inq == "4" %}	{% comment %}Caso con 4 inquilinos extra{% endcomment %}
+				<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.n_inq1}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.d_inq1}}</b>.</td>
+		</tr>	
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.t_inq1}}</b> .</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle> </td>{% comment %}Segundo Inquilino{% endcomment %}
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.n_inq2}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.d_inq2}}</b>.</td>
+		</tr>	
+			
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.t_inq2}}</b> .</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle> </td>{% comment %}Tercer Inquilino{% endcomment %}
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.n_inq3}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.d_inq3}}</b>.</td>
+		</tr>	
+			
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.t_inq3}}</b> .</td>
+		</tr>
+		<tr>
+			<td height="21" valign=middle> </td>{% comment %}Cuarto Inquilino{% endcomment %}
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle><b>{{info.n_inq4}}</b></td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que tiene la capacidad jurídica suficiente y bastante para obligarse en términos del presente 
+				instrumento.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b) Que es su voluntad recibir en arrendamiento el inmueble que se describe en el inciso g) de la 
+				declaración número I anterior, el cual sabe y le consta, se encuentra en las condiciones necesarias de seguridad, higiene y salubridad, contando con todos los servicios y que cuenta 
+				con el equipo en perfecto estado de uso, por lo que no condicionará el pago de rentas a ningún tipo de mejora.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c) Que para efectos del presente contrato señala como su domicilio para oír y recibir notificaciones 
+				el ubicado en <b>{{info.d_inq4}}</b>.</td>
+		</tr>	
+			
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>d) Que sus ingresos son suficientes para pagar la renta y demás servicios que se originen y consuma 
+				durante la vigencia de este contrato.</td>
+		</tr>
+		<tr>
+			<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>e) Que su número de contacto es:<b>{{info.t_inq4}}</b> .</td>
+		</tr>
+	{% else %}
+	{% endif %}
+
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	{% comment %} Parte III {% endcomment %}
+	{% if info.arrendatario.aval == "Si" %}
+		<tr>	
+			<td class="parrafo" colspan="2" height="21" valign=middle style="width:100%;">III.- Declara <b>EL FIADOR SOLIDARIO</b>, lo siguiente:</td>
+		</tr>
+
+		{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} 
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a).- Que es una persona física de nacionalidad mexicana, mayor de edad, de estado civil <b>{{info.arrendatario.estado_civil_obligado}}</b> por sociedad conyugal, empleada, 
+					con Clave Única de Registro de Población <b>{{info.arrendatario.curp_obligado}}</b>, con plena capacidad para obligarse en los términos del presente Contrato. </td>
+			</tr>
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b).- Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe restricción contractual u 
+					orden de cualquier tribunal, organismo gubernamental o autoridad que pudiera afectar la celebración de este acto jurídico.</td>
+			</tr>
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c).- Que cuenta con la capacidad económica necesaria y suficiente para cumplir puntualmente con todas y cada una de las obligaciones que contrae en el presente Contrato.</td>
+			</tr>			
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign = middle>d).- Que tiene los recursos económicos para responder de los daños y perjuicios que se originen al LOCAL en los términos del presente Contrato.</td>
+			</tr>
+		
+		{% else %}
+		{% comment %} Persona Moral {% endcomment %}
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a).- Que es una persona moral de nacionalidad mexicana, mayor de edad, de estado civil <b>xxxxxxxxxxxxxx</b> por sociedad conyugal, empleada, 
+					con Clave Única de Registro de Población <b>xxxxxxxxxxxxxx</b>, con plena capacidad para obligarse en los términos del presente Contrato. </td>
+			</tr>
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b).- Que no tiene limitación o impedimento alguno para celebrar el presente acuerdo de voluntades y que no existe restricción contractual u 
+					orden de cualquier tribunal, organismo gubernamental o autoridad que pudiera afectar la celebración de este acto jurídico.</td>
+			</tr>
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>c).- Que cuenta con la capacidad económica necesaria y suficiente para cumplir puntualmente con todas y cada una de las obligaciones que contrae en el presente Contrato.</td>
+			</tr>			
+			<tr>
+				<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign = middle>d).- Que tiene los recursos económicos para responder de los daños y perjuicios que se originen al LOCAL en los términos del presente Contrato.</td>
+			</tr>
+		
+		{% endif %} 
+	{% else %} 
+
+	{% endif %}
+
+	
+
+	<tr>
+		<td height="21" valign=middle> </td>
+	</tr>
+	{% comment %} Parte IV {% endcomment %}
+	{% if info.arrendatario.aval == "Si" %}
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign=middle style="width:100%;">IV.- Declaran <b>LAS PARTES</b>, lo siguiente:</td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que en el presente contrato no existe dolo, error, mala fe o cualquier otro vicio de la voluntad, por lo 
+			que expresamente renuncian a invocarlos en cualquier tiempo.
+		</td>
+	</tr>	
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b)Que se reconocen la personalidad con la que comparecen a la celebración de este contrato en someterse a las 
+			obligaciones contenidas en las siguientes
+		</td>
+	</tr>	
+	{% else %}	
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign=middle style="width:100%;">III.- Declaran <b>LAS PARTES</b>, lo siguiente:</td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>a) Que en el presente contrato no existe dolo, error, mala fe o cualquier otro vicio de la voluntad, por lo 
+			que expresamente renuncian a invocarlos en cualquier tiempo.
+		</td>
+	</tr>	
+	<tr>
+		<td class="parrafo" colspan="2" height="21" style="padding-left: 50px;" valign=middle>b)Que se reconocen la personalidad con la que comparecen a la celebración de este contrato en someterse a las 
+			obligaciones contenidas en las siguientes
+		</td>
+	</tr>
+	{% endif %}
+	<tr>
+		<td height="41" valign=middle><br></td>
+	</tr>
+	{% comment %} Clausulas {% endcomment %}
+	<tr class="subtitle">
+		<td colspan="2" height="21" style="text-align: center; width:100%; margin-bottom: 25px;"><b><u>CLÁUSULAS</u></b></td>
+    </tr>
+	<tr>
+    	<td height="21" valign=middle><br></td>
+    </tr>
+	<tr>
+    	<td height="21" valign=middle><br></td>
+    </tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle><b>PRIMERA. - EL OBJETO. - </b> “EL ARRENDADOR” da en arrendamiento al “ARRENDATARIO”, y esta toma en dicha calidad, el inmueble que se describe en el 
+			inciso g) de la declaración I que antecede, mismo que reúne todas las condiciones de higiene y salubridad correspondientes, dándose “EL ARRENDATARIO” por recibido del mismo a su entera 
+			satisfacción por encontrarse en perfectas condiciones y cumplir sus necesidades.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr class="parrafo">
+		<td colspan="2" height="21" valign=middle><b>SEGUNDA. - DE LA RENTA. - </b> Las partes convienen voluntariamente y de común acuerdo que “EL ARRENDATARIO” pagará a “EL ARRENDADOR”, por concepto de 
+			contraprestación una renta mensual en los siguientes términos:<br><br></td>
+	<tr>
+		<td colspan="2" height="21" style="padding-left: 50px;" valign=middle>a)	El monto de la renta mensual será de <b>${{info.renta}}.00 ({{renta_texto}} 00/100 M.N.)</b> incluido el Impuesto al Valor Agregado correspondiente. <br><br>
+
+			b)	El pago de la renta mensual será por meses adelantados, siéndole forzoso todo el mes y debiendo cubrir integra la mensualidad, aun cuando no usare el inmueble de tiempo completo. <br><br>
+
+			c)  A la fecha de firma del presente contrato, “EL ARRENDATARIO” paga a “EL ARRENDADOR”, la renta correspondiente al periodo del <b>{{rango_mes_siguiente}}</b>, sirviendo el presente contrato como el 
+			recibo más eficaz que en derecho corresponda de dicho depósito. <br><br>
+			
+			d)	El pago de la cuota de mantenimiento va incluido en el pago de la renta mensual pactada.<br><br>
+
+			e)	El pago de la renta mensual se cubrirá en su totalidad a más tardar en los primeros 05-cinco días naturales de cada mes mediante transferencia bancaria al <b>No. de Cuenta 021727730017, CLABE 
+			interbancaria 058580217277300173 del Banco Banregio a nombre del Arrendador FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, debiéndose expedir recibo a favor del Arrendatario el cual vendrá 
+			instrumentado por medio de la entrega del correspondiente pagaré por parte de “EL ARRENDADOR” a “EL ARRENDATARIO” y empezará a cubrirse a partir de la fecha de inicio de la vigencia del presente 
+			instrumento, siendo causa de recisión de contrato el hecho de que se cubra extemporáneamente una mensualidad o más, o de que no sea cubierta una mensualidad o más, en cuyo caso “EL ARRENDATARIO” 
+			acepta que se le embarguen bienes muebles  u objetos de los que introduzca en la propiedad arrendada y que declara desde hoy que son de su exclusiva propiedad, los que entregará desde luego a la 
+			persona que “EL ARRENDADOR” nombre como depositario.<br><br>
+
+			f)	No podrá en ningún caso “EL ARRENDATARIO”, retener las rentas, bajo ningún título judicial, ni extrajudicialmente, debiendo hacer el pago íntegro, a más tardar en el plazo que se describe en 
+			el inciso e) de esta cláusula, por lo que, de no hacerlo en el tiempo, modo y lugar convenidos, pagará la pena convencional del 5% (cinco por ciento) mensual.<br><br>
+
+			g)	Si “EL ARRENDADOR” recibe la renta en fecha y forma distinta de la estipulada, o recibe abonos a cuenta de las mismas no se entenderá novado el contrato, ni en cuanto a los términos, ni en 
+			cuanto a la fecha y forma de pago.<br><br>
+	</tr>	
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr class="parrafo">
+		<td colspan="2" height="21" valign=middle><b>TERCERA. - DE LOS SERVICIOS. - </b> “EL ARRENDATARIO” queda exonerado del pago del importe del servicio de energía eléctrica del departamento objeto 
+			del presente contrato de arrendamiento. Por tanto, todos los asuntos relacionados con el servicio de agua del inmueble, deberán ser comunicados por escrito a “EL ARRENDADOR” o a quien su 
+			derecho represente.<br><br>
+			
+			Son a cargo del Arrendatario toda clase de reparaciones que necesitaren los servicios indicados, así como los daños y perjuicios que resulten al Arrendador por el mal uso de ellos, y también 
+			serán por cuenta del Arrendatario todas las exigencias de salubridad y sus infracciones, renunciando en lo que le favorezca el contenido de los artículos 2342 y 2343 del Código Civil para el 
+			Estado de Nuevo León. 
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr class="parrafo">
+		<td colspan="2" height="21" valign=middle><b>CUARTA. - DE LAS MEJORAS. - </b> Todas las mejoras, modificaciones y adaptaciones que se realicen en el inmueble, serán cubiertas por “EL ARRENDATARIO”, 
+			incluyendo los desperfectos no atribuibles al uso normal del inmueble, u originados por descuido de “EL ARRENDATARIO” con excepción de las reparaciones de desperfectos estructurales y/o vicios 
+			ocultos, y siempre con aviso previo por escrito de “EL ARRENDATARIO” a “EL ARRENDADOR” y habiendo obtenido el consentimiento previo de “EL ARRENDADOR” hacia tal solicitud.  El incumplimiento a 
+			la presente cláusula, obliga a “EL ARRENDATARIO” al pago a favor de “EL ARRENDADOR”, de los daños y perjuicios que llegare a ocasionar, independientemente de la recisión de este contrato.  
+			“EL ARRENDADOR” tendrá la facultad y el derecho de decidir cuáles son las mejoras, modificaciones y adaptaciones que “EL ARRENDATARIO” deberá retirar a su costa, al desocupar el inmueble y cuáles 
+			no, en la inteligencia de que no podrá el segundo exigir al primero pago o indemnización por ninguna de ellas, debiendo entregar el inmueble en las misma condiciones físicas en que lo recibió 
+			salvo el deterioro de uso normal y las mejoras y adaptaciones que “EL ARRENDADOR” decida que queden en beneficio del inmueble.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr class="parrafo">
+		<td colspan="2" height="21" valign=middle><b>QUINTA. - DE LA LIMPIEZA. - </b>“EL ARRENDATARIO”, deberá hacer buen uso y mantener limpios los conductos de cañerías y drenajes del inmueble, para 
+			evitar humedades y goteras, de no hacerlo cualquier daño corre por su cuenta, ya que el buen uso es de su responsabilidad.  Cualquier deterioro originado por negligencia en la limpieza de 
+			interiores, cañerías, etc. es de exclusiva responsabilidad de “EL ARRENDATARIO”. Queda incluida en el presente contrato, la limpieza una vez por semana, siendo ésta, una limpieza de carácter 
+			general del departamento, no incluyendo lavado de loza, lavado o planchado de ropa.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr class="parrafo">
+		<td colspan="2" height="21" valign=middle><b>SEXTA. - DE LA FORMA DE USO DE LA CONVIVENCIA. - </b>“EL ARRENDATARIO” podrá gozar y disponer del inmueble arrendado en forma ordenada y tranquila no 
+			debiendo destinarlo a usos contrarios a la moral y a las buenas costumbres, observando las disposiciones, limitaciones y prohibiciones establecidas por la legislación aplicable.<br><br>
+
+			Ambas partes convienen en que queda prohibido tener animales o ejecutar actos que perturben la seguridad y tranquilidad de los huéspedes, locatarios o vecinos; igualmente acto u omisión alguno 
+			que afecte o comprometa la estabilidad, seguridad, higiene, salubridad o comodidad del inmueble. Del mismo modo, se prohíbe tener niños pequeños viviendo de manera permanente, solamente 
+			permitiéndose visitas diurnas en su caso; de conformidad con el <b>Manual de Convivencia</b> que se agrega al presente contrato como <b>ANEXO II</b>.<br><br>
+
+			“EL ARRENDATARIO” se obliga a mantener el buen uso del nivel de sonido de sus aparatos como televisión, instrumentos musicales, estéreos, etc. así como no invadir las zonas de circulación de 
+			calle y banquetas ni obstruir cocheras de los demás vecinos y/ o locatarios, de conformidad con el Manual de Convivencia, el cual se adjunta como ANEXO II.<br><br>
+
+			Mantener el orden en el uso del inmueble arrendado y mantener las buenas costumbres según el reglamento de policía y buen gobierno. No colocar macetas u otro tipo de objetos en el borde del 
+			balcón o cornisa, que por el viento o accidentalmente pudiera caer y poner en riesgo la seguridad e integridad de algunos de los demás vecinos y/o vehículos de los mismos.
+
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr class="parrafo">
+		<td colspan="2" height="21" valign=middle><b>SEPTIMA.- DEL USO DE SUELO.- </b> El inmueble objeto del presente arrendamiento será destinado únicamente para USO HABITACIONAL, quedándole prohibido 
+			a “EL ARRENDATARIO”  y este lo acepta expresamente, cambiar el uso referido, salvo autorización escrita de “EL ARRENDADOR” y “EL ARRENDATARIO” están de acuerdo en que el inmueble solo podrá 
+			destinarse para ser ocupado por “EL ARRENDATARIO” , y en su caso, de sus visitas, excepto para el caso en que “EL ARRENDADOR” autorice por escrito a “EL ARRENDATARIO” a hacer un uso distinto 
+			del inmueble. “EL ARRENDATARIO” es responsable del buen uso del inmueble que le dé él mismo, o visitantes.<br><br>
+
+			“EL ARRENDATARIO” se obliga a permitir el ingreso al inmueble a “EL ARRENDADOR” cada 02-dos meses o cuando “EL ARRENDADOR” así lo solicite por estimarlo necesario y conveniente, con el fin, 
+			de inspeccionar el buen uso, destino y conservación del inmueble, para lo cual “EL ARRENDADOR” dará aviso a “EL ARRENDATARIO” telefónicamente o vía mail a “EL ARRENDATARIO” 24 horas antes.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle><b>OCTAVA. - DE LA NO CESIÓN DE DERECHOS. – </b> “EL ARRENDATARIO” tampoco podrá subarrendar, traspasar o ceder sus derechos de inquilino del inmueble, 
+			en todo o en parte, a cualquier otra persona. El incumplimiento a esta cláusula tendrá como consecuencia que “EL ARRENDATARIO” deberá pagar a “EL ARRENDADOR” la cantidad equivalente al cien 
+			por ciento de las rentas correspondientes, al término del arrendamiento a título de pena convencional, siendo nulo el convenio que haya celebrado con terceros y además dará lugar a la 
+			rescisión de este contrato si “EL ARRENDADOR” así lo desea.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle><b>NOVENA. - DEL ALMACENAMIENTO DE SUSTANCIAS PELIGROSAS. - </b>Las partes acuerdan que queda prohibido almacenar sustancias peligrosas, inflamables, 
+			corrosivas, deletéreas o ilegales dentro del inmueble. En caso de siniestro, “EL ARRENDATARIO” deberá cubrir a “EL ARRENDADOR” y a los demás vecinos que resulten afectados los daños y 
+			perjuicios que les ocasione.
+		</td>	
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle><b>DÉCIMA. - RENTAS ANTICIPADAS. -</b> Asimismo, ambas partes están de acuerdo y “LA ARRENDATARIA” se obliga a constituir en el acto en que se firme este Contrato, 
+			un importe de <b>{{info.anticipadas}} mes(es)</b> de la Renta Mínima Mensual, equivalente a <b>${{rentas_anticipadas}} ({{anticipadas_texto}} 00/100 MONEDA NACIONAL)</b> más el correspondiente Impuesto al Valor Agregado.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle><b>DECIMA PRIMERA. - CUIDADO DEL INMUEBLE. -</b> “EL ARRENDATARIO” se obliga a no perforar azulejos, pisos, techo, muros, puertas, o colocar muebles que 
+			dañen los acabados del inmueble, sin previa autorización por escrito de EL ARRENDADOR y a darle el mantenimiento adecuado y oportuno a los muebles que forman parte de las instalaciones del 
+			inmueble que hayan sido afectadas, comprometiéndose a no pasar por alto lo aquí establecido en cuanto a la previa autorización.<br><br>
+		
+			“EL ARRENDADOR” no será responsable de los daños ocasionados a las personas y/o sus bienes, por la falta del mantenimiento antes mencionado. </td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle><b>DECIMA SEGUNDA. - DE LA VIGENCIA. -</b>La duración del presente contrato es de {{info.duracion}}, <b>iniciando su vigencia el día {{info.fecha_celebracion}} y finalizando el 
+			{{info.fecha_terminacion}}</b>. “EL ARRENDATARIO” deberá avisar a “EL ARRENDADOR” por escrito, con al menos treinta días de anticipación a su vencimiento, el <b>{{mes_antes_vigencia}}</b> si es su deseo continuar o 
+			no, con el arrendamiento, reservándose “EL ARRENDADOR” en cualquier caso, el derecho de aceptar dicha renovación, lo cual en todo caso lo hará mediante la celebración de un nuevo contrato en 
+			el caso de la renovación al cumplimiento de los 11-once meses del presente contrato siempre y cuando “EL ARRENDATARIO” haya cumplido en tiempo y forma con el pago de todas sus pensiones 
+			rentarias y sean renovadas y actualizadas las garantías señaladas en dicho contrato. Cuando “EL ARRENDATARIO” sea el que desee dar por terminado el presente contrato, además del aviso por 
+			escrito antes mencionado, autoriza a “EL ARRENDADOR” a poner cédulas visibles y a mostrar el interior del inmueble a las personas que pretendan verlo.<br><br>
+
+			Así mismo, “EL ARRENDATARIO” expresamente renuncia los beneficios que le derivan de los artículos 2341, 2379 y 2381 del Código Civil para el Estado de Nuevo León vigente, por lo que 
+			consecuentemente en ningún caso podrá “EL ARRENDATARIO” disfrutar de derecho de preferencia alguno para posterior arrendamiento, ni de prórroga inquilinaria legal o convencional, como tampoco 
+			del derecho del tanto, preferencia o prórrogas que solo excepcionalmente con el consentimiento escrito de “EL ARRENDADOR” podrán operar, por lo que definitivamente se excluye y se desconoce 
+			validez alguna a cualesquier tipo de preferencia, prórrogas o derecho del tanto que verbalmente se pretendiese otorgar.<br><br>
+
+			Al vencimiento del término de vigencia aquí pactado, “EL ARRENDATARIO” expresamente autoriza a “EL ARRENDADOR” para que éste sin necesidad de Juicio o Diligencia alguna, tome posesión del 
+			Inmueble, así también entendiéndose que, si después del vencimiento del término de duración continuase él en la ocupación del Inmueble, dicha ocupación se entenderá con la oposición expresa 
+			de “EL ARRENDADOR”.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle><b>DECIMA TERCERA. - DE LA DESOCUPACIÓN Y ENTREGA. -</b>Las partes acuerdan que, si al término del presente contrato no hubiere renovación del mismo, 
+			EL ARRENDATARIO estará obligado a desocupar el inmueble arrendado a más tardar en la fecha de su vencimiento, esto conforme a lo establecido en el artículo 2378 del Código Civil del Estado 
+			de Nuevo León. Que a la letra dice “Si el arrendamiento se ha hecho por tiempo determinado, concluye en el día prefijado sin necesidad de desahucio“ y si por cualquier motivo no lo hiciere, 
+			deberá pagar el doble de la renta pactada por cada uno de los 05-cinco meses siguientes que siga ocupándolo, y el triple de dicha renta durante cada mes que le siga, hasta la total 
+			desocupación y entrega legal del inmueble materia del presente contrato sin que esto implique renovación o prórroga del mismo y por lo tanto sin perjuicio de la acción jurídica que 
+			“EL ARRENDADOR” ejerza para exigir dicha desocupación, acordando las partes por así convenir a sus intereses que, por lo que hace al término del aviso previo de terminación del contrato, 
+			el mismo deberá hacerse en un plazo de 02 (dos) meses de anticipación.  “EL ARRENDATARIO” deberá entregar el INMUEBLE exactamente el día que termina el plazo de vigencia de este contrato, 
+			y que ha quedado claramente establecida al inicio de este instrumento, en perfecto estado de uso y conservación tal cual lo recibió y con las mejoras previamente autorizadas por “EL ARRENDADOR” 
+			que le haya hecho quedando en beneficio del mismo.<br><br>
+
+			Así mismo, a la entrega de posesión del INMUEBLE deberá entrega “EL ARRENDATARIO” a “EL ARRENDADOR” los recibos pagados y finiquitos correspondientes de Servicios y cualquier otro que haya 
+			contratado durante la vigencia del contrato.<br><br>
+
+			“EL ARRENDATARIO” deberá entregar la posesión del INMUEBLE materia de este contrato en perfectas condiciones tal como lo recibió con las mismas características de pintura con la que recibió o 
+			en su caso entregarlo pintado y limpio.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign=middle><b>DECIMA CUARTA. - DE LA RESCISIÓN Y/O TERMINACION ANTICIPADA DEL CONTRATO. -</b> AmbSerán causas de rescisión del presente Contrato, además de las 
+			enunciadas por el artículo 2383 del Código Civil para el Estado de Nuevo León, las siguientes:<br><br>
+		</td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" style="padding-left: 50px;" valign=middle>a). - La quiebra de “EL ARRENDATARIO”;<br>
+			b). - La muerte de “EL ARRENDATARIO”;<br>
+			c). - El hecho de que “EL ARRENDATARIO” no ocupe directamente el Inmueble, y / o sin el consentimiento escrito de “EL ARRENDADOR” Arrendador, lo explote o use de manera distinta a la aquí pactada, así como el que total o parcialmente ceda, de manera gratuita u onerosa, sus derechos de Arrendatario;<br>
+			d). - La falta de pago de una Renta; y<br>
+			e). - La falta de cumplimiento por el Arrendatario de cualquiera de las obligaciones que del presente Contrato le derivan.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign=middle>En caso de que “EL ARRENDATARIO” de por concluido el arrendamiento antes de la vigencia establecida en el presente contrato, y cualquiera 
+			que sea la causa, pagarán como pena convencional el importe de un mes de renta al 100 %, más el valor del depósito o el importe de los meses que falten para el vencimiento de este contrato, 
+			lo que resulte menor, debiendo desocupar en un plazo no mayor a 10-diez días posteriores a dicho pago, obligándose a acudir al domicilio de “EL ARRENDADOR” o de quien sus derechos represente, 
+			para recabar sus firmas y la constancia de finiquito correspondiente, ya que en caso contrario seguirá produciendo sus efectos ton todas y cada una de sus cláusulas.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign="middle"><b>DECIMA QUINTA.- SINIESTROS Y CLAUSURAS.-</b> Los daños ocasionados al inmueble, así como a los colindantes, por siniestros originados por culpa o 
+			negligencia de EL ARRENDATARIO y/o de toda persona que viva en o visite por cualquier motivo el inmueble, serán de la exclusiva responsabilidad de los primeros, por lo que en caso de detectar 
+			algún equipo o instalación en mal estado en el primer mes de la ocupación del mismo, se deberá dar aviso por escrito a EL ARRENDADOR, con acuse de recibo para proceder a la reparación, por 
+			cuenta de EL ARRENDADOR, siempre y cuando no sea imputable la falla a EL ARRENDATARIO.<br><br>
+
+			En el caso de que el bien inmueble objeto del presente contrato sea clausurado o sea asegurado por cualquier autoridad, por causas imputables a EL ARRENDATARIO, será causa de rescisión de 
+			contrato pudiendo EL ARRENDADOR exigir dicha rescisión en cualquier tiempo. EL ARRENDATARIO se hará responsable de multas y sanciones.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign="middle"><b>DECIMA SEXTA. - DEPOSITO EN GARANTÍA. -</b>A la fecha de <b>{{info.fecha_celebracion}}</b> se hace efectivo un valor de <b>${{info.deposito}}.00 ({{deposito_texto}} 00/100 M.N.)</b> en concepto 
+			de depósito y de una cantidad igual al importe de 01-un MES de renta en vigor, valor que quedará a resguardo por parte de “EL ARRENDADOR” y que será devuelto en los 30 días naturales 
+			posteriores a la fecha de finalización del presente contrato, siempre y cuando el inmueble se entregue en las mismas condiciones en las que se recibió. Dicho valor actúa como separación 
+			y compromiso de arriendo por parte de “EL ARRENDATARIO” hasta la firma del presente contrato.<br><br>
+
+			En caso de que hubiere desperfectos por mal uso del inmueble, dicho depósito podrá ser utilizado parcial o totalmente por “EL ARRENDADOR” para efectuar las pertinentes reparaciones tanto 
+			del inmueble como del mobiliario entregado y descrito en el <b>Anexo I (INVENTARIO)</b>. Derivado del párrafo anterior, el depósito no constituye de forma alguna el pago por adelantado de las rentas 
+			a las que se obliga a pagar “EL ARRENDATARIO”, por lo que existe una clara obligación por parte de “EL ARRENDATARIO” de pagar a “EL ARRENDADOR” todas las rentas mensuales contenidas en el 
+			presente documento dada la vigencia del presente contrato.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign="middle"><b>DECIMA SEPTIMA. - DE NO RESPONSABILIDAD PENAL. - </b>Las partes de conformidad con lo manifestado en el capítulo de declaraciones, ratifican que 
+			el presente contrato de arrendamiento es celebrado de buena fe, concediendo por tanto “EL ARRENDADOR” en su calidad de propietario, el uso y goce del bien inmueble objeto del arrendamiento 
+			a “EL ARRENDATARIO” el cual deberá destinarlo a un uso pacífico, tranquilo y  conforme a las buenas costumbres, por lo que bajo ese orden de ideas “EL ARRENDATARIO”  libera a “EL ARRENDADOR” 
+			de toda responsabilidad en la que pudiera verse involucrado, derivado de la comisión de delitos consumados dentro o fuera del inmueble referido (hechos típicos y antijurídicos) relacionados o 
+			equiparados con la delincuencia organizada, de los cuales se mencionan entre otros de manera enunciativa mas no limitativa los siguientes: narcotráfico, secuestro , robo de vehículos y trata 
+			de personas, comprometiéndose asimismo a sacar en paz y a salvo tanto a “EL ARRENDADOR” como al inmueble objeto del arrendamiento.<br><br>
+
+			Para acreditarse la buena fe con la que actúan las partes en el presente instrumento declaran lo siguiente:<br>
+
+		</td>
+	</tr>
+	<br>
+	<tr>
+		<td height="21" valign=middle><b>Declara EL ARRENDATARIO:</b></td><br><br>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.	Que el dinero por medio del cual se van a liquidar las rentas derivadas del presente contrato proviene de fuentes licitas.<br>
+			2.	Que los datos personales que proporcionó para la elaboración del presente instrumento son verdaderos.<br>
+			3.	Que la fecha de firma del presente instrumento no tiene antecedentes penales, ni ha cometido hecho ilícito alguno o contrarios a la moral que pudiera dar origen a un procedimiento o denuncia penal.<br>
+			4.	Que a partir de la entrega física del inmueble EL ARRENDADOR queda impedido para introducirse al inmueble, a excepción de lo establecido en la cláusula séptima, párrafo segundo, mientras tenga vigencia el presente contrato.
+
+		</td>
+	</tr>
+	<br>
+	<tr>
+		<td height="21" valign=middle><b>Declara EL ARRENDADOR:</b></td><br><br>
+	<br>
+	<tr>
+		<td colspan="2" height="21" style="padding-left: 50px;" valign=middle>1.	Que el inmueble que se arrenda no es ni ha sido instrumento, objeto o producto del delito y fue adquirido con recursos de procedencia lícita.<br><br>
+			2.	Hace entrega física del inmueble y desde este momento queda impedido para introducirse al inmueble mientras tanto tenga vigencia el presente contrato.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign=middle><b>DECIMA OCTAVA. - CAUSALES DE RESCISION AUTOMATICA. -</b>  Será causa de rescisión del presente contrato de arrendamiento, el solo hecho de que 
+			el bien inmueble objeto del presente instrumento sea asegurado o resguardado por cualquier autoridad derivado de la sospecha o comprobación de la comisión de delitos consumados dentro o fuera del 
+			inmueble referido, (hechos típicos y antijurídicos) constituidos de cualquiera de los delitos de delincuencia organizada, de los cuales se mencionan entre otros de manera enunciativa más no limitativa 
+			los siguientes: narcotráfico, secuestro, robo de vehículos y trata de personas, esto con independencia de que el Juez que conozca del asunto penal dicte la sentencia correspondiente.<br><br>
+
+			La falsedad en las declaraciones vertidas en este contrato y/o el incumplimiento de las partes a cualquiera de las cláusulas contenidas en el mismo, será motivo de su rescisión, sin perjuicio de las 
+			consecuencias legales procedentes.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign="middle"><b>DECIMA NOVENA. - ANEXOS. -</b> Las partes están de acuerdo en que se efectúen Anexos <i>(ANEXO I: Inventario del mobiliario con el que se entrega el departamento 
+			y ANEXO II: Manual de Convivencia de obligado cumplimiento)</i> al presente contrato, los cuales formarán parte integrante del mismo.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign="middle"><b>VIGESIMA. - FIRMA Y ENTREGA DE PAGARÉS. -</b> A la fecha de la firma del presente contrato, “EL ARRENDATARIO” entrega a “EL ARRENDADOR” los 12 pagarés firmados 
+			por la duración restante y máxima total del presente contrato, los cuales serán devueltos a “EL ARRENDATARIO” de manera mensual y tras haber efectuado su pago rentístico, sirviéndose como documento eficaz 
+			de recibo de pago.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign="middle"><b>VIGESIMA PRIMERA. - DEL REGLAMENTO INTERNO O MANUAL DE CONVIVENCIA. - </b> El edificio cuenta con un reglamento interno o Manual de Convivencia, que se agrega al 
+			presente como Anexo II, el cual al momento tener un incumplimiento en el mismo, o alguna queja ante la administración del Edificio, será causal de rescisión del presente contrato. Así mismo se hace mención 
+			que no es permitido la tenencia de mascotas en el edificio ni la estadía continuada de menores de edad.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign="middle"><b>VIGESIMA SEGUNDA.- INVENTARIO. -</b> Forma parte del presente contrato el inventario presentado por “EL ARRENDADOR”, como Anexo I, el cual “EL ARRENDATARIO” recibe 
+			mobiliario por parte del ARRENDADOR y se obliga a dar mantenimiento a dicho mobiliario para su funcionamiento óptimo, así mismo se obliga al momento de la terminación del presente contrato, a entregar dicho 
+			mobiliario en el estado en que lo recibió  y en caso de contar con algún daño , la reparación del mismo será a cargo de “EL ARRENDATARIO”.</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="21" valign="middle"><b>VIGESIMA TERCERA. - MISCELANEOS. -</b>En el caso de que por motivo de incumplimiento de la cláusula octava o cualquier otra causa imputable a “EL ARRENDATARIO”, la 
+			autoridad cualquier que esta fuese, llegase a inmovilizar, limitar, clausurar, expropiar o extinguir el dominio de alguna manera del INMUEBLE, “EL ARRENDATARIO” se obliga de la manera más amplia y legal a 
+			indemnizar a “EL ARRENDADOR” recuperando el valor monetario a precio vigente comercial del INMUEBLE materia de este instrumento.<br><br>
+
+			Si por causas imputables a “EL ARRENDATARIO” su actividad, visitas, familiares o invitados, hubiera alguna situación legal que diera lugar a afectar de alguna manera “EL ARRENDADOR” (sus derechos sobre el 
+			INMUEBLE, las rentas, su tranquilidad personal o su situación jurídica), el ARRENDATARIO se obliga a pagar los gastos, viáticos, costas, honorarios, consultas legales, etc., a favor del ARRENDADOR de manera 
+			completa y suficiente para enfrentar cualquier situación que sea para salvaguardar sus intereses (del ARRENDADOR).<br><br>
+
+			“El ARRENDATARIO” manifiesta que en caso del incumplimiento parcial o total de las cláusulas y términos del presente contrato dará motivo a procedimientos y trámites judiciales y podrá ser emplazado en el 
+			mismo domicilio del INMUEBLE arrendado y en caso de no estar ahí podrá ser emplazado de manera amplia y legal en el domicilio que fuese localizado.
+		</td>
+	</tr>	
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr>
+		<td class="parrafo" colspan="2" height="21" valign="middle"><b>VIGESIMA CUARTA. - COMPETENCIA. -</b> Para todo lo relativo a la interpretación, ejecución y cumplimiento del presente contrato, las partes se someten 
+			a las leyes del Estado de Nuevo León y a la Jurisdicción de los tribunales de Monterrey, renunciando al fuero de cualesquiera que pudieren corresponderles por razón de sus domicilios, presente o futuros, o cualquier 
+			otra causa.<br><br>
+
+			Por todo lo no expresamente señalado en el presente contrato, en el mismo se regirá por las Leyes aplicables en materia de arrendamiento contenidas en el Código Civil y Código de Procedimientos Civiles del Estado de 
+			Nuevo León.<br><br>
+
+			Leído que fue el presente instrumento y enteradas que fueron las partes de su contenido, valor y alcance legal, lo firman al margen en cada una de sus hojas, con excepción de la última, que se firma al calce por 
+			triplicado el día {{info.fecha_celebracion}}, en la ciudad de Monterrey, Nuevo León, México.
+		</td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><br></td>
+	</tr>
+	<tr class="subtitle">
+		<td colspan="2" height="21" style="text-align: center; width:100%; margin-bottom: 25px;"><b><u><i>(A continuación, apartado de firmas)</i></u></b></td>
+    </tr>
+</table>
+{% comment %} FIRMAS {% endcomment %}
+{% if info.arrendatario.aval == "Si" %}
+	{% if info.arrendatario.regimen_obligado == "Persona Moral" and info.arrendatario.regimen_arrendatario == "Persona Moral" %}
+	{% comment %} persona moral con obligado persona moral {% endcomment %}
+			<section style="margin-top:-10px;">
+				<article>
+					<div style="text-align: center;">
+						<b>
+							LA ARRENDADORA<br>Desarrollos Fraterna Comercializadora, S.A. de C.V.
+							<div style="height:20px;"></div>
+							
+						
+							______________________________________</b><br>
+							Representada en este acto por:<br>
+							<b>Carlos Manuel Padilla Silva</b>
+					</div>
+				</article>
+			
+				<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>LA ARRENDATARIA</h4>
+						<div style="height:20px;"></div>
+						
+						
+						______________________________________<br>
+						{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{{info.arrendatario.nombre_arrendatario | upper}}{% else %}{{info.arrendatario.arr_nombre_empresa | upper}}{% endif %} 
+						<br>
+						{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.nombre_arrendatario | upper}}{% endif %}
+			
+					</b>
+				</div>
+				
+				</article>
+			</section>
+
+
+
+			<section style="margin-top:-10px;">
+				<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>FIADOR SOLIDARIO</h4>
+						<div style="height:20px;"></div>
+						
+					
+						______________________________________<br>
+						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}.{% endif %}
+						<br>
+						{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}.{% endif %}  
+					</b>
+				</div>
+				</article>
+			
+				<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>Testigo</h4>
+						<div style="height:20px;"></div>
+						
+						
+						______________________________________<br>
+						{{testigo1 | upper}}
+			
+					</b>
+				</div>
+				
+				</article>
+			</section>
+
+			<section style="margin-top:-10px;">
+				<article>
+					<div style="text-align: center;">
+						
+					</div>
+				</article>
+			
+				<article>
+					<div style="text-align: center;">
+						<b>
+							<h4>Testigo</h4>
+							<div style="height:20px;"></div>
+							
+							
+							______________________________________<br>
+							{{testigo2 | upper}}
+				
+						</b>
+					</div>
+				</article>
+			</section>
+			
+	{% elif info.arrendatario.regimen_obligado == "Persona Moral" %}
+	{% comment %} persona fisica con obligado persona moral {% endcomment %}
+	<div style="margin-top:20px;">
+		<section>
+			<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>LA ARRENDADORA<br>Desarrollos Fraterna Comercializadora, S.A. de C.V.</h4>
+						<div style="height:20px;"></div>
+						
+					
+						____________________________________________________</b><br>
+						Representada en este acto por:<br>
+						<b>Carlos Manuel Padilla Silva</b>
+				</div>
+			</article>
+		</section>
+		<section>
+			<article>
+			<div style="text-align: center;">
+				<b>
+					<h4>LA ARRENDATARIA<br>{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{{info.arrendatario.nombre_arrendatario | upper}}{% else %}{{info.arrendatario.arr_nombre_empresa | upper}}{% endif %} 
+					{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{% else %}<br>REPRESENTADA POR {{info.arrendatario.nombre_arrendatario | upper}}{% endif %}</h4>
+					<div style="height:37px;"></div>
+					
+				
+					____________________________________________________<br>
+			
+					</b>
+				</div>
+				
+				</article>
+			
+				<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>FIADOR SOLIDARIO<br>{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}{% endif %}
+							{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}<br>REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}{% endif %}</h4>
+						<div style="height:20px;"></div>
+						
+					
+						____________________________________________________<br>
+
+					</b>
+				</div>
+				</article>
+		</section>
+		<section style="margin-top:-10px;">
+				<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>Testigo</h4>
+						<div style="height:20px;"></div>
+						
+						
+						____________________________________________________<br>
+						{{testigo1 | upper}}
+			
+					</b>
+				</div>
+				
+				</article>
+				<article>
+					<div style="text-align: center;">
+						<b>
+							<h4>Testigo</h4>
+							<div style="height:20px;"></div>
+							
+							
+						____________________________________________________<br>
+							{{testigo2 | upper}}
+				
+						</b>
+					</div>
+				</article>
+			</section>
+	</div>
+	
+	{% else %}
+		{% comment %} persona fisica con obligado fisico {% endcomment %}
+		<div style="margin-top:20px;">
+			<section>
+				<article>
+					<div style="text-align: center;">
+						<b>
+							<h4>LA ARRENDADORA<br>Desarrollos Fraterna Comercializadora, S.A. de C.V.</h4>
+							<div style="height:20px;"></div>
+							
+						
+							____________________________________________________</b><br>
+							Representada en este acto por:<br>
+							<b>Carlos Manuel Padilla Silva</b>
+					</div>
+				</article>
+			</section>
+			<section>
+				<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>LA ARRENDATARIA<br>{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{{info.arrendatario.nombre_arrendatario | upper}}{% else %}{{info.arrendatario.nombre_empresa_pm | upper}}{% endif %} 
+						{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{% else %}<br>REPRESENTADA POR {{info.arrendatario.nombre_arrendatario | upper}}{% endif %}</h4>
+						<div style="height:37px;"></div>
+						
+					
+						____________________________________________________<br>
+				
+						</b>
+					</div>
+					
+					</article>
+				
+					<article>
+					<div style="text-align: center;">
+						<b>
+							<h4>FIADOR SOLIDARIO<br>{% if info.arrendatario.regimen_obligado == "Persona Fisica" %} {{info.arrendatario.nombre_obligado | upper}}.{% else %}{{info.arrendatario.obligado_nombre_empresa | upper}}{% endif %}
+								{% if info.arrendatario.regimen_obligado == "Persona Fisica" %}{% else %}<br>REPRESENTADA POR {{info.arrendatario.obligado_nombre_rl | upper}}{% endif %}</h4>
+							<div style="height:37px;"></div>
+							
+						
+							____________________________________________________<br>
+
+						</b>
+					</div>
+					</article>
+			</section>
+			<section style="margin-top:-10px;">
+					<article>
+					<div style="text-align: center;">
+						<b>
+							<h4>Testigo</h4>
+							<div style="height:20px;"></div>
+							
+							
+							____________________________________________________<br>
+							{{testigo1 | upper}}
+				
+						</b>
+					</div>
+					
+					</article>
+					<article>
+						<div style="text-align: center;">
+							<b>
+								<h4>Testigo</h4>
+								<div style="height:20px;"></div>
+								
+								
+							____________________________________________________<br>
+								{{testigo2 | upper}}
+					
+							</b>
+						</div>
+					</article>
+				</section>
+		</div>
+	
+	{% endif %}
+	
+	
+{% else %}
+{% comment %} sin obligado {% endcomment %}
+	<div>
+		<section>
+			<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>LA ARRENDADORA<br>Desarrollos Fraterna Comercializadora, S.A. de C.V.</h4>
+						<div style="height:20px;"></div>
+						
+					
+						______________________________________</b><br>
+						Representada en este acto por:<br>
+						<b>Carlos Manuel Padilla Silva</b>
+				</div>
+			</article>
+		
+			<article>
+			<div style="text-align: center;">
+				<b>
+					<h4>LA ARRENDATARIA</h4>
+					<div style="height:20px;"></div>
+					
+				
+					______________________________________<br>
+					{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{{info.arrendatario.nombre_arrendatario | upper}}{% else %}{{info.arrendatario.arr_nombre_empresa | upper}}{% endif %} 
+					<br>
+					{% if info.arrendatario.regimen_arrendatario == "Persona Fisica" %}{% else %}REPRESENTADA POR {{info.arrendatario.nombre_arrendatario | upper}}{% endif %}
+		
+				</b>
+			</div>
+			
+			</article>
+		</section>
+		<section>
+			<article>
+			<div style="text-align: center;">
+				<b>
+					<h4>Testigo</h4>
+					<div style="height:20px;"></div>
+					
+				
+					______________________________________<br>
+					{{testigo1}}
+					<br>
+				</b>
+			</div>
+			</article>
+			<article>
+				<div style="text-align: center;">
+					<b>
+						<h4>Testigo</h4>
+						<div style="height:20px;"></div>
+						
+					
+						______________________________________<br>
+						{{testigo2}}
+						<br>
+					</b>
+				</div>
+				</article>
+		</section>
+	</div>
+
+{% endif %}
+
+</body>
+
+</html>
+
+</html>

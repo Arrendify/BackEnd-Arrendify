@@ -229,7 +229,7 @@
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Referencia: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">{{info.residente.rfc_arrendatario}}</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">{% if info.no_depa|length == 3 %}UT0{{info.no_depa}}{{info.cama}}{% else %}UT{{info.no_depa}}{{info.cama}}{% endif %}</div></td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Pago a nombre de: </div></td>

@@ -3,11 +3,5 @@
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "editor.formatOnSave": true,
-  "workbench.colorCustomizations": {
-    "titleBar.activeBackground": "#910606", // barra superior activa (morado oscuro)
-    "titleBar.activeForeground": "#FFFFFF", // texto en blanco para contraste
-    "titleBar.inactiveBackground": "#910606", // barra cuando está inactiva
-    "titleBar.inactiveForeground": "#CCCCCC" // texto gris claro cuando inactiva
-  }
+  "editor.formatOnSave": true
 }

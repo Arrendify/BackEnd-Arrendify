@@ -70,6 +70,11 @@ router.register(r'arrendatarios_semillero', fraterna_views.Arrendatarios_semille
 router.register(r'documentos_arrendatarios_semillero', fraterna_views.DocumentosArrendatario_semillero, basename='documentos_arrendatarios_semillero')
 router.register(r'contratos_semillero', fraterna_views.Contratos_semillero, basename='contratos_semillero')
 
+#GarzaSada
+router.register(r'arrendatarios_garzasada', fraterna_views.Arrendatarios_GarzaSadaViewSet, basename='arrendatarios_garzasada')
+router.register(r'documentos_arrendatarios_garzasada', fraterna_views.DocumentosArrendatario_GarzaSada, basename='documentos_arrendatarios_garzasada')
+router.register(r'contratos_garzasada', fraterna_views.Contratos_GarzaSada, basename='contratos_garzasada')
+
 # Contratos Dash
 router.register(r'contratos_dash', ContratosViewSet, basename='contratos_semillero')
 #Stripe
