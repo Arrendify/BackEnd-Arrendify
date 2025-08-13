@@ -78,7 +78,7 @@ REST_FRAMEWORK = {
         #'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+    ),    
 }
 
 # Specify the authentication backend to be used for token authentication

@@ -189,7 +189,7 @@ class DocumentosFoo(viewsets.ModelViewSet):
     queryset = DocumentosFiador.objects.all()
     serializer_class = DFSerializer
    
-    
+
     def list(self, request, *args, **kwargs):
         content = {
             'user': str(request.user),
@@ -201,12 +201,10 @@ class DocumentosFoo(viewsets.ModelViewSet):
         return Response(FiadorSerializers.data ,status=status.HTTP_200_OK)
     
     def create (self, request, *args,**kwargs):
-        print("Entro a create fiadores docs")
-        user_session = request.user.id
-        print(user_session)
         try: 
-            data = request.data
-            print("primer print",data)
+            user_session = str(request.user.id)
+            data = request.data        
+            print("Creando documentos fiador")   
             data = {
                     "Ine": request.FILES.get('Ine', None),
                     "Comp_dom": request.FILES.get('Comp_dom', None),
@@ -215,8 +213,10 @@ class DocumentosFoo(viewsets.ModelViewSet):
                     "Fiador":request.data['Fiador'],
                     "user":user_session
                 }
-            print("segundo print",data)
+            
             if data:
+                
+                print("Entre en el If")
                 documentos_serializer = self.get_serializer(data=data)
                 documentos_serializer.is_valid(raise_exception=True)
                 documentos_serializer.save()

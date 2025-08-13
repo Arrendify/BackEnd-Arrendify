@@ -7,6 +7,7 @@ from ..accounts.models import *
 from django.conf import settings
 
 class DFSerializer(serializers.ModelSerializer):
+    aval_nombre = serializers.CharField(source='aval.nombre_completo', read_only=True)
     class Meta:
         model = DocumentosFiador
         fields = '__all__'
@@ -297,6 +298,37 @@ class ContratoSemilleroSerializer(serializers.ModelSerializer):
     class Meta:
         model = SemilleroContratos
         fields = '__all__' 
+        
+#FRATERNA GARZA SADA
+class DAGSSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = DocumentosArrendatarios_garzasada
+        fields = '__all__'
+
+class Arrentarios_GarzaSadaSerializers(serializers.ModelSerializer):
+    archivos = DAGSSerializer(many=True, read_only=True)
+    user =  User2Serializer(read_only=True)
+    
+    class Meta:
+        model = Arrendatarios_garzasada
+        fields = '__all__'
+
+#GarzaSada Contratos  
+class ProcesoGarzaSadaSerializers(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ProcesoContrato_garzasada
+        fields = '__all__'
+        
+class ContratoGarzaSadaSerializer(serializers.ModelSerializer):
+    arrendatario_contrato = Arrentarios_GarzaSadaSerializers(read_only=True, source='arrendatario')
+    proceso = ProcesoGarzaSadaSerializers(many=True, read_only=True, source ='contrato')
+    
+    class Meta:
+        model = GarzaSadaContratos
+        fields = '__all__' 
+        
    
 ########################### CONTRATOS DASH ########################################
 class ContratosDashSerializer(serializers.ModelSerializer):

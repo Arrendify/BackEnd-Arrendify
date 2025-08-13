@@ -51,8 +51,6 @@ urlpatterns = [
     path('fraterna/generar_urls_firma/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_urls_firma_fraterna'}), name='generar_urls_firma_frat'),
     path('fraterna/mostrar_urls_firma_documento/', fraterna_views.Contratos_fraterna.as_view({'post': 'mostrar_urls_firma_documento_fraterna'}), name='mostrar_urls_firma_documento_frat'),
     
-
-    
     #contrato semillero purisima
     path('semillero/aprobar_contrato/', fraterna_views.Contratos_semillero.as_view({'put': 'aprobar_contrato_semillero'}), name='aprobar_contrato_semillero'),
     path('semillero/desaprobar_contrato/', fraterna_views.Contratos_semillero.as_view({'put': 'desaprobar_contrato_semillero'}), name='desaprobar_contrato_frat'),
@@ -61,6 +59,17 @@ urlpatterns = [
     path('semillero/generar_contrato/', fraterna_views.Contratos_semillero.as_view({'post': 'generar_contrato_semillero'}), name='generar_contrato_semillero'),
     path('semillero/aprobar_residente/',fraterna_views.InvestigacionSemillero.as_view({'post': 'aprobar_residente_semillero'}), name='aprobar_residente_semillero'),
     
+    #contrato Garza Sada
+    path('garzasada/aprobar_contrato/', fraterna_views.Contratos_GarzaSada.as_view({'put': 'aprobar_contrato_garzasada'}), name='aprobar_contrato_garzasada'),
+    path('garzasada/desaprobar_contrato/', fraterna_views.Contratos_GarzaSada.as_view({'put': 'desaprobar_contrato_garzasada'}), name='desaprobar_contrato_garzasada'),
+    path('garzasada/generar_pagare/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'generar_pagare_garzasada'}), name='generar_pagare_garzasada'),
+    path('garzasada/generar_poliza/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'generar_poliza_garzasada'}), name='generar_poliza_garzasada'),
+    path('garzasada/generar_contrato/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'generar_contrato_garzasada'}), name='generar_contrato_garzasada'),
+    path('garzasada/aprobar_residente/',fraterna_views.InvestigacionGarzaSada.as_view({'post': 'aprobar_residente_garzasada'}), name='aprobar_residente_garzasada'),
+    path('garzasada/generar_paquete_completo/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'generar_paquete_completo_garzasada'}), name='generar_paquete_completo_gs'),
+    path('garzasada/generar_urls_firma/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'generar_urls_firma_gs'}), name='generar_urls_firma_gs'),
+    path('garzasada/mostrar_urls_firma_documento/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'mostrar_urls_firma_documento_gs'}), name='mostrar_urls_firma_documento_gs'),
+
     
     #notificaiones por usuario
     path('notificaciones_usuario/',notis_prueba.as_view({'get': 'notificaiones_por_usuario'}), name='notificaiones_por_usuario'),
