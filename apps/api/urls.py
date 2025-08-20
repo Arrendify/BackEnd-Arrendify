@@ -69,8 +69,9 @@ urlpatterns = [
     path('garzasada/generar_paquete_completo/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'generar_paquete_completo_garzasada'}), name='generar_paquete_completo_gs'),
     path('garzasada/generar_urls_firma/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'generar_urls_firma_gs'}), name='generar_urls_firma_gs'),
     path('garzasada/mostrar_urls_firma_documento/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'mostrar_urls_firma_documento_gs'}), name='mostrar_urls_firma_documento_gs'),
-
     
+    #Arrendamientos Garza Sada
+
     #notificaiones por usuario
     path('notificaciones_usuario/',notis_prueba.as_view({'get': 'notificaiones_por_usuario'}), name='notificaiones_por_usuario'),
     path('send_noti/',notis_prueba.as_view({'post': 'send_noti'}), name='send_noti'),

@@ -27,7 +27,7 @@ User = CustomUser
 from rest_framework.authentication import TokenAuthentication,SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from apps.authentication.serializers import UserTokenSerializer, CustomUserSerializer, UserListSerializer, User2Inmobiliaria, UserSerializer,User2Serializer, PasswordSerializer
+from apps.authentication.serializers import UserTokenSerializer, CustomUserSerializer, UserListSerializer, User2Inmobiliaria, UserSerializer,User2Serializer, PasswordSerializer,User2Residente
 from rest_framework.decorators import api_view
 #variables
 from ..api.variables import *
@@ -99,6 +99,7 @@ class Login(ObtainAuthToken):
                 user_serilizer = UserTokenSerializer(user)
                 inmobiliaria_user = User2Inmobiliaria(user)
                 arrendify_user = User2Serializer(user)
+                residente_user = User2Residente(user)
 
                 print("YO SOY USER",user)
                 if created:
@@ -113,6 +114,13 @@ class Login(ObtainAuthToken):
                         print("SOY STAFF")
                         return Response({'token':token.key, 
                                       'user':arrendify_user.data,
+                                      'type':'Token',
+                                      'message': 'Inicio de Sesion Existoso'
+                                      },status=status.HTTP_201_CREATED)
+                     elif residente_user.data['rol'] == "Residente":
+                        print("Residente")
+                        return Response({'token':token.key, 
+                                      'user':residente_user.data,
                                       'type':'Token',
                                       'message': 'Inicio de Sesion Existoso'
                                       },status=status.HTTP_201_CREATED)
@@ -144,12 +152,6 @@ class Login(ObtainAuthToken):
             print('error: Contraseña o nombre de usuario incorrectos')
             return Response({'error': 'Contraseña o nombre de usuario incorrectos'}, status = status.HTTP_400_BAD_REQUEST)
         
-        # return Response({
-        #         #'token': login_serializer.validated_data.get('access'),
-        #         #'refresh-token': login_serializer.validated_data.get('refresh'),
-        #         # 'user': user,
-        #         'message': 'Hola'
-        #     }, status=status.HTTP_200_OK)
 
 class Logout(APIView):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
@@ -242,6 +244,24 @@ class Register(APIView):
                     if enviar_password:
                         self.enviar_password(info.email, entrada['password'])
                     print("usuario guardado")
+                
+                elif entrada["rol"] == "Residente":
+                    try:
+                        inmo_ag = User.objects.get(name_inmobiliaria=entrada["pertenece_a"])
+                    except User.DoesNotExist:
+                        return Response({'error': "No se encontró la inmobiliaria indicada", 'status': 102})
+
+                    codigo = entrada["c_inmobiliaria"]
+                    if codigo == inmo_ag.code_inmobiliaria:
+                        print("Bienvenido Residente, código correcto")
+                        user_serializar.save()
+                        info = User.objects.get(username=entrada["username"])
+                        if enviar_password:
+                            self.enviar_password(info.email, entrada['password'])
+                        print("usuario guardado")
+                    else:
+                        return Response({'error': "El código que proporcionaste no es correcto", 'status': 101})
+
 
                 print("ya voy a retornar la info")
                 return Response(user_serializar.data)

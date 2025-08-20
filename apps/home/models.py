@@ -22,7 +22,7 @@ from django.utils.text import slugify
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from datetime import datetime, timedelta
+from datetime import *
 from dateutil.relativedelta import relativedelta
 from rest_framework.authtoken.models import Token
 
@@ -2657,3 +2657,33 @@ class ProcesoContrato_garzasada(models.Model):
         
         class Meta:
             db_table = 'garzasada_proceso'
+            
+class DocumentosArrendamientos_garzasada(models.Model):
+    def get_comp_pago_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.nombre_empresa_pm)
+        
+        ip = inq_split.replace(" ", "_")
+        # Separar nombre y extensión del archivo original
+        base, ext = filename.rsplit('.', 1)
+        
+        # Agregar fecha en formato YYYY-MM-DD
+        fecha = date.today().strftime("%Y-%m-%d")
+        nuevo_nombre = f"{base}_{fecha}.{ext}"
+        
+        print(ip)
+        
+        return f'Garzasada/arrendamiento/{ip}/comprobantes_pago/{nuevo_nombre}'
+    
+    id = models.AutoField(primary_key=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    arrendatario = models.ForeignKey(Arrendatarios_garzasada, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos_pagos")
+    contrato = models.ForeignKey(GarzaSadaContratos, null=True, blank=True, on_delete=models.CASCADE,related_name="contrato_pago")
+    proceso = models.ForeignKey(ProcesoContrato_garzasada, null=True, blank=True, on_delete=models.CASCADE,related_name="proceso_pago") 
+    comp_pago = models.FileField(upload_to=get_comp_pago_upload_path, max_length=255, null=True, blank=True)
+    dateTimeOfUpload = models.DateTimeField(auto_now = True)
+    
+    class Meta:
+        db_table = 'garzasada_documentos_arrendamientos' 

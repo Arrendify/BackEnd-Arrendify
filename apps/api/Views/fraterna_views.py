@@ -8,6 +8,7 @@ User = CustomUser
 from rest_framework.authentication import TokenAuthentication,SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import HttpResponse
+from django.forms.models import model_to_dict
 
 #s3
 import boto3
@@ -3158,13 +3159,13 @@ class Arrendatarios_GarzaSadaViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         user_session = request.user       
         try:
-           if user_session.is_staff: #Muestra todos los arrendatarios
+            if user_session.is_staff: #Muestra todos los arrendatarios
                 print("Listar Residentes Garza Sada")
                 arrendatarios =  self.get_queryset().order_by('-id')
                 serializer = self.get_serializer(arrendatarios, many=True)
                 return Response(serializer.data, status= status.HTTP_200_OK)
             
-           elif user_session.rol == "Inmobiliaria": #Muestra los arrendatarios de la inmobiliaria y los que hayan registrado los agentes
+            elif user_session.rol == "Inmobiliaria": #Muestra los arrendatarios de la inmobiliaria y los que hayan registrado los agentes
                 print("Soy Inmobiliaria ====>", user_session.name_inmobiliaria)
                 agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
                 
@@ -3186,7 +3187,7 @@ class Arrendatarios_GarzaSadaViewSet(viewsets.ModelViewSet):
                     
                 return Response(serialized_data)      
             
-           elif user_session.rol == "Agente":  
+            elif user_session.rol == "Agente":  
                 print("Soy Agente ====>", user_session.first_name)
                 residentes_agente = self.get_queryset().filter(user_id = user_session).order_by('-id')#Buscamos inquilinos del agente y los ordenamos por id descendente
               
@@ -3201,11 +3202,35 @@ class Arrendatarios_GarzaSadaViewSet(viewsets.ModelViewSet):
                     item['agente'] = True
                     
                 return Response(serialized_data)
-         
-           return Response(serializer.data, status= status.HTTP_200_OK)
+            
+            elif user_session.rol == "Residente":
+                print("Soy Residente ====>", user_session.first_name)
+                nombre_busqueda = (user_session.first_name).strip()
+
+                # Si no hay nombre para filtrar, retorna lista vacía por seguridad
+                if not nombre_busqueda:
+                    return Response([], status=status.HTTP_200_OK)
+
+                residente = (
+                    Arrendatarios_garzasada.objects
+                    .filter(
+                        Q(nombre_arrendatario__icontains=nombre_busqueda) |
+                        Q(nombre_empresa_pm__icontains=nombre_busqueda)
+                    )
+                    .order_by('-id')
+                )
+                
+                for arrendatario in residente:
+                    arrendatario_dict = model_to_dict(arrendatario)
+                    print(f"ARRENDATARIO COMPLETO ====> {arrendatario_dict}")
+                
+                print("Residente encontrado ====>", residente)
+
+                serializer = self.get_serializer(residente, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)           
         
         except Exception as e:
-            print(f"el error es: {e}")
+            print(f"el error desde list arrendatarios garza sada es: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
@@ -3510,6 +3535,142 @@ class DocumentosArrendatario_GarzaSada(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
+class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    queryset = DocumentosArrendamientos_garzasada.objects.all()
+    serializer_class = GarzaSadaArrendamientosSerializer
+    
+    def list(self, request, *args, **kwargs):
+        try:
+            print("Listando Documentos Arrendamiento Garza Sada....📄")
+            queryset = self.filter_queryset(self.get_queryset())
+            ResidenteSerializers = self.get_serializer(queryset, many=True)
+            return Response(ResidenteSerializers.data ,status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(f"el error esta en list documentos arrendamientos es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def create(self, request, *args, **kwargs):
+        try: 
+            print("Creando Documentos Arrendamiento Garza Sada....📄")
+            user_session = request.user
+            data = request.data
+            print("Data ===>", data)
+            print("FILES ===>", request.FILES)
+            
+            # Usar first_name del usuario autenticado para buscar arrendatario
+            nombre_usuario = user_session.first_name.strip()
+            print(f"Buscando arrendatario con nombre: {nombre_usuario}")
+            
+            # Buscar arrendatario por nombre
+            arrendatario = Arrendatarios_garzasada.objects.filter(
+                Q(nombre_arrendatario__icontains=nombre_usuario) |
+                Q(nombre_empresa_pm__icontains=nombre_usuario)
+            ).first()
+            
+            if not arrendatario:
+                return Response({'error': f'No se encontró arrendatario con nombre: {nombre_usuario}'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            print(f"Arrendatario encontrado: {arrendatario.nombre_arrendatario}")
+            
+            # Buscar contrato relacionado
+            try:
+                contrato = GarzaSadaContratos.objects.get(arrendatario=arrendatario)
+                print(f"Contrato encontrado: {contrato.id}")
+            except GarzaSadaContratos.DoesNotExist:
+                return Response({'error': 'Contrato no encontrado para este arrendatario'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Buscar proceso relacionado
+            try:
+                proceso = ProcesoContrato_garzasada.objects.get(contrato=contrato)
+                print(f"Proceso encontrado: {proceso.id}")
+            except ProcesoContrato_garzasada.DoesNotExist:
+                return Response({'error': 'Proceso no encontrado para este contrato'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Crear documento
+            documento_data = {
+                "user": user_session.id,
+                "arrendatario": arrendatario.id,
+                "contrato": contrato.id,
+                "proceso": proceso.id,
+                "comp_pago": request.FILES.get('comp_pago', None),
+            }
+            
+            arrendamientos_serializer = self.get_serializer(data=documento_data)
+            arrendamientos_serializer.is_valid(raise_exception=True)
+            arrendamientos_serializer.save()
+            
+            print("Documento ligado correctamente....✅")
+            return Response(arrendamientos_serializer.data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def destroy(self, request, pk=None, *args, **kwargs):
+        try:
+            print("Eliminando Documentos Arrendamiento Garza Sada....🗑️")
+            documentos_arrendamiento = self.get_object()
+            documento_arrendamiento_serializer = self.serializer_class(documentos_arrendamiento)
+            if documentos_arrendamiento:
+                comp_pago = documento_arrendamiento_serializer.data['comp_pago']
+                print("Eliminando Comprobante de Pago....", comp_pago)
+                
+                documentos_arrendamiento.delete()
+                print("Documentos Arrendamiento Garza Sada eliminados correctamente....✅")
+                return Response({'message': 'Archivo eliminado correctamente'}, status=204) 
+            else:
+                return Response({'message': 'Error al eliminar archivo'}, status=400)
+        except Exception as e:  
+            print(f"el error es en documentos arrendamiento destroy es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def update(self, request, *args, **kwargs):
+        try:
+            print("Actualizando Documentos Arrendatario Garza Sada....🔄")
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            print("Datos Actuales ====>",request.data)
+            
+            # Verificar si se proporciona un nuevo archivo adjunto
+            keys = request.data.keys()
+    
+            # Convertir las llaves a una lista y obtener la primera
+            first_key = list(keys)[0]
+            #first_key = str(first_key)
+            print(first_key)
+            
+            # Acceder dinámicamente al atributo de instance usando first_key
+            if hasattr(instance, first_key):
+                archivo_anterior = getattr(instance, first_key)
+                print("Archivo anterior ====>", archivo_anterior)
+                eliminar_archivo_s3(archivo_anterior)
+                print("Archivo eliminado de S3 desde GarzaSada....✅")
+            else:
+                print(f"El atributo '{first_key}' no existe en la instancia.")
+            
+            serializer.update(instance, serializer.validated_data)
+            print("Se actualizó correctamente el documento del arrendatario Garza Sada....✅")
+            return Response(serializer.data)
+
+        
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+        
 #////////////////////////CONTRATOS GARZA SADA///////////////////////////////
 class Contratos_GarzaSada(viewsets.ModelViewSet):
     # authentication_classes = [TokenAuthentication, SessionAuthentication]
@@ -3548,6 +3709,27 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
                residentes_agente = GarzaSadaContratos.objects.filter(user_id = user_session).order_by('-id')#Obtenemos los contratos del agente y oredenamos por id descendente
                serializer = self.get_serializer(residentes_agente , many=True)
                return Response(serializer.data, status= status.HTTP_200_OK)
+           
+           elif user_session.rol == "Residente" and user_session.pertenece_a == "GarzaSada":#El residente ve sus contratos
+                print("Residente ====>", user_session.first_name)
+                nombre_busqueda = (user_session.first_name).strip()
+
+                # Si no hay nombre para filtrar, retorna lista vacía por seguridad
+                if not nombre_busqueda:
+                    return Response([], status=status.HTTP_200_OK)
+
+                contratos_residente = (
+                    GarzaSadaContratos.objects
+                    .filter(
+                        Q(arrendatario__nombre_arrendatario__icontains=nombre_busqueda) |
+                        Q(arrendatario__nombre_empresa_pm__icontains=nombre_busqueda)
+                    )
+                    .order_by('-id')
+                )
+
+                serializer = self.get_serializer(contratos_residente, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
            
         except Exception as e:
             print(f"el error es: {e}")

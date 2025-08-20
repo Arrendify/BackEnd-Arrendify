@@ -74,8 +74,13 @@ class User2Serializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username','is_staff','rol','first_name')
         
+class User2Residente(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username','rol','first_name','name_inmobiliaria','pertenece_a')
+        
 class User2Inmobiliaria(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id','username', 'rol','name_inmobiliaria','pertenece_a')
+        fields = ('id','username','rol','name_inmobiliaria','pertenece_a')
 
