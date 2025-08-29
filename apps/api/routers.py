@@ -75,6 +75,7 @@ router.register(r'arrendatarios_garzasada', fraterna_views.Arrendatarios_GarzaSa
 router.register(r'documentos_arrendatarios_garzasada', fraterna_views.DocumentosArrendatario_GarzaSada, basename='documentos_arrendatarios_garzasada')
 router.register(r'contratos_garzasada', fraterna_views.Contratos_GarzaSada, basename='contratos_garzasada')
 router.register(r'recibos_garzasada', fraterna_views.DocumentosArrendamiento_GarzaSada, basename='recibos_garzasada')
+router.register(r'incidencias_garzasada', fraterna_views.IncidenciasGarzaSada, basename='incidencias_garzasada')
 
 # Contratos Dash
 router.register(r'contratos_dash', ContratosViewSet, basename='contratos_semillero')

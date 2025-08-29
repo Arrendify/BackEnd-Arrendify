@@ -330,13 +330,23 @@ class ContratoGarzaSadaSerializer(serializers.ModelSerializer):
         fields = '__all__' 
         
 class GarzaSadaArrendamientosSerializer(serializers.ModelSerializer):
-    user =  User2Serializer(read_only=True)
+    # Campos de solo lectura para mostrar información relacionada
+    user_info = User2Serializer(read_only=True, source='user')
     arrendatario_contrato = Arrentarios_GarzaSadaSerializers(read_only=True, source='arrendatario')
-    proceso = ProcesoGarzaSadaSerializers(many=True, read_only=True)
-    contrato = ContratoGarzaSadaSerializer(many=True, read_only=True)
+    proceso_info = ProcesoGarzaSadaSerializers(read_only=True, source='proceso')
+    contrato_info = ContratoGarzaSadaSerializer(read_only=True, source='contrato')
     
     class Meta:
         model = DocumentosArrendamientos_garzasada
+        fields = '__all__'
+        
+class IncidenciasGarzaSadaSerializer(serializers.ModelSerializer):
+    user_info = User2Serializer(read_only=True, source='user')
+    arrendatario_contrato = Arrentarios_GarzaSadaSerializers(read_only=True, source='arrendatario')
+    contrato_info = ContratoGarzaSadaSerializer(read_only=True, source='contrato')
+    
+    class Meta:
+        model = IncidenciasGarzaSada
         fields = '__all__'
    
 ########################### CONTRATOS DASH ########################################

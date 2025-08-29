@@ -28,6 +28,7 @@ from datetime import datetime
 #Libreria para obtener el lenguaje en español
 import locale
 
+import re
 #obtener Logs de errores
 import logging
 import sys
@@ -52,6 +53,8 @@ import requests
 import base64
 from pypdf import PdfReader, PdfWriter
 from datetime import datetime as dt
+from datetime import datetime, timedelta
+from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
 # ----------------------------------Metodos Extras----------------------------------------------- #
@@ -3159,33 +3162,33 @@ class Arrendatarios_GarzaSadaViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         user_session = request.user       
         try:
-            if user_session.is_staff: #Muestra todos los arrendatarios
+            if user_session.is_staff or user_session.username == "GarzaSada": #Muestra todos los arrendatarios
                 print("Listar Residentes Garza Sada")
                 arrendatarios =  self.get_queryset().order_by('-id')
                 serializer = self.get_serializer(arrendatarios, many=True)
                 return Response(serializer.data, status= status.HTTP_200_OK)
             
-            elif user_session.rol == "Inmobiliaria": #Muestra los arrendatarios de la inmobiliaria y los que hayan registrado los agentes
-                print("Soy Inmobiliaria ====>", user_session.name_inmobiliaria)
-                agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
+            # elif user_session.rol == "Inmobiliaria": #Muestra los arrendatarios de la inmobiliaria y los que hayan registrado los agentes
+            #     print("Soy Inmobiliaria ====>", user_session.name_inmobiliaria)
+            #     agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
                 
-                inquilinos_agentes = self.get_queryset().filter(user_id__in = agentes)#Buscamos inquilinos con base en los agentes que pertenecen a la inmobiliaria
-                inquilinos_inmobiliaria = self.get_queryset().filter(user_id = user_session)
-                all_inquilinos = inquilinos_agentes.union(inquilinos_inmobiliaria)#Une ambas consultas de agentes y la inmobiliaria
-                all_inquilinos = all_inquilinos.order_by('-id') #ordena por id descendente
+            #     inquilinos_agentes = self.get_queryset().filter(user_id__in = agentes)#Buscamos inquilinos con base en los agentes que pertenecen a la inmobiliaria
+            #     inquilinos_inmobiliaria = self.get_queryset().filter(user_id = user_session)
+            #     all_inquilinos = inquilinos_agentes.union(inquilinos_inmobiliaria)#Une ambas consultas de agentes y la inmobiliaria
+            #     all_inquilinos = all_inquilinos.order_by('-id') #ordena por id descendente
                
-                serializer = self.get_serializer(all_inquilinos, many=True)
-                serialized_data = serializer.data
+            #     serializer = self.get_serializer(all_inquilinos, many=True)
+            #     serialized_data = serializer.data
                 
-                if not serialized_data:
-                    print("No hay datos disponibles")
-                    return Response({"message": "No hay datos disponibles",'asunto' :'1'})
+            #     if not serialized_data:
+            #         print("No hay datos disponibles")
+            #         return Response({"message": "No hay datos disponibles",'asunto' :'1'})
                 
-                # Agregar el campo 'is_staff'
-                for item in serialized_data:
-                    item['inmobiliaria'] = True
+            #     # Agregar el campo 'is_staff'
+            #     for item in serialized_data:
+            #         item['inmobiliaria'] = True
                     
-                return Response(serialized_data)      
+            #     return Response(serialized_data)      
             
             elif user_session.rol == "Agente":  
                 print("Soy Agente ====>", user_session.first_name)
@@ -3565,32 +3568,93 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
             
             # Usar first_name del usuario autenticado para buscar arrendatario
             nombre_usuario = user_session.first_name.strip()
-            print(f"Buscando arrendatario con nombre: {nombre_usuario}")
+            print(f"Nombre completo del usuario: {nombre_usuario}")
             
-            # Buscar arrendatario por nombre
+            # Intentar diferentes estrategias de búsqueda
+            arrendatario = None
+            
+            # Estrategia 1: Buscar por nombre completo
             arrendatario = Arrendatarios_garzasada.objects.filter(
                 Q(nombre_arrendatario__icontains=nombre_usuario) |
                 Q(nombre_empresa_pm__icontains=nombre_usuario)
             ).first()
             
+            # Estrategia 2: Si no encuentra, buscar por primer nombre
             if not arrendatario:
-                return Response({'error': f'No se encontró arrendatario con nombre: {nombre_usuario}'}, status=status.HTTP_400_BAD_REQUEST)
+                primer_nombre = nombre_usuario.split()[0] if nombre_usuario else ""
+                print(f"Buscando por primer nombre: {primer_nombre}")
+                arrendatario = Arrendatarios_garzasada.objects.filter(
+                    Q(nombre_arrendatario__icontains=primer_nombre) |
+                    Q(nombre_empresa_pm__icontains=primer_nombre)
+                ).first()
             
-            print(f"Arrendatario encontrado: {arrendatario.nombre_arrendatario}")
+            # Estrategia 3: Si aún no encuentra, buscar por palabras individuales
+            if not arrendatario:
+                palabras = nombre_usuario.split()
+                for palabra in palabras:
+                    if len(palabra) > 2:  # Solo palabras de más de 2 caracteres
+                        print(f"Buscando por palabra: {palabra}")
+                        arrendatario = Arrendatarios_garzasada.objects.filter(
+                            Q(nombre_arrendatario__icontains=palabra) |
+                            Q(nombre_empresa_pm__icontains=palabra)
+                        ).first()
+                        if arrendatario:
+                            break
+            
+            # Estrategia 4: Buscar por relación directa con el usuario
+            if not arrendatario:
+                print("Buscando arrendatario asociado directamente al usuario")
+                arrendatario = Arrendatarios_garzasada.objects.filter(user=user_session).first()
+            
+            if not arrendatario:
+                return Response({
+                    'error': f'No se encontró arrendatario para el usuario: {nombre_usuario}',
+                    'debug_info': f'User ID: {user_session.id}, Username: {user_session.username}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            print(f"Arrendatario encontrado: {arrendatario.nombre_arrendatario or arrendatario.nombre_empresa_pm} (ID: {arrendatario.id})")
             
             # Buscar contrato relacionado
             try:
                 contrato = GarzaSadaContratos.objects.get(arrendatario=arrendatario)
                 print(f"Contrato encontrado: {contrato.id}")
             except GarzaSadaContratos.DoesNotExist:
-                return Response({'error': 'Contrato no encontrado para este arrendatario'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': f'Contrato no encontrado para el arrendatario ID: {arrendatario.id}'}, status=status.HTTP_400_BAD_REQUEST)
             
             # Buscar proceso relacionado
             try:
                 proceso = ProcesoContrato_garzasada.objects.get(contrato=contrato)
                 print(f"Proceso encontrado: {proceso.id}")
             except ProcesoContrato_garzasada.DoesNotExist:
-                return Response({'error': 'Proceso no encontrado para este contrato'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': f'Proceso no encontrado para el contrato ID: {contrato.id}'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            duracion_meses = self.extraer_duracion_meses(contrato.duracion)
+            print(f"Duración extraída: {duracion_meses} meses")
+
+            # Contar pagos existentes para este contrato
+            pagos_existentes = DocumentosArrendamientos_garzasada.objects.filter(contrato=contrato).count()
+            numero_pago_actual = pagos_existentes + 1
+
+            # Calcular renta total
+            renta_total = Decimal(str(contrato.renta)) * duracion_meses if contrato.renta else Decimal('0')
+
+            # Calcular interés por retraso (12% anual)
+            interes_aplicado = Decimal('0')
+            fecha_vencimiento = datetime.now().date() + timedelta(days=30)  # 30 días para pagar
+
+            # Verificar si hay retraso en pagos anteriores
+            if numero_pago_actual > 1:
+                ultimo_pago = DocumentosArrendamientos_garzasada.objects.filter(
+                    contrato=contrato
+                ).order_by('-dateTimeOfUpload').first()
+                
+                if ultimo_pago and ultimo_pago.fecha_vencimiento:
+                    dias_retraso = (datetime.now().date() - ultimo_pago.fecha_vencimiento).days
+                    if dias_retraso > 0:
+                        # Aplicar 12% anual = 1% mensual
+                        interes_mensual = Decimal('0.01')
+                        meses_retraso = Decimal(str(dias_retraso)) / Decimal('30')
+                        interes_aplicado = Decimal(str(contrato.renta)) * interes_mensual * meses_retraso
             
             # Crear documento
             documento_data = {
@@ -3599,7 +3663,14 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                 "contrato": contrato.id,
                 "proceso": proceso.id,
                 "comp_pago": request.FILES.get('comp_pago', None),
+                "numero_pago": numero_pago_actual,
+                "total_pagos": duracion_meses,
+                "renta_total": renta_total,
+                "interes_aplicado": interes_aplicado,
+                "fecha_vencimiento": fecha_vencimiento,
             }
+            
+            print(f"Pago {numero_pago_actual} de {duracion_meses} - Renta total: ${renta_total} - Interés: ${interes_aplicado}")
             
             arrendamientos_serializer = self.get_serializer(data=documento_data)
             arrendamientos_serializer.is_valid(raise_exception=True)
@@ -3613,6 +3684,43 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def extraer_duracion_meses(self, duracion_texto):
+        """
+        Extrae la duración en meses de un texto.
+        Ejemplos: "6 meses" -> 6, "12 meses" -> 12, "24 meses" -> 24
+        """
+        if not duracion_texto:
+            return 1
+        
+        # Convertir a string y buscar números
+        texto = str(duracion_texto).lower().strip()
+        
+        # Buscar números en el texto
+        numeros = re.findall(r'\d+', texto)
+        
+        if numeros:
+            duracion = int(numeros[0])
+            # Validar que sea un número razonable (entre 1 y 60 meses)
+            if 1 <= duracion <= 60:
+                return duracion
+            else:
+                print(f"Advertencia: Duración inusual detectada: {duracion} meses")
+                return duracion
+        
+        # Si no encuentra números, intentar palabras
+        palabras_meses = {
+            'uno': 1, 'dos': 2, 'tres': 3, 'cuatro': 4, 'cinco': 5, 'seis': 6,
+            'siete': 7, 'ocho': 8, 'nueve': 9, 'diez': 10, 'once': 11, 'doce': 12,
+            'dieciocho': 18, 'veinticuatro': 24, 'treinta': 30, 'treinta y seis': 36
+        }
+        
+        for palabra, valor in palabras_meses.items():
+            if palabra in texto:
+                return valor
+        
+        print(f"No se pudo extraer duración de: '{duracion_texto}', usando 1 mes por defecto")
+        return 1
         
     def destroy(self, request, pk=None, *args, **kwargs):
         try:
@@ -3669,7 +3777,112 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+
+class IncidenciasGarzaSada(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    queryset = IncidenciasGarzaSada.objects.all()
+    serializer_class = IncidenciasGarzaSadaSerializer
+    
+    def list(self, request, *args, **kwargs):
+        try:
+            print("Listando Documentos Arrendamiento Garza Sada....📄")
+            queryset = self.filter_queryset(self.get_queryset())
+            IncidenciasSerializers = self.get_serializer(queryset, many=True)
+            return Response(IncidenciasSerializers.data ,status=status.HTTP_200_OK)
         
+        except Exception as e:
+            print(f"el error esta en list documentos arrendamientos es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def create(self, request, *args, **kwargs):
+            try: 
+                print("Creando Soicitud de Incidencia....📄")
+                user_session = request.user
+                data = request.data
+                print("Data ===>", data)
+                
+                # Usar first_name del usuario autenticado para buscar arrendatario
+                nombre_usuario = user_session.first_name.strip()
+                print(f"Nombre completo del usuario: {nombre_usuario}")
+                
+                # Intentar diferentes estrategias de búsqueda
+                arrendatario = None
+                
+                # Estrategia 1: Buscar por nombre completo
+                arrendatario = Arrendatarios_garzasada.objects.filter(
+                    Q(nombre_arrendatario__icontains=nombre_usuario) |
+                    Q(nombre_empresa_pm__icontains=nombre_usuario)
+                ).first()
+                
+                # Estrategia 2: Si no encuentra, buscar por primer nombre
+                if not arrendatario:
+                    primer_nombre = nombre_usuario.split()[0] if nombre_usuario else ""
+                    print(f"Buscando por primer nombre: {primer_nombre}")
+                    arrendatario = Arrendatarios_garzasada.objects.filter(
+                        Q(nombre_arrendatario__icontains=primer_nombre) |
+                        Q(nombre_empresa_pm__icontains=primer_nombre)
+                    ).first()
+                
+                # Estrategia 3: Si aún no encuentra, buscar por palabras individuales
+                if not arrendatario:
+                    palabras = nombre_usuario.split()
+                    for palabra in palabras:
+                        if len(palabra) > 2:  # Solo palabras de más de 2 caracteres
+                            print(f"Buscando por palabra: {palabra}")
+                            arrendatario = Arrendatarios_garzasada.objects.filter(
+                                Q(nombre_arrendatario__icontains=palabra) |
+                                Q(nombre_empresa_pm__icontains=palabra)
+                            ).first()
+                            if arrendatario:
+                                break
+                
+                # Estrategia 4: Buscar por relación directa con el usuario
+                if not arrendatario:
+                    print("Buscando arrendatario asociado directamente al usuario")
+                    arrendatario = Arrendatarios_garzasada.objects.filter(user=user_session).first()
+                
+                if not arrendatario:
+                    return Response({
+                        'error': f'No se encontró arrendatario para el usuario: {nombre_usuario}',
+                        'debug_info': f'User ID: {user_session.id}, Username: {user_session.username}'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                print(f"Arrendatario encontrado: {arrendatario.nombre_arrendatario or arrendatario.nombre_empresa_pm} (ID: {arrendatario.id})")
+                
+                # Buscar contrato relacionado
+                try:
+                    contrato = GarzaSadaContratos.objects.get(arrendatario=arrendatario)
+                    print(f"Contrato encontrado: {contrato.id}")
+                except GarzaSadaContratos.DoesNotExist:
+                    return Response({'error': f'Contrato no encontrado para el arrendatario ID: {arrendatario.id}'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Crear Incidencia
+                incidencia_data = {
+                    "user": user_session.id,
+                    "arrendatario": arrendatario.id,
+                    "contrato": contrato.id,
+                    "incidencia": data.get('incidencia', ''),
+                    "status": "Pendiente de Revisión",
+                }
+                
+                print(f"Creando documento con: User={user_session.id}, Arrendatario={arrendatario.id}, Contrato={contrato.id}")
+                
+                arrendamientos_serializer = self.get_serializer(data=incidencia_data)
+                arrendamientos_serializer.is_valid(raise_exception=True)
+                arrendamientos_serializer.save()
+                
+                print("Incidencia ligada a Residente....✅")
+                return Response(arrendamientos_serializer.data, status=status.HTTP_201_CREATED)
+                
+            except Exception as e:
+                print(f"el error es: {e}")
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+                return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)         
         
 #////////////////////////CONTRATOS GARZA SADA///////////////////////////////
 class Contratos_GarzaSada(viewsets.ModelViewSet):
@@ -3681,7 +3894,7 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         try:
            user_session = request.user       
-           if user_session.is_staff:
+           if user_session.is_staff or user_session.username == "GarzaSada":
                print("Listar contratos Garza Sada....")
                contratos =  GarzaSadaContratos.objects.all().order_by('-id')
                serializer = self.get_serializer(contratos, many=True)
