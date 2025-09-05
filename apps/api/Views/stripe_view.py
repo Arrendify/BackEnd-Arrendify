@@ -26,6 +26,18 @@ class CreateStripeCheckoutSession(viewsets.ModelViewSet):
             costo = info.get('costo', info.get('costo_investigacion'))
             producto = info.get('tipo_contrato', info.get('tipo_investigacion'))
             
+            # Validar que el costo no esté vacío o sea None
+            if not costo or costo == '':
+                return Response({'error': 'El costo es requerido y no puede estar vacío'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                costo_int = int(float(costo))  # Convertir a float primero por si tiene decimales, luego a int
+            except (ValueError, TypeError):
+                return Response({'error': 'El costo debe ser un número válido'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if costo_int <= 0:
+                return Response({'error': 'El costo debe ser mayor a 0'}, status=status.HTTP_400_BAD_REQUEST)
+            
             # Crear una sesión de pago
             session = stripe.checkout.Session.create(
                 payment_method_types=['card'],  # Métodos de pago aceptados
@@ -36,7 +48,7 @@ class CreateStripeCheckoutSession(viewsets.ModelViewSet):
                             'product_data': {
                                 'name': str(producto),  
                             },
-                            'unit_amount': int(costo) * 100, 
+                            'unit_amount': costo_int * 100, 
                         },
                         'quantity': 1,
                     },

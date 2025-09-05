@@ -98,7 +98,7 @@ urlpatterns = [
     path('dash/generar_renta_op_venta_preview/', ContratosViewSet.as_view({'post': 'generar_renta_op_venta_preview'}), name='generar_renta_op_venta_preview'),
     path('dash/generar_preview_pagare_extra/', ContratosViewSet.as_view({'post': 'generar_preview_pagare_extra'}), name='generar_preview_pagare_extra'),
     path('dash/generar_pagare_extra/', ContratosViewSet.as_view({'post': 'generar_pagare_extra'}), name='generar_pagare_extra'),
-    
+     path('dash/generar_cotizacion/', ContratosViewSet.as_view({'post': 'generar_cotizacion'}), name='generar_cotizacion'),
     
     #STRIPE
     path('stripe-webhook/', stripe_webhook, name='stripe-webhook'),

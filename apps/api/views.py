@@ -30,6 +30,7 @@ from django.http import HttpResponse
 
 #correo
 import smtplib
+from email.utils import formatdate, make_msgid
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -556,6 +557,8 @@ class investigaciones(viewsets.ModelViewSet):
             msg['From'] = remitente
             msg['To'] = ','.join(Destino)
             msg['Subject'] = asunto
+            msg['Date'] = formatdate(localtime=True)
+            msg['Message-ID'] = make_msgid(domain='arrendify.com')
             print("paso objeto mime")
             
             #Evalua si tiene este atributo

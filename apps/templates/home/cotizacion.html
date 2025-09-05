@@ -1,0 +1,442 @@
+{% load humanize %}
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Cotización KIKI - Arrendify</title>
+    <meta name="description" content="Cotización KIKI Report" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
+      crossorigin="anonymous"
+    />
+  </head>
+  <style>
+    @page {
+      margin: .5cm;
+    }
+
+    body {
+      color: black;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      line-height: 1.2;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 2px solid #000;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      background-color: #6c5ce7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .company-info {
+      font-size: 10px;
+      line-height: 1.1;
+      margin-left: -110px;
+      margin-top: 15px;
+    }
+
+    .cotizacion-header {
+      text-align: right;
+      font-size: 24px;
+      font-weight: bold;
+      color: #6c5ce7;
+    }
+
+    .cotizacion-details {
+      text-align: right;
+      font-size: 9px;
+      margin-top: 10px;
+    }
+
+    .client-section {
+      background-color: #e8e4ff;
+      padding: 10px;
+      margin: 20px 0;
+      border: 1px solid #000;
+    }
+
+    .client-title {
+      background-color: #7860b4;
+      color: white;
+      padding: 5px;
+      margin: -10px -10px 10px -10px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .client-info {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .client-left,
+    .client-right {
+      width: 48%;
+    }
+
+    .client-field {
+      margin-bottom: 8px;
+      font-size: 10px;
+    }
+
+    .client-field strong {
+      display: inline-block;
+      width: 80px;
+    }
+
+    .services-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 9px;
+    }
+
+    .services-table th {
+      background-color: #7860b4;
+      color: white;
+      padding: 8px 4px;
+      text-align: center;
+      border: 1px solid #000;
+      font-weight: bold;
+    }
+
+    .services-table td {
+      padding: 4px;
+      border: 1px solid #000;
+      text-align: center;
+    }
+
+    .service-name {
+      text-align: left !important;
+      padding-left: 8px;
+      font-size: 10px;
+    }
+
+    .price-column {
+      background-color: #f8f9fa;
+      font-weight: bold;
+    }
+
+    .total-section {
+      margin: 20px 0;
+      border: 1px solid #000;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 10px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .total-row:last-child {
+      border-bottom: none;
+      background-color: #6c5ce7;
+      color: white;
+      font-weight: bold;
+    }
+
+    .observations {
+      margin: 20px 0;
+      font-size: 9px;
+    }
+
+    .observations-title {
+      background-color: #7860b4;
+      color: white;
+      padding: 5px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .bank-data {
+      background-color: #e8e4ff;
+      padding: 10px;
+      margin: 20px 0;
+      border: 1px solid #000;
+      font-size: 9px;
+    }
+
+    .bank-title {
+      background-color: #7860b4;
+      color: white;
+      padding: 5px;
+      margin: -10px -10px 10px -10px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 8px;
+      margin-top: 20px;
+      font-style: italic;
+      color: #666;
+    }
+    .logo_arr{
+      width: 200px;
+    }
+    .logo_bp{
+      width: 200px;
+    }
+  </style>
+  <body>
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-section">
+        <div>
+          <img class="logo_arr" src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_1.png" width="100px"/>
+          <br/>
+          <img class="logo_bp" src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_2.png" width="100px"/>
+        </div>
+      </div>
+      <div class="company-info">
+          Boulevard Manuel Ávila Camacho #80<br />
+          1° Piso, C.P. 53390, Naucalpan de Juárez, Edo. De Méx.<br />
+          <strong>www.arrendify.com</strong><br /><br />
+          Contacto:<br />
+          <strong>inmobiliarias.arrendify@gmail.com</strong><br />
+          Ejecutivo Comercial: <br />Lic. Miriam Chávez Rios<br/>Tel.55-46-69-05-30
+      </div>
+      <div class="mt-3">
+        <div class="cotizacion-header">COTIZACIÓN</div>
+        <div class="cotizacion-details">
+          <strong>COTIZACIÓN #:</strong> {{cotizacion_numero}}<br />
+          <strong>VÁLIDO HASTA:</strong> {{fecha_valido|default:"27/10/2025"}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Client Information -->
+    <div class="client-section">
+      <div class="client-title">CLIENTE</div>
+      <div class="client-info">
+        <div class="client-left">
+          <div class="client-field">
+            <strong>Nombre:</strong> {{cliente_nombre|default:""}}
+          </div>
+        </div>
+        <div class="client-right">
+          <div class="client-field">
+            <strong>Correo:</strong> {{cliente_correo|default:""}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Services Table -->
+    <table class="services-table">
+      <thead>
+        <tr>
+          <th style="width: 50%">DESCRIPCIÓN</th>
+          <th style="width: 16.67%; background-color: #C4C4C4; color: black;">PLATA</th>
+          <th style="width: 16.67%; background-color: #EFBF04; color: black;">ORO</th>
+          <th style="width: 16.67%; background-color: #D9D9D9; color: black;">PLATINO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="service-name">Monto de Renta Mensual</td>
+          <td class="price-column" colspan="3">${{monto_renta}}</td>
+        </tr>
+        <tr>
+          <td class="service-name">Asesoría Legal</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Validación de Identidad y Referencias Personales</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Análisis de Solvencia Económica (ASE) del Arrendatario</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Investigación del Arrendatario en más de 200 listas negras, nacionales y de seguridad</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Validación de Identidad del Fiador/Obligado Solidario</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Elaboración de Contrato de Arrendamiento</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Pagares Foliados</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Firma Digital y/o Presencial</td>
+          <td>SOLO DIGITAL</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Inventario Fotográfico</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Acompañamiento durante la Vida del Contrato</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Carta de Entrega</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Conciliación de Acuerdos Resolutivos Extrajudiciales</td>
+          <td>-</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Cobertura Especial por Extinción de Dominio</td>
+          <td>-</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Recuperación de Adeudos Vencidos por Servicios</td>
+          <td>-</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Cobranza Judicial y Extrajudicial de Rentas</td>
+          <td>-</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Recuperación Legal en Caso de Abandono</td>
+          <td>-</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Desalojo Express</td>
+          <td>-</td>
+          <td>AMPARADA</td>
+          <td>AMPARADA</td>
+        </tr>
+        <tr>
+          <td class="service-name">Garantia Arrendify Habitacional (Pago Puntual de Rentas)</td>
+          <td>-</td>
+          <td>4 MESES</td>
+          <td>12 MESES</td>
+        </tr>
+        <tr>
+          <td class="service-name">Garantia Arrendify Comercial (Pago Puntual de Rentas)</td>
+          <td>-</td>
+          <td>1 MES</td>
+          <td>3 MESES</td>
+        </tr>
+        <tr>
+          <td class="service-name">Honorarios Legales</td>
+          <td>-</td>
+          <td>$120,000.00</td>
+          <td>$300,000.00</td>
+        </tr>
+        <tr>
+          <td class="service-name">Protección de Daños al Inmueble</td>
+          <td>-</td>
+          <td>-</td>
+          <td>25% DE LA RENTA</td>
+        </tr>
+
+        <tr>
+          <th colspan="4" style="text-align: center; background-color: #7860b4; color: white;"><b>COSTOS</b></th>
+        </tr>
+        <tr style="font-weight: bold; font-size: 12px; background-color: #c9bfe1;">
+          <td>Subtotal $</td>
+          <td>${{subtotal_plata}}</td>
+          <td>${{subtotal_oro}}</td>
+          <td>${{subtotal_platino}}</td>
+        </tr>
+        <tr style="font-weight: bold; font-size: 12px;" >
+          <td>IVA $</td>
+          <td>${{iva_plata}}</td>
+          <td>${{iva_oro}}</td>
+          <td>${{iva_platino}}</td>
+        </tr>
+        <tr style="text-align: center; background-color: #7860b4; color: white; font-weight: bold; font-size: 16px;">
+          <td>Total $</td>
+          <td style="background-color: #C4C4C4; color: black;">${{total_plata}}</td>
+          <td style="background-color: #EFBF04; color: black;">${{total_oro}}</td>
+          <td style="background-color: #D9D9D9; color: black;">${{total_platino}}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Observations -->
+    <div class="observations">
+      <div class="observations-title">OBSERVACIONES:</div>
+      <p>La contratación de la póliza Platino queda a valoracion de Arrendify conforme al proceso de investigación juridica del prospecto.</p>
+    </div>
+    <!-- Bank Data -->
+    <div class="row bank-data">
+      <div class="col-6 bank-title">Terminos y Condiciones</div>
+      <div class="col-6 bank-title"> Invegasticiones</div>
+      <p>1. Al cliente se le cobrará el anticipo después de aceptar la cotización.<br>
+        2. El pago será debitado antes de comenzar con la investigación.<br>
+        3. Por favor enviar la cotización firmada al email indicado anteriormente.</p>
+      </div>
+    </div>
+
+    <div class="footer-note" style="color: #7860b4; font-weight: bold; font-size: 14px;">¡Blindamos tu patrimonio!</div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
