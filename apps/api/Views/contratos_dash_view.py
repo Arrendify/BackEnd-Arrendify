@@ -1,4 +1,3 @@
-
 from rest_framework import viewsets
 from rest_framework.response import Response
 from ...home.models import *
@@ -500,6 +499,100 @@ class ContratosViewSet(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
+    
+    def generar_cotizacion(self, request):
+        try:
+            print("Generando cotizacion........")
+            # Obtener datos del payload
+            monto_renta = float(request.data.get('monto_renta', 0))
+            
+            if monto_renta <= 0:
+                return Response({'error': 'Monto de renta inválido'}, status=400)
+            
+            # Calcular costos para las 3 pólizas
+            costos = self.calcular_costos_polizas(monto_renta)
+            
+            # Generar número de cotización único
+            cotizacion_numero = f"AR-{datetime.now().strftime('%Y%m%d')}-COT{request.user.id}"
+            
+            # Fecha de validez (30 días desde hoy)
+            fecha_valido = (datetime.now() + timedelta(days=30)).strftime('%d/%m/%Y')
+            
+            # Datos para el template
+            context = {
+                'cotizacion_numero': cotizacion_numero,
+                'fecha_valido': fecha_valido,
+                'cliente_nombre': f"{request.user.first_name} {request.user.last_name}".strip() or request.user.username,
+                'cliente_correo': f"{request.user.email}",
+                'monto_renta': f"{monto_renta:,.2f}",
+                
+                # Costos calculados - PLATA
+                'subtotal_plata': f"{costos['plata']['subtotal']:,.2f}",
+                'iva_plata': f"{costos['plata']['iva']:,.2f}",
+                'total_plata': f"{costos['plata']['total']:,.2f}",
+                
+                # Costos calculados - ORO
+                'subtotal_oro': f"{costos['oro']['subtotal']:,.2f}",
+                'iva_oro': f"{costos['oro']['iva']:,.2f}",
+                'total_oro': f"{costos['oro']['total']:,.2f}",
+                
+                # Costos calculados - PLATINO
+                'subtotal_platino': f"{costos['platino']['subtotal']:,.2f}",
+                'iva_platino': f"{costos['platino']['iva']:,.2f}",
+                'total_platino': f"{costos['platino']['total']:,.2f}",
+            }
+            
+            # Renderizar template HTML
+            print("Datos para corización ====>",context)
+            html_string = render_to_string('home/cotizacion.html', context)
+            
+            # Reemplazar el monto hardcodeado
+            html_string = html_string.replace('$20,000.00', f'${monto_renta:,.2f}')
+            
+            # Generar PDF con WeasyPrint
+            html_doc = HTML(string=html_string)
+            pdf = html_doc.write_pdf()
+            
+            # Crear respuesta HTTP con PDF
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="cotizacion_poliza_{monto_renta}.pdf"'
+            
+            return response
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+    
+    def calcular_costos_polizas(self, monto_renta):
+        """Función auxiliar para calcular costos"""
+        polizas_config = {
+            'plata': {'porcentaje': 0.28, 'fijo': 3920},
+            'oro': {'porcentaje': 0.35, 'fijo': 4900},
+            'platino': {'porcentaje': 0.70, 'fijo': 9800}
+        }
+        
+        costos = {}
+        
+        for nombre, config in polizas_config.items():
+            # Calcular costo base
+            if monto_renta < 8001 and nombre == 'plata':
+                base = 2800  # Oferta especial
+            elif monto_renta <= 14000:
+                base = config['fijo']
+            else:
+                base = monto_renta * config['porcentaje']
+            
+            # Calcular IVA (16%)
+            iva = base * 0.16
+            total = base + iva
+            
+            costos[nombre] = {
+                'subtotal': round(base, 2),
+                'iva': round(iva, 2),
+                'total': round(total, 2)
+            }
+        
+        return costos
+    
     def generar_pagare(self, request, *args, **kwargs):  
         try:
             print("Generar pagare")
@@ -587,7 +680,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
                         renta_decimal = "00"
                         text_representation = num2words(number, lang='es').capitalize()
                     else:
-                        print("tengo punto en renta pendiente de saber que hacer")
+                        print("tengo punto en renta")
                 else: 
                     if "." not in str(info["inmueble"]["renta"]):
                         print("no hay yaya")
@@ -595,7 +688,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
                         renta_decimal = "00"
                         text_representation = num2words(number, lang='es').capitalize()
                     else:
-                        print("tengo punto en renta pendiente de saber que hacer")
+                        print("tengo punto en renta")
                     
             print("")
             print(f"renta {number}, letra: {text_representation}")
@@ -795,7 +888,6 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 info["arrendatario"] = inquilino
 
             aval = dict(info["fiador"])         
-            
             if aval.get("aval"):
                 print("hay informacion del aval hay que hacer una busqueda de id")
                 fiador = Aval.objects.all().filter(id = info["fiador"]["aval"]).first()
@@ -928,7 +1020,6 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 print("Inquilino ID", info["arrendatario"]["inquilino"])
                 inquilino = Arrendatario.objects.all().filter(id = info["arrendatario"]["inquilino"]).first()
                 print("Inquilino", inquilino)
-
                 info["arrendatario"] = inquilino
 
             aval = dict(info["fiador"])         
@@ -946,21 +1037,22 @@ class ContratosViewSet(viewsets.ModelViewSet):
              
             propiedad= dict(info["inmueble"])
             print("Esto es el inmueble", propiedad) 
-            if propiedad.get("renta"):
+            if propiedad.get("inmueble"):
                 print("hay informacion del propietario hay que hacer una busqueda de id")
-                propiedad = Inmuebles.objects.all()
+                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
                 print("nombre del arrendatario",propiedad.__dict__)
-                print("mi renta es",info["inmueble"]["renta"])
+                print("mi renta es",propiedad.renta)
+                info["inmueble"] = propiedad
                 #esto es lo nuevo en mantenimiento
-                if info["inmueble"]["mantenimiento"] == "No Incluido":
+                if propiedad.mantenimiento == "No Incluido":
                     pass
                     # info["inmueble"]["cuota_letra"] == num2words(propiedad.cuota_mantenimiento, lang='es').capitalize()
                     # print("cuota con letra", info["inmueble"]["cuota_letra"])
                 
                 #checamos que no tenga decimales
-                if "." not in info["inmueble"]['renta']:
+                if "." not in str(propiedad.renta):
                     print("no hay yaya")
-                    number = int(info["inmueble"]['renta'])
+                    number = int(propiedad.renta)
                     renta_decimal = "00"
                     text_representation = num2words(number, lang='es').capitalize()
                 else:
@@ -1056,23 +1148,26 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 print("Inquilino ====>", inquilino)
                 info["arrendatario"] = inquilino
 
-            aval = dict(info["fiador"])         
+            aval = dict(info["fiador"])
+            print("Aval ====>",aval)         
             if aval.get("aval"):
                 print("Aval ID ====>", info["fiador"]["aval"])
                 fiador = Aval.objects.all().filter(id = info["fiador"]["aval"]).first()
                 info["fiador"] = fiador
             
-            propietario = dict(info["arrendador"])        
+            propietario = dict(info["arrendador"]) 
+            print("Propietario ====>",propietario)          
             if propietario.get("propietario"):
                 print("Propietario ID ====>", info["arrendador"]["propietario"])
                 arrendador = Propietario.objects.all().filter(id = info["arrendador"]["propietario"]).first()
                 info["arrendador"] = arrendador
             
              
-            inmueble= dict(info["inmueble"])           
-            if inmueble.get("inmueble"):
-                print("Inmueble ID ====>", info["inmueble"]["inmueble"]) 
-                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+            inmueble= dict(info["inmueble"])
+            print("Inmueble ====>",inmueble)            
+            if inmueble.get("id"):
+                print("Inmueble ID ====>", inmueble.get("id")) 
+                propiedad = type('obj', (object,), inmueble)()  # Usar los datos del frontend directamente
                 
                 #Verificacion de decimales en monto de renta
                 if "." not in str(propiedad.renta):
@@ -1082,14 +1177,10 @@ class ContratosViewSet(viewsets.ModelViewSet):
                     text_representation = num2words(renta_inmueble, lang='es').capitalize()
                 else:
                     print("Con Decimales")
-                    if info["inmueble"]['renta']:
-                        renta_completa = info["inmueble"]['renta'].split(".")
-                    else:
-                        renta_completa = propiedad.renta.split(".")
-                    
-                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_completa = str(propiedad.renta).split(".")
+                    renta_inmueble = int(renta_completa[0])
                     renta_decimal = renta_completa[1]
-                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
+                    text_representation = num2words(renta_inmueble, lang='es').capitalize()
                 
             # obtenermos el monto de la poliza
             plata = 3920 
@@ -1099,7 +1190,7 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 #Declaramos el template
                 template = 'home/dash/poliza_plata_preview.html'
                 #Despues evaluamos el impueto y el valos de la poliza
-                if renta_inmueble <= 14000:
+                if propiedad.renta <= 14000:
                     print("Monto de renta menor a 14000")
                     info["datos_contratos"]["monto_total"] = renta_inmueble + plata + (plata*0.16)
                     print("Monto total con impuesto", info["datos_contratos"]["monto_total"])
@@ -1210,27 +1301,22 @@ class ContratosViewSet(viewsets.ModelViewSet):
             inmueble= dict(info["inmueble"])
             print("Esto es el inmueble", inmueble) 
             
-            if inmueble.get("inmueble"):
-                print("hay informacion del propietario hay que hacer una busqueda de id")
-                propiedad = Inmuebles.objects.all().filter(id = info["inmueble"]["inmueble"]).first()
+            if inmueble.get("id"):
+                print("Inmueble ID ====>", inmueble.get("id")) 
+                propiedad = type('obj', (object,), inmueble)()  # Usar los datos del frontend directamente
                 
-                #checamos que no tenga decimales
-                
+                #Verificacion de decimales en monto de renta
                 if "." not in str(propiedad.renta):
-                    print("no hay yaya")
-                    number = int(propiedad.renta)
+                    print("Sin Decimales")
+                    renta_inmueble = int(propiedad.renta)
                     renta_decimal = "00"
-                    text_representation = num2words(number, lang='es').capitalize()
+                    text_representation = num2words(renta_inmueble, lang='es').capitalize()
                 else:
-                    print("tengo punto en renta")
-                    # if info["inmueble"]['renta']:
-                    #     renta_completa = info["inmueble"]['renta'].split(".")
-                    # else:
-                    #     renta_completa = propiedad.renta.split(".")
-                    
-                    # info["inmueble"]['renta'] = renta_completa[0]
-                    # renta_decimal = renta_completa[1]
-                    # text_representation = num2words(renta_completa[0], lang='es').capitalize()
+                    print("Con Decimales")
+                    renta_completa = str(propiedad.renta).split(".")
+                    renta_inmueble = int(renta_completa[0])
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_inmueble, lang='es').capitalize()
                 
                 print("hay que sacar sus impuestos")
                 info["inmueble"] = propiedad  
@@ -1248,14 +1334,10 @@ class ContratosViewSet(viewsets.ModelViewSet):
                 
                 else:
                     print("tengo punto en renta")
-                    # if info["inmueble"]['renta']:
-                    #     renta_completa = info["inmueble"]['renta'].split(".")
-                    # else:
-                    #     renta_completa = propiedad.renta.split(".")
-                    
-                    # info["inmueble"]['renta'] = renta_completa[0]
-                    # renta_decimal = renta_completa[1]
-                    # text_representation = num2words(renta_completa[0], lang='es').capitalize()
+                    renta_completa = info["inmueble"]['renta'].split(".")
+                    info["inmueble"]['renta'] = renta_completa[0]
+                    renta_decimal = renta_completa[1]
+                    text_representation = num2words(renta_completa[0], lang='es').capitalize()
 
             # obtenermos el monto de la poliza
             plata = 3920 

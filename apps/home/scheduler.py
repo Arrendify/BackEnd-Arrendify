@@ -158,4 +158,54 @@ def start_scheduler_notificaciones():
     scheduler_not.add_job(eliminar_notis, trigger=CronTrigger(day_of_week="sun", hour="14", minute="30"))
     scheduler_not.start() # Inicia la ejecución de las tareas programadas
 
+# Configuración para recordatorios automáticos de contratos próximos a vencer
+def verificar_contratos_vencimiento():
+    """
+    Ejecuta la verificación de contratos próximos a vencer
+    Esta función se ejecuta diariamente a las 9:00 AM
+    """
+    import subprocess
+    import sys
+    import os
+    from django.core.management import call_command
+    
+    try:
+        # Ejecutar el comando de Django
+        call_command('verificar_contratos_vencimiento')
+        print(f"Verificación de contratos ejecutada exitosamente - {timezone.now()}")
+        
+    except Exception as e:
+        print(f"Error ejecutando verificación de contratos: {e}")
+        # Aquí podrías agregar logging o notificaciones de error
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error en verificación automática de contratos: {e}")
 
+# Agregar la tarea al scheduler si está disponible
+try:
+    from apscheduler.schedulers.background import BackgroundScheduler
+    from apscheduler.triggers.cron import CronTrigger
+    from django.conf import settings
+    
+    # Crear scheduler si no existe
+    if not hasattr(settings, 'SCHEDULER'):
+        settings.SCHEDULER = BackgroundScheduler()
+        
+        # Agregar tarea para verificar contratos diariamente a las 9:00 AM
+        settings.SCHEDULER.add_job(
+            verificar_contratos_vencimiento,
+            trigger=CronTrigger(hour=9, minute=0),  # 9:00 AM todos los días
+            id='verificar_contratos_vencimiento',
+            name='Verificación diaria de contratos próximos a vencer',
+            replace_existing=True
+        )
+        
+        # Iniciar el scheduler
+        if not settings.SCHEDULER.running:
+            settings.SCHEDULER.start()
+            print("Scheduler iniciado - Verificación de contratos programada para las 9:00 AM diariamente")
+            
+except ImportError:
+    print("APScheduler no está instalado. Para habilitar la verificación automática, instala: pip install apscheduler")
+except Exception as e:
+    print(f"Error configurando scheduler automático: {e}")

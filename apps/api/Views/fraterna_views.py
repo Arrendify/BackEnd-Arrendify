@@ -1165,8 +1165,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         # Definir posiciones por sección
         posiciones_por_seccion = {
             "comodato": [
-                (0, 5.0, 5.0, 0),
-                (0, 5.0, 75.0, 1),
+                (0, 1.5, 5.0, 0),
+                (0, 1.5, 75.0, 1),
                 (1, 13.0, 18.0, 0),
                 (1, 13.0, 65.0, 1),
                 (2, 5.0, 75.0, 1),

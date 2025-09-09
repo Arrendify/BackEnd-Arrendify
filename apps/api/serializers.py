@@ -260,14 +260,6 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = '__all__' 
 
-class NotificationSerializer(serializers.ModelSerializer):
-    actor_name = serializers.CharField(source='actor', read_only=True) # con este metodo obtengo los nombres en lugar del id con *source*
-    destiny_name = serializers.CharField(source='destiny', read_only=True)
-    
-
-    class Meta:
-        model = Notification
-        fields = '__all__'  # O especifica los campos que deseas serializar, por ejemplo: ['field1', 'field2']
 
 #FRATERNA SEMILLERO PURISIMA
 class DASSerializer(serializers.ModelSerializer):
@@ -357,3 +349,78 @@ class ContratosDashSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contratos
         fields = '__all__' 
+
+class NotificacionSerializer(serializers.ModelSerializer):
+    """Serializer para el modelo Notificacion"""
+    
+    tipo_notificacion_display = serializers.CharField(source='get_tipo_notificacion_display', read_only=True)
+    tipo_contrato_display = serializers.CharField(source='get_tipo_contrato_display', read_only=True)
+    user_nombre = serializers.CharField(source='user.first_name', read_only=True)
+    user_email = serializers.CharField(source='user.email', read_only=True)
+    
+    # Información del contrato asociado y usuario del contrato
+    contrato_info = serializers.SerializerMethodField()
+    usuario_contrato_nombre = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Notificacion
+        fields = '__all__'
+        read_only_fields = ('fecha_creacion', 'fecha_envio_email', 'fecha_lectura')
+    
+    def get_usuario_contrato_nombre(self, obj):
+        """Obtiene el nombre completo del usuario asociado al contrato"""
+        contrato = obj.obtener_contrato()
+        if not contrato:
+            return None
+            
+        try:
+            if obj.tipo_contrato == 'fraterna':
+                # Para contratos fraterna, obtener nombre del residente
+                if hasattr(contrato, 'residente') and contrato.residente:
+                    return contrato.residente.nombre_completo
+            elif obj.tipo_contrato in ['semillero', 'garzasada']:
+                # Para semillero y garza sada, obtener nombre del arrendatario
+                if hasattr(contrato, 'arrendatario') and contrato.arrendatario:
+                    return contrato.arrendatario.nombre_completo
+            elif obj.tipo_contrato == 'general':
+                # Para contratos generales, obtener nombre del arrendatario
+                if hasattr(contrato, 'arrendatario') and contrato.arrendatario:
+                    return contrato.arrendatario.nombre_completo
+        except Exception as e:
+            print(f"Error obteniendo nombre del usuario del contrato: {e}")
+            
+        return None
+    
+    def get_contrato_info(self, obj):
+        """Obtiene información básica del contrato asociado"""
+        contrato = obj.obtener_contrato()
+        if not contrato:
+            return None
+            
+        info = {
+            'id': contrato.id,
+            'tipo': obj.tipo_contrato
+        }
+        
+        try:
+            if obj.tipo_contrato == 'fraterna':
+                info.update({
+                    'inmueble': f"Depto {contrato.no_depa or 'N/A'}",
+                    'arrendatario': str(contrato.residente) if contrato.residente else 'N/A',
+                    'renta': contrato.renta or 'N/A'
+                })
+            elif obj.tipo_contrato in ['semillero', 'garzasada']:
+                info.update({
+                    'inmueble': f"Propiedad {contrato.id}",
+                    'arrendatario': str(contrato.arrendatario) if contrato.arrendatario else 'N/A',
+                    'renta': getattr(contrato, 'renta', 'N/A')
+                })
+            elif obj.tipo_contrato == 'general':
+                info.update({
+                    'inmueble': str(contrato.inmueble) if contrato.inmueble else 'N/A',
+                    'arrendatario': str(contrato.arrendatario) if contrato.arrendatario else 'N/A'
+                })
+        except Exception:
+            pass
+            
+        return info
