@@ -10,6 +10,7 @@ from .Views.inquilinos_view import *
 from .Views.contratos_dash_view import *
 from .Views.investigaciones_views import *
 from .Views.stripe_view import CreateStripeCheckoutSession
+from .Views.notificaciones_views import NotificacionViewSet
 
 
 urlpatterns = [
@@ -21,6 +22,12 @@ urlpatterns = [
     
     #Fiador/Obligado Documentos
     #path('actualiza_documentos/', DocumentosFoo.as_view({'put': 'actualiza_documentos'}), name='documentos_foo'),
+    
+    #Notificaciones
+    path('notificaciones/', NotificacionViewSet.as_view({'get': 'list'}), name='notificaciones_list'),
+    path('notificaciones/no_leidas/', NotificacionViewSet.as_view({'get': 'no_leidas'}), name='notificaciones_no_leidas'),
+    path('notificaciones/<int:pk>/marcar_leida/', NotificacionViewSet.as_view({'post': 'marcar_leida'}), name='notificaciones_marcar_leida'),
+    path('notificaciones/marcar_todas_leidas/', NotificacionViewSet.as_view({'post': 'marcar_todas_leidas'}), name='notificaciones_marcar_todas_leidas'),
     
     #Investigacion
     path('aprobar_prospecto/', investigaciones.as_view({'post': 'aprobar_prospecto'}), name='aprobar_prospecto'),
@@ -70,14 +77,6 @@ urlpatterns = [
     path('garzasada/generar_urls_firma/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'generar_urls_firma_gs'}), name='generar_urls_firma_gs'),
     path('garzasada/mostrar_urls_firma_documento/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'mostrar_urls_firma_documento_gs'}), name='mostrar_urls_firma_documento_gs'),
     
-    #Arrendamientos Garza Sada
-
-    #notificaiones por usuario
-    path('notificaciones_usuario/',notis_prueba.as_view({'get': 'notificaiones_por_usuario'}), name='notificaiones_por_usuario'),
-    path('send_noti/',notis_prueba.as_view({'post': 'send_noti'}), name='send_noti'),
-    path('leer_todas/',notis_prueba.as_view({'post': 'leer_todas'}), name='leer_todas'),
-    # path('notificaciones_usuario/',notis_prueba.as_view({'get': 'notificaiones_por_usuario'}), name='notificaiones_por_usuario'),
-    
     #Contratos Dash
     path('dash/almacenar_datos/', ContratosViewSet.as_view({'post': 'almacenar_datos'}), name='guardar_datos_dash'),
     path('dash/generar_preview_pagare/', ContratosViewSet.as_view({'post': 'generar_preview_pagare'}), name='generar_preview_pagare'),
@@ -98,7 +97,7 @@ urlpatterns = [
     path('dash/generar_renta_op_venta_preview/', ContratosViewSet.as_view({'post': 'generar_renta_op_venta_preview'}), name='generar_renta_op_venta_preview'),
     path('dash/generar_preview_pagare_extra/', ContratosViewSet.as_view({'post': 'generar_preview_pagare_extra'}), name='generar_preview_pagare_extra'),
     path('dash/generar_pagare_extra/', ContratosViewSet.as_view({'post': 'generar_pagare_extra'}), name='generar_pagare_extra'),
-     path('dash/generar_cotizacion/', ContratosViewSet.as_view({'post': 'generar_cotizacion'}), name='generar_cotizacion'),
+    path('dash/generar_cotizacion/', ContratosViewSet.as_view({'post': 'generar_cotizacion'}), name='generar_cotizacion'),
     
     #STRIPE
     path('stripe-webhook/', stripe_webhook, name='stripe-webhook'),

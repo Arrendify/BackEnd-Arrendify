@@ -78,7 +78,7 @@ class AbstractNotificacion(models.Model):
     
     level = models.CharField(choices=Levels.choices, max_length=20, default=Levels.info)
     
-    destiny = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificaciones', blank=True, null=True)
+    destiny = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifi', blank=True, null=True)
 
     actor_content_type = models.ForeignKey(ContentType, related_name='notificar_actor', on_delete=models.CASCADE)
     object_id_actor = models.PositiveIntegerField()

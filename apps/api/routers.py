@@ -8,6 +8,7 @@ from .Views.contratos_dash_view import ContratosViewSet
 from .Views import fraterna_views
 from .Views.investigaciones_views import InvestigacionLaboralViewSet,InvestigacionInquilinoViewSet,InvestigacionFinancieraViewSet,InvestigacionJudicialViewSet
 from .Views.stripe_view import *
+from .Views.notificaciones_views import NotificacionViewSet
 
 
 
@@ -81,6 +82,9 @@ router.register(r'incidencias_garzasada', fraterna_views.IncidenciasGarzaSada, b
 router.register(r'contratos_dash', ContratosViewSet, basename='contratos_semillero')
 #Stripe
 router.register(r'create-checkout-session', CreateStripeCheckoutSession, basename='create-checkout-session')
+
+# Notificaciones de recordatorios de contratos
+router.register(r'notificaciones', NotificacionViewSet, basename='notificaciones')
 
 # si descomentamos la linea de abajo nos da el create con post de notificacion directo con el metodo notify_signals.
 # router.register(r'notis_prueba', notis_prueba, basename='notis_prueba')

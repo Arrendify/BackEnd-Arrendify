@@ -103,7 +103,7 @@ class Inquilino(models.Model):
     fecha_ac = models.DateField(auto_now=False, auto_now_add=False, null=True, blank=True)
     nombre_notario_ac = models.CharField(max_length=50, null=True, blank=True)
     coe = models.CharField(max_length=100, null=True, blank=True)
-    folio_mercantil = models.BigIntegerField(null=True, blank=True)
+    folio_mercantil = models.CharField(max_length=100, null=True, blank=True)
 
     #Direccion empleo
     calle_empleo=models.CharField(max_length=60, null=True, blank=True)
@@ -1020,7 +1020,7 @@ class Inmuebles(models.Model):
     camarasSeguridad  = models.CharField(max_length=100, null=True, blank=True)
     area_juegos = models.CharField(max_length=100, null=True, blank=True)
     otroS = models.CharField(max_length=100, null=True, blank=True)
-    
+        
     descripcion= models.CharField(max_length=200, null=True, blank=True)
     terminos_condiciones = models.CharField(max_length=100, null=True, blank=True)
 
@@ -1963,7 +1963,7 @@ class Residentes(models.Model):
     celular_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
     correo_arrendatario=models.EmailField(null=True, blank=True)
     empleo=models.CharField(max_length = 100, null = True, blank = True)
-    domicilio_empleo=models.CharField(max_length = 100, null = True, blank = True)
+    domicilio_empleo=models.CharField(max_length = 250, null = True, blank = True)
     direccion_arrendatario=models.CharField(max_length = 250, null = True, blank = True)
     curp=models.CharField(max_length=100, null=True, blank=True)
     estado_civil=models.CharField(max_length=100, null=True, blank=True, default="Soltero")
@@ -2705,3 +2705,65 @@ class IncidenciasGarzaSada(models.Model):
     
     class Meta:
         db_table = 'garzasada_incidencias'
+        
+class Notificacion(models.Model):
+    TIPOS_NOTIFICACION = [
+        ('recordatorio_3_meses', 'Recordatorio 3 meses antes'),
+        ('recordatorio_2_meses', 'Recordatorio 2 meses antes'),
+        ('recordatorio_1_mes', 'Recordatorio 1 mes antes'),
+    ]
+    
+    TIPOS_CONTRATO = [
+        ('fraterna', 'Fraterna'),
+        ('semillero', 'Semillero'),
+        ('garzasada', 'Garza Sada'),
+        ('general', 'General'),
+    ]
+    
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificaciones')
+    tipo_notificacion = models.CharField(max_length=50, choices=TIPOS_NOTIFICACION)
+    tipo_contrato = models.CharField(max_length=20, choices=TIPOS_CONTRATO)
+    
+    # Referencias a diferentes tipos de contratos
+    contrato_general = models.ForeignKey(Contratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
+    contrato_fraterna = models.ForeignKey(FraternaContratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
+    contrato_semillero = models.ForeignKey(SemilleroContratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
+    contrato_garzasada = models.ForeignKey(GarzaSadaContratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
+    
+    titulo = models.CharField(max_length=200)
+    mensaje = models.TextField()
+    fecha_vencimiento_contrato = models.DateField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_programada = models.DateField()  # Fecha en que debe enviarse el recordatorio
+    
+    # Control de envío
+    enviado_email = models.BooleanField(default=False)
+    fecha_envio_email = models.DateTimeField(null=True, blank=True)
+    leida = models.BooleanField(default=False)
+    fecha_lectura = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'notificaciones'
+        unique_together = ['tipo_notificacion', 'tipo_contrato', 'contrato_general', 'contrato_fraterna', 'contrato_semillero', 'contrato_garzasada']
+        ordering = ['-fecha_creacion']
+    
+    def __str__(self):
+        return f"{self.titulo} - {self.get_tipo_notificacion_display()}"
+    
+    def marcar_como_leida(self):
+        """Marca la notificación como leída"""
+        self.leida = True
+        self.fecha_lectura = timezone.now()
+        self.save()
+    
+    def obtener_contrato(self):
+        """Obtiene el contrato asociado según el tipo"""
+        if self.tipo_contrato == 'fraterna':
+            return self.contrato_fraterna
+        elif self.tipo_contrato == 'semillero':
+            return self.contrato_semillero
+        elif self.tipo_contrato == 'garzasada':
+            return self.contrato_garzasada
+        else:
+            return self.contrato_general
