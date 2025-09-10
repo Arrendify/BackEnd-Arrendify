@@ -220,7 +220,7 @@ class Arrendatario(models.Model):
     pagina_web=models.CharField(max_length=100, null=True, blank=True)
     giro=models.CharField(max_length=100, null=True, blank=True)
     telefono_jefe=models.BigIntegerField(null=True, blank=True)
-    email_jefe=models.CharField(null=True, blank=True, default="na@na.com")
+    email_jefe=models.CharField(max_length=250 ,null=True, blank=True)
     #////////////////de aqui hacia arriba seria para persona fisica
     # persona moral
     nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
