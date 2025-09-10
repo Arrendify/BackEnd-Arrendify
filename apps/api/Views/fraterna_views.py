@@ -3799,13 +3799,39 @@ class IncidenciasGarzaSada(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
     def create(self, request, *args, **kwargs):
-            try: 
-                print("Creando Soicitud de Incidencia....📄")
-                user_session = request.user
-                data = request.data
-                print("Data ===>", data)
-                
-                # Usar first_name del usuario autenticado para buscar arrendatario
+        try: 
+            print("Creando Solicitud de Incidencia....📄")
+            user_session = request.user
+            data = request.data
+            print("Data ===>", data)
+            
+            # Verificar si es usuario autorizado para incidencias Arrendify
+            usuarios_autorizados = ['GarzaSada', 'Fraterna', 'SemilleroPurisima']
+            es_usuario_autorizado = (
+                user_session.is_staff or 
+                user_session.is_superuser or 
+                user_session.username in usuarios_autorizados or
+                getattr(user_session, 'pertenece_a', None) in usuarios_autorizados
+            )
+            
+            arrendatario = None
+            contrato = None
+            
+            if es_usuario_autorizado:
+                print(f"Usuario autorizado para incidencias Arrendify: {user_session.username}")
+                # Para usuarios autorizados, crear incidencia sin arrendatario/contrato
+                incidencia_data = {
+                    "user": user_session.id,
+                    "arrendatario": None,
+                    "contrato": None,
+                    "incidencia": data.get('incidencia', ''),
+                    "tipo_incidencia": data.get('tipo_incidencia', ''),
+                    "prioridad": data.get('prioridad', 'Media'),
+                    "status": "Pendiente de Revisión",
+                }
+                print(f"Creando incidencia Arrendify sin asociaciones: User={user_session.id}")
+            else:
+                # Lógica original para usuarios regulares
                 nombre_usuario = user_session.first_name.strip()
                 print(f"Nombre completo del usuario: {nombre_usuario}")
                 
@@ -3860,7 +3886,7 @@ class IncidenciasGarzaSada(viewsets.ModelViewSet):
                 except GarzaSadaContratos.DoesNotExist:
                     return Response({'error': f'Contrato no encontrado para el arrendatario ID: {arrendatario.id}'}, status=status.HTTP_400_BAD_REQUEST)
                 
-                # Crear Incidencia
+                # Crear Incidencia para usuario regular
                 incidencia_data = {
                     "user": user_session.id,
                     "arrendatario": arrendatario.id,
@@ -3868,21 +3894,20 @@ class IncidenciasGarzaSada(viewsets.ModelViewSet):
                     "incidencia": data.get('incidencia', ''),
                     "status": "Pendiente de Revisión",
                 }
-                
-                print(f"Creando documento con: User={user_session.id}, Arrendatario={arrendatario.id}, Contrato={contrato.id}")
-                
-                arrendamientos_serializer = self.get_serializer(data=incidencia_data)
-                arrendamientos_serializer.is_valid(raise_exception=True)
-                arrendamientos_serializer.save()
-                
-                print("Incidencia ligada a Residente....✅")
-                return Response(arrendamientos_serializer.data, status=status.HTTP_201_CREATED)
-                
-            except Exception as e:
-                print(f"el error es: {e}")
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
-                return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)         
+                print(f"Creando incidencia regular con: User={user_session.id}, Arrendatario={arrendatario.id}, Contrato={contrato.id}")
+            
+            arrendamientos_serializer = self.get_serializer(data=incidencia_data)
+            arrendamientos_serializer.is_valid(raise_exception=True)
+            arrendamientos_serializer.save()
+            
+            print("Incidencia creada exitosamente....✅")
+            return Response(arrendamientos_serializer.data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)       
         
 #////////////////////////CONTRATOS GARZA SADA///////////////////////////////
 class Contratos_GarzaSada(viewsets.ModelViewSet):
