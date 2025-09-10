@@ -188,8 +188,9 @@ try:
         else:
             print("Scheduler ya estaba iniciado")
 
-    # Mantener soporte por importación directa (backward compatibility)
-    ensure_scheduler_started()
+    # Nota: El arranque del scheduler ahora se realiza desde apps.home.apps.HomeAppConfig.ready()
+    # para asegurar que todas las funciones estén definidas y el entorno Django iniciado.
+    # Si necesitas iniciarlo manualmente, importa y llama a ensure_scheduler_started() explícitamente.
 
 except ImportError:
     print("APScheduler no está instalado. Para habilitar la verificación automática, instala: pip install apscheduler")
