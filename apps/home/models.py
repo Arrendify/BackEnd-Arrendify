@@ -220,7 +220,7 @@ class Arrendatario(models.Model):
     pagina_web=models.CharField(max_length=100, null=True, blank=True)
     giro=models.CharField(max_length=100, null=True, blank=True)
     telefono_jefe=models.BigIntegerField(null=True, blank=True)
-    email_jefe=models.EmailField(null=True, blank=True, default="na@na.com")
+    email_jefe=models.CharField(null=True, blank=True, default="na@na.com")
     #////////////////de aqui hacia arriba seria para persona fisica
     # persona moral
     nombre_empresa=models.CharField(max_length = 250, null = True, blank = True)
@@ -2701,6 +2701,8 @@ class IncidenciasGarzaSada(models.Model):
     incidencia = models.TextField(null = True, blank = True)
     status = models.CharField(max_length = 250, null = True, blank = True)
     solucion = models.TextField(null = True, blank = True)
+    tipo_incidencia = models.CharField(max_length=100, null=True, blank=True, help_text="Tipo de incidencia reportada")
+    prioridad = models.CharField(max_length=20, null=True, blank=True, default="Media", help_text="Prioridad de la incidencia")
     dateTimeOfUpload = models.DateTimeField(auto_now = True)
     
     class Meta:
@@ -2711,6 +2713,7 @@ class Notificacion(models.Model):
         ('recordatorio_3_meses', 'Recordatorio 3 meses antes'),
         ('recordatorio_2_meses', 'Recordatorio 2 meses antes'),
         ('recordatorio_1_mes', 'Recordatorio 1 mes antes'),
+        ('comunicado', 'Comunicado'),
     ]
     
     TIPOS_CONTRATO = [
@@ -2745,7 +2748,7 @@ class Notificacion(models.Model):
     
     class Meta:
         db_table = 'notificaciones'
-        unique_together = ['tipo_notificacion', 'tipo_contrato', 'contrato_general', 'contrato_fraterna', 'contrato_semillero', 'contrato_garzasada']
+        unique_together = ['user', 'tipo_notificacion', 'tipo_contrato', 'contrato_general', 'contrato_fraterna', 'contrato_semillero', 'contrato_garzasada']
         ordering = ['-fecha_creacion']
     
     def __str__(self):
