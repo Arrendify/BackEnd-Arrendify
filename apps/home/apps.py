@@ -9,7 +9,10 @@ class HomeAppConfig(AppConfig):
         print("Esta en apps.py ")
         # Código adicional que deseas ejecutar cuando la aplicación esté lista
         from . import scheduler # Esta línea importa el módulo
-       # scheduler.start_scheduler() #inicia el scheduler
+        # Asegura job diario 09:00 (hora local) para verificación de contratos
+        if hasattr(scheduler, 'ensure_scheduler_started'):
+            scheduler.ensure_scheduler_started()
+        # Scheduler adicional para tareas previas del proyecto
         scheduler.start_scheduler_notificaciones() #inicia el scheduler de notificaciones
 
 default_app_config = 'home.apps.HomeAppConfig'
