@@ -26,6 +26,38 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         """Obtiene todas las notificaciones de la tabla sin filtros"""
         return Notificacion.objects.all().order_by('-fecha_creacion')
 
+    @action(detail=False, methods=['post'], url_path='crear_comunicado')
+    def crear_comunicado(self, request):
+        titulo  = (request.data.get('titulo') or '').strip()
+        mensaje = (request.data.get('mensaje') or '').strip()
+
+        if not titulo or not mensaje:
+            return Response({"detail": "titulo y mensaje son requeridos."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Si agregaste 'comunicado' a los choices, usa 'comunicado'. Si no, usa
+        # temporalmente 'recordatorio_1_mes' para no romper validación.
+        TIPO_NOTIF = 'comunicado'   # <-- NO 'garzasada' aquí
+        TIPO_CONTR = 'garzasada'    # <-- el tipo de contrato sí es 'garzasada'
+
+        noti = Notificacion.objects.create(
+            user=request.user,
+            tipo_notificacion=TIPO_NOTIF,         # correcto
+            tipo_contrato=TIPO_CONTR,             # correcto
+            titulo=titulo,
+            mensaje=mensaje,
+            fecha_programada=timezone.now().date(),
+            # si el campo es obligatorio en DB, pon hoy; si lo hiciste nullable, deja None
+            fecha_vencimiento_contrato=timezone.now().date(),
+            contrato_general=None,
+            contrato_fraterna=None,
+            contrato_semillero=None,
+            contrato_garzasada=None,
+        )
+
+        ser = NotificacionSerializer(noti)
+        return Response(ser.data, status=status.HTTP_201_CREATED)
+
     def list(self, request, *args, **kwargs):
         """Lista todas las notificaciones de la tabla completa"""
         queryset = self.get_queryset()
