@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'apps.home',  # Enable the inner home (home)
+    'apps.home.apps.HomeAppConfig',  # Enable the inner home (home)
     'apps.api',  # Enable the inner home (home)
     'apps.accounts',
     'rest_framework',

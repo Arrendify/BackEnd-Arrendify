@@ -1,18 +1,21 @@
 from django.apps import AppConfig
+import os, sys, logging
 
 class HomeAppConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.home'
     verbose_name = 'home'
 
-    def ready(self): #  Se ejecuta cuando la aplicación está lista
-        print("Esta en apps.py ")
-        # Código adicional que deseas ejecutar cuando la aplicación esté lista
-        from . import scheduler # Esta línea importa el módulo
-        # Asegura job diario 09:00 (hora local) para verificación de contratos
-        if hasattr(scheduler, 'ensure_scheduler_started'):
-            scheduler.ensure_scheduler_started()
-        # Scheduler adicional para tareas previas del proyecto
-        scheduler.start_scheduler_notificaciones() #inicia el scheduler de notificaciones
-
-default_app_config = 'home.apps.HomeAppConfig'
+    def ready(self):
+        print("Esta en apps.py (HomeAppConfig.ready)")
+        # No correr en comandos administrativos
+        if any(c in sys.argv for c in {'makemigrations','migrate','collectstatic','shell','test','loaddata','dumpdata'}):
+            return
+        # Evita doble arranque (autoreload / gunicorn)
+        is_reload = os.environ.get('RUN_MAIN') == 'true'
+        is_gunicorn = 'gunicorn' in os.environ.get('SERVER_SOFTWARE','').lower() or os.environ.get('GUNICORN_CMD_ARGS')
+        if is_reload or is_gunicorn:
+            from . import scheduler
+            if hasattr(scheduler, 'ensure_scheduler_started'):
+                scheduler.ensure_scheduler_started()
+            logging.getLogger(__name__).warning("✅ APScheduler inicializado")
