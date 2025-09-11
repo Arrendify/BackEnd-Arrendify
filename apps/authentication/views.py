@@ -45,7 +45,6 @@ import json, string, random
 from .variables import *
 
 
-
 class UserToken(APIView):
     def get(self, request, *args, **kwargs):
         username = request.GET.get('username')
@@ -95,56 +94,33 @@ class Login(ObtainAuthToken):
             print("soy el query user",user)
             if user.is_active:
                 print("estoy activo",user)
-                token,created = Token.objects.get_or_create(user = user)
-                user_serilizer = UserTokenSerializer(user)
+                token, created = Token.objects.get_or_create(user=user)
+
+                # Preparar serializers según rol
                 inmobiliaria_user = User2Inmobiliaria(user)
                 arrendify_user = User2Serializer(user)
                 residente_user = User2Residente(user)
+                user_serializer = UserTokenSerializer(user)
 
-                print("YO SOY USER",user)
-                if created:
-                     if inmobiliaria_user.data['rol'] == "Inmobiliaria" or inmobiliaria_user.data['rol'] == "Agente":
-                        print("estoy entrando a inmo")
-                        return Response({'token':token.key, 
-                                      'user':inmobiliaria_user.data,
-                                      'type':'Token',
-                                      'message': 'Inicio de Sesion Existoso'
-                                      },status=status.HTTP_201_CREATED)
-                     elif arrendify_user.data['is_staff'] == True:
-                        print("SOY STAFF")
-                        return Response({'token':token.key, 
-                                      'user':arrendify_user.data,
-                                      'type':'Token',
-                                      'message': 'Inicio de Sesion Existoso'
-                                      },status=status.HTTP_201_CREATED)
-                     elif residente_user.data['rol'] == "Residente":
-                        print("Residente")
-                        return Response({'token':token.key, 
-                                      'user':residente_user.data,
-                                      'type':'Token',
-                                      'message': 'Inicio de Sesion Existoso'
-                                      },status=status.HTTP_201_CREATED)
-                     else:
-                        print("Soy Normalito")
-                        return Response({'token':token.key, 
-                                      'user':user_serilizer.data,
-                                      'type':'Token',
-                                      'message': 'Inicio de Sesion Existoso'
-                                      },status=status.HTTP_201_CREATED)
+                # Elegir payload de usuario consistente según rol/atributos
+                if inmobiliaria_user.data.get('rol') in ("Inmobiliaria", "Agente"):
+                    user_payload = inmobiliaria_user.data
+                elif arrendify_user.data.get('is_staff') is True:
+                    user_payload = arrendify_user.data
+                elif residente_user.data.get('rol') == "Residente":
+                    user_payload = residente_user.data
                 else:
-                    #all_sessions = Session.objects.filter(expire_date__gte = datetime.now())
-                    # if all_sessions.exists():
-                    #     for session in all_sessions:
-                    #         session_data = session.get_decoded()
-                    #         if user.id == int(session_data.get('_auth_user_id')):
-                    #             session.delete()
-                            
-                    token.delete()
-                    token = Token.objects.create(user = user)
-                    return Response({'token':token.key, 
-                                      'user':user_serilizer.data,
-                                      'message': 'Inicio de Sesion Existoso'
-                                      },status=status.HTTP_201_CREATED)
+                    user_payload = user_serializer.data
+
+                # Si deseas forzar un token nuevo en cada login, descomenta:
+                # token.delete(); token = Token.objects.create(user=user)
+
+                return Response({
+                    'token': token.key,
+                    'user': user_payload,
+                    'type': 'Token',
+                    'message': 'Inicio de Sesion Existoso'
+                }, status=status.HTTP_200_OK)
             else:
                  print('error: este user no puedes iniciar')
                  return Response({'error': 'este user no puedes iniciar'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -370,4 +346,3 @@ def agente_inquilino(request):
 #         Inmobiliaria_serializer = User2Inmobiliaria(inmobiliaria, many=True)
 #         return Response(Inmobiliaria_serializer.data)    
 #     return Response({'error':"No existe inmobiliarias"}, status= status.HTTP_204_NO_CONTENT)
-
