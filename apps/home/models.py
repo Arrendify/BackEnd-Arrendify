@@ -2604,6 +2604,9 @@ class DocumentosArrendatarios_garzasada(models.Model):
         
     #Datos De contrato SEMILLERO
 class GarzaSadaContratos(models.Model):
+    
+    def contrato_gs_upload_path(instance, filename):
+        return f"garzasada/contratos/{instance.id or 'tmp'}/{filename}"
      
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
@@ -2642,6 +2645,7 @@ class GarzaSadaContratos(models.Model):
     t_inq4=models.CharField(max_length = 250, null = True, blank = True)
     d_inq4=models.CharField(max_length = 250, null = True, blank = True)
     
+    contrato_pdf = models.FileField(upload_to=contrato_gs_upload_path, null=True, blank=True)
 
     class Meta:
             db_table = 'garzasada_contrato'
