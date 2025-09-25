@@ -422,5 +422,11 @@ class NotificacionSerializer(serializers.ModelSerializer):
                 })
         except Exception:
             pass
-            
+        
         return info
+
+# ===================== Reservas Asador =====================
+class ReservaAsadorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReservaAsador
+        fields = '__all__'

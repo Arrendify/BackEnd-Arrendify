@@ -9,13 +9,9 @@ from .Views import fraterna_views
 from .Views.investigaciones_views import InvestigacionLaboralViewSet,InvestigacionInquilinoViewSet,InvestigacionFinancieraViewSet,InvestigacionJudicialViewSet
 from .Views.stripe_view import *
 from .Views.notificaciones_views import NotificacionViewSet
+from .Views.reservas_views import ReservaAsadorViewSet
 
-
-
-# router = routers.SimpleRouter()
-# router.register(r'users', ListarLibrosSet, basename='user')
-# urlpatterns += router.urls
-
+# Inicializar router
 router = DefaultRouter()
 
 #inquilinos
@@ -85,6 +81,9 @@ router.register(r'create-checkout-session', CreateStripeCheckoutSession, basenam
 
 # Notificaciones de recordatorios de contratos
 router.register(r'notificaciones', NotificacionViewSet, basename='notificaciones')
+
+# Reservas de Asador
+router.register(r'reservas_asador', ReservaAsadorViewSet, basename='reservas_asador')
 
 # si descomentamos la linea de abajo nos da el create con post de notificacion directo con el metodo notify_signals.
 # router.register(r'notis_prueba', notis_prueba, basename='notis_prueba')

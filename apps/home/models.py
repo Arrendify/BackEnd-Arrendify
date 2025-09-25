@@ -6,11 +6,11 @@ Copyright (c) 2019 - present AppSeed.us
 from calendar import c
 from pyexpat import model
 
-import random
 import string
 
 from unittest.util import _MAX_LENGTH
 from django.db import models
+from django.core.exceptions import ValidationError
 
 from django.core.files.storage import FileSystemStorage
 
@@ -2774,3 +2774,83 @@ class Notificacion(models.Model):
             return self.contrato_garzasada
         else:
             return self.contrato_general
+
+class ReservaAsador(models.Model):
+    ASADORES = [
+        (1, 'Asador 1'),
+        (2, 'Asador 2'),
+        (3, 'Asador 3'),
+        (4, 'Asador 4'),
+        (5, 'Asador 5'),
+    ]
+
+    id = models.AutoField(primary_key=True)
+    folio = models.CharField(max_length=12, unique=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reservas_asador')
+    usuario_nombre = models.CharField(max_length=250, blank=True)
+    asador = models.IntegerField(choices=ASADORES)
+    fecha = models.DateField()
+    hora_inicio = models.TimeField()
+    hora_fin = models.TimeField()
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'garzasada_reservas_asador'
+        indexes = [
+            models.Index(fields=['asador', 'fecha']),
+        ]
+        ordering = ['-fecha', 'asador', 'hora_inicio']
+
+    def __str__(self):
+        return f"{self.folio} - Asador {self.asador} - {self.fecha} {self.hora_inicio}-{self.hora_fin}"
+
+    def clean(self):
+        # Validar fecha posterior a hoy
+        hoy = date.today()
+        if self.fecha <= hoy:
+            raise ValidationError('La fecha debe ser posterior al día de hoy.')
+
+        # Ventana horaria 08:00 a 22:00 y bloques de 1 hora exacta
+        limite_inicio = time(hour=8, minute=0)
+        limite_fin = time(hour=22, minute=0)
+        if not (limite_inicio <= self.hora_inicio < limite_fin):
+            raise ValidationError('La hora de inicio debe estar entre 08:00 y 21:00.')
+        if not (limite_inicio < self.hora_fin <= limite_fin):
+            raise ValidationError('La hora de fin debe estar entre 09:00 y 22:00.')
+        if self.hora_fin <= self.hora_inicio:
+            raise ValidationError('La hora de fin debe ser mayor que la de inicio.')
+
+        # Bloques exactos de 1 hr
+        duracion = datetime.combine(self.fecha, self.hora_fin) - datetime.combine(self.fecha, self.hora_inicio)
+        if duracion.total_seconds() % 3600 != 0:
+            raise ValidationError('Las reservas deben ser en bloques exactos de 1 hora.')
+
+        # Validar solapamiento con otras reservas del mismo asador y fecha
+        solape = ReservaAsador.objects.filter(
+            asador=self.asador,
+            fecha=self.fecha,
+            hora_inicio__lt=self.hora_fin,
+            hora_fin__gt=self.hora_inicio,
+        )
+        if self.pk:
+            solape = solape.exclude(pk=self.pk)
+        if solape.exists():
+            raise ValidationError('Existe una reserva que se solapa con el horario seleccionado.')
+
+    def save(self, *args, **kwargs):
+        # Completar usuario_nombre desde user.first_name
+        if self.user and not self.usuario_nombre:
+            try:
+                self.usuario_nombre = getattr(self.user, 'first_name', '') or ''
+            except Exception:
+                self.usuario_nombre = ''
+
+        # Validaciones
+        self.full_clean()
+
+        # Folio incremental ASGS0001
+        if not self.folio:
+            ultimo = ReservaAsador.objects.order_by('-id').first()
+            siguiente = 1 if not ultimo else (ultimo.id + 1)
+            self.folio = f"ASGS{str(siguiente).zfill(4)}"
+        return super().save(*args, **kwargs)

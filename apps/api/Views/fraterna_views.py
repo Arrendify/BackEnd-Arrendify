@@ -15,6 +15,7 @@ import boto3
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 from core.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN_ZAPSIGN, API_URL_ZAPSIGN
 #weasyprint
 from weasyprint import HTML, CSS

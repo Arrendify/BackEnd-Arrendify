@@ -1577,7 +1577,8 @@ class RecuperarPassword(viewsets.ViewSet):
             # switch server
             #server = "'http://192.168.1.192:8000'"
             #server = "http://192.168.3.2:8000"
-            server = "http://192.168.1.141:8000"
+            #server = "http://192.168.1.141:8000"
+            server = "http://192.168.0.103:8000"
             #server = "https://arrendify.app"
             
             #variable
