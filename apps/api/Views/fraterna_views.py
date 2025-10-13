@@ -15,6 +15,7 @@ import boto3
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 from core.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN_ZAPSIGN, API_URL_ZAPSIGN
 #weasyprint
 from weasyprint import HTML, CSS
@@ -48,9 +49,10 @@ from django.core.files.base import ContentFile
 from decouple import config
 
 # Para combinación de PDFs
-import io
+import base64, io, sys
 import requests
-import base64
+from rest_framework.decorators import action
+
 from pypdf import PdfReader, PdfWriter
 from datetime import datetime as dt
 from datetime import datetime, timedelta
@@ -4050,6 +4052,73 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
+    
+    @action(detail=False, methods=['post'], url_path='subir_contrato_pdf')
+    def subir_contrato_pdf(self, request, *args, **kwargs):
+        """
+        Sube un contrato PDF (modo 'subir').
+        Body:
+          - arrendatario: ID del arrendatario (FK)
+          - filename: nombre del archivo (sugerido)
+          - mimetype: application/pdf
+          - size: tamaño bytes (informativo)
+          - data_base64: PDF en base64 (sin encabezado data:)
+          - no_depa: (opcional) para asociar
+        """
+        try:
+            data = request.data
+            arr_id = data.get('arrendatario')
+            filename = data.get('filename') or 'contrato.pdf'
+            b64 = data.get('data_base64')
+            no_depa = data.get('no_depa')
+
+            if not arr_id or not b64:
+                return Response({'error': 'arrendatario y data_base64 son requeridos'}, status=400)
+
+            # decodificar
+            try:
+                file_bytes = base64.b64decode(b64)
+            except Exception:
+                return Response({'error': 'data_base64 inválido'}, status=400)
+
+            # crear contrato mínimo
+            arr = Arrendatarios_garzasada.objects.filter(pk=arr_id).first()
+            if not arr:
+                return Response({'error': 'Arrendatario no encontrado'}, status=404)
+
+            contrato = GarzaSadaContratos.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                arrendatario=arr,
+                no_depa=no_depa or None,
+            )
+
+            # guardar archivo
+            contrato.contrato_pdf.save(filename, ContentFile(file_bytes), save=True)
+
+            # crear proceso “En Revisión”, igual que en create()
+            fecha_actual = date.today()
+            proceso = ProcesoContrato_garzasada.objects.create(
+                usuario=request.user,
+                fecha=fecha_actual,
+                status_proceso="En Revisión",
+                contrato=contrato
+            )
+
+            return Response({
+                'id': contrato.id,
+                'arrendatario': contrato.arrendatario_id,
+                'no_depa': contrato.no_depa,
+                'archivo': contrato.contrato_pdf.url if contrato.contrato_pdf else None,
+                'proceso': proceso.status_proceso,
+            }, status=201)
+
+        except Exception as e:
+            print(f"error subir_contrato_pdf: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en {exc_tb.tb_frame.f_code.co_name} línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=400)
+    
+    
     def aprobar_contrato_garzasada(self, request, *args, **kwargs):
         try:
             print("Aprobar Contrato Garza Sada")
@@ -4123,64 +4192,55 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
                         f"en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-    def generar_paquete_garzasada_pdf(self, id_paq, pagare_distinto="No", cantidad_pagare="0"):
-        """
-        Función auxiliar que genera un paquete PDF combinado con los siguientes documentos:
-        1. Contrato
-        2. Póliza
-        3. Pagarés
-        """
-        # Guardar el registro de paginas totales para usar en coordenadas de firmantes
-        total_paginas = {
-            "arrendamiento": 0,
-            "poliza": 0,
-            "pagares": 0,
-        }
+    def generar_paquete_garzasada_pdf(self, id_paq, pagare_distinto="No", cantidad_pagare="0", testigo1="", testigo2=""):
+            total_paginas = {"arrendamiento": 0, "poliza": 0, "pagares": 0}
+            
+            print("Soy el self",self)
 
-        print("Generando paquete PDF para Garza Sada...")
-        locale.setlocale(locale.LC_ALL, "es_MX.utf8")
+            info = self.queryset.filter(id=id_paq).first()
+            if not info:
+                raise ValueError("Contrato no encontrado")
 
-        # Obtener información del contrato
-        info = self.queryset.filter(id=id_paq).first()
-        if not info:
-            raise ValueError("Contrato no encontrado")
+            pdf_writer = PdfWriter()
 
-        pdf_writer = PdfWriter()
+            # ===== 1) CONTRATO =====
+            # Prioridad: 1) base64, 2) FileField, 3) generar desde plantilla
+            if info.contrato_pdf_b64:
+                print("Usando contrato PDF desde base64 subido...")
+                import base64
+                contrato_bytes = base64.b64decode(info.contrato_pdf_b64)
+                contrato_reader = PdfReader(io.BytesIO(contrato_bytes))
+            else:
+                print("Generando contrato desde plantilla...")
+                contrato_pdf = self._generar_contrato_garzasada_interno(info, testigo1=testigo1, testigo2=testigo2)
+                contrato_reader = PdfReader(io.BytesIO(contrato_pdf))
 
-        # 1. Contrato
-        print("Generando Contrato...")
-        contrato_pdf = self._generar_contrato_garzasada_interno(info)
-        contrato_reader = PdfReader(io.BytesIO(contrato_pdf))
-        total_paginas["arrendamiento"] = len(contrato_reader.pages)
-        for page in contrato_reader.pages:
-            pdf_writer.add_page(page)
+            total_paginas["arrendamiento"] = len(contrato_reader.pages)
+            for page in contrato_reader.pages:
+                pdf_writer.add_page(page)
 
-        # 2. Póliza
-        print("Generando Póliza...")
-        poliza_pdf = self._generar_poliza_garzasada_interno(info)
-        poliza_reader = PdfReader(io.BytesIO(poliza_pdf))
-        total_paginas["poliza"] = len(poliza_reader.pages)
-        for page in poliza_reader.pages:
-            pdf_writer.add_page(page)
+            # ===== 2) POLIZA =====
+            poliza_pdf = self._generar_poliza_garzasada_interno(info)
+            poliza_reader = PdfReader(io.BytesIO(poliza_pdf))
+            total_paginas["poliza"] = len(poliza_reader.pages)
+            for page in poliza_reader.pages:
+                pdf_writer.add_page(page)
 
-        # 3. Pagarés
-        print("Generando Pagarés...")
-        pagare_pdf = self._generar_pagare_garzasada_interno(info, pagare_distinto, cantidad_pagare)
-        pagare_reader = PdfReader(io.BytesIO(pagare_pdf))
-        total_paginas["pagares"] = len(pagare_reader.pages)
-        for page in pagare_reader.pages:
-            pdf_writer.add_page(page)
+            # ===== 3) PAGARÉS =====
+            pagare_pdf = self._generar_pagare_garzasada_interno(info, pagare_distinto, cantidad_pagare)
+            pagare_reader = PdfReader(io.BytesIO(pagare_pdf))
+            total_paginas["pagares"] = len(pagare_reader.pages)
+            for page in pagare_reader.pages:
+                pdf_writer.add_page(page)
 
-        # PDF final
-        output_pdf = io.BytesIO()
-        pdf_writer.write(output_pdf)
-        output_pdf.seek(0)
+            output_pdf = io.BytesIO()
+            pdf_writer.write(output_pdf)
+            output_pdf.seek(0)
 
-        # Nombre con fecha
-        fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
-        nombre_archivo = f"Paquete_Completo_GarzaSada_{info.arrendatario.nombre_arrendatario}_{fecha_actual}.pdf"
+            fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
+            nombre_archivo = f"Paquete_Completo_GarzaSada_{info.arrendatario.nombre_arrendatario}_{fecha_actual}.pdf"
 
-        return nombre_archivo, output_pdf.getvalue(), total_paginas
+            return nombre_archivo, output_pdf.getvalue(), total_paginas
         
     def generar_pagare_garzasada(self, request, *args, **kwargs):
         try:
@@ -4456,6 +4516,43 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST) 
         
+    @action(detail=False, methods=['post'], url_path='descargar_contrato_base64')
+    def descargar_contrato_base64(self, request, *args, **kwargs):
+        """Descarga el contrato subido (almacenado en base64) como PDF"""
+        try:
+            print("Descargar contrato desde base64")
+            print("Data Entrante ====>", request.data)
+            
+            id_contrato = request.data.get("id")
+            if not id_contrato:
+                return Response({'error': 'ID de contrato requerido'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            info = self.queryset.filter(id=id_contrato).first()
+            if not info:
+                return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            
+            if not info.contrato_pdf_b64:
+                return Response({'error': 'No hay contrato en base64 para este registro'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Decodificar base64 a bytes
+            import base64
+            pdf_bytes = base64.b64decode(info.contrato_pdf_b64)
+            
+            # Devolver como PDF
+            response = HttpResponse(content_type=info.contrato_mimetype or 'application/pdf')
+            filename = info.contrato_filename or f'contrato_{id_contrato}.pdf'
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            response.write(pdf_bytes)
+            
+            print(f"Contrato base64 descargado correctamente: {filename} ✅")
+            return response
+            
+        except Exception as e:
+            print(f"Error en descargar_contrato_base64: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
     def _generar_contrato_garzasada_interno(self, info, testigo1="", testigo2=""):
         """Función interna para generar el PDF del contrato de Garza Sada"""
         try:
@@ -4577,7 +4674,7 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
                 'nom_contrato': nom_contrato
             }
             
-            template = 'home/poliza_fraterna.html'
+            template = 'home/poliza_garzasada.html'
             html_string = render_to_string(template, context)
             pdf_file = HTML(string=html_string).write_pdf()
             
@@ -4924,24 +5021,16 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
         return None
 
     def generar_urls_firma_gs(self, request, *args, **kwargs):
-        """
-        Devuelve el contrato en base64 y crea el documento en ZapSign.
-        Usa funciones internas que retornan bytes, no HttpResponse.
-        """
         try:
-            print("Generando urls zapsign")
             data = request.data
-            print("Data ====>", data)
 
-            # Extraer parámetros de entrada
             if isinstance(data, dict):
                 id_paq = data.get("id_contrato") or data.get("id")
-                pagare_distinto = data.get("pagare_distinto", "No")  # por si se usa luego
-                cantidad_pagare = data.get("cantidad_pagare", "0")   # por si se usa luego
+                pagare_distinto = data.get("pagare_distinto", "No")
+                cantidad_pagare = data.get("cantidad_pagare", "0")
                 testigo1 = data.get("testigo1", "")
                 testigo2 = data.get("testigo2", "")
             else:
-                # Caso fallback: data no es dict
                 id_paq = data
                 pagare_distinto = "No"
                 cantidad_pagare = "0"
@@ -4949,45 +5038,37 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
                 testigo2 = ""
 
             if not id_paq:
-                return Response({'error': 'id_contrato es requerido'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'id_contrato o id es requerido'}, status=400)
 
-            # Obtener objeto del contrato
             info = self.queryset.filter(id=id_paq).first()
             if not info:
-                return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': 'Contrato no encontrado'}, status=404)
 
-            # Generar PDF del contrato (bytes) usando función interna
-            pdf_bytes = self._generar_contrato_garzasada_interno(info, testigo1=testigo1, testigo2=testigo2)
+            # Si hay PDF subido úsalo, si no genera
+            if info.contrato_pdf:
+                pdf_bytes = info.contrato_pdf.read()
+            else:
+                pdf_bytes = self._generar_contrato_garzasada_interno(info, testigo1=testigo1, testigo2=testigo2)
 
-            # Calcular total de páginas desde los bytes
-            reader = PdfReader(io.BytesIO(pdf_bytes))
-            total_paginas = len(reader.pages)
-
-            # Armar nombre para mostrar en Zapsign
+            total_paginas = len(PdfReader(io.BytesIO(pdf_bytes)).pages)
             nombre_archivo = f"Contrato Garza Sada - {info.arrendatario.nombre_arrendatario}"
-
-            # Codificar en base64
             base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
-            print("Paquete EN BASE 64")
 
-            # OJO: build_payload_to_zapsign espera la key 'residente', no 'arrendatario'
             contrato_data = {
                 "id": id_paq,
                 "filename": nombre_archivo,
                 "base64_pfd": base64_pdf,
-                "arrendatario": data["arrendatario_contrato"],  # <- clave correcta
+                "arrendatario": data["arrendatario_contrato"],  # <- este key es el que espera build_payload_to_zapsign
                 "total_paginas": total_paginas
             }
 
-            # Solicitar documento a ZapSign
             resultado = self.subir_documento_a_zapsign(contrato_data)
-
             return Response({
                 "filename": nombre_archivo,
                 "pdf_base64": base64_pdf,
                 "total_paginas": total_paginas,
                 "respuestaZS": resultado
-            }, status=status.HTTP_200_OK)
+            }, status=200)
 
         except Exception as e:
             print(f"Error en generar_urls_firma_gs: {e}")
@@ -5196,7 +5277,7 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
     
     def enviar_archivo_semillero(self, archivo, info, estatus):
-        #cuan(do francis este registrado regresar todo como estaba
+        #cuando francis este registrado regresar todo como estaba
         print("Enviar Archivo Investigacion Semillero ====>")
         print("PDF ====>",archivo)
         print("Estatus Investigacion ====>",estatus)
