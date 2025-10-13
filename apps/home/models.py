@@ -7,6 +7,7 @@ from calendar import c
 from pyexpat import model
 
 import string
+import random
 
 from unittest.util import _MAX_LENGTH
 from django.db import models
@@ -668,7 +669,7 @@ class Arrendador(models.Model):
     titular = models.CharField(max_length=100, null=True, blank=True)
     no_cuenta = models.CharField(max_length=100, null=True, blank=True)
     clabe = models.CharField(max_length=100, null=True, blank=True)
-
+    
     observaciones= models.CharField(max_length=200, null=True, blank=True)
     # Estatus del arrendador
     estatus_arrendador = models.CharField(max_length=100, null=True, blank=True, default='En espera')
@@ -771,6 +772,8 @@ class Propietario(models.Model):
     titular = models.CharField(max_length=100, null=True, blank=True)
     no_cuenta = models.CharField(max_length=100, null=True, blank=True)
     clabe = models.CharField(max_length=100, null=True, blank=True)
+    
+    rendimiento = models.BooleanField(null=True, blank=True)
 
     created=models.DateField(auto_now_add=True, null=True, blank=True)
     codigo_amigo = models.CharField(max_length=8, editable = False, unique=True)
@@ -2645,7 +2648,9 @@ class GarzaSadaContratos(models.Model):
     t_inq4=models.CharField(max_length = 250, null = True, blank = True)
     d_inq4=models.CharField(max_length = 250, null = True, blank = True)
     
-    contrato_pdf = models.FileField(upload_to=contrato_gs_upload_path, null=True, blank=True)
+    contrato_pdf_b64 = models.TextField(null=True, blank=True)
+    contrato_filename = models.CharField(max_length=255, null=True, blank=True, default="")
+    contrato_mimetype = models.CharField(max_length=100, null=True, blank=True, default="application/pdf")
 
     class Meta:
             db_table = 'garzasada_contrato'

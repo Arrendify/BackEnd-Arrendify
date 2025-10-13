@@ -4194,6 +4194,8 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
         
     def generar_paquete_garzasada_pdf(self, id_paq, pagare_distinto="No", cantidad_pagare="0", testigo1="", testigo2=""):
             total_paginas = {"arrendamiento": 0, "poliza": 0, "pagares": 0}
+            
+            print("Soy el self",self)
 
             info = self.queryset.filter(id=id_paq).first()
             if not info:
@@ -4202,12 +4204,14 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
             pdf_writer = PdfWriter()
 
             # ===== 1) CONTRATO =====
-            if info.contrato_pdf:  # <<<<<<<< USA EL PDF SUBIDO
-                print("Usando contrato PDF subido…")
-                contrato_bytes = info.contrato_pdf.read()
+            # Prioridad: 1) base64, 2) FileField, 3) generar desde plantilla
+            if info.contrato_pdf_b64:
+                print("Usando contrato PDF desde base64 subido...")
+                import base64
+                contrato_bytes = base64.b64decode(info.contrato_pdf_b64)
                 contrato_reader = PdfReader(io.BytesIO(contrato_bytes))
             else:
-                print("Generando contrato desde plantilla…")
+                print("Generando contrato desde plantilla...")
                 contrato_pdf = self._generar_contrato_garzasada_interno(info, testigo1=testigo1, testigo2=testigo2)
                 contrato_reader = PdfReader(io.BytesIO(contrato_pdf))
 
@@ -4512,6 +4516,43 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST) 
         
+    @action(detail=False, methods=['post'], url_path='descargar_contrato_base64')
+    def descargar_contrato_base64(self, request, *args, **kwargs):
+        """Descarga el contrato subido (almacenado en base64) como PDF"""
+        try:
+            print("Descargar contrato desde base64")
+            print("Data Entrante ====>", request.data)
+            
+            id_contrato = request.data.get("id")
+            if not id_contrato:
+                return Response({'error': 'ID de contrato requerido'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            info = self.queryset.filter(id=id_contrato).first()
+            if not info:
+                return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            
+            if not info.contrato_pdf_b64:
+                return Response({'error': 'No hay contrato en base64 para este registro'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Decodificar base64 a bytes
+            import base64
+            pdf_bytes = base64.b64decode(info.contrato_pdf_b64)
+            
+            # Devolver como PDF
+            response = HttpResponse(content_type=info.contrato_mimetype or 'application/pdf')
+            filename = info.contrato_filename or f'contrato_{id_contrato}.pdf'
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            response.write(pdf_bytes)
+            
+            print(f"Contrato base64 descargado correctamente: {filename} ✅")
+            return response
+            
+        except Exception as e:
+            print(f"Error en descargar_contrato_base64: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
     def _generar_contrato_garzasada_interno(self, info, testigo1="", testigo2=""):
         """Función interna para generar el PDF del contrato de Garza Sada"""
         try:
@@ -4633,7 +4674,7 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
                 'nom_contrato': nom_contrato
             }
             
-            template = 'home/poliza_fraterna.html'
+            template = 'home/poliza_garzasada.html'
             html_string = render_to_string(template, context)
             pdf_file = HTML(string=html_string).write_pdf()
             
@@ -5236,7 +5277,7 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
     
     def enviar_archivo_semillero(self, archivo, info, estatus):
-        #cuan(do francis este registrado regresar todo como estaba
+        #cuando francis este registrado regresar todo como estaba
         print("Enviar Archivo Investigacion Semillero ====>")
         print("PDF ====>",archivo)
         print("Estatus Investigacion ====>",estatus)
