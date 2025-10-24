@@ -223,15 +223,16 @@ class Inventario_fotoSerializer(serializers.ModelSerializer):
         model = Inventario_foto
         fields = '__all__'
         
-#FRATERNA
-class DRSerializer(serializers.ModelSerializer):
+
+########################## F R A T E R N A ######################################
+
+class DRSerializer(serializers.ModelSerializer): #Documentos Residentes
     
     class Meta:
         model = DocumentosResidentes
         fields = '__all__'
 
-class ResidenteSerializers(serializers.ModelSerializer):
-    # aval = Fiador_obligadoSerializer(many=True, read_only=True)
+class ResidenteSerializers(serializers.ModelSerializer): #Residentes
     archivos = DRSerializer(many=True, read_only=True)
     user =  User2Serializer(read_only=True)
     
@@ -239,19 +240,48 @@ class ResidenteSerializers(serializers.ModelSerializer):
         model = Residentes
         fields = '__all__'
 
-class ProcesoFraternaSerializers(serializers.ModelSerializer):
+class ProcesoFraternaSerializers(serializers.ModelSerializer): #ProcesoContrato
     
     class Meta:
         model = ProcesoContrato
         fields = '__all__'
         
-class ContratoFraternaSerializer(serializers.ModelSerializer):
+class ContratoFraternaSerializer(serializers.ModelSerializer): #Fraterna Contratos
     residente_contrato = ResidenteSerializers(read_only=True, source='residente')
     proceso = ProcesoFraternaSerializers(many=True, read_only=True, source ='contrato')
     
     class Meta:
         model = FraternaContratos
         fields = '__all__' 
+        
+class FraternaArrendamientosSerializer(serializers.ModelSerializer): #Documentos Arrendamientos Fraterna
+    # Campos de solo lectura para mostrar información relacionada
+    user_info = User2Serializer(read_only=True, source='user')
+    arrendatario_contrato = ResidenteSerializers(read_only=True, source='arrendatario')
+    proceso_info = ProcesoFraternaSerializers(read_only=True, source='proceso')
+    contrato_info = ContratoFraternaSerializer(read_only=True, source='contrato')
+    
+    class Meta:
+        model = DocumentosArrendamientosFraterna
+        fields = '__all__'
+        
+class IncidenciasFraternaSerializer(serializers.ModelSerializer): #Incidencias Fraterna
+    user_info = User2Serializer(read_only=True, source='user')
+    arrendatario_contrato = ResidenteSerializers(read_only=True, source='arrendatario')
+    contrato_info = ContratoFraternaSerializer(read_only=True, source='contrato')
+    
+    class Meta:
+        model = IncidenciasFraterna
+        fields = '__all__'
+        
+class ReservaAsadorFraternaSerializer(serializers.ModelSerializer): #Reservas Asador Fraterna
+    class Meta:
+        model = ReservaAsadorFraterna
+        fields = '__all__'
+        
+        
+        
+########################## F R A T E R N A ######################################
 
 # Notificaciones
 class PostSerializer(serializers.ModelSerializer):    
@@ -261,14 +291,14 @@ class PostSerializer(serializers.ModelSerializer):
         fields = '__all__' 
 
 
-#FRATERNA SEMILLERO PURISIMA
-class DASSerializer(serializers.ModelSerializer):
-    
+########################## S E M I L L E R O  P U R I S I M A ######################################
+
+class DASSerializer(serializers.ModelSerializer): #Documentos Arrendatarios Semillero
     class Meta:
         model = DocumentosArrendatarios_semilleros
         fields = '__all__'
 
-class Arrentarios_semilleroSerializers(serializers.ModelSerializer):
+class Arrentarios_semilleroSerializers(serializers.ModelSerializer): #Arrendatarios Semillero
     archivos = DASSerializer(many=True, read_only=True)
     user =  User2Serializer(read_only=True)
     
@@ -277,13 +307,13 @@ class Arrentarios_semilleroSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
 #Semillero Contratos  
-class ProcesoSemilleroSerializers(serializers.ModelSerializer):
+class ProcesoSemilleroSerializers(serializers.ModelSerializer): #Proceso Contrato Semillero
     
     class Meta:
         model = ProcesoContrato_semillero
         fields = '__all__'
         
-class ContratoSemilleroSerializer(serializers.ModelSerializer):
+class ContratoSemilleroSerializer(serializers.ModelSerializer): #Semillero Contratos
     arrendatario_contrato = Arrentarios_semilleroSerializers(read_only=True, source='arrendatario')
     proceso = ProcesoSemilleroSerializers(many=True, read_only=True, source ='contrato')
     
@@ -291,14 +321,17 @@ class ContratoSemilleroSerializer(serializers.ModelSerializer):
         model = SemilleroContratos
         fields = '__all__' 
         
-#FRATERNA GARZA SADA
-class DAGSSerializer(serializers.ModelSerializer):
+ 
+########################## S E M I L L E R O  P U R I S I M A ######################################       
+        
+########################## G A R Z A  S A D A ######################################
+class DAGSSerializer(serializers.ModelSerializer): #Documentos Arrendatarios Garza Sada
     
     class Meta:
         model = DocumentosArrendatarios_garzasada
         fields = '__all__'
 
-class Arrentarios_GarzaSadaSerializers(serializers.ModelSerializer):
+class Arrentarios_GarzaSadaSerializers(serializers.ModelSerializer): #Arrendatarios Garza Sada
     archivos = DAGSSerializer(many=True, read_only=True)
     user =  User2Serializer(read_only=True)
     
@@ -307,13 +340,13 @@ class Arrentarios_GarzaSadaSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
 #GarzaSada Contratos  
-class ProcesoGarzaSadaSerializers(serializers.ModelSerializer):
+class ProcesoGarzaSadaSerializers(serializers.ModelSerializer): #Proceso Contrato Garza Sada
     
     class Meta:
         model = ProcesoContrato_garzasada
         fields = '__all__'
         
-class ContratoGarzaSadaSerializer(serializers.ModelSerializer):
+class ContratoGarzaSadaSerializer(serializers.ModelSerializer): #Garza Sada Contratos
     arrendatario_contrato = Arrentarios_GarzaSadaSerializers(read_only=True, source='arrendatario')
     proceso = ProcesoGarzaSadaSerializers(many=True, read_only=True, source ='contrato')
     
@@ -321,7 +354,7 @@ class ContratoGarzaSadaSerializer(serializers.ModelSerializer):
         model = GarzaSadaContratos
         fields = '__all__' 
         
-class GarzaSadaArrendamientosSerializer(serializers.ModelSerializer):
+class GarzaSadaArrendamientosSerializer(serializers.ModelSerializer): #Documentos Arrendamientos Garza Sada
     # Campos de solo lectura para mostrar información relacionada
     user_info = User2Serializer(read_only=True, source='user')
     arrendatario_contrato = Arrentarios_GarzaSadaSerializers(read_only=True, source='arrendatario')
@@ -332,7 +365,7 @@ class GarzaSadaArrendamientosSerializer(serializers.ModelSerializer):
         model = DocumentosArrendamientos_garzasada
         fields = '__all__'
         
-class IncidenciasGarzaSadaSerializer(serializers.ModelSerializer):
+class IncidenciasGarzaSadaSerializer(serializers.ModelSerializer): #Incidencias Garza Sada
     user_info = User2Serializer(read_only=True, source='user')
     arrendatario_contrato = Arrentarios_GarzaSadaSerializers(read_only=True, source='arrendatario')
     contrato_info = ContratoGarzaSadaSerializer(read_only=True, source='contrato')
@@ -340,15 +373,16 @@ class IncidenciasGarzaSadaSerializer(serializers.ModelSerializer):
     class Meta:
         model = IncidenciasGarzaSada
         fields = '__all__'
-   
-########################### CONTRATOS DASH ########################################
-class ContratosDashSerializer(serializers.ModelSerializer):
-    #arrendatario_contrato = Arrentarios_semilleroSerializers(read_only=True, source='arrendatario')
-    
-    
+        
+class ReservaAsadorSerializer(serializers.ModelSerializer): #Reservas Asador Garza Sada
     class Meta:
-        model = Contratos
-        fields = '__all__' 
+        model = ReservaAsador
+        fields = '__all__'
+        
+########################## G A R Z A  S A D A ######################################
+
+
+########################## N O T I F I C A C I O N E S ######################################
 
 class NotificacionSerializer(serializers.ModelSerializer):
     """Serializer para el modelo Notificacion"""
@@ -424,9 +458,15 @@ class NotificacionSerializer(serializers.ModelSerializer):
             pass
         
         return info
-
-# ===================== Reservas Asador =====================
-class ReservaAsadorSerializer(serializers.ModelSerializer):
+   
+########################## N O T I F I C A C I O N E S ######################################  
+   
+########################### CONTRATOS DASH ########################################
+class ContratosDashSerializer(serializers.ModelSerializer):
+    #arrendatario_contrato = Arrentarios_semilleroSerializers(read_only=True, source='arrendatario')
+    
+    
     class Meta:
-        model = ReservaAsador
-        fields = '__all__'
+        model = Contratos
+        fields = '__all__' 
+

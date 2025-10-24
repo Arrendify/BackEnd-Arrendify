@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte Completo de Arrendamientos - Garza Sada</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm;
+            @top-center {
+                content: "Reporte de Arrendamientos - Garza Sada";
+                font-size: 10px;
+                color: #666;
+            }
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 9px;
+                color: #666;
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 9px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #231942;
+            padding-bottom: 15px;
+        }
+
+        .header h1 {
+            color: #231942;
+            font-size: 22px;
+            margin: 0 0 5px 0;
+        }
+
+        .header p {
+            margin: 3px 0;
+            font-size: 10px;
+            color: #666;
+        }
+
+        .totales-generales {
+            background-color: #f8f9fa;
+            border: 2px solid #231942;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .total-item {
+            text-align: center;
+        }
+
+        .total-item .label {
+            font-size: 9px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .total-item .value {
+            font-size: 16px;
+            color: #231942;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .arrendatario-section {
+            page-break-inside: avoid;
+            margin-bottom: 25px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .arrendatario-header {
+            background: linear-gradient(135deg, #231942 0%, #5D4585 100%);
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .arrendatario-nombre {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .arrendatario-tipo {
+            font-size: 9px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+
+        .info-item {
+            padding: 8px;
+            background-color: white;
+            border-radius: 4px;
+            border-left: 3px solid #231942;
+        }
+
+        .info-label {
+            font-size: 8px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .info-value {
+            font-size: 10px;
+            color: #333;
+            margin-top: 3px;
+        }
+
+        .estadisticas-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 15px;
+            background-color: white;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .stat-box.success {
+            background-color: #d4edda;
+            border-color: #28a745;
+        }
+
+        .stat-box.warning {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .stat-box.danger {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .stat-box.info {
+            background-color: #d1ecf1;
+            border-color: #17a2b8;
+        }
+
+        .stat-label {
+            font-size: 8px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .recibos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .recibos-table th {
+            background-color: #231942;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .recibos-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 8px;
+        }
+
+        .recibos-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .estado-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 8px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .estado-vencido {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .estado-proximo {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        .estado-al-dia {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .footer-info {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #ddd;
+            font-size: 8px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>REPORTE COMPLETO DE ARRENDAMIENTOS</h1>
+        <p><strong>Garza Sada</strong></p>
+        <p>Generado el: {{ fecha_generacion }} | Por: {{ usuario_generador }}</p>
+    </div>
+
+    <div class="totales-generales">
+        <div class="total-item">
+            <div class="label">Total Arrendatarios</div>
+            <div class="value">{{ totales.total_arrendatarios }}</div>
+        </div>
+        <div class="total-item">
+            <div class="label">Total Recibos</div>
+            <div class="value">{{ totales.total_recibos }}</div>
+        </div>
+        <div class="total-item">
+            <div class="label">Ingresos Totales</div>
+            <div class="value">${{ totales.ingresos_totales|floatformat:2 }}</div>
+        </div>
+        <div class="total-item">
+            <div class="label">Pendientes</div>
+            <div class="value">${{ totales.pendientes_totales|floatformat:2 }}</div>
+        </div>
+        <div class="total-item">
+            <div class="label">Intereses</div>
+            <div class="value">${{ totales.intereses_totales|floatformat:2 }}</div>
+        </div>
+    </div>
+
+    {% for arr in arrendatarios %}
+    <div class="arrendatario-section">
+        <div class="arrendatario-header">
+            <div class="arrendatario-nombre">{{ arr.arrendatario.nombre }}</div>
+            <div class="arrendatario-tipo">{{ arr.arrendatario.tipo }}</div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Email</div>
+                <div class="info-value">{{ arr.arrendatario.email }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Teléfono</div>
+                <div class="info-value">{{ arr.arrendatario.telefono }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Departamento</div>
+                <div class="info-value">{{ arr.contrato.no_depa }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Renta Mensual</div>
+                <div class="info-value">${{ arr.estadisticas.renta_mensual|floatformat:2 }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Duración</div>
+                <div class="info-value">{{ arr.contrato.duracion }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Fecha Celebración</div>
+                <div class="info-value">{{ arr.contrato.fecha_celebracion }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Fecha Vigencia</div>
+                <div class="info-value">{{ arr.contrato.fecha_vigencia }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Renta Total</div>
+                <div class="info-value">${{ arr.estadisticas.renta_total|floatformat:2 }}</div>
+            </div>
+        </div>
+
+        <div class="estadisticas-grid">
+            <div class="stat-box success">
+                <div class="stat-label">Pagos Realizados</div>
+                <div class="stat-value">{{ arr.estadisticas.pagos_realizados }}/{{ arr.estadisticas.total_pagos }}</div>
+            </div>
+            <div class="stat-box warning">
+                <div class="stat-label">Pagos Pendientes</div>
+                <div class="stat-value">{{ arr.estadisticas.pagos_pendientes }}</div>
+            </div>
+            <div class="stat-box info">
+                <div class="stat-label">Total Pagado</div>
+                <div class="stat-value">${{ arr.estadisticas.total_pagado|floatformat:2 }}</div>
+            </div>
+            <div class="stat-box danger">
+                <div class="stat-label">Intereses</div>
+                <div class="stat-value">${{ arr.estadisticas.interes_total|floatformat:2 }}</div>
+            </div>
+        </div>
+
+        <div style="padding: 15px;">
+            <div style="font-size: 10px; font-weight: bold; margin-bottom: 5px;">
+                Progreso de Pagos: {{ arr.estadisticas.porcentaje_completado }}%
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ arr.estadisticas.porcentaje_completado }}%;">
+                    {{ arr.estadisticas.porcentaje_completado }}%
+                </div>
+            </div>
+        </div>
+
+        <table class="recibos-table">
+            <thead>
+                <tr>
+                    <th>Pago #</th>
+                    <th>Fecha Subida</th>
+                    <th>Fecha Vencimiento</th>
+                    <th>Interés</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recibo in arr.recibos %}
+                <tr>
+                    <td><strong>{{ recibo.numero_pago }}</strong></td>
+                    <td>{{ recibo.fecha_subida }}</td>
+                    <td>{{ recibo.fecha_vencimiento }}</td>
+                    <td>${{ recibo.interes|floatformat:2 }}</td>
+                    <td>
+                        <span class="estado-badge {% if recibo.estado == 'Vencido' %}estado-vencido{% elif recibo.estado == 'Próximo a vencer' %}estado-proximo{% else %}estado-al-dia{% endif %}">
+                            {{ recibo.estado }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+
+    <div class="footer-info">
+        <p><strong>Arrendify - Sistema de Gestión de Arrendamientos</strong></p>
+        <p>Este reporte contiene información confidencial. Uso exclusivo para fines administrativos.</p>
+    </div>
+</body>
+</html>
