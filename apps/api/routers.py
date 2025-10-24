@@ -61,6 +61,10 @@ router.register(r'inventario_fotografico', Inventario_fotografico, basename='inv
 router.register(r'residentes', fraterna_views.ResidenteViewSet, basename='residentes')
 router.register(r'documentos_residentes', fraterna_views.DocumentosRes, basename='documentos_residentes')
 router.register(r'contratos_fraterna', fraterna_views.Contratos_fraterna, basename='contratos_fraterna')
+router.register(r'recibos_fraterna', fraterna_views.DocumentosArrendamientosFraterna, basename='recibos_fraterna')
+router.register(r'incidencias_fraterna', fraterna_views.IncidenciasFraterna, basename='incidencias_fraterna')
+#router.register(r'reservas_asador_fraterna', ReservaAsadorFraterna, basename='reservas_asador_fraterna')
+
 
 #SEMILLERO PURISIMA
 router.register(r'arrendatarios_semillero', fraterna_views.Arrendatarios_semilleroViewSet, basename='arrendatarios_semillero')
@@ -73,6 +77,8 @@ router.register(r'documentos_arrendatarios_garzasada', fraterna_views.Documentos
 router.register(r'contratos_garzasada', fraterna_views.Contratos_GarzaSada, basename='contratos_garzasada')
 router.register(r'recibos_garzasada', fraterna_views.DocumentosArrendamiento_GarzaSada, basename='recibos_garzasada')
 router.register(r'incidencias_garzasada', fraterna_views.IncidenciasGarzaSada, basename='incidencias_garzasada')
+# Reservas de Asador
+router.register(r'reservas_asador', ReservaAsadorViewSet, basename='reservas_asador')
 
 # Contratos Dash
 router.register(r'contratos_dash', ContratosViewSet, basename='contratos_semillero')
@@ -82,8 +88,7 @@ router.register(r'create-checkout-session', CreateStripeCheckoutSession, basenam
 # Notificaciones de recordatorios de contratos
 router.register(r'notificaciones', NotificacionViewSet, basename='notificaciones')
 
-# Reservas de Asador
-router.register(r'reservas_asador', ReservaAsadorViewSet, basename='reservas_asador')
+
 
 # si descomentamos la linea de abajo nos da el create con post de notificacion directo con el metodo notify_signals.
 # router.register(r'notis_prueba', notis_prueba, basename='notis_prueba')

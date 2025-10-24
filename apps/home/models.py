@@ -469,7 +469,7 @@ class Aval(models.Model):
     direccion_completa=models.CharField(max_length=500, null=True, blank=True)
     telefono=models.BigIntegerField(null=True, blank=True)
     celular=models.BigIntegerField(null=True, blank=True)
-    email=models.EmailField(null=True, blank=True)
+    email=models.CharField(max_length=100, null=True, blank=True)
     
     # OBLIGADO PERSONA MORAL
     # Datos empresa del obligado PM
@@ -1952,7 +1952,8 @@ class Inventario_foto(models.Model):
     class Meta:
         db_table = 'inventario_fotografico'
 
-#FRATERNA
+########################## F R A T E R N A ######################################
+
 class Residentes(models.Model):
     # datos personales de arrendatario
     id = models.AutoField(primary_key=True)
@@ -2120,9 +2121,144 @@ class ProcesoContrato(models.Model):
         
         class Meta:
             db_table = 'fraterna_proceso'
+            
+            
+class IncidenciasFraterna(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    arrendatario = models.ForeignKey(Residentes, null=True, blank=True, on_delete=models.CASCADE,related_name="arrendatario_incidencia")
+    contrato = models.ForeignKey(FraternaContratos, null=True, blank=True, on_delete=models.CASCADE,related_name="contrato_incidencia")
+    incidencia = models.TextField(null = True, blank = True)
+    status = models.CharField(max_length = 250, null = True, blank = True)
+    solucion = models.TextField(null = True, blank = True)
+    tipo_incidencia = models.CharField(max_length=100, null=True, blank=True, help_text="Tipo de incidencia reportada")
+    prioridad = models.CharField(max_length=20, null=True, blank=True, default="Media", help_text="Prioridad de la incidencia")
+    dateTimeOfUpload = models.DateTimeField(auto_now = True)
+    
+    class Meta:
+        db_table = 'fraterna_incidencias'
+        
+        
+class DocumentosArrendamientosFraterna(models.Model):
+    def get_comp_pago_upload_path(self, filename):
+        if(self.arrendatario.nombre_arrendatario != None):
+            inq_split = str(self.arrendatario.nombre_arrendatario)
+        else:
+            inq_split = str(self.arrendatario.nombre_residente)
+        
+        ip = inq_split.replace(" ", "_")
+        # Separar nombre y extensión del archivo original
+        base, ext = filename.rsplit('.', 1)
+        
+        # Agregar fecha en formato YYYY-MM-DD
+        fecha = date.today().strftime("%Y-%m-%d")
+        nuevo_nombre = f"{base}_{fecha}.{ext}"
+        
+        print(ip)
+        
+        return f'Fraterna/arrendamiento/{ip}/comprobantes_pago/{nuevo_nombre}'
+    
+    id = models.AutoField(primary_key=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    arrendatario = models.ForeignKey(Residentes, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos_pagos")
+    contrato = models.ForeignKey(FraternaContratos, null=True, blank=True, on_delete=models.CASCADE,related_name="contrato_pago")
+    proceso = models.ForeignKey(ProcesoContrato, null=True, blank=True, on_delete=models.CASCADE,related_name="proceso_pago") 
+    comp_pago = models.FileField(upload_to=get_comp_pago_upload_path, max_length=255, null=True, blank=True)
+    numero_pago = models.IntegerField(null=True, blank=True, help_text="Número del pago actual (ej: 1, 2, 3...)")
+    total_pagos = models.IntegerField(null=True, blank=True, help_text="Total de pagos según duración del contrato")
+    renta_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Renta total del contrato (renta * duración)")
+    interes_aplicado = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Interés del 12% aplicado por retraso")
+    fecha_vencimiento = models.DateField(null=True, blank=True, help_text="Fecha límite para este pago")
+    dateTimeOfUpload = models.DateTimeField(auto_now = True)
+    
+    class Meta:
+        db_table = 'fraterna_documentos_arrendamientos' 
+        
+        
+class ReservaAsadorFraterna(models.Model):
+    ASADORES = [
+        (1, 'Asador 1'),
+        (2, 'Asador 2'),
+        (3, 'Asador 3'),
+        (4, 'Asador 4'),
+        (5, 'Asador 5'),
+    ]
+
+    id = models.AutoField(primary_key=True)
+    folio = models.CharField(max_length=12, unique=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reservas_asador_fraterna')
+    usuario_nombre = models.CharField(max_length=250, blank=True)
+    asador = models.IntegerField(choices=ASADORES)
+    fecha = models.DateField()
+    hora_inicio = models.TimeField()
+    hora_fin = models.TimeField()
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'fraterna_reservas_asador'
+        indexes = [
+            models.Index(fields=['asador', 'fecha']),
+        ]
+        ordering = ['-fecha', 'asador', 'hora_inicio']
+
+    def __str__(self):
+        return f"{self.folio} - Asador {self.asador} - {self.fecha} {self.hora_inicio}-{self.hora_fin}"
+
+    def clean(self):
+        # Validar fecha posterior a hoy
+        hoy = date.today()
+        if self.fecha <= hoy:
+            raise ValidationError('La fecha debe ser posterior al día de hoy.')
+
+        # Ventana horaria 08:00 a 22:00 y bloques de 1 hora exacta
+        limite_inicio = time(hour=8, minute=0)
+        limite_fin = time(hour=22, minute=0)
+        if not (limite_inicio <= self.hora_inicio < limite_fin):
+            raise ValidationError('La hora de inicio debe estar entre 08:00 y 21:00.')
+        if not (limite_inicio < self.hora_fin <= limite_fin):
+            raise ValidationError('La hora de fin debe estar entre 09:00 y 22:00.')
+        if self.hora_fin <= self.hora_inicio:
+            raise ValidationError('La hora de fin debe ser mayor que la de inicio.')
+
+        # Bloques exactos de 1 hr
+        duracion = datetime.combine(self.fecha, self.hora_fin) - datetime.combine(self.fecha, self.hora_inicio)
+        if duracion.total_seconds() % 3600 != 0:
+            raise ValidationError('Las reservas deben ser en bloques exactos de 1 hora.')
+
+        # Validar solapamiento con otras reservas del mismo asador y fecha
+        solape = ReservaAsador.objects.filter(
+            asador=self.asador,
+            fecha=self.fecha,
+            hora_inicio__lt=self.hora_fin,
+            hora_fin__gt=self.hora_inicio,
+        )
+        if self.pk:
+            solape = solape.exclude(pk=self.pk)
+        if solape.exists():
+            raise ValidationError('Existe una reserva que se solapa con el horario seleccionado.')
+
+    def save(self, *args, **kwargs):
+        # Completar usuario_nombre desde user.first_name
+        if self.user and not self.usuario_nombre:
+            try:
+                self.usuario_nombre = getattr(self.user, 'first_name', '') or ''
+            except Exception:
+                self.usuario_nombre = ''
+
+        # Validaciones
+        self.full_clean()
+
+        # Folio incremental ASGS0001
+        if not self.folio:
+            ultimo = ReservaAsadorFraterna.objects.order_by('-id').first()
+            siguiente = 1 if not ultimo else (ultimo.id + 1)
+            self.folio = f"ASFT{str(siguiente).zfill(4)}"
+        return super().save(*args, **kwargs)
     
 
-#FRATERNA SEMILLERO PURISIMA
+########################## F R A T E R N A ######################################
+
+########################## S E M I L L E R O  P U R I S I M A ######################################
 class Arrendatarios_semillero(models.Model):
     # datos personales de arrendatario
     id = models.AutoField(primary_key=True)
@@ -2371,8 +2507,9 @@ class ProcesoContrato_semillero(models.Model):
         class Meta:
             db_table = 'semillero_proceso'
 
+########################## S E M I L L E R O  P U R I S I M A ######################################
 
-#FRATERNA GARZA SADA
+########################## G A R Z A  S A D A ######################################
 class Arrendatarios_garzasada(models.Model):
     # datos personales de arrendatario
     id = models.AutoField(primary_key=True)
@@ -2717,69 +2854,6 @@ class IncidenciasGarzaSada(models.Model):
     class Meta:
         db_table = 'garzasada_incidencias'
         
-class Notificacion(models.Model):
-    TIPOS_NOTIFICACION = [
-        ('recordatorio_3_meses', 'Recordatorio 3 meses antes'),
-        ('recordatorio_2_meses', 'Recordatorio 2 meses antes'),
-        ('recordatorio_1_mes', 'Recordatorio 1 mes antes'),
-        ('comunicado', 'Comunicado'),
-    ]
-    
-    TIPOS_CONTRATO = [
-        ('fraterna', 'Fraterna'),
-        ('semillero', 'Semillero'),
-        ('garzasada', 'Garza Sada'),
-        ('general', 'General'),
-    ]
-    
-    id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificaciones')
-    tipo_notificacion = models.CharField(max_length=50, choices=TIPOS_NOTIFICACION)
-    tipo_contrato = models.CharField(max_length=20, choices=TIPOS_CONTRATO)
-    
-    # Referencias a diferentes tipos de contratos
-    contrato_general = models.ForeignKey(Contratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
-    contrato_fraterna = models.ForeignKey(FraternaContratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
-    contrato_semillero = models.ForeignKey(SemilleroContratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
-    contrato_garzasada = models.ForeignKey(GarzaSadaContratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
-    
-    titulo = models.CharField(max_length=200)
-    mensaje = models.TextField()
-    fecha_vencimiento_contrato = models.DateField()
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_programada = models.DateField()  # Fecha en que debe enviarse el recordatorio
-    
-    # Control de envío
-    enviado_email = models.BooleanField(default=False)
-    fecha_envio_email = models.DateTimeField(null=True, blank=True)
-    leida = models.BooleanField(default=False)
-    fecha_lectura = models.DateTimeField(null=True, blank=True)
-    
-    class Meta:
-        db_table = 'notificaciones'
-        unique_together = ['user', 'tipo_notificacion', 'tipo_contrato', 'contrato_general', 'contrato_fraterna', 'contrato_semillero', 'contrato_garzasada']
-        ordering = ['-fecha_creacion']
-    
-    def __str__(self):
-        return f"{self.titulo} - {self.get_tipo_notificacion_display()}"
-    
-    def marcar_como_leida(self):
-        """Marca la notificación como leída"""
-        self.leida = True
-        self.fecha_lectura = timezone.now()
-        self.save()
-    
-    def obtener_contrato(self):
-        """Obtiene el contrato asociado según el tipo"""
-        if self.tipo_contrato == 'fraterna':
-            return self.contrato_fraterna
-        elif self.tipo_contrato == 'semillero':
-            return self.contrato_semillero
-        elif self.tipo_contrato == 'garzasada':
-            return self.contrato_garzasada
-        else:
-            return self.contrato_general
-
 class ReservaAsador(models.Model):
     ASADORES = [
         (1, 'Asador 1'),
@@ -2859,3 +2933,71 @@ class ReservaAsador(models.Model):
             siguiente = 1 if not ultimo else (ultimo.id + 1)
             self.folio = f"ASGS{str(siguiente).zfill(4)}"
         return super().save(*args, **kwargs)
+    
+########################## G A R Z A  S A D A ######################################
+
+########################## N O T I F I C A C I O N E S ######################################
+class Notificacion(models.Model):
+    TIPOS_NOTIFICACION = [
+        ('recordatorio_3_meses', 'Recordatorio 3 meses antes'),
+        ('recordatorio_2_meses', 'Recordatorio 2 meses antes'),
+        ('recordatorio_1_mes', 'Recordatorio 1 mes antes'),
+        ('comunicado', 'Comunicado'),
+    ]
+    
+    TIPOS_CONTRATO = [
+        ('fraterna', 'Fraterna'),
+        ('semillero', 'Semillero'),
+        ('garzasada', 'Garza Sada'),
+        ('general', 'General'),
+    ]
+    
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificaciones')
+    tipo_notificacion = models.CharField(max_length=50, choices=TIPOS_NOTIFICACION)
+    tipo_contrato = models.CharField(max_length=20, choices=TIPOS_CONTRATO)
+    
+    # Referencias a diferentes tipos de contratos
+    contrato_general = models.ForeignKey(Contratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
+    contrato_fraterna = models.ForeignKey(FraternaContratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
+    contrato_semillero = models.ForeignKey(SemilleroContratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
+    contrato_garzasada = models.ForeignKey(GarzaSadaContratos, null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
+    
+    titulo = models.CharField(max_length=200)
+    mensaje = models.TextField()
+    fecha_vencimiento_contrato = models.DateField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_programada = models.DateField()  # Fecha en que debe enviarse el recordatorio
+    
+    # Control de envío
+    enviado_email = models.BooleanField(default=False)
+    fecha_envio_email = models.DateTimeField(null=True, blank=True)
+    leida = models.BooleanField(default=False)
+    fecha_lectura = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'notificaciones'
+        unique_together = ['user', 'tipo_notificacion', 'tipo_contrato', 'contrato_general', 'contrato_fraterna', 'contrato_semillero', 'contrato_garzasada']
+        ordering = ['-fecha_creacion']
+    
+    def __str__(self):
+        return f"{self.titulo} - {self.get_tipo_notificacion_display()}"
+    
+    def marcar_como_leida(self):
+        """Marca la notificación como leída"""
+        self.leida = True
+        self.fecha_lectura = timezone.now()
+        self.save()
+    
+    def obtener_contrato(self):
+        """Obtiene el contrato asociado según el tipo"""
+        if self.tipo_contrato == 'fraterna':
+            return self.contrato_fraterna
+        elif self.tipo_contrato == 'semillero':
+            return self.contrato_semillero
+        elif self.tipo_contrato == 'garzasada':
+            return self.contrato_garzasada
+        else:
+            return self.contrato_general
+
+########################## N O T I F I C A C I O N E S ######################################
