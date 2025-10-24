@@ -9,7 +9,7 @@ from .Views import fraterna_views
 from .Views.investigaciones_views import InvestigacionLaboralViewSet,InvestigacionInquilinoViewSet,InvestigacionFinancieraViewSet,InvestigacionJudicialViewSet
 from .Views.stripe_view import *
 from .Views.notificaciones_views import NotificacionViewSet
-from .Views.reservas_views import ReservaAsadorViewSet
+from .Views.reservas_views import ReservaAsadorViewSet, ReservaAsadorFraternaViewSet
 
 # Inicializar router
 router = DefaultRouter()
@@ -63,8 +63,7 @@ router.register(r'documentos_residentes', fraterna_views.DocumentosRes, basename
 router.register(r'contratos_fraterna', fraterna_views.Contratos_fraterna, basename='contratos_fraterna')
 router.register(r'recibos_fraterna', fraterna_views.DocumentosArrendamientosFraterna, basename='recibos_fraterna')
 router.register(r'incidencias_fraterna', fraterna_views.IncidenciasFraterna, basename='incidencias_fraterna')
-#router.register(r'reservas_asador_fraterna', ReservaAsadorFraterna, basename='reservas_asador_fraterna')
-
+router.register(r'reservas_asador_fraterna', ReservaAsadorFraternaViewSet, basename='reservas_asador_fraterna')
 
 #SEMILLERO PURISIMA
 router.register(r'arrendatarios_semillero', fraterna_views.Arrendatarios_semilleroViewSet, basename='arrendatarios_semillero')
