@@ -132,7 +132,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
                 serializer = self.get_serializer(residentes, many=True)
                 return Response(serializer.data, status= status.HTTP_200_OK)
             
-           elif user_session.rol == "Inmobiliaria":  
+           elif user_session.rol == "Inmobiliaria" or user_session.username == "ElbaJ": 
                 #tengo que busca a los inquilinos que tiene a un agente vinculado
                 print("soy inmobiliaria", user_session.name_inmobiliaria)
                 agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
