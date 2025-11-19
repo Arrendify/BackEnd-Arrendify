@@ -2953,7 +2953,7 @@ class Notificacion(models.Model):
     ]
     
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificaciones')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificaciones', null=True, blank=True)
     tipo_notificacion = models.CharField(max_length=50, choices=TIPOS_NOTIFICACION)
     tipo_contrato = models.CharField(max_length=20, choices=TIPOS_CONTRATO)
     
@@ -2974,6 +2974,7 @@ class Notificacion(models.Model):
     fecha_envio_email = models.DateTimeField(null=True, blank=True)
     leida = models.BooleanField(default=False)
     fecha_lectura = models.DateTimeField(null=True, blank=True)
+    oculta_admin = models.BooleanField(default=False)
     
     class Meta:
         db_table = 'notificaciones'

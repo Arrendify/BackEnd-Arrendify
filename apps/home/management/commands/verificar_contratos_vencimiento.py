@@ -231,10 +231,10 @@ class Command(BaseCommand):
         usuario = info_contrato.get('usuario')
         
         if not usuario:
+            # No cortar el flujo: permitimos crear notificación sin usuario asignado
             self.stdout.write(
-                self.style.WARNING(f'No se encontró usuario para contrato {contrato.id}')
+                self.style.WARNING(f'No se encontró usuario para contrato {contrato.id}. Creando notificación con user=None')
             )
-            return
         
         # Crear título y mensaje
         titulo = f"Recordatorio: Contrato próximo a vencer ({descripcion})"
@@ -253,8 +253,9 @@ class Command(BaseCommand):
                 **kwargs
             )
             
-            # Enviar email
-            self.enviar_email_recordatorio(usuario, titulo, mensaje, info_contrato)
+            # Enviar email solo si hay usuario asociado
+            if usuario:
+                self.enviar_email_recordatorio(usuario, titulo, mensaje, info_contrato)
             
             self.stdout.write(
                 self.style.SUCCESS(

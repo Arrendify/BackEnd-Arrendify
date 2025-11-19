@@ -2011,17 +2011,20 @@ class IncidenciasFraterna(viewsets.ModelViewSet):
             
             if es_usuario_autorizado:
                 print(f"Usuario autorizado para incidencias Arrendify: {user_session.username}")
-                # Para usuarios autorizados, crear incidencia sin arrendatario/contrato
+                # Para usuarios autorizados, usar arrendatario/contrato del request si se proporcionan
+                arrendatario_id = data.get('arrendatario', None)
+                contrato_id = data.get('contrato', None)
+                
                 incidencia_data = {
                     "user": user_session.id,
-                    "arrendatario": None,
-                    "contrato": None,
+                    "arrendatario": arrendatario_id,
+                    "contrato": contrato_id,
                     "incidencia": data.get('incidencia', ''),
                     "tipo_incidencia": data.get('tipo_incidencia', ''),
                     "prioridad": data.get('prioridad', 'Media'),
                     "status": "Pendiente de Revisión",
                 }
-                print(f"Creando incidencia Arrendify sin asociaciones: User={user_session.id}")
+                print(f"Creando incidencia Arrendify - User={user_session.id}, Arrendatario={arrendatario_id}, Contrato={contrato_id}")
             else:
                 # Lógica original para usuarios regulares
                 nombre_usuario = user_session.first_name.strip()
@@ -3946,60 +3949,78 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
             print("Data ===>", data)
             print("FILES ===>", request.FILES)
             
-            # Usar first_name del usuario autenticado para buscar arrendatario
-            nombre_usuario = user_session.first_name.strip()
-            print(f"Nombre completo del usuario: {nombre_usuario}")
+            # Verificar si viene contrato_id directamente (desde GarzaSada)
+            contrato_id = data.get('contrato_id', None)
+            sin_recibo = data.get('sin_recibo', 'false').lower() == 'true'
+            numero_pago_manual = data.get('numero_pago', None)
             
-            # Intentar diferentes estrategias de búsqueda
-            arrendatario = None
+            print(f"Contrato ID: {contrato_id}, Sin Recibo: {sin_recibo}, Número Pago Manual: {numero_pago_manual}")
             
-            # Estrategia 1: Buscar por nombre completo
-            arrendatario = Arrendatarios_garzasada.objects.filter(
-                Q(nombre_arrendatario__icontains=nombre_usuario) |
-                Q(nombre_empresa_pm__icontains=nombre_usuario)
-            ).first()
-            
-            # Estrategia 2: Si no encuentra, buscar por primer nombre
-            if not arrendatario:
-                primer_nombre = nombre_usuario.split()[0] if nombre_usuario else ""
-                print(f"Buscando por primer nombre: {primer_nombre}")
+            if contrato_id:
+                # Flujo para usuario GarzaSada con contrato específico
+                print(f"Flujo GarzaSada - Buscando contrato ID: {contrato_id}")
+                try:
+                    contrato = GarzaSadaContratos.objects.get(id=contrato_id)
+                    arrendatario = contrato.arrendatario
+                    print(f"Contrato y arrendatario encontrados: {arrendatario.nombre_arrendatario or arrendatario.nombre_empresa_pm}")
+                except GarzaSadaContratos.DoesNotExist:
+                    return Response({'error': f'Contrato ID {contrato_id} no encontrado'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                # Flujo original para usuarios normales
+                # Usar first_name del usuario autenticado para buscar arrendatario
+                nombre_usuario = user_session.first_name.strip()
+                print(f"Nombre completo del usuario: {nombre_usuario}")
+                
+                # Intentar diferentes estrategias de búsqueda
+                arrendatario = None
+                
+                # Estrategia 1: Buscar por nombre completo
                 arrendatario = Arrendatarios_garzasada.objects.filter(
-                    Q(nombre_arrendatario__icontains=primer_nombre) |
-                    Q(nombre_empresa_pm__icontains=primer_nombre)
+                    Q(nombre_arrendatario__icontains=nombre_usuario) |
+                    Q(nombre_empresa_pm__icontains=nombre_usuario)
                 ).first()
-            
-            # Estrategia 3: Si aún no encuentra, buscar por palabras individuales
-            if not arrendatario:
-                palabras = nombre_usuario.split()
-                for palabra in palabras:
-                    if len(palabra) > 2:  # Solo palabras de más de 2 caracteres
-                        print(f"Buscando por palabra: {palabra}")
-                        arrendatario = Arrendatarios_garzasada.objects.filter(
-                            Q(nombre_arrendatario__icontains=palabra) |
-                            Q(nombre_empresa_pm__icontains=palabra)
-                        ).first()
-                        if arrendatario:
-                            break
-            
-            # Estrategia 4: Buscar por relación directa con el usuario
-            if not arrendatario:
-                print("Buscando arrendatario asociado directamente al usuario")
-                arrendatario = Arrendatarios_garzasada.objects.filter(user=user_session).first()
-            
-            if not arrendatario:
-                return Response({
-                    'error': f'No se encontró arrendatario para el usuario: {nombre_usuario}',
-                    'debug_info': f'User ID: {user_session.id}, Username: {user_session.username}'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            print(f"Arrendatario encontrado: {arrendatario.nombre_arrendatario or arrendatario.nombre_empresa_pm} (ID: {arrendatario.id})")
-            
-            # Buscar contrato relacionado
-            try:
-                contrato = GarzaSadaContratos.objects.get(arrendatario=arrendatario)
-                print(f"Contrato encontrado: {contrato.id}")
-            except GarzaSadaContratos.DoesNotExist:
-                return Response({'error': f'Contrato no encontrado para el arrendatario ID: {arrendatario.id}'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Estrategia 2: Si no encuentra, buscar por primer nombre
+                if not arrendatario:
+                    primer_nombre = nombre_usuario.split()[0] if nombre_usuario else ""
+                    print(f"Buscando por primer nombre: {primer_nombre}")
+                    arrendatario = Arrendatarios_garzasada.objects.filter(
+                        Q(nombre_arrendatario__icontains=primer_nombre) |
+                        Q(nombre_empresa_pm__icontains=primer_nombre)
+                    ).first()
+                
+                # Estrategia 3: Si aún no encuentra, buscar por palabras individuales
+                if not arrendatario:
+                    palabras = nombre_usuario.split()
+                    for palabra in palabras:
+                        if len(palabra) > 2:  # Solo palabras de más de 2 caracteres
+                            print(f"Buscando por palabra: {palabra}")
+                            arrendatario = Arrendatarios_garzasada.objects.filter(
+                                Q(nombre_arrendatario__icontains=palabra) |
+                                Q(nombre_empresa_pm__icontains=palabra)
+                            ).first()
+                            if arrendatario:
+                                break
+                
+                # Estrategia 4: Buscar por relación directa con el usuario
+                if not arrendatario:
+                    print("Buscando arrendatario asociado directamente al usuario")
+                    arrendatario = Arrendatarios_garzasada.objects.filter(user=user_session).first()
+                
+                if not arrendatario:
+                    return Response({
+                        'error': f'No se encontró arrendatario para el usuario: {nombre_usuario}',
+                        'debug_info': f'User ID: {user_session.id}, Username: {user_session.username}'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                print(f"Arrendatario encontrado: {arrendatario.nombre_arrendatario or arrendatario.nombre_empresa_pm} (ID: {arrendatario.id})")
+                
+                # Buscar contrato relacionado
+                try:
+                    contrato = GarzaSadaContratos.objects.get(arrendatario=arrendatario)
+                    print(f"Contrato encontrado: {contrato.id}")
+                except GarzaSadaContratos.DoesNotExist:
+                    return Response({'error': f'Contrato no encontrado para el arrendatario ID: {arrendatario.id}'}, status=status.HTTP_400_BAD_REQUEST)
             
             # Buscar proceso relacionado
             try:
@@ -4011,30 +4032,47 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
             duracion_meses = self.extraer_duracion_meses(contrato.duracion)
             print(f"Duración extraída: {duracion_meses} meses")
 
-            # Contar pagos existentes para este contrato
-            pagos_existentes = DocumentosArrendamientos_garzasada.objects.filter(contrato=contrato).count()
-            numero_pago_actual = pagos_existentes + 1
+            # Determinar número de pago
+            if numero_pago_manual:
+                # Usar número de pago manual si viene
+                numero_pago_actual = int(numero_pago_manual)
+                print(f"Usando número de pago manual: {numero_pago_actual}")
+            else:
+                # Contar pagos existentes para este contrato
+                pagos_existentes = DocumentosArrendamientos_garzasada.objects.filter(contrato=contrato).count()
+                numero_pago_actual = pagos_existentes + 1
+                print(f"Número de pago calculado automáticamente: {numero_pago_actual}")
 
             # Calcular renta total
             renta_total = Decimal(str(contrato.renta)) * duracion_meses if contrato.renta else Decimal('0')
 
-            # Calcular interés por retraso (12% anual)
+            # Calcular interés por retraso (12% anual) - SOLO si no es un pago sin recibo
             interes_aplicado = Decimal('0')
             fecha_vencimiento = datetime.now().date() + timedelta(days=30)  # 30 días para pagar
 
-            # Verificar si hay retraso en pagos anteriores
-            if numero_pago_actual > 1:
-                ultimo_pago = DocumentosArrendamientos_garzasada.objects.filter(
-                    contrato=contrato
-                ).order_by('-dateTimeOfUpload').first()
-                
-                if ultimo_pago and ultimo_pago.fecha_vencimiento:
-                    dias_retraso = (datetime.now().date() - ultimo_pago.fecha_vencimiento).days
-                    if dias_retraso > 0:
-                        # Aplicar 12% anual = 1% mensual
-                        interes_mensual = Decimal('0.01')
-                        meses_retraso = Decimal(str(dias_retraso)) / Decimal('30')
-                        interes_aplicado = Decimal(str(contrato.renta)) * interes_mensual * meses_retraso
+            if not sin_recibo:  # Solo calcular intereses si hay recibo físico
+                # Verificar si hay retraso en pagos anteriores
+                if numero_pago_actual > 1:
+                    ultimo_pago = DocumentosArrendamientos_garzasada.objects.filter(
+                        contrato=contrato
+                    ).order_by('-dateTimeOfUpload').first()
+                    
+                    if ultimo_pago and ultimo_pago.fecha_vencimiento:
+                        dias_retraso = (datetime.now().date() - ultimo_pago.fecha_vencimiento).days
+                        if dias_retraso > 0:
+                            # Aplicar 12% anual = 1% mensual
+                            interes_mensual = Decimal('0.01')
+                            meses_retraso = Decimal(str(dias_retraso)) / Decimal('30')
+                            interes_aplicado = Decimal(str(contrato.renta)) * interes_mensual * meses_retraso
+            
+            # Obtener archivo - puede ser None si sin_recibo=true
+            comp_pago_file = request.FILES.get('comp_pago', None)
+            
+            # Validar que si no es sin_recibo, debe venir archivo
+            if not sin_recibo and not comp_pago_file:
+                return Response({
+                    'error': 'Se requiere archivo de recibo para registrar el pago'
+                }, status=status.HTTP_400_BAD_REQUEST)
             
             # Crear documento
             documento_data = {
@@ -4042,7 +4080,7 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                 "arrendatario": arrendatario.id,
                 "contrato": contrato.id,
                 "proceso": proceso.id,
-                "comp_pago": request.FILES.get('comp_pago', None),
+                "comp_pago": comp_pago_file,  # Puede ser None si sin_recibo=true
                 "numero_pago": numero_pago_actual,
                 "total_pagos": duracion_meses,
                 "renta_total": renta_total,
@@ -4050,7 +4088,8 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                 "fecha_vencimiento": fecha_vencimiento,
             }
             
-            print(f"Pago {numero_pago_actual} de {duracion_meses} - Renta total: ${renta_total} - Interés: ${interes_aplicado}")
+            tipo_registro = "SIN RECIBO" if sin_recibo else "CON RECIBO"
+            print(f"Pago {numero_pago_actual} de {duracion_meses} ({tipo_registro}) - Renta total: ${renta_total} - Interés: ${interes_aplicado}")
             
             arrendamientos_serializer = self.get_serializer(data=documento_data)
             arrendamientos_serializer.is_valid(raise_exception=True)
@@ -4161,8 +4200,14 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='reporte_completo')
     def reporte_completo(self, request):
         """
-        Genera un reporte PDF completo con información detallada de todos los arrendamientos
-        Incluye: datos del arrendatario, contrato, pagos realizados, pagos pendientes, intereses
+        Genera un reporte PDF completo con información detallada de arrendamientos
+        
+        Control de acceso:
+        - Usuarios normales: Solo su información
+        - Administradores: Todos los arrendamientos o filtrados por arrendatario_id
+        
+        Query params:
+        - arrendatario_id (opcional): Filtrar por ID de arrendatario específico
         """
         try:
             from django.http import HttpResponse
@@ -4172,12 +4217,46 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
             
             print("Generando reporte completo de arrendamientos Garza Sada....📊")
             
-            # Obtener todos los recibos con sus relaciones
-            recibos = DocumentosArrendamientos_garzasada.objects.select_related(
+            # Verificar si es administrador
+            es_admin = request.user.is_staff or request.user.is_superuser or request.user.username in ['GarzaSada', 'Fraterna', 'SemilleroPurisima']
+            
+            # Obtener parámetro de filtro (solo para admin)
+            arrendatario_id = request.query_params.get('arrendatario_id', None)
+            
+            # Construir queryset base
+            queryset = DocumentosArrendamientos_garzasada.objects.select_related(
                 'arrendatario',
                 'contrato',
                 'proceso'
-            ).order_by('arrendatario__nombre_arrendatario', 'numero_pago')
+            )
+            
+            if es_admin:
+                print(f"Usuario administrador: {request.user.username}")
+                # Administrador puede ver todos o filtrar por arrendatario_id
+                if arrendatario_id:
+                    queryset = queryset.filter(arrendatario_id=arrendatario_id)
+                    print(f"Filtrando por arrendatario ID: {arrendatario_id}")
+            else:
+                print(f"Usuario normal: {request.user.username}")
+                # Usuario normal: solo sus propios datos
+                # Buscar arrendatario asociado al usuario
+                nombre_usuario = request.user.first_name.strip()
+                arrendatario = Arrendatarios_garzasada.objects.filter(
+                    Q(nombre_arrendatario__icontains=nombre_usuario) |
+                    Q(nombre_empresa_pm__icontains=nombre_usuario) |
+                    Q(user=request.user)
+                ).first()
+                
+                if not arrendatario:
+                    return Response({
+                        'error': 'No se encontró información de arrendamiento para este usuario'
+                    }, status=status.HTTP_404_NOT_FOUND)
+                
+                queryset = queryset.filter(arrendatario=arrendatario)
+                print(f"Filtrando por arrendatario: {arrendatario.nombre_arrendatario or arrendatario.nombre_empresa_pm}")
+            
+            # Ordenar resultados
+            recibos = queryset.order_by('arrendatario__nombre_arrendatario', 'numero_pago')
             
             # Agrupar información por arrendatario
             arrendatarios_data = defaultdict(lambda: {
@@ -4311,6 +4390,52 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': f'Error al generar el reporte: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=['get'], url_path='lista_arrendatarios')
+    def lista_arrendatarios(self, request):
+        """
+        Obtiene la lista completa de arrendatarios con contratos activos.
+        Solo disponible para administradores.
+        Útil para filtros en el frontend.
+        """
+        try:
+            # Verificar si es administrador
+            es_admin = request.user.is_staff or request.user.is_superuser or request.user.username in ['GarzaSada', 'Fraterna', 'SemilleroPurisima']
+            
+            if not es_admin:
+                return Response({
+                    'error': 'No tienes permisos para acceder a esta información'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            print(f"Admin {request.user.username} solicitando lista de arrendatarios")
+            
+            # Obtener arrendatarios únicos con contratos
+            arrendatarios = Arrendatarios_garzasada.objects.filter(
+                contratos_garzasada__isnull=False
+            ).distinct().values(
+                'id',
+                'nombre_arrendatario',
+                'nombre_empresa_pm'
+            )
+            
+            # Formatear respuesta
+            lista = []
+            for arr in arrendatarios:
+                nombre = arr['nombre_arrendatario'] or arr['nombre_empresa_pm']
+                if nombre:
+                    lista.append({
+                        'id': arr['id'],
+                        'nombre': nombre
+                    })
+            
+            print(f"Se encontraron {len(lista)} arrendatarios")
+            return Response(lista, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"Error al obtener lista de arrendatarios: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class IncidenciasGarzaSada(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
@@ -4445,8 +4570,8 @@ class IncidenciasGarzaSada(viewsets.ModelViewSet):
         
 #////////////////////////CONTRATOS GARZA SADA///////////////////////////////
 class Contratos_GarzaSada(viewsets.ModelViewSet):
-    # authentication_classes = [TokenAuthentication, SessionAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = GarzaSadaContratos.objects.all()
     serializer_class = ContratoGarzaSadaSerializer
     
@@ -5088,14 +5213,18 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
     def _generar_contrato_garzasada_interno(self, info, testigo1="", testigo2=""):
         """Función interna para generar el PDF del contrato de Garza Sada"""
         try:
-            print("Generando contrato Garza Sada interno...")
+            print(" Generando contrato Garza Sada interno...")
+            print(f"   - Arrendatario: {info.arrendatario.nombre_arrendatario if info.arrendatario else 'NONE'}")
+            print(f"   - Testigo1: {testigo1}, Testigo2: {testigo2}")
             
             # Convertir m2 a texto
-            superficie = float(info.superficie)
+            superficie = float(info.superficie) if info.superficie else 0
+            print(f"   - Superficie: {superficie} m2")
             superficie_texto = f"{num2words(float(superficie), lang='es')}"
             
             # Convertir renta con centavos a texto
-            renta = float(info.renta)
+            renta = float(info.renta) if info.renta else 0
+            print(f"   - Renta: ${renta}")
             parte_entera = int(renta)
             centavos = round((renta - parte_entera) * 100)
             renta_texto = f"{num2words(parte_entera, lang='es')} pesos"
@@ -5294,6 +5423,50 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
         
 #////////////////INICIO INTEGRACION ZAPSIGN/////////////////////    
     
+    def _construir_firmantes_garzasada(self, singer):
+        """Construye la lista de firmantes para contratos Garza Sada"""
+        firmantes = []
+        
+        # Firmante 0: Fraterna (representa a Garza Sada)
+        firmantes.append({
+            "name": "FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR CARLOS MANUEL PADILLA SILVA",
+            "phone_country": "52",
+            # TODO: Agregar email y teléfono del representante de Garza Sada
+        })
+        
+        # Firmante 1: Arrendatario
+        firmantes.append({
+            "name": singer["nombre_arrendatario"],
+            "email": singer["correo_arrendatario"],
+            "phone_country": "52",
+            "phone_number": singer["celular_arrendatario"],
+            "send_automatic_email": True,
+            "send_automatic_whatsapp": False,
+        })
+        
+        # Firmante 2: Obligado solidario (solo si existe)
+        nombre_obligado = singer.get("nombre_obligado", "").strip()
+        if nombre_obligado:
+            firmantes.append({
+                "name": nombre_obligado,
+                "email": singer.get("correo_obligado", singer["correo_arrendatario"]),
+                "phone_country": "52",
+                "phone_number": singer.get("celular_obligado", singer["celular_arrendatario"]),
+                "send_automatic_email": True,
+                "send_automatic_whatsapp": False,
+            })
+        
+        # Firmante final: Jonathan Guadarrama
+        firmantes.append({
+            "name": "JONATHAN GUADARRAMA SALGADO",
+            "email": "genaro.guadarrama@arrendify.com",
+            "phone_country": "52",
+            "phone_number": "5531398629",
+            "send_automatic_email": True,
+        })
+        
+        return firmantes
+
     def build_payload_to_zapsign(self, contrato_data):
         """ Datos del contrado: contrato_data = {"id", "filename", "base64_pfd", "residente"}
             Aquí armamos el payload que se va enviar para la solicitud
@@ -5304,89 +5477,24 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
         singer = data["arrendatario"]
         brand_logo = "https://pagosprueba.s3.us-east-1.amazonaws.com/ZapSign/logo-contratodearrendamiento.webp"
 
-        return {
-            "name": data["filename"],                                          # Nombre del documento que verá el usuario
-            "base64_pdf": data["base64_pfd"],                                  # PDF codificado en base64 (sin encabezado data:...)
-            "external_id": data["id"],                                         # ID opcional para enlazar con sistema externo
-
-            "signers": [  # Lista de personas que deben firmar
-                {
-                    "name": "FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR CARLOS MANUEL PADILLA SILVA",
-                    "phone_country": "52",
-
-                },
-                {
-                    "name": singer["nombre_arrendatario"],
-                    "email": singer["correo_arrendatario"],
-                    "phone_country": "52",
-                    "phone_number": singer["celular_arrendatario"],
-                    "send_automatic_email": True,
-                    "send_automatic_whatsapp": False,
-                },
-                {
-                    "name": singer["nombre_arrendatario"],
-                    "email": singer["correo_arrendatario"],
-                    "phone_country": "52",
-                    "phone_number": singer["celular_arrendatario"],
-                    "send_automatic_email": True,
-                    "send_automatic_whatsapp": False,
-                },
-                {
-                    "name": "JONATHAN GUADARRAMA SALGADO",
-                    "email": "genaro.guadarrama@arrendify.com",
-                    "phone_country": "52",
-                    "phone_number": "5531398629",
-                    "send_automatic_email": True,
-                }
-                # Campos extras para el firmante, consultar documentación, 
-                # ya que algunos tienen costos extra
-                # {
-                #     "name": "Uriel Aguilar Ortega",                          # Nombre del firmante
-                #     "email": "desarrolloewmx2024@gmail.com",                 # Email al que se enviará solicitud de firma
-                #     "auth_mode": "assinaturaTela",                           # Tipo de autenticación (pantalla sin verificación extra)
-                #     "send_automatic_email": True,                            # Enviar correo automáticamente
-                #     "send_automatic_whatsapp": False,                        # Enviar WhatsApp automáticamente (si hay teléfono)
-                #     "order_group": None,                                     # Agrupación para firmar por orden (si se activa)
-                #     "custom_message": "",                                    # Mensaje personalizado en correo de firma
-                #     "phone_country": "52",                                   # Código de país (México = 52)
-                #     "lock_email": False,                                     # Evita que edite su correo en la pantalla de firma
-                #     "blank_email": False,                                    # Oculta email en la interfaz
-                #     "hide_email": False,                                     # Oculta completamente el campo email
-                #     "lock_phone": False,                                     # Bloquea el número telefónico
-                #     "blank_phone": False,                                    # Oculta teléfono en la interfaz
-                #     "hide_phone": False,                                     # Oculta completamente el campo teléfono
-                #     "lock_name": False,                                      # Bloquea el nombre (no editable)
-                #     "require_cpf": False,                                    # Exigir CPF (solo Brasil)
-                #     "cpf": "",                                               # Número de CPF (si se requiere)
-                #     #"require_selfie_photo": True,                            # Solicita selfie al firmar
-                #     "require_document_photo": True,                          # Solicita foto de documento (INE, pasaporte)
-                #     "selfie_validation_type": "liveness-document-match",     # Tipo de validación de selfie (verifica con documento)
-                #     "selfie_photo_url": "",                                  # URL opcional de la selfie previa
-                #     "document_photo_url": "",                                # URL de la foto del documento frontal
-                #     "document_verse_photo_url": "",                          # URL del reverso del documento (si aplica)
-                #     "qualification": "",                                     # Cargo o rol (opcional, visible en certificado)
-                #     "external_id": "",                                       # ID externo único para este firmante
-                #     "redirect_link": ""                                      # URL de redirección post-firma (opcional)
-                # }
-            ],
-
-            "lang": "es",                                                    # Idioma del documento e interfaz de firma
-            "disable_signer_emails": False,                                  # Desactiva todos los correos a firmantes
-            "brand_logo": brand_logo,                                        # URL del logotipo de tu marca
-            "brand_primary_color": "#672584",                                # Color primario (hex) de tu marca
-            "brand_name": "Arrendify",                                       # Nombre de la marca que aparece en la firma
-            "folder_path": "/GARZASADA",                                      # Carpeta donde se guarda el documento
-            "created_by": "juridico.arrendify1@gmail.com",                    # Email del creador del documento
-            #"date_limit_to_sign": "2025-07-18T17:45:00.000000Z",             # Fecha límite para firmar el documento
-            "signature_order_active": False,                                 # Requiere que los firmantes firmen en orden
-            # "observers": [                                                   # Lista de emails que solo observarán el proceso
-            #     "urielaguilarortega@gmail.com",
-            #     "desarrolloweb.ewmx@gmail.com"
-            # ],
-            "reminder_every_n_days": 0,                                      # Intervalo de recordatorios automáticos (0 = sin recordatorios)
-            "allow_refuse_signature": True,                                  # Permite al firmante rechazar la firma
-            "disable_signers_get_original_file": False                       # Bloquea que los firmantes descarguen el documento final
+        payload = {
+            "base64_pdf": data["base64_pdf"],
+            "name": data["filename"],
+            "signers": self._construir_firmantes_garzasada(singer),
+            "lang": "es",
+            "disable_signer_emails": False,
+            "brand_logo": brand_logo,
+            "brand_primary_color": "#672584",
+            "brand_name": "Arrendify",
+            "folder_path": "/GARZASADA",
+            "created_by": "juridico.arrendify1@gmail.com",
+            "signature_order_active": False,
+            "reminder_every_n_days": 0,
+            "allow_refuse_signature": True,
+            "disable_signers_get_original_file": False
         }
+        
+        return payload
     
     def armar_payload_posiciones_firma(self, signer_tokens, total_paginas, arrendatario):
         rubricas = []
@@ -5520,27 +5628,38 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
             info.save()
             print("Token guardado exitosamente en la base de datos.")            
 
-            # Armar y enviar payload de rubricas
-            rubricas_payload = self.armar_payload_posiciones_firma(signer_tokens, contrato_data["total_paginas"], contrato_data["arrendatario"])
-            posicionar_url = f'{API_URL_ZAPSIGN}docs/{doc_token}/place-signatures/'
-            print("📤 Enviando posiciones de firmas...")
+            # Comportamiento configurable: si contrato_data incluye "_omit_place"=True,
+            # NO se colocan rúbricas aquí (se hará después con posiciones visuales).
+            do_place = not contrato_data.get("_omit_place", False)
+            if do_place:
+                # Armar y enviar payload de rúbricas (layout por defecto actual)
+                rubricas_payload = self.armar_payload_posiciones_firma(signer_tokens, contrato_data["total_paginas"], contrato_data["arrendatario"])
+                posicionar_url = f'{API_URL_ZAPSIGN}docs/{doc_token}/place-signatures/'
+                print("📤 Enviando posiciones de firmas (layout por defecto)...")
 
-            posicionar_response = requests.post(
-                posicionar_url,
-                headers=headers,
-                json=rubricas_payload,
-                timeout=60
-            )
+                posicionar_response = requests.post(
+                    posicionar_url,
+                    headers=headers,
+                    json=rubricas_payload,
+                    timeout=60
+                )
 
-            posicionar_response.raise_for_status()
-            print("Posiciones de firmas configuradas correctamente.")
+                posicionar_response.raise_for_status()
+                print("Posiciones de firmas configuradas correctamente.")
 
+                return {
+                    "payload": payload,
+                    "doc_token": doc_token,
+                    "zapsign_new_doc": response_data,
+                    "rubricas_payload": rubricas_payload,
+                    "rubricas_response": posicionar_response.text or "Sin contenido"
+                }
+
+            # Si omitimos place-signatures, devolvemos solo datos del documento creado
             return {
                 "payload": payload,
                 "doc_token": doc_token,
                 "zapsign_new_doc": response_data,
-                "rubricas_payload": rubricas_payload,
-                "rubricas_response": posicionar_response.text or "Sin contenido"
             }
 
         except requests.exceptions.Timeout:
@@ -5552,116 +5671,253 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
 
         return None
 
-    def generar_urls_firma_gs(self, request, *args, **kwargs):
-        try:
-            data = request.data
-
-            if isinstance(data, dict):
-                id_paq = data.get("id_contrato") or data.get("id")
-                pagare_distinto = data.get("pagare_distinto", "No")
-                cantidad_pagare = data.get("cantidad_pagare", "0")
-                testigo1 = data.get("testigo1", "")
-                testigo2 = data.get("testigo2", "")
-            else:
-                id_paq = data
-                pagare_distinto = "No"
-                cantidad_pagare = "0"
-                testigo1 = ""
-                testigo2 = ""
-
-            if not id_paq:
-                return Response({'error': 'id_contrato o id es requerido'}, status=400)
-
-            info = self.queryset.filter(id=id_paq).first()
-            if not info:
-                return Response({'error': 'Contrato no encontrado'}, status=404)
-
-            # Si hay PDF subido úsalo, si no genera
-            if info.contrato_pdf:
-                pdf_bytes = info.contrato_pdf.read()
-            else:
-                pdf_bytes = self._generar_contrato_garzasada_interno(info, testigo1=testigo1, testigo2=testigo2)
-
-            total_paginas = len(PdfReader(io.BytesIO(pdf_bytes)).pages)
-            nombre_archivo = f"Contrato Garza Sada - {info.arrendatario.nombre_arrendatario}"
-            base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
-
-            contrato_data = {
-                "id": id_paq,
-                "filename": nombre_archivo,
-                "base64_pfd": base64_pdf,
-                "arrendatario": data["arrendatario_contrato"],  # <- este key es el que espera build_payload_to_zapsign
-                "total_paginas": total_paginas
-            }
-
-            resultado = self.subir_documento_a_zapsign(contrato_data)
-            return Response({
-                "filename": nombre_archivo,
-                "pdf_base64": base64_pdf,
-                "total_paginas": total_paginas,
-                "respuestaZS": resultado
-            }, status=200)
-
-        except Exception as e:
-            print(f"Error en generar_urls_firma_gs: {e}")
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            logger.error(f"{dt.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, "
-                        f"en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}: {e}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
-    def mostrar_urls_firma_documento_gs(self, request, *args, **kwargs):
-        try:
-            doc_token = request.data.get("token")
-            if not doc_token or not isinstance(doc_token, str):
-                return Response({'error': 'Token inválido o no proporcionado.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            print(f"Solicitando documento a Zapsign {API_URL_ZAPSIGN}docs/{doc_token}/")
-            url = f'{API_URL_ZAPSIGN}docs/{doc_token}/'
-            headers = {'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}'}
-
-            response = requests.get(url, headers=headers, timeout=10)
-
-            if response.status_code != 200:
-                return Response({
-                    'error': 'Error al obtener información de ZapSign.',
-                    'status_code': response.status_code,
-                    'response': response.text
-                }, status=response.status_code)
-
+    def armar_payload_posiciones_custom(self, positions, signer_tokens):
+        """Construye payload de rúbricas desde posiciones personalizadas del frontend."""
+        rubricas = []
+        if not isinstance(positions, list):
+            return {"rubricas": rubricas}
+        for pos in positions:
             try:
-                response_data = response.json()
+                page = int(pos.get("page", 0))
+                bottom = float(pos.get("bottom", 0))
+                left = float(pos.get("left", 0))
+                size_x = float(pos.get("size_x", 19.55))
+                size_y = float(pos.get("size_y", 9.42))
+                signer_index = int(pos.get("signer_index", 0))
+                if signer_index < 0 or signer_index >= len(signer_tokens):
+                    continue
+                rubricas.append({
+                    "page": page,
+                    "relative_position_bottom": bottom,
+                    "relative_position_left": left,
+                    "relative_size_x": size_x,
+                    "relative_size_y": size_y,
+                    "type": "signature",
+                    "signer_token": signer_tokens[signer_index]
+                })
+            except Exception:
+                continue
+        return {"rubricas": rubricas}
+
+    def posicionar_y_generar_urls_gs(self, request, *args, **kwargs):
+        """Crea/obtiene doc ZapSign y aplica posiciones.
+        - Si NO hay PDF cargado: usa posicionamiento automático (como Fraterna)
+        - Si SÍ hay PDF cargado: usa posicionamiento visual del frontend
+        Acceso: username == 'GarzaSada' o staff."""
+        try:
+            user_session = request.user
+            if not (user_session.is_staff or getattr(user_session, "username", "") == "GarzaSada"):
+                return Response({"detail": "No autorizado"}, status=status.HTTP_403_FORBIDDEN)
+
+            data = request.data or {}
+            contrato_id = data.get("contrato_id")
+            arr_cto = data.get("arrendatario_contrato")
+            positions = data.get("positions", [])
+            doc_tipo = data.get("doc_tipo", "contrato")
+            print(f"📥 Datos recibidos: contrato_id={contrato_id}, doc_tipo={doc_tipo}, positions={len(positions)}")
+            
+            if not contrato_id:
+                return Response({"error": "contrato_id es requerido"}, status=status.HTTP_400_BAD_REQUEST)
+
+            info = self.queryset.filter(id=contrato_id).first()
+            if not info:
+                return Response({"error": "Contrato no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+            
+            print(f"✅ Contrato encontrado: ID={info.id}, Arrendatario={info.arrendatario.nombre_arrendatario if info.arrendatario else 'None'}")
+
+            # Verificar si hay PDF cargado
+            tiene_pdf_cargado = bool(info.contrato_pdf_b64)
+            print(f"{'✅ PDF cargado detectado' if tiene_pdf_cargado else '⚠️ No hay PDF cargado - usará generación automática'}")
+
+            doc_token = getattr(info, "token", None)
+            if not doc_token:
+                print("📄 Creando documento en ZapSign...")
+                
+                # Preparar PDF
+                if tiene_pdf_cargado:
+                    print("📄 Usando PDF cargado por el usuario")
+                    pdf_bytes = base64.b64decode(info.contrato_pdf_b64)
+                    total_paginas = len(PdfReader(io.BytesIO(pdf_bytes)).pages)
+                else:
+                    print("🔨 Generando PDF automáticamente")
+                    if not info.arrendatario:
+                        return Response({"error": "El contrato no tiene arrendatario asociado"}, status=status.HTTP_400_BAD_REQUEST)
+                    
+                    # Generar según tipo de documento
+                    if doc_tipo == "paquete":
+                        testigo1 = data.get("testigo1", "Angelina Castillo González")
+                        testigo2 = data.get("testigo2", "Marcelo André Trujillo Moncada")
+                        pagare_distinto = data.get("pagare_distinto", "No")
+                        cantidad_pagare = data.get("cantidad_pagare", "")
+                        
+                        # Generar paquete completo
+                        pdf_contrato = self._generar_contrato_garzasada_interno(info, testigo1=testigo1, testigo2=testigo2)
+                        pdf_poliza = self._generar_poliza_garzasada_interno(info)
+                        pdf_pagare = self._generar_pagare_garzasada_interno(info, pagare_distinto=pagare_distinto, cantidad_pagare=cantidad_pagare)
+                        
+                        # Fusionar PDFs
+                        from PyPDF2 import PdfMerger
+                        merger = PdfMerger()
+                        merger.append(io.BytesIO(pdf_contrato))
+                        merger.append(io.BytesIO(pdf_poliza))
+                        merger.append(io.BytesIO(pdf_pagare))
+                        
+                        output = io.BytesIO()
+                        merger.write(output)
+                        merger.close()
+                        pdf_bytes = output.getvalue()
+                        
+                        # Calcular páginas por sección
+                        total_paginas = {
+                            "arrendamiento": len(PdfReader(io.BytesIO(pdf_contrato)).pages),
+                            "poliza": len(PdfReader(io.BytesIO(pdf_poliza)).pages),
+                            "pagares": len(PdfReader(io.BytesIO(pdf_pagare)).pages),
+                            "manual": 0,
+                            "comodato": 0
+                        }
+                    else:
+                        testigo1 = data.get("testigo1", "Angelina Castillo González")
+                        testigo2 = data.get("testigo2", "Marcelo André Trujillo Moncada")
+                        pdf_bytes = self._generar_contrato_garzasada_interno(info, testigo1=testigo1, testigo2=testigo2)
+                        total_paginas = {
+                            "arrendamiento": len(PdfReader(io.BytesIO(pdf_bytes)).pages),
+                            "poliza": 0,
+                            "pagares": 0,
+                            "manual": 0,
+                            "comodato": 0
+                        }
+                    
+                    print(f"✅ PDF generado: {len(pdf_bytes)} bytes")
+
+                nombre_archivo = f"Contrato Garza Sada - {info.arrendatario.nombre_arrendatario}"
+                base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+                
+                if not arr_cto:
+                    return Response({"error": "arrendatario_contrato es requerido"}, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Configurar contrato_data según si hay PDF cargado o no
+                contrato_data = {
+                    "id": contrato_id,
+                    "filename": nombre_archivo,
+                    "base64_pdf": base64_pdf,
+                    "arrendatario": arr_cto,
+                    "total_paginas": total_paginas if not tiene_pdf_cargado else len(PdfReader(io.BytesIO(pdf_bytes)).pages),
+                    "_omit_place": tiene_pdf_cargado,  # Si hay PDF cargado, omitir posicionamiento automático
+                }
+                
+                creado = self.subir_documento_a_zapsign(contrato_data)
+                if not creado or not creado.get("doc_token"):
+                    return Response({"error": "No fue posible crear el documento en ZapSign"}, status=status.HTTP_502_BAD_GATEWAY)
+                doc_token = creado["doc_token"]
+                info.refresh_from_db()
+                
+                # Si NO hay PDF cargado, las posiciones ya se aplicaron automáticamente
+                if not tiene_pdf_cargado:
+                    print("✅ Posiciones automáticas ya aplicadas")
+                    return Response({
+                        "doc_token": doc_token,
+                        "message": "Documento creado con posicionamiento automático",
+                        "signers": creado.get("zapsign_new_doc", {}).get("signers", [])
+                    }, status=status.HTTP_200_OK)
+
+            # Si llegamos aquí, hay PDF cargado y necesitamos aplicar posiciones del frontend
+            print("🎯 Aplicando posiciones del frontend...")
+            
+            # Obtener tokens de firmantes del doc en ZapSign
+            url_doc = f"{API_URL_ZAPSIGN}docs/{doc_token}/"
+            headers = {'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}'}
+            resp = requests.get(url_doc, headers=headers, timeout=30)
+            if resp.status_code != 200:
+                return Response({"error": "Error al consultar documento ZapSign", "status_code": resp.status_code, "response": resp.text}, status=resp.status_code)
+            try:
+                doc_json = resp.json()
             except ValueError:
-                return Response({
-                    'error': 'La respuesta de ZapSign no es un JSON válido.',
-                    'raw_response': response.text
-                }, status=status.HTTP_502_BAD_GATEWAY)
+                return Response({"error": "Respuesta de ZapSign no es JSON"}, status=status.HTTP_502_BAD_GATEWAY)
+            
+            # Extraer información de los firmantes
+            signers = doc_json.get("signers", [])
+            signer_tokens = [s.get("token") for s in signers if s.get("token")]
+            
+            # Obtener nombres y emails de los firmantes
+            signers_info = []
+            for signer in signers:
+                signers_info.append({
+                    "token": signer.get("token"),
+                    "name": signer.get("name"),
+                    "email": signer.get("email"),
+                    "status": signer.get("status"),
+                    "sign_url": signer.get("sign_url")
+                })
+            
+            print(f"👥 Firmantes encontrados: {[s['name'] for s in signers_info]}")
+            
+            # Aplicar posiciones del frontend
+            rubricas_payload = self.armar_payload_posiciones_custom(positions, signer_tokens)
 
-            # Validar que existan campos clave
-            required_keys = ['name', 'status', 'original_file', 'signed_file', 'signers']
-            if not all(k in response_data for k in required_keys):
-                return Response({
-                    'error': 'Respuesta incompleta de ZapSign.',
-                    'received_keys': list(response_data.keys())
-                }, status=status.HTTP_502_BAD_GATEWAY)
+            posicionar_url = f"{API_URL_ZAPSIGN}docs/{doc_token}/place-signatures/"
+            pos_resp = requests.post(posicionar_url, headers=headers, json=rubricas_payload, timeout=60)
+            if pos_resp.status_code not in (200, 201, 204):
+                return Response({"error": "Error al colocar firmas", "status_code": pos_resp.status_code, "response": pos_resp.text}, status=pos_resp.status_code)
 
-            return Response(response_data, status=status.HTTP_200_OK)
-
-        except requests.exceptions.RequestException as e:
-            logger.error(f"{dt.now()} Error de conexión con ZapSign: {e}")
             return Response({
-                'error': 'Error de conexión con ZapSign.',
-                'details': str(e)
-            }, status=status.HTTP_504_GATEWAY_TIMEOUT)
-
+                "doc_token": doc_token,
+                "signers": signers_info,
+                "rubricas_payload": rubricas_payload,
+                "zapsign_place_response": pos_resp.text or "Sin contenido"
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            logger.error(f"{dt.now()} Error inesperado en {exc_tb.tb_frame.f_code.co_name} línea {exc_tb.tb_lineno}: {e}")
+            logger.error(f"{dt.now()} Error en posicionar_y_generar_urls_gs línea {exc_tb.tb_lineno}: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def posicionar_sobre_existente_gs(self, request, *args, **kwargs):
+        """Aplica posiciones sobre documento existente en ZapSign.
+        Acceso: username == 'GarzaSada' o staff."""
+        try:
+            user_session = request.user
+            if not (user_session.is_staff or getattr(user_session, "username", "") == "GarzaSada"):
+                return Response({"detail": "No autorizado"}, status=status.HTTP_403_FORBIDDEN)
+
+            data = request.data or {}
+            contrato_id = data.get("contrato_id")
+            positions = data.get("positions", [])
+            if not contrato_id:
+                return Response({"error": "contrato_id es requerido"}, status=status.HTTP_400_BAD_REQUEST)
+
+            info = self.queryset.filter(id=contrato_id).first()
+            if not info or not getattr(info, "token", None):
+                return Response({"error": "Contrato o token no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+            doc_token = info.token
+            url_doc = f"{API_URL_ZAPSIGN}docs/{doc_token}/"
+            headers = {'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}'}
+            resp = requests.get(url_doc, headers=headers, timeout=30)
+            if resp.status_code != 200:
+                return Response({"error": "Error al consultar documento ZapSign", "status_code": resp.status_code, "response": resp.text}, status=resp.status_code)
+            try:
+                doc_json = resp.json()
+            except ValueError:
+                return Response({"error": "Respuesta de ZapSign no es JSON"}, status=status.HTTP_502_BAD_GATEWAY)
+            signer_tokens = [s.get("token") for s in doc_json.get("signers", []) if s.get("token")]
+            rubricas_payload = self.armar_payload_posiciones_custom(positions, signer_tokens)
+
+            posicionar_url = f"{API_URL_ZAPSIGN}docs/{doc_token}/place-signatures/"
+            pos_resp = requests.post(posicionar_url, headers=headers, json=rubricas_payload, timeout=60)
+            if pos_resp.status_code not in (200, 201, 204):
+                return Response({"error": "Error al colocar firmas", "status_code": pos_resp.status_code, "response": pos_resp.text}, status=pos_resp.status_code)
+
             return Response({
-                'error': 'Error inesperado al procesar la solicitud.',
-                'details': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+                "doc_token": doc_token,
+                "rubricas_payload": rubricas_payload,
+                "zapsign_place_response": pos_resp.text or "Sin contenido"
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{dt.now()} Error en posicionar_sobre_existente_gs línea {exc_tb.tb_lineno}: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 #////////////////FIN INTEGRACION ZAPSIGN/////////////////////        
+        
         
     def renovar_contrato_garzasada(self, request, *args, **kwargs):
         try:

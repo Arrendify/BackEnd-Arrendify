@@ -23,8 +23,18 @@ class NotificacionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Obtiene todas las notificaciones de la tabla sin filtros"""
-        return Notificacion.objects.all().order_by('-fecha_creacion')
+        """Obtiene todas las notificaciones de la tabla con reglas para admin"""
+        qs = Notificacion.objects.all().order_by('-fecha_creacion')
+        # Si es "admin" (por username), por defecto ocultar las marcadas como oculta_admin, a menos que pida incluirlas
+        try:
+            req = getattr(self, 'request', None)
+            if req and getattr(req, 'user', None) and (getattr(req.user, 'is_staff', False) or getattr(req.user, 'username', None) in {"GarzaSada", "Fraterna", "SemilleroPurisima", "ElbaJ", "AngelinaCastillo"}):
+                incluir_ocultas = req.query_params.get('incluir_ocultas')
+                if not incluir_ocultas:
+                    qs = qs.filter(oculta_admin=False)
+        except Exception:
+            pass
+        return qs
 
     @action(detail=False, methods=['post'], url_path='crear_comunicado')
     def crear_comunicado(self, request):
@@ -123,3 +133,63 @@ class NotificacionViewSet(viewsets.ModelViewSet):
             return Response({
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='ocultar_admin')
+    def ocultar_admin(self, request, pk=None):
+        """Oculta una notificación solo en la vista del administrador"""
+        username = getattr(request.user, 'username', None)
+        is_staff = getattr(request.user, 'is_staff', False)
+        notificacion = self.get_object()
+        tipo_notif = notificacion.tipo_contrato or ''
+        
+        # Validar permisos según tipo de usuario y tipo de notificación
+        tiene_permiso = False
+        if is_staff:
+            # Staff puede ocultar cualquier notificación
+            tiene_permiso = True
+        elif username in {"Fraterna", "ElbaJ", "AngelinaCastillo"} and tipo_notif == 'fraterna':
+            # Estos usuarios solo pueden ocultar notificaciones de Fraterna
+            tiene_permiso = True
+        elif username == "GarzaSada" and tipo_notif == 'garzasada':
+            # GarzaSada solo puede ocultar notificaciones de GarzaSada
+            tiene_permiso = True
+        elif username == "SemilleroPurisima" and tipo_notif == 'semillero':
+            # SemilleroPurisima solo puede ocultar notificaciones de Semillero
+            tiene_permiso = True
+            
+        if not tiene_permiso:
+            return Response({'detail': 'No autorizado para esta notificación'}, status=status.HTTP_403_FORBIDDEN)
+            
+        notificacion.oculta_admin = True
+        notificacion.save(update_fields=['oculta_admin'])
+        return Response({'message': 'Notificación ocultada para admin', 'oculta_admin': True})
+
+    @action(detail=True, methods=['post'], url_path='mostrar_admin')
+    def mostrar_admin(self, request, pk=None):
+        """Revierte la ocultación para administradores"""
+        username = getattr(request.user, 'username', None)
+        is_staff = getattr(request.user, 'is_staff', False)
+        notificacion = self.get_object()
+        tipo_notif = notificacion.tipo_contrato or ''
+        
+        # Validar permisos según tipo de usuario y tipo de notificación
+        tiene_permiso = False
+        if is_staff:
+            # Staff puede mostrar cualquier notificación
+            tiene_permiso = True
+        elif username in {"Fraterna", "ElbaJ", "AngelinaCastillo"} and tipo_notif == 'fraterna':
+            # Estos usuarios solo pueden mostrar notificaciones de Fraterna
+            tiene_permiso = True
+        elif username == "GarzaSada" and tipo_notif == 'garzasada':
+            # GarzaSada solo puede mostrar notificaciones de GarzaSada
+            tiene_permiso = True
+        elif username == "SemilleroPurisima" and tipo_notif == 'semillero':
+            # SemilleroPurisima solo puede mostrar notificaciones de Semillero
+            tiene_permiso = True
+            
+        if not tiene_permiso:
+            return Response({'detail': 'No autorizado para esta notificación'}, status=status.HTTP_403_FORBIDDEN)
+            
+        notificacion.oculta_admin = False
+        notificacion.save(update_fields=['oculta_admin'])
+        return Response({'message': 'Notificación visible para admin', 'oculta_admin': False})
