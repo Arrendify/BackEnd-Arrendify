@@ -185,10 +185,36 @@ class Command(BaseCommand):
         if fecha_vigencia < hoy:
             self.stdout.write(
                 self.style.WARNING(
-                    f'Contrato {contrato.id} ya venció ({fecha_vigencia}) - Omitiendo recordatorios'
+                    f'Contrato {contrato.id} ya venció ({fecha_vigencia}) - Eliminando todas las notificaciones'
                 )
             )
+            
+            # 🗑️ ELIMINAR TODAS las notificaciones del contrato vencido
+            if not self.dry_run:
+                filtros_vencido = {
+                    'tipo_contrato': tipo_contrato,
+                    'fecha_vencimiento_contrato': fecha_vigencia,
+                }
+                filtros_vencido.update(kwargs)
+                
+                notificaciones_eliminadas = Notificacion.objects.filter(**filtros_vencido).delete()
+                
+                if notificaciones_eliminadas[0] > 0:
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f'🗑️ Eliminadas {notificaciones_eliminadas[0]} notificación(es) de contrato vencido'
+                        )
+                    )
+                else:
+                    self.stdout.write('ℹ️ No había notificaciones para eliminar')
+            else:
+                self.stdout.write('[DRY-RUN] Se eliminarían todas las notificaciones del contrato vencido')
+            
             return
+        
+        # Calcular días restantes hasta vencimiento
+        dias_restantes = (fecha_vigencia - hoy).days
+        self.stdout.write(f'⏰ Días restantes hasta vencimiento: {dias_restantes}')
         
         # Calcular fechas de recordatorio
         fecha_3_meses = fecha_vigencia - relativedelta(months=3)
@@ -197,30 +223,85 @@ class Command(BaseCommand):
         
         self.stdout.write(f'Fechas recordatorio: 3m={fecha_3_meses}, 2m={fecha_2_meses}, 1m={fecha_1_mes}')
         
-        recordatorios = [
-            ('recordatorio_3_meses', fecha_3_meses, '3 meses'),
-            ('recordatorio_2_meses', fecha_2_meses, '2 meses'),
-            ('recordatorio_1_mes', fecha_1_mes, '1 mes'),
-        ]
+        # 🎯 DETERMINAR QUÉ NOTIFICACIÓN DEBE ESTAR ACTIVA según días restantes
+        # ~90 días = 3 meses, ~60 días = 2 meses, ~30 días = 1 mes
+        notificacion_actual = None
+        notificaciones_incorrectas = []  # Todas las que NO deben existir (anteriores y futuras)
         
-        for tipo_recordatorio, fecha_recordatorio, descripcion in recordatorios:
-            self.stdout.write(f'Verificando recordatorio {descripcion}: fecha={fecha_recordatorio}, hoy={hoy}')
+        if dias_restantes <= 30:
+            # Falta 1 mes o menos → Solo notificación de 1 mes debe existir
+            notificacion_actual = ('recordatorio_1_mes', fecha_1_mes, '1 mes')
+            notificaciones_incorrectas = ['recordatorio_3_meses', 'recordatorio_2_meses']
+            self.stdout.write('📍 Período: 1 mes o menos hasta vencimiento')
             
-            # Crear notificación si:
-            # 1. Es modo --force, O
-            # 2. La fecha de recordatorio ya pasó o es hoy (fecha_recordatorio <= hoy)
-            # La verificación de duplicados se hace en crear_recordatorio()
-            debe_crear = self.force or (fecha_recordatorio <= hoy)
-            self.stdout.write(f'Debe crear notificación: {debe_crear} (force={self.force}, fecha_ya_paso={fecha_recordatorio <= hoy})')
+        elif dias_restantes <= 60:
+            # Faltan entre 1-2 meses → Solo notificación de 2 meses debe existir
+            notificacion_actual = ('recordatorio_2_meses', fecha_2_meses, '2 meses')
+            notificaciones_incorrectas = ['recordatorio_3_meses', 'recordatorio_1_mes']  # Anterior Y futura
+            self.stdout.write('📍 Período: Entre 1-2 meses hasta vencimiento')
             
-            if debe_crear:
-                self.stdout.write(f'Intentando crear notificación {tipo_recordatorio}')
-                self.crear_recordatorio(
-                    contrato, fecha_vigencia, tipo_recordatorio, 
-                    tipo_contrato, descripcion, **kwargs
-                )
+        elif dias_restantes <= 90:
+            # Faltan entre 2-3 meses → Solo notificación de 3 meses debe existir
+            notificacion_actual = ('recordatorio_3_meses', fecha_3_meses, '3 meses')
+            notificaciones_incorrectas = ['recordatorio_2_meses', 'recordatorio_1_mes']  # Futuras
+            self.stdout.write('📍 Período: Entre 2-3 meses hasta vencimiento')
+        else:
+            # Faltan más de 3 meses → No debe existir ninguna notificación
+            self.stdout.write('⏳ Faltan más de 3 meses, no es necesario crear notificación aún')
+            
+            # 🗑️ ELIMINAR cualquier notificación que exista (no debería haber ninguna)
+            if not self.dry_run:
+                filtros_base = {
+                    'tipo_contrato': tipo_contrato,
+                    'fecha_vencimiento_contrato': fecha_vigencia,
+                }
+                filtros_base.update(kwargs)
+                
+                todas_notificaciones = Notificacion.objects.filter(**filtros_base).delete()
+                
+                if todas_notificaciones[0] > 0:
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f'🗑️ Eliminadas {todas_notificaciones[0]} notificación(es) prematuras (faltan >3 meses)'
+                        )
+                    )
             else:
-                self.stdout.write(f'No es necesario crear notificación para {descripcion}')
+                self.stdout.write('[DRY-RUN] Se eliminarían notificaciones prematuras si existieran')
+            
+            return
+        
+        if notificacion_actual:
+            tipo_recordatorio, fecha_recordatorio, descripcion = notificacion_actual
+            
+            # 🗑️ ELIMINAR TODAS las notificaciones incorrectas (anteriores Y futuras)
+            if notificaciones_incorrectas and not self.dry_run:
+                filtros_base = {
+                    'tipo_contrato': tipo_contrato,
+                    'fecha_vencimiento_contrato': fecha_vigencia,
+                }
+                filtros_base.update(kwargs)
+                
+                for tipo_incorrecto in notificaciones_incorrectas:
+                    notificaciones_eliminadas = Notificacion.objects.filter(
+                        tipo_notificacion=tipo_incorrecto,
+                        **filtros_base
+                    ).delete()
+                    
+                    if notificaciones_eliminadas[0] > 0:
+                        self.stdout.write(
+                            self.style.SUCCESS(
+                                f'🗑️ Eliminadas {notificaciones_eliminadas[0]} notificación(es) incorrectas: {tipo_incorrecto}'
+                            )
+                        )
+            elif notificaciones_incorrectas and self.dry_run:
+                self.stdout.write(f'[DRY-RUN] Se eliminarían notificaciones incorrectas: {", ".join(notificaciones_incorrectas)}')
+            
+            # ✅ CREAR la notificación del período actual (si no existe)
+            self.stdout.write(f'✅ Creando notificación actual: {descripcion}')
+            self.crear_recordatorio(
+                contrato, fecha_vigencia, tipo_recordatorio, 
+                tipo_contrato, descripcion, **kwargs
+            )
     
     def crear_recordatorio(self, contrato, fecha_vigencia, tipo_recordatorio, 
                           tipo_contrato, descripcion, **kwargs):
