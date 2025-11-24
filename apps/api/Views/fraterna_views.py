@@ -4037,6 +4037,25 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                 # Usar número de pago manual si viene
                 numero_pago_actual = int(numero_pago_manual)
                 print(f"Usando número de pago manual: {numero_pago_actual}")
+                
+                # ✅ VALIDACIÓN: Verificar que no exista ya un pago con este número
+                pago_existente = DocumentosArrendamientos_garzasada.objects.filter(
+                    contrato=contrato,
+                    proceso=proceso,
+                    numero_pago=numero_pago_actual
+                ).first()
+                
+                if pago_existente:
+                    return Response({
+                        'error': f'Ya existe un pago registrado con el número {numero_pago_actual} para este contrato',
+                        'detalles': {
+                            'numero_pago': numero_pago_actual,
+                            'contrato_id': contrato.id,
+                            'proceso_id': proceso.id,
+                            'fecha_registro': pago_existente.dateTimeOfUpload.strftime('%Y-%m-%d %H:%M:%S') if pago_existente.dateTimeOfUpload else 'N/A'
+                        }
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
             else:
                 # Contar pagos existentes para este contrato
                 pagos_existentes = DocumentosArrendamientos_garzasada.objects.filter(contrato=contrato).count()
@@ -4074,6 +4093,10 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                     'error': 'Se requiere archivo de recibo para registrar el pago'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
+            # Obtener referencia de pago del request
+            referencia_pago = data.get('referencia_pago', '')
+            print(f"📝 Referencia de pago recibida: '{referencia_pago}'")
+            
             # Crear documento
             documento_data = {
                 "user": user_session.id,
@@ -4081,6 +4104,7 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                 "contrato": contrato.id,
                 "proceso": proceso.id,
                 "comp_pago": comp_pago_file,  # Puede ser None si sin_recibo=true
+                "referencia_pago": referencia_pago,  
                 "numero_pago": numero_pago_actual,
                 "total_pagos": duracion_meses,
                 "renta_total": renta_total,
@@ -4310,32 +4334,62 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                     contrato = recibo.contrato
                     arrendatarios_data[arr_id]['contrato'] = {
                         'no_depa': contrato.no_depa or 'N/A',
+                        'num_inq': contrato.num_inq or 'N/A',
                         'duracion': contrato.duracion or 'No especificada',
                         'fecha_celebracion': contrato.fecha_celebracion.strftime('%d/%m/%Y') if contrato.fecha_celebracion else 'N/A',
                         'fecha_vigencia': contrato.fecha_terminacion.strftime('%d/%m/%Y') if contrato.fecha_terminacion else 'N/A',
                         'renta': float(contrato.renta) if contrato.renta else 0,
                     }
                 
-                # Calcular estado del pago
+                # Calcular estado del pago y días de retraso
                 estado = 'Sin fecha'
+                dias_retraso = 0
                 if recibo.fecha_vencimiento:
                     hoy = date.today()
                     dias_restantes = (recibo.fecha_vencimiento - hoy).days
                     if dias_restantes < 0:
                         estado = 'Vencido'
+                        dias_retraso = abs(dias_restantes)
                     elif dias_restantes <= 7:
                         estado = 'Próximo a vencer'
                     else:
                         estado = 'Al día'
                 
-                # Agregar recibo
-                arrendatarios_data[arr_id]['recibos'].append({
+                # Calcular montos y datos adicionales para admin
+                renta_mensual = float(recibo.contrato.renta) if recibo.contrato and recibo.contrato.renta else 0
+                interes_aplicado = float(recibo.interes_aplicado) if recibo.interes_aplicado else 0
+                penalizacion = interes_aplicado
+                monto_pagado = renta_mensual if recibo.comp_pago else 0
+                monto_pendiente = renta_mensual - monto_pagado
+                usuario_subio = 'Sin usuario'
+                if recibo.user:
+                    usuario_subio = recibo.user.first_name or recibo.user.username
+                referencia_pago = f"GS-{recibo.id:06d}" if recibo.id else 'N/A'
+                
+                # Agregar recibo con campos básicos
+                recibo_data = {
                     'numero_pago': recibo.numero_pago or 0,
                     'fecha_subida': recibo.dateTimeOfUpload.strftime('%d/%m/%Y %H:%M') if recibo.dateTimeOfUpload else 'N/A',
                     'fecha_vencimiento': recibo.fecha_vencimiento.strftime('%d/%m/%Y') if recibo.fecha_vencimiento else 'N/A',
-                    'interes': float(recibo.interes_aplicado) if recibo.interes_aplicado else 0,
+                    'interes': interes_aplicado,
                     'estado': estado,
-                })
+                }
+                
+                # Campos adicionales para administrador
+                if es_admin:
+                    recibo_data.update({
+                        'departamento': recibo.contrato.no_depa if recibo.contrato else 'N/A',
+                        'num_inq': recibo.contrato.num_inq if recibo.contrato else 'N/A',
+                        'referencia_pago': referencia_pago,
+                        'monto': renta_mensual,
+                        'monto_pagado': monto_pagado,
+                        'monto_pendiente': monto_pendiente,
+                        'dias_retraso': dias_retraso,
+                        'penalizacion': penalizacion,
+                        'usuario': usuario_subio,
+                    })
+                
+                arrendatarios_data[arr_id]['recibos'].append(recibo_data)
                 
                 # Actualizar estadísticas
                 stats = arrendatarios_data[arr_id]['estadisticas']
@@ -4343,7 +4397,7 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                 stats['pagos_realizados'] = len(arrendatarios_data[arr_id]['recibos'])
                 stats['pagos_pendientes'] = stats['total_pagos'] - stats['pagos_realizados']
                 stats['renta_total'] = float(recibo.renta_total) if recibo.renta_total else 0
-                stats['interes_total'] += float(recibo.interes_aplicado) if recibo.interes_aplicado else 0
+                stats['interes_total'] += interes_aplicado
                 
                 if recibo.contrato and recibo.contrato.renta:
                     stats['renta_mensual'] = float(recibo.contrato.renta)
@@ -4354,6 +4408,30 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                 if stats['total_pagos'] > 0:
                     stats['porcentaje_completado'] = round((stats['pagos_realizados'] / stats['total_pagos']) * 100, 1)
             
+            # Calcular contratos por vencer (próximos 30 días)
+            hoy = date.today()
+            fecha_limite = hoy + timedelta(days=30)
+            contratos_por_vencer = 0
+            pagos_atrasados = 0
+            
+            for arr_data in arrendatarios_data.values():
+                # Contar contratos por vencer
+                fecha_vigencia_str = arr_data['contrato'].get('fecha_vigencia', '')
+                if fecha_vigencia_str and fecha_vigencia_str != 'N/A':
+                    try:
+                        fecha_vigencia = datetime.strptime(fecha_vigencia_str, '%d/%m/%Y').date()
+                        if hoy <= fecha_vigencia <= fecha_limite:
+                            contratos_por_vencer += 1
+                    except:
+                        pass
+                
+                # Contar pagos atrasados (solo los que ya pasaron su fecha de vencimiento)
+                for recibo in arr_data['recibos']:
+                    # Solo contar como atrasado si el estado es 'Vencido'
+                    # Esto significa que la fecha de vencimiento ya pasó
+                    if recibo.get('estado', '') == 'Vencido':
+                        pagos_atrasados += 1
+            
             # Calcular totales generales
             totales_generales = {
                 'total_arrendatarios': len(arrendatarios_data),
@@ -4361,6 +4439,8 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                 'ingresos_totales': sum(arr['estadisticas']['total_pagado'] for arr in arrendatarios_data.values()),
                 'pendientes_totales': sum(arr['estadisticas']['total_pendiente'] for arr in arrendatarios_data.values()),
                 'intereses_totales': sum(arr['estadisticas']['interes_total'] for arr in arrendatarios_data.values()),
+                'contratos_por_vencer': contratos_por_vencer,
+                'pagos_atrasados': pagos_atrasados,
             }
             
             # Contexto para el template
@@ -4371,8 +4451,12 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                 'usuario_generador': request.user.first_name or request.user.username,
             }
             
+            # Seleccionar template según tipo de usuario
+            template_name = 'home/reporte_arrendamientos_garzasada_admin.html' if es_admin else 'home/reporte_arrendamientos_garzasada_v2.html'
+            print(f"Usando template: {template_name}")
+            
             # Renderizar HTML
-            html_string = render_to_string('home/reporte_arrendamientos_garzasada.html', context)
+            html_string = render_to_string(template_name, context)
             
             # Generar PDF
             html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
@@ -4380,7 +4464,8 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
             
             # Crear respuesta HTTP
             response = HttpResponse(pdf, content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="reporte_arrendamientos_garzasada_{date.today().strftime("%Y%m%d")}.pdf"'
+            filename_suffix = '_admin' if es_admin else ''
+            response['Content-Disposition'] = f'attachment; filename="reporte_arrendamientos_garzasada{filename_suffix}_{date.today().strftime("%Y%m%d")}.pdf"'
             
             print("Reporte generado exitosamente....✅")
             return response
@@ -4580,7 +4665,8 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
            user_session = request.user       
            if user_session.is_staff or user_session.username == "GarzaSada":
                print("Listar contratos Garza Sada....")
-               contratos =  GarzaSadaContratos.objects.all().order_by('-id')
+               # ✅ Incluir datos del arrendatario con select_related
+               contratos =  GarzaSadaContratos.objects.select_related('arrendatario').all().order_by('-id')
                serializer = self.get_serializer(contratos, many=True)
                serialized_data = serializer.data
                 
