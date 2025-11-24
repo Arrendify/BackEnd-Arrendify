@@ -412,11 +412,18 @@ class NotificacionSerializer(serializers.ModelSerializer):
             if obj.tipo_contrato == 'fraterna':
                 # Para contratos fraterna, obtener nombre del residente
                 if hasattr(contrato, 'residente') and contrato.residente:
-                    # Intentar nombre_arrendatario primero, luego nombre_residente
+                    # Intentar nombre_arrendatario primero
                     nombre = getattr(contrato.residente, 'nombre_arrendatario', None)
-                    if not nombre or nombre.strip() == '':
+                    
+                    # Si está vacío, usar nombre_residente
+                    if not nombre or not nombre.strip():
                         nombre = getattr(contrato.residente, 'nombre_residente', None)
-                    return nombre if nombre and nombre.strip() != '' else None
+                    
+                    # Retornar si encontró algo válido
+                    if nombre and nombre.strip():
+                        return nombre.strip()
+                    
+                return None
                     
             elif obj.tipo_contrato in ['semillero', 'garzasada']:
                 # Para semillero y garza sada, obtener nombre del arrendatario
@@ -451,11 +458,18 @@ class NotificacionSerializer(serializers.ModelSerializer):
             if obj.tipo_contrato == 'fraterna':
                 # Para contratos fraterna, obtener teléfono del residente
                 if hasattr(contrato, 'residente') and contrato.residente:
-                    # Intentar celular_arrendatario primero, luego celular_residente
+                    # Intentar celular_arrendatario primero
                     telefono = getattr(contrato.residente, 'celular_arrendatario', None)
-                    if not telefono or telefono.strip() == '':
+                    
+                    # Si está vacío, usar celular_residente
+                    if not telefono or not telefono.strip():
                         telefono = getattr(contrato.residente, 'celular_residente', None)
-                    return telefono if telefono and telefono.strip() != '' else None
+                    
+                    # Retornar si encontró algo válido
+                    if telefono and telefono.strip():
+                        return telefono.strip()
+                    
+                return None
                     
             elif obj.tipo_contrato == 'semillero':
                 # Para semillero, obtener teléfono del arrendatario
