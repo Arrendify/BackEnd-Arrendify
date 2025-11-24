@@ -422,6 +422,21 @@ class NotificacionSerializer(serializers.ModelSerializer):
                     # Retornar si encontró algo válido
                     if nombre and nombre.strip():
                         return nombre.strip()
+                
+                # Último fallback: extraer del mensaje de la notificación
+                if obj.mensaje and 'Arrendatario:' in obj.mensaje:
+                    try:
+                        # Buscar la línea que contiene "• Arrendatario: NOMBRE"
+                        inicio = obj.mensaje.find('• Arrendatario:')
+                        if inicio != -1:
+                            inicio += len('• Arrendatario:')
+                            fin = obj.mensaje.find('<br>', inicio)
+                            if fin != -1:
+                                nombre_extraido = obj.mensaje[inicio:fin].strip()
+                                if nombre_extraido and nombre_extraido != 'N/A':
+                                    return nombre_extraido
+                    except:
+                        pass
                     
                 return None
                     
@@ -518,10 +533,33 @@ class NotificacionSerializer(serializers.ModelSerializer):
         
         try:
             if obj.tipo_contrato == 'fraterna':
+                # Obtener nombre del arrendatario con la misma lógica que get_usuario_contrato_nombre
+                nombre_arrendatario = 'N/A'
+                if contrato.residente:
+                    # Intentar nombre_arrendatario primero
+                    nombre = getattr(contrato.residente, 'nombre_arrendatario', None)
+                    if not nombre or not nombre.strip():
+                        # Intentar nombre_residente
+                        nombre = getattr(contrato.residente, 'nombre_residente', None)
+                    
+                    if nombre and nombre.strip():
+                        nombre_arrendatario = nombre.strip()
+                    elif obj.mensaje and '• Arrendatario:' in obj.mensaje:
+                        # Fallback: extraer del mensaje
+                        try:
+                            inicio = obj.mensaje.find('• Arrendatario:') + len('• Arrendatario:')
+                            fin = obj.mensaje.find('<br>', inicio)
+                            if fin != -1:
+                                nombre_extraido = obj.mensaje[inicio:fin].strip()
+                                if nombre_extraido and nombre_extraido != 'N/A':
+                                    nombre_arrendatario = nombre_extraido
+                        except:
+                            pass
+                
                 info.update({
                     'inmueble': f"Depto {contrato.no_depa or 'N/A'}",
-                    'arrendatario': str(contrato.residente) if contrato.residente else 'N/A',
-                    'renta': contrato.renta or 'N/A'
+                    'arrendatario': nombre_arrendatario,
+                    'renta': f"${contrato.renta}.00" or 'N/A'
                 })
             elif obj.tipo_contrato in ['semillero', 'garzasada']:
                 info.update({
