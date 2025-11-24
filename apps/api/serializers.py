@@ -395,6 +395,7 @@ class NotificacionSerializer(serializers.ModelSerializer):
     # Información del contrato asociado y usuario del contrato
     contrato_info = serializers.SerializerMethodField()
     usuario_contrato_nombre = serializers.SerializerMethodField()
+    usuario_contrato_telefono = serializers.SerializerMethodField()
     
     class Meta:
         model = Notificacion
@@ -411,17 +412,82 @@ class NotificacionSerializer(serializers.ModelSerializer):
             if obj.tipo_contrato == 'fraterna':
                 # Para contratos fraterna, obtener nombre del residente
                 if hasattr(contrato, 'residente') and contrato.residente:
-                    return contrato.residente.nombre_completo
+                    # Intentar nombre_arrendatario primero, luego nombre_residente
+                    nombre = getattr(contrato.residente, 'nombre_arrendatario', None)
+                    if not nombre or nombre.strip() == '':
+                        nombre = getattr(contrato.residente, 'nombre_residente', None)
+                    return nombre if nombre and nombre.strip() != '' else None
+                    
             elif obj.tipo_contrato in ['semillero', 'garzasada']:
                 # Para semillero y garza sada, obtener nombre del arrendatario
                 if hasattr(contrato, 'arrendatario') and contrato.arrendatario:
-                    return contrato.arrendatario.nombre_completo
+                    # Intentar nombre_arrendatario primero, luego nombre_empresa_pm
+                    nombre = getattr(contrato.arrendatario, 'nombre_arrendatario', None)
+                    if not nombre or nombre.strip() == '':
+                        nombre = getattr(contrato.arrendatario, 'nombre_empresa_pm', None)
+                    return nombre if nombre and nombre.strip() != '' else None
+                    
             elif obj.tipo_contrato == 'general':
                 # Para contratos generales, obtener nombre del arrendatario
                 if hasattr(contrato, 'arrendatario') and contrato.arrendatario:
-                    return contrato.arrendatario.nombre_completo
+                    # Intentar nombre_completo primero, luego nombre_arrendatario
+                    nombre = getattr(contrato.arrendatario, 'nombre_completo', None)
+                    if not nombre or nombre.strip() == '':
+                        nombre = getattr(contrato.arrendatario, 'nombre_arrendatario', None)
+                    return nombre if nombre and nombre.strip() != '' else None
+                    
         except Exception as e:
             print(f"Error obteniendo nombre del usuario del contrato: {e}")
+            
+        return None
+    
+    def get_usuario_contrato_telefono(self, obj):
+        """Obtiene el teléfono del usuario asociado al contrato"""
+        contrato = obj.obtener_contrato()
+        if not contrato:
+            return None
+            
+        try:
+            if obj.tipo_contrato == 'fraterna':
+                # Para contratos fraterna, obtener teléfono del residente
+                if hasattr(contrato, 'residente') and contrato.residente:
+                    # Intentar celular_arrendatario primero, luego celular_residente
+                    telefono = getattr(contrato.residente, 'celular_arrendatario', None)
+                    if not telefono or telefono.strip() == '':
+                        telefono = getattr(contrato.residente, 'celular_residente', None)
+                    return telefono if telefono and telefono.strip() != '' else None
+                    
+            elif obj.tipo_contrato == 'semillero':
+                # Para semillero, obtener teléfono del arrendatario
+                if hasattr(contrato, 'arrendatario') and contrato.arrendatario:
+                    # Intentar celular_arrendatario primero, luego arr_telefono_empresa (persona moral)
+                    telefono = getattr(contrato.arrendatario, 'celular_arrendatario', None)
+                    if not telefono or telefono.strip() == '':
+                        telefono = getattr(contrato.arrendatario, 'arr_telefono_empresa', None)
+                    return telefono if telefono and telefono.strip() != '' else None
+                    
+            elif obj.tipo_contrato == 'garzasada':
+                # Para garza sada, obtener teléfono del arrendatario
+                if hasattr(contrato, 'arrendatario') and contrato.arrendatario:
+                    # Intentar celular_arrendatario, luego telefono_empresa_pm, luego celular_rl
+                    telefono = getattr(contrato.arrendatario, 'celular_arrendatario', None)
+                    if not telefono or telefono.strip() == '':
+                        telefono = getattr(contrato.arrendatario, 'telefono_empresa_pm', None)
+                    if not telefono or telefono.strip() == '':
+                        telefono = getattr(contrato.arrendatario, 'celular_rl', None)
+                    return telefono if telefono and telefono.strip() != '' else None
+                    
+            elif obj.tipo_contrato == 'general':
+                # Para contratos generales, obtener teléfono del arrendatario
+                if hasattr(contrato, 'arrendatario') and contrato.arrendatario:
+                    # Intentar celular o celular_arrendatario
+                    telefono = getattr(contrato.arrendatario, 'celular', None)
+                    if not telefono or telefono.strip() == '':
+                        telefono = getattr(contrato.arrendatario, 'celular_arrendatario', None)
+                    return telefono if telefono and telefono.strip() != '' else None
+                    
+        except Exception as e:
+            print(f"Error obteniendo teléfono del usuario del contrato: {e}")
             
         return None
     
