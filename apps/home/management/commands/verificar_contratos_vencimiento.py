@@ -181,6 +181,15 @@ class Command(BaseCommand):
         hoy = date.today()
         self.stdout.write(f'Fecha actual: {hoy}')
         
+        # Verificar si el contrato ya venció
+        if fecha_vigencia < hoy:
+            self.stdout.write(
+                self.style.WARNING(
+                    f'Contrato {contrato.id} ya venció ({fecha_vigencia}) - Omitiendo recordatorios'
+                )
+            )
+            return
+        
         # Calcular fechas de recordatorio
         fecha_3_meses = fecha_vigencia - relativedelta(months=3)
         fecha_2_meses = fecha_vigencia - relativedelta(months=2)
@@ -197,10 +206,12 @@ class Command(BaseCommand):
         for tipo_recordatorio, fecha_recordatorio, descripcion in recordatorios:
             self.stdout.write(f'Verificando recordatorio {descripcion}: fecha={fecha_recordatorio}, hoy={hoy}')
             
-            # Si es --force, crear todos los recordatorios
-            # Si no es --force, solo crear si es la fecha exacta
-            debe_crear = self.force or (fecha_recordatorio == hoy)
-            self.stdout.write(f'Debe crear notificación: {debe_crear} (force={self.force}, fecha_exacta={fecha_recordatorio == hoy})')
+            # Crear notificación si:
+            # 1. Es modo --force, O
+            # 2. La fecha de recordatorio ya pasó o es hoy (fecha_recordatorio <= hoy)
+            # La verificación de duplicados se hace en crear_recordatorio()
+            debe_crear = self.force or (fecha_recordatorio <= hoy)
+            self.stdout.write(f'Debe crear notificación: {debe_crear} (force={self.force}, fecha_ya_paso={fecha_recordatorio <= hoy})')
             
             if debe_crear:
                 self.stdout.write(f'Intentando crear notificación {tipo_recordatorio}')
@@ -224,6 +235,11 @@ class Command(BaseCommand):
         filtros.update(kwargs)
         
         if not self.force and Notificacion.objects.filter(**filtros).exists():
+            self.stdout.write(
+                self.style.WARNING(
+                    f'Notificación {tipo_recordatorio} para contrato {contrato.id} ya existe - Omitiendo'
+                )
+            )
             return  # Ya existe el recordatorio
         
         # Obtener información del contrato

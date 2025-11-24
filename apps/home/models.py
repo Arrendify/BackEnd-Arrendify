@@ -2829,6 +2829,7 @@ class DocumentosArrendamientos_garzasada(models.Model):
     contrato = models.ForeignKey(GarzaSadaContratos, null=True, blank=True, on_delete=models.CASCADE,related_name="contrato_pago")
     proceso = models.ForeignKey(ProcesoContrato_garzasada, null=True, blank=True, on_delete=models.CASCADE,related_name="proceso_pago") 
     comp_pago = models.FileField(upload_to=get_comp_pago_upload_path, max_length=255, null=True, blank=True)
+    referencia_pago = models.CharField(max_length=100, null=True, blank=True, help_text="Referencia del pago (ej: transferencia, cheque, etc.)")
     numero_pago = models.IntegerField(null=True, blank=True, help_text="Número del pago actual (ej: 1, 2, 3...)")
     total_pagos = models.IntegerField(null=True, blank=True, help_text="Total de pagos según duración del contrato")
     renta_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Renta total del contrato (renta * duración)")
