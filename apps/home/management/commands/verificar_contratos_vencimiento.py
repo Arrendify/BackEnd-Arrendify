@@ -515,21 +515,7 @@ class Command(BaseCommand):
 
     def generar_mensaje_recordatorio(self, info_contrato, fecha_vigencia, descripcion):
         """Genera el mensaje del recordatorio"""
-        return f"""
-Estimado usuario,
-
-Le recordamos que su contrato de arrendamiento vencerá en {descripcion}.
-
-Detalles del contrato:
-- Inmueble: {info_contrato.get('inmueble', 'N/A')}
-- Arrendatario: {info_contrato.get('arrendatario', 'N/A')}
-- Fecha de vencimiento: {fecha_vigencia.strftime('%d/%m/%Y')}
-
-Le recomendamos contactar al arrendatario para coordinar la renovación del contrato o los procedimientos de desalojo si es necesario.
-
-Saludos cordiales,
-Sistema Arrendify
-        """.strip()
+        return f"""Estimado usuario,<br><br>Le recordamos que su contrato de arrendamiento vencerá en <strong>{descripcion}</strong>.<br><br><strong>Detalles del contrato:</strong><br>• Inmueble: {info_contrato.get('inmueble', 'N/A')}<br>• Arrendatario: {info_contrato.get('arrendatario', 'N/A')}<br>• Fecha de vencimiento: <span style="color: #dc3545; font-weight: bold;">{fecha_vigencia.strftime('%d/%m/%Y')}</span><br><br>Le recomendamos contactar al arrendatario para coordinar la renovación del contrato o los procedimientos de desalojo si es necesario.<br><br>Saludos cordiales,<br><strong>Sistema Arrendify</strong>"""
 
     def enviar_email_recordatorio(self, usuario, titulo, mensaje, info_contrato):
         """Envía email de recordatorio"""
