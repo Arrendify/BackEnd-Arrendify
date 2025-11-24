@@ -374,13 +374,24 @@ class Command(BaseCommand):
             if tipo_contrato == 'fraterna':
                 info['inmueble'] = f"Depto {contrato.no_depa or 'N/A'}"
                 if contrato.residente:
-                    # Para fraterna: usar nombre_arrendatario del residente
-                    info['arrendatario'] = str(contrato.residente)
+                    # Para fraterna: intentar primero nombre_arrendatario (padre/tutor)
                     nombre_para_buscar = getattr(contrato.residente, 'nombre_arrendatario', None)
-                    if nombre_para_buscar:
-                        info['usuario'] = self.buscar_usuario_por_nombre(nombre_para_buscar)
+                    
+                    # Si nombre_arrendatario está vacío, usar nombre_residente (estudiante)
+                    if not nombre_para_buscar or nombre_para_buscar.strip() == '':
+                        nombre_para_buscar = getattr(contrato.residente, 'nombre_residente', None)
+                        self.stdout.write(f'ℹ️ Usando nombre_residente: {nombre_para_buscar}')
                     else:
-                        info['usuario'] = contrato.user  # Fallback
+                        self.stdout.write(f'ℹ️ Usando nombre_arrendatario: {nombre_para_buscar}')
+                    
+                    if nombre_para_buscar and nombre_para_buscar.strip() != '':
+                        info['arrendatario'] = nombre_para_buscar.strip()
+                        info['usuario'] = self.buscar_usuario_por_nombre(nombre_para_buscar.strip())
+                    else:
+                        # Último fallback
+                        self.stdout.write(self.style.WARNING('⚠️ No se encontró nombre válido en residente'))
+                        info['arrendatario'] = f'Residente ID {contrato.residente.id}'
+                        info['usuario'] = contrato.user
                 else:
                     info['arrendatario'] = 'N/A'
                     info['usuario'] = contrato.user  # Fallback al usuario del contrato
@@ -390,27 +401,49 @@ class Command(BaseCommand):
                 if contrato.arrendatario:
                     # Para semillero: usar nombre_arrendatario del arrendatario
                     nombre_para_buscar = getattr(contrato.arrendatario, 'nombre_arrendatario', None)
-                    if nombre_para_buscar:
-                        info['arrendatario'] = nombre_para_buscar
-                        info['usuario'] = self.buscar_usuario_por_nombre(nombre_para_buscar)
+                    
+                    # Verificar que no esté vacío
+                    if not nombre_para_buscar or nombre_para_buscar.strip() == '':
+                        # Intentar nombre_empresa_pm como alternativa
+                        nombre_para_buscar = getattr(contrato.arrendatario, 'nombre_empresa_pm', None)
+                        if nombre_para_buscar:
+                            self.stdout.write(f'ℹ️ Semillero - Usando nombre_empresa_pm: {nombre_para_buscar}')
                     else:
-                        info['arrendatario'] = str(contrato.arrendatario)
-                        info['usuario'] = contrato.user  # Fallback
+                        self.stdout.write(f'ℹ️ Semillero - Usando nombre_arrendatario: {nombre_para_buscar}')
+                    
+                    if nombre_para_buscar and nombre_para_buscar.strip() != '':
+                        info['arrendatario'] = nombre_para_buscar.strip()
+                        info['usuario'] = self.buscar_usuario_por_nombre(nombre_para_buscar.strip())
+                    else:
+                        self.stdout.write(self.style.WARNING('⚠️ Semillero - No se encontró nombre válido'))
+                        info['arrendatario'] = f'Arrendatario ID {contrato.arrendatario.id}'
+                        info['usuario'] = contrato.user
                 else:
                     info['arrendatario'] = 'N/A'
                     info['usuario'] = contrato.user  # Fallback al usuario del contrato
                 
             elif tipo_contrato == 'garzasada':
-                info['inmueble'] = f"Propiedad {contrato.id}"
+                info['inmueble'] = f"Depto {contrato.no_depa or 'N/A'}"
                 if contrato.arrendatario:
                     # Para garzasada: usar nombre_arrendatario del arrendatario
                     nombre_para_buscar = getattr(contrato.arrendatario, 'nombre_arrendatario', None)
-                    if nombre_para_buscar:
-                        info['arrendatario'] = nombre_para_buscar
-                        info['usuario'] = self.buscar_usuario_por_nombre(nombre_para_buscar)
+                    
+                    # Verificar que no esté vacío
+                    if not nombre_para_buscar or nombre_para_buscar.strip() == '':
+                        # Intentar nombre_empresa_pm como alternativa
+                        nombre_para_buscar = getattr(contrato.arrendatario, 'nombre_empresa_pm', None)
+                        if nombre_para_buscar:
+                            self.stdout.write(f'ℹ️ GarzaSada - Usando nombre_empresa_pm: {nombre_para_buscar}')
                     else:
-                        info['arrendatario'] = str(contrato.arrendatario)
-                        info['usuario'] = contrato.user  # Fallback
+                        self.stdout.write(f'ℹ️ GarzaSada - Usando nombre_arrendatario: {nombre_para_buscar}')
+                    
+                    if nombre_para_buscar and nombre_para_buscar.strip() != '':
+                        info['arrendatario'] = nombre_para_buscar.strip()
+                        info['usuario'] = self.buscar_usuario_por_nombre(nombre_para_buscar.strip())
+                    else:
+                        self.stdout.write(self.style.WARNING('⚠️ GarzaSada - No se encontró nombre válido'))
+                        info['arrendatario'] = f'Arrendatario ID {contrato.arrendatario.id}'
+                        info['usuario'] = contrato.user
                 else:
                     info['arrendatario'] = 'N/A'
                     info['usuario'] = contrato.user  # Fallback al usuario del contrato
