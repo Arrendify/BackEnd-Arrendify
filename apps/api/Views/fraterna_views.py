@@ -1,6 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 from ...home.models import *
+from ...home.models import DocumentosArrendamientosFraterna as DocumentosArrendamientosFraternaModel
+from ...home.models import IncidenciasFraterna as IncidenciasFraternaModel
 from ..serializers import *
 from rest_framework import status
 from ...accounts.models import CustomUser
@@ -1734,7 +1736,7 @@ class DocumentosArrendamientosFraterna(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     
-    queryset = DocumentosArrendamientosFraterna.objects.all()
+    queryset = DocumentosArrendamientosFraternaModel.objects.all()
     serializer_class = FraternaArrendamientosSerializer
     
     def list(self, request, *args, **kwargs):
@@ -1758,60 +1760,78 @@ class DocumentosArrendamientosFraterna(viewsets.ModelViewSet):
             print("Data ===>", data)
             print("FILES ===>", request.FILES)
             
-            # Usar first_name del usuario autenticado para buscar arrendatario
-            nombre_usuario = user_session.first_name.strip()
-            print(f"Nombre completo del usuario: {nombre_usuario}")
+            # Verificar si viene contrato_id directamente (desde Admin Fraterna)
+            contrato_id = data.get('contrato_id', None)
+            sin_recibo = data.get('sin_recibo', 'false').lower() == 'true'
+            numero_pago_manual = data.get('numero_pago', None)
             
-            # Intentar diferentes estrategias de búsqueda
-            arrendatario = None
+            print(f"Contrato ID: {contrato_id}, Sin Recibo: {sin_recibo}, Número Pago Manual: {numero_pago_manual}")
             
-            # Estrategia 1: Buscar por nombre completo
-            arrendatario = Residentes.objects.filter(
-                Q(nombre_arrendatario__icontains=nombre_usuario) |
-                Q(nombre_empresa_pm__icontains=nombre_usuario)
-            ).first()
-            
-            # Estrategia 2: Si no encuentra, buscar por primer nombre
-            if not arrendatario:
-                primer_nombre = nombre_usuario.split()[0] if nombre_usuario else ""
-                print(f"Buscando por primer nombre: {primer_nombre}")
+            if contrato_id:
+                # Flujo para usuario Admin Fraterna con contrato específico
+                print(f"Flujo Admin Fraterna - Buscando contrato ID: {contrato_id}")
+                try:
+                    contrato = FraternaContratos.objects.get(id=contrato_id)
+                    arrendatario = contrato.residente
+                    print(f"Contrato y residente encontrados: {arrendatario.nombre_arrendatario or arrendatario.nombre_empresa_pm}")
+                except FraternaContratos.DoesNotExist:
+                    return Response({'error': f'Contrato ID {contrato_id} no encontrado'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                # Flujo original para usuarios normales
+                # Usar first_name del usuario autenticado para buscar arrendatario
+                nombre_usuario = user_session.first_name.strip()
+                print(f"Nombre completo del usuario: {nombre_usuario}")
+                
+                # Intentar diferentes estrategias de búsqueda
+                arrendatario = None
+                
+                # Estrategia 1: Buscar por nombre completo
                 arrendatario = Residentes.objects.filter(
-                    Q(nombre_arrendatario__icontains=primer_nombre) |
-                    Q(nombre_empresa_pm__icontains=primer_nombre)
+                    Q(nombre_arrendatario__icontains=nombre_usuario) |
+                    Q(nombre_empresa_pm__icontains=nombre_usuario)
                 ).first()
-            
-            # Estrategia 3: Si aún no encuentra, buscar por palabras individuales
-            if not arrendatario:
-                palabras = nombre_usuario.split()
-                for palabra in palabras:
-                    if len(palabra) > 2:  # Solo palabras de más de 2 caracteres
-                        print(f"Buscando por palabra: {palabra}")
-                        arrendatario = Residentes.objects.filter(
-                            Q(nombre_arrendatario__icontains=palabra) |
-                            Q(nombre_empresa_pm__icontains=palabra)
-                        ).first()
-                        if arrendatario:
-                            break
-            
-            # Estrategia 4: Buscar por relación directa con el usuario
-            if not arrendatario:
-                print("Buscando arrendatario asociado directamente al usuario")
-                arrendatario = Residentes.objects.filter(user=user_session).first()
-            
-            if not arrendatario:
-                return Response({
-                    'error': f'No se encontró arrendatario para el usuario: {nombre_usuario}',
-                    'debug_info': f'User ID: {user_session.id}, Username: {user_session.username}'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            print(f"Arrendatario encontrado: {arrendatario.nombre_arrendatario or arrendatario.nombre_empresa_pm} (ID: {arrendatario.id})")
-            
-            # Buscar contrato relacionado
-            try:
-                contrato = FraternaContratos.objects.get(arrendatario=arrendatario)
-                print(f"Contrato encontrado: {contrato.id}")
-            except FraternaContratos.DoesNotExist:
-                return Response({'error': f'Contrato no encontrado para el arrendatario ID: {arrendatario.id}'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Estrategia 2: Si no encuentra, buscar por primer nombre
+                if not arrendatario:
+                    primer_nombre = nombre_usuario.split()[0] if nombre_usuario else ""
+                    print(f"Buscando por primer nombre: {primer_nombre}")
+                    arrendatario = Residentes.objects.filter(
+                        Q(nombre_arrendatario__icontains=primer_nombre) |
+                        Q(nombre_empresa_pm__icontains=primer_nombre)
+                    ).first()
+                
+                # Estrategia 3: Si aún no encuentra, buscar por palabras individuales
+                if not arrendatario:
+                    palabras = nombre_usuario.split()
+                    for palabra in palabras:
+                        if len(palabra) > 2:  # Solo palabras de más de 2 caracteres
+                            print(f"Buscando por palabra: {palabra}")
+                            arrendatario = Residentes.objects.filter(
+                                Q(nombre_arrendatario__icontains=palabra) |
+                                Q(nombre_empresa_pm__icontains=palabra)
+                            ).first()
+                            if arrendatario:
+                                break
+                
+                # Estrategia 4: Buscar por relación directa con el usuario
+                if not arrendatario:
+                    print("Buscando arrendatario asociado directamente al usuario")
+                    arrendatario = Residentes.objects.filter(user=user_session).first()
+                
+                if not arrendatario:
+                    return Response({
+                        'error': f'No se encontró arrendatario para el usuario: {nombre_usuario}',
+                        'debug_info': f'User ID: {user_session.id}, Username: {user_session.username}'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                print(f"Arrendatario encontrado: {arrendatario.nombre_arrendatario or arrendatario.nombre_empresa_pm} (ID: {arrendatario.id})")
+                
+                # Buscar contrato relacionado
+                try:
+                    contrato = FraternaContratos.objects.get(residente=arrendatario)
+                    print(f"Contrato encontrado: {contrato.id}")
+                except FraternaContratos.DoesNotExist:
+                    return Response({'error': f'Contrato no encontrado para el arrendatario ID: {arrendatario.id}'}, status=status.HTTP_400_BAD_REQUEST)
             
             # Buscar proceso relacionado
             try:
@@ -1823,30 +1843,70 @@ class DocumentosArrendamientosFraterna(viewsets.ModelViewSet):
             duracion_meses = self.extraer_duracion_meses(contrato.duracion)
             print(f"Duración extraída: {duracion_meses} meses")
 
-            # Contar pagos existentes para este contrato
-            pagos_existentes = DocumentosArrendamientosFraterna.objects.filter(contrato=contrato).count()
-            numero_pago_actual = pagos_existentes + 1
+            # Determinar número de pago
+            if numero_pago_manual:
+                # Usar número de pago manual si viene
+                numero_pago_actual = int(numero_pago_manual)
+                print(f"Usando número de pago manual: {numero_pago_actual}")
+                
+                # VALIDACIÓN: Verificar que no exista ya un pago con este número
+                pago_existente = self.get_queryset().filter(
+                    contrato=contrato,
+                    proceso=proceso,
+                    numero_pago=numero_pago_actual
+                ).first()
+                
+                if pago_existente:
+                    return Response({
+                        'error': f'Ya existe un pago registrado con el número {numero_pago_actual} para este contrato',
+                        'detalles': {
+                            'numero_pago': numero_pago_actual,
+                            'contrato_id': contrato.id,
+                            'proceso_id': proceso.id,
+                            'fecha_registro': pago_existente.dateTimeOfUpload.strftime('%Y-%m-%d %H:%M:%S') if pago_existente.dateTimeOfUpload else 'N/A'
+                        }
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+            else:
+                # Contar pagos existentes para este contrato
+                pagos_existentes = DocumentosArrendamientosFraternaModel.objects.filter(contrato=contrato).count()
+                numero_pago_actual = pagos_existentes + 1
+                print(f"Número de pago calculado automáticamente: {numero_pago_actual}")
 
             # Calcular renta total
             renta_total = Decimal(str(contrato.renta)) * duracion_meses if contrato.renta else Decimal('0')
 
-            # Calcular interés por retraso (12% anual)
+            # Calcular interés por retraso (12% anual) - SOLO si no es un pago sin recibo
             interes_aplicado = Decimal('0')
             fecha_vencimiento = datetime.now().date() + timedelta(days=30)  # 30 días para pagar
 
-            # Verificar si hay retraso en pagos anteriores
-            if numero_pago_actual > 1:
-                ultimo_pago = DocumentosArrendamientosFraterna.objects.filter(
-                    contrato=contrato
-                ).order_by('-dateTimeOfUpload').first()
-                
-                if ultimo_pago and ultimo_pago.fecha_vencimiento:
-                    dias_retraso = (datetime.now().date() - ultimo_pago.fecha_vencimiento).days
-                    if dias_retraso > 0:
-                        # Aplicar 12% anual = 1% mensual
-                        interes_mensual = Decimal('0.01')
-                        meses_retraso = Decimal(str(dias_retraso)) / Decimal('30')
-                        interes_aplicado = Decimal(str(contrato.renta)) * interes_mensual * meses_retraso
+            if not sin_recibo:  # Solo calcular intereses si hay recibo físico
+                # Verificar si hay retraso en pagos anteriores
+                if numero_pago_actual > 1:
+                    ultimo_pago = DocumentosArrendamientosFraternaModel.objects.filter(
+                        contrato=contrato
+                    ).order_by('-dateTimeOfUpload').first()
+                    
+                    if ultimo_pago and ultimo_pago.fecha_vencimiento:
+                        dias_retraso = (datetime.now().date() - ultimo_pago.fecha_vencimiento).days
+                        if dias_retraso > 0:
+                            # Aplicar 12% anual = 1% mensual
+                            interes_mensual = Decimal('0.01')
+                            meses_retraso = Decimal(str(dias_retraso)) / Decimal('30')
+                            interes_aplicado = Decimal(str(contrato.renta)) * interes_mensual * meses_retraso
+            
+            # Obtener archivo - puede ser None si sin_recibo=true
+            comp_pago_file = request.FILES.get('comp_pago', None)
+            
+            # Validar que si no es sin_recibo, debe venir archivo
+            if not sin_recibo and not comp_pago_file:
+                return Response({
+                    'error': 'Se requiere archivo de recibo para registrar el pago'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Obtener referencia de pago del request
+            referencia_pago = data.get('referencia_pago', '')
+            print(f"📝 Referencia de pago recibida: '{referencia_pago}'")
             
             # Crear documento
             documento_data = {
@@ -1854,7 +1914,8 @@ class DocumentosArrendamientosFraterna(viewsets.ModelViewSet):
                 "arrendatario": arrendatario.id,
                 "contrato": contrato.id,
                 "proceso": proceso.id,
-                "comp_pago": request.FILES.get('comp_pago', None),
+                "comp_pago": comp_pago_file,  # Puede ser None si sin_recibo=true
+                "referencia_pago": referencia_pago,  
                 "numero_pago": numero_pago_actual,
                 "total_pagos": duracion_meses,
                 "renta_total": renta_total,
@@ -1862,7 +1923,8 @@ class DocumentosArrendamientosFraterna(viewsets.ModelViewSet):
                 "fecha_vencimiento": fecha_vencimiento,
             }
             
-            print(f"Pago {numero_pago_actual} de {duracion_meses} - Renta total: ${renta_total} - Interés: ${interes_aplicado}")
+            tipo_registro = "SIN RECIBO" if sin_recibo else "CON RECIBO"
+            print(f"Pago {numero_pago_actual} de {duracion_meses} ({tipo_registro}) - Renta total: ${renta_total} - Interés: ${interes_aplicado}")
             
             arrendamientos_serializer = self.get_serializer(data=documento_data)
             arrendamientos_serializer.is_valid(raise_exception=True)
@@ -1955,26 +2017,140 @@ class DocumentosArrendamientosFraterna(viewsets.ModelViewSet):
                 archivo_anterior = getattr(instance, first_key)
                 print("Archivo anterior ====>", archivo_anterior)
                 eliminar_archivo_s3(archivo_anterior)
-                print("Archivo eliminado de S3 desde GarzaSada....✅")
+                print("Archivo eliminado de S3 desde Fraterna....✅")
             else:
                 print(f"El atributo '{first_key}' no existe en la instancia.")
             
             serializer.update(instance, serializer.validated_data)
-            print("Se actualizó correctamente el documento del arrendatario Garza Sada....✅")
+            print("Se actualizó correctamente el documento del residente Fraterna....✅")
             return Response(serializer.data)
 
-        
         except Exception as e:
             print(f"el error es: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
-            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['get'], url_path='reporte_completo_fraterna')
+    def reporte_completo(self, request):
+        """Genera reporte PDF completo de arrendamientos Fraterna"""
+        try:
+            from django.http import HttpResponse
+            from django.template.loader import render_to_string
+            from weasyprint import HTML
+            from collections import defaultdict
+            
+            print("Generando reporte completo Fraterna....📊")
+            es_admin = request.user.is_staff or request.user.is_superuser or request.user.username in ['GarzaSada', 'Fraterna', 'SemilleroPurisima']
+            arrendatario_id = request.query_params.get('arrendatario_id', None)
+            queryset = DocumentosArrendamientosFraternaModel.objects.select_related('arrendatario', 'contrato', 'proceso')
+            if es_admin:
+                if arrendatario_id:
+                    queryset = queryset.filter(arrendatario_id=arrendatario_id)
+            else:
+                nombre_usuario = request.user.first_name.strip()
+                arrendatario = Residentes.objects.filter(Q(nombre_arrendatario__icontains=nombre_usuario) | Q(nombre_residente__icontains=nombre_usuario) | Q(user=request.user)).first()
+                if not arrendatario:
+                    return Response({'error': 'No se encontró información'}, status=status.HTTP_404_NOT_FOUND)
+                queryset = queryset.filter(arrendatario=arrendatario)
+            
+            recibos = queryset.order_by('arrendatario__nombre_arrendatario', 'numero_pago')
+            arrendatarios_data = defaultdict(lambda: {'arrendatario': {}, 'contrato': {}, 'recibos': [], 'estadisticas': {'total_pagos': 0, 'pagos_realizados': 0, 'pagos_pendientes': 0, 'renta_mensual': 0, 'renta_total': 0, 'total_pagado': 0, 'total_pendiente': 0, 'interes_total': 0, 'porcentaje_completado': 0}})
+            
+            for recibo in recibos:
+                if not recibo.arrendatario:
+                    continue
+                arr_id = recibo.arrendatario.id
+                
+                if not arrendatarios_data[arr_id]['arrendatario']:
+                    nombre = recibo.arrendatario.nombre_arrendatario or recibo.arrendatario.nombre_residente or 'Sin nombre'
+                    email = recibo.arrendatario.correo_arrendatario or recibo.arrendatario.correo_residente or 'No especificado'
+                    telefono = recibo.arrendatario.celular_arrendatario or recibo.arrendatario.celular_residente or 'No especificado'
+                    tipo = 'Persona Física' if recibo.arrendatario.nombre_arrendatario else 'Residente'
+                    arrendatarios_data[arr_id]['arrendatario'] = {'nombre': nombre, 'email': email, 'telefono': telefono, 'tipo': tipo}
+                
+                if recibo.contrato and not arrendatarios_data[arr_id]['contrato']:
+                    contrato = recibo.contrato
+                    arrendatarios_data[arr_id]['contrato'] = {'no_depa': contrato.no_depa or 'N/A', 'duracion': contrato.duracion or 'No especificada', 'fecha_celebracion': contrato.fecha_celebracion.strftime('%d/%m/%Y') if contrato.fecha_celebracion else 'N/A', 'fecha_vigencia': contrato.fecha_vigencia.strftime('%d/%m/%Y') if contrato.fecha_vigencia else 'N/A', 'renta': float(contrato.renta) if contrato.renta else 0}
+                
+                estado = 'Sin fecha'
+                dias_retraso = 0
+                if recibo.fecha_vencimiento:
+                    hoy = date.today()
+                    dias_restantes = (recibo.fecha_vencimiento - hoy).days
+                    if dias_restantes < 0:
+                        estado = 'Vencido'
+                        dias_retraso = abs(dias_restantes)
+                    elif dias_restantes <= 7:
+                        estado = 'Próximo a vencer'
+                    else:
+                        estado = 'Al día'
+                
+                renta_mensual = float(recibo.contrato.renta) if recibo.contrato and recibo.contrato.renta else 0
+                interes_aplicado = float(recibo.interes_aplicado) if recibo.interes_aplicado else 0
+                monto_pagado = renta_mensual if recibo.comp_pago else 0
+                monto_pendiente = renta_mensual - monto_pagado
+                usuario_subio = recibo.user.first_name or recibo.user.username if recibo.user else 'Sin usuario'
+                referencia_pago = recibo.referencia_pago if recibo.referencia_pago else f"FR-{recibo.id:06d}" if recibo.id else 'N/A'
+                
+                recibo_data = {'numero_pago': recibo.numero_pago or 0, 'fecha_subida': recibo.dateTimeOfUpload.strftime('%d/%m/%Y %H:%M') if recibo.dateTimeOfUpload else 'N/A', 'fecha_vencimiento': recibo.fecha_vencimiento.strftime('%d/%m/%Y') if recibo.fecha_vencimiento else 'N/A', 'interes': interes_aplicado, 'estado': estado}
+                
+                if es_admin:
+                    recibo_data.update({'departamento': recibo.contrato.no_depa if recibo.contrato else 'N/A', 'referencia_pago': referencia_pago, 'monto': renta_mensual, 'monto_pagado': monto_pagado, 'monto_pendiente': monto_pendiente, 'dias_retraso': dias_retraso, 'penalizacion': interes_aplicado, 'usuario': usuario_subio})
+                
+                arrendatarios_data[arr_id]['recibos'].append(recibo_data)
+                stats = arrendatarios_data[arr_id]['estadisticas']
+                stats['total_pagos'] = recibo.total_pagos or 0
+                stats['pagos_realizados'] = len(arrendatarios_data[arr_id]['recibos'])
+                stats['pagos_pendientes'] = stats['total_pagos'] - stats['pagos_realizados']
+                stats['renta_total'] = float(recibo.renta_total) if recibo.renta_total else 0
+                stats['interes_total'] += interes_aplicado
+                if recibo.contrato and recibo.contrato.renta:
+                    stats['renta_mensual'] = float(recibo.contrato.renta)
+                    stats['total_pagado'] = stats['renta_mensual'] * stats['pagos_realizados']
+                    stats['total_pendiente'] = stats['renta_mensual'] * stats['pagos_pendientes']
+                if stats['total_pagos'] > 0:
+                    stats['porcentaje_completado'] = round((stats['pagos_realizados'] / stats['total_pagos']) * 100, 1)
+            
+            pagos_atrasados = sum(1 for arr in arrendatarios_data.values() for r in arr['recibos'] if r.get('estado') == 'Vencido')
+            totales_generales = {'total_arrendatarios': len(arrendatarios_data), 'total_recibos': recibos.count(), 'ingresos_totales': sum(arr['estadisticas']['total_pagado'] for arr in arrendatarios_data.values()), 'pendientes_totales': sum(arr['estadisticas']['total_pendiente'] for arr in arrendatarios_data.values()), 'intereses_totales': sum(arr['estadisticas']['interes_total'] for arr in arrendatarios_data.values()), 'contratos_por_vencer': 0, 'pagos_atrasados': pagos_atrasados}
+            context = {'arrendatarios': list(arrendatarios_data.values()), 'totales': totales_generales, 'fecha_generacion': datetime.now().strftime('%d/%m/%Y %H:%M'), 'usuario_generador': request.user.first_name or request.user.username}
+            template_name = 'home/reporte_arrendamientos_fraterna_admin.html' if es_admin else 'home/reporte_arrendamientos_fraterna.html'
+            html_string = render_to_string(template_name, context)
+            html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+            pdf = html.write_pdf()
+            response = HttpResponse(pdf, content_type='application/pdf')
+            filename_suffix = '_admin' if es_admin else ''
+            response['Content-Disposition'] = f'attachment; filename="reporte_fraterna{filename_suffix}_{date.today().strftime("%Y%m%d")}.pdf"'
+            print("Reporte Fraterna generado exitosamente....✅")
+            return response
+        except Exception as e:
+            print(f"Error al generar reporte Fraterna: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en reporte Fraterna: {e}")
+            return Response({'error': f'Error al generar el reporte: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=['get'], url_path='lista_arrendatarios_fraterna')
+    def lista_arrendatarios(self, request):
+        """Lista de residentes Fraterna con contratos"""
+        try:
+            es_admin = request.user.is_staff or request.user.is_superuser or request.user.username in ['GarzaSada', 'Fraterna', 'SemilleroPurisima']
+            if not es_admin:
+                return Response({'error': 'Sin permisos'}, status=status.HTTP_403_FORBIDDEN)
+            
+            arrendatarios = Residentes.objects.filter(residente_contrato__isnull=False).distinct().values('id', 'nombre_arrendatario', 'nombre_residente')
+            lista = [{'id': arr['id'], 'nombre': arr['nombre_arrendatario'] or arr['nombre_residente']} for arr in arrendatarios if arr['nombre_arrendatario'] or arr['nombre_residente']]
+            print(f"Residentes Fraterna: {len(lista)}")
+            return Response(lista, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Error lista Fraterna: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class IncidenciasFraterna(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     
-    queryset = IncidenciasFraterna.objects.all()
+    queryset = IncidenciasFraternaModel.objects.all()
     serializer_class = IncidenciasFraternaSerializer
     
     def list(self, request, *args, **kwargs):
@@ -4239,7 +4415,7 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
             from weasyprint import HTML
             from collections import defaultdict
             
-            print("Generando reporte completo de arrendamientos Garza Sada....📊")
+            print("Generando reporte completo de arrendamientos Fraterna....📊")
             
             # Verificar si es administrador
             es_admin = request.user.is_staff or request.user.is_superuser or request.user.username in ['GarzaSada', 'Fraterna', 'SemilleroPurisima']
@@ -4248,7 +4424,7 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
             arrendatario_id = request.query_params.get('arrendatario_id', None)
             
             # Construir queryset base
-            queryset = DocumentosArrendamientos_garzasada.objects.select_related(
+            queryset = DocumentosArrendamientosFraternaModel.objects.select_related(
                 'arrendatario',
                 'contrato',
                 'proceso'
@@ -4265,7 +4441,7 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                 # Usuario normal: solo sus propios datos
                 # Buscar arrendatario asociado al usuario
                 nombre_usuario = request.user.first_name.strip()
-                arrendatario = Arrendatarios_garzasada.objects.filter(
+                arrendatario = Residentes.objects.filter(
                     Q(nombre_arrendatario__icontains=nombre_usuario) |
                     Q(nombre_empresa_pm__icontains=nombre_usuario) |
                     Q(user=request.user)
@@ -4313,12 +4489,12 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                     # Determinar email y teléfono según el tipo
                     if recibo.arrendatario.nombre_arrendatario:
                         # Persona Física
-                        email = recibo.arrendatario.correo_arrendatario or 'No especificado'
-                        telefono = recibo.arrendatario.celular_arrendatario or 'No especificado'
+                        email = recibo.arrendatario.correo or 'No especificado'
+                        telefono = recibo.arrendatario.celular or 'No especificado'
                         tipo = 'Persona Física'
                     else:
                         # Persona Moral
-                        email = recibo.arrendatario.correo_rl or 'No especificado'
+                        email = recibo.arrendatario.correo or 'No especificado'
                         telefono = recibo.arrendatario.telefono_empresa_pm or 'No especificado'
                         tipo = 'Persona Moral'
                     
@@ -4337,7 +4513,7 @@ class DocumentosArrendamiento_GarzaSada(viewsets.ModelViewSet):
                         'num_inq': contrato.num_inq or 'N/A',
                         'duracion': contrato.duracion or 'No especificada',
                         'fecha_celebracion': contrato.fecha_celebracion.strftime('%d/%m/%Y') if contrato.fecha_celebracion else 'N/A',
-                        'fecha_vigencia': contrato.fecha_terminacion.strftime('%d/%m/%Y') if contrato.fecha_terminacion else 'N/A',
+                        'fecha_vigencia': contrato.fecha_vigencia.strftime('%d/%m/%Y') if contrato.fecha_vigencia else 'N/A',
                         'renta': float(contrato.renta) if contrato.renta else 0,
                     }
                 

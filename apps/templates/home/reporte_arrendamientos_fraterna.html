@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte Completo de Arrendamientos - Fraterna</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0.5cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 9px;
+                color: #666;
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 9px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .header-left h1 {
+            color: #000;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 3px 0;
+            text-transform: uppercase;
+        }
+
+        .header-left p {
+            margin: 2px 0;
+            font-size: 9px;
+            color: #666;
+        }
+
+        .header-right {
+            white-space: nowrap;
+            margin-left: 20px;
+        }
+        
+        .separator-line {
+            width: 100%;
+            height: 2px;
+            background-color: #000;
+            margin-bottom: 15px;
+        }
+
+        .totales-generales {
+            background-color: #fff;
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .totales-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .totales-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .total-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .total-item .label {
+            font-size: 8px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: normal;
+            margin-bottom: 5px;
+        }
+
+        .total-item .value {
+            font-size: 14px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .arrendatario-section {
+            page-break-inside: avoid;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #fff;
+        }
+
+        .arrendatario-header {
+            background-color: #f5f5f5;
+            color: #000;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .arrendatario-nombre {
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .arrendatario-tipo {
+            font-size: 7px;
+            background-color: #e0e0e0;
+            color: #333;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        .info-grid {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .info-item {
+            width: 23%;
+            margin: 0.5%;
+            padding: 6px;
+            background-color: white;
+            border-radius: 3px;
+            border-left: 2px solid #231942;
+            box-sizing: border-box;
+        }
+
+        .info-label {
+            font-size: 8px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .info-value {
+            font-size: 9px;
+            color: #333;
+            margin-top: 2px;
+        }
+
+        .estadisticas-grid {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px;
+            background-color: white;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            border: 2px solid;
+            background-color: #fff;
+        }
+
+        .stat-box.success {
+            border-color: #28a745;
+        }
+
+        .stat-box.warning {
+            border-color: #ffc107;
+        }
+
+        .stat-box.danger {
+            border-color: #dc3545;
+        }
+
+        .stat-box.info {
+            border-color: #17a2b8;
+        }
+
+        .stat-label {
+            font-size: 8px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        .recibos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .recibos-table th {
+            background-color: #231942;
+            color: white;
+            padding: 6px;
+            text-align: left;
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        .recibos-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #ddd;
+            font-size: 8px;
+        }
+
+        .recibos-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .estado-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 6px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .estado-vencido {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .estado-proximo {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        .estado-al-dia {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .footer-info {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #ddd;
+            font-size: 8px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <h1>REPORTE COMPLETO DE ARRENDAMIENTOS</h1>
+            <p><strong>Fraterna</strong></p>
+            <p>Generado el: {{ fecha_generacion }} | Por: {{ usuario_generador }}</p>
+        </div>
+        <div class="header-right">
+            <img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_1.png" alt="Arrendify Logo 1" style="width: 130px; height: 33px; display: inline-block; vertical-align: middle;"><!--
+            --><img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/ap_2.png" alt="Arrendify Logo 2" style="width: 98px; height: 35px; display: inline-block; vertical-align: middle; margin-left: -2px;">
+        </div>
+    </div>
+    
+    <div class="separator-line"></div>
+
+    <div class="totales-generales">
+        <div class="totales-row">
+            <div class="total-item">
+                <div class="label">TOTAL ARRENDATARIOS</div>
+                <div class="value">{{ totales.total_arrendatarios }}</div>
+            </div>
+            <div class="total-item">
+                <div class="label">TOTAL RECIBOS</div>
+                <div class="value">{{ totales.total_recibos }}</div>
+            </div>
+            <div class="total-item">
+                <div class="label">INGRESOS TOTALES</div>
+                <div class="value">${{ totales.ingresos_totales|floatformat:2 }}</div>
+            </div>
+        </div>
+        <div class="totales-row">
+            <div class="total-item">
+                <div class="label">PENDIENTES</div>
+                <div class="value">${{ totales.pendientes_totales|floatformat:2 }}</div>
+            </div>
+            <div class="total-item">
+                <div class="label">INTERESES</div>
+                <div class="value">${{ totales.intereses_totales|floatformat:2 }}</div>
+            </div>
+            <div class="total-item">
+                <!-- Espacio vacío para mantener el layout -->
+            </div>
+        </div>
+    </div>
+
+    {% for arr in arrendatarios %}
+    <div class="arrendatario-section">
+        <div class="arrendatario-header">
+            <div class="arrendatario-nombre">{{ arr.arrendatario.nombre }}</div>
+            <div class="arrendatario-tipo">{{ arr.arrendatario.tipo }}</div>
+        </div>
+
+        <div style="padding: 10px; background-color: #f8f9fa;">
+            <table style="width: 100%; border-collapse: separate; border-spacing: 8px;">
+                <tr>
+                    <td style="width: 23%;">
+                        <div class="info-item">
+                            <div class="info-label">EMAIL</div>
+                            <div class="info-value">{{ arr.arrendatario.email }}</div>
+                        </div>
+                    </td>
+                    <td style="width: 23%;">
+                        <div class="info-item">
+                            <div class="info-label">TELÉFONO</div>
+                            <div class="info-value">{{ arr.arrendatario.telefono }}</div>
+                        </div>
+                    </td>
+                    <td style="width: 23%;">
+                        <div class="info-item">
+                            <div class="info-label">DEPARTAMENTO</div>
+                            <div class="info-value">{{ arr.contrato.no_depa }}</div>
+                        </div>
+                    </td>
+                    <td style="width: 23%;">
+                        <div class="info-item">
+                            <div class="info-label">RENTA MENSUAL</div>
+                            <div class="info-value">${{ arr.estadisticas.renta_mensual|floatformat:2 }}</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 23%;">
+                        <div class="info-item">
+                            <div class="info-label">DURACIÓN</div>
+                            <div class="info-value">{{ arr.contrato.duracion }}</div>
+                        </div>
+                    </td>
+                    <td style="width: 23%;">
+                        <div class="info-item">
+                            <div class="info-label">FECHA CELEBRACIÓN</div>
+                            <div class="info-value">{{ arr.contrato.fecha_celebracion }}</div>
+                        </div>
+                    </td>
+                    <td style="width: 23%;">
+                        <div class="info-item">
+                            <div class="info-label">FECHA VIGENCIA</div>
+                            <div class="info-value">{{ arr.contrato.fecha_vigencia }}</div>
+                        </div>
+                    </td>
+                    <td style="width: 23%;">
+                        <div class="info-item">
+                            <div class="info-label">RENTA TOTAL</div>
+                            <div class="info-value">${{ arr.estadisticas.renta_total|floatformat:2 }}</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="padding: 10px; background-color: white;">
+            <table style="width: 100%; border-collapse: separate; border-spacing: 10px;">
+                <tr>
+                    <td style="width: 48%;">
+                        <div class="stat-box success">
+                            <div class="stat-label">Pagos Realizados</div>
+                            <div class="stat-value">{{ arr.estadisticas.pagos_realizados }}/{{ arr.estadisticas.total_pagos }}</div>
+                        </div>
+                    </td>
+                    <td style="width: 48%;">
+                        <div class="stat-box warning">
+                            <div class="stat-label">Pagos Pendientes</div>
+                            <div class="stat-value">{{ arr.estadisticas.pagos_pendientes }}</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 48%;">
+                        <div class="stat-box info">
+                            <div class="stat-label">Total Pagado</div>
+                            <div class="stat-value">${{ arr.estadisticas.total_pagado|floatformat:2 }}</div>
+                        </div>
+                    </td>
+                    <td style="width: 48%;">
+                        <div class="stat-box danger">
+                            <div class="stat-label">Intereses</div>
+                            <div class="stat-value">${{ arr.estadisticas.interes_total|floatformat:2 }}</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="padding: 10px;">
+            <div style="font-size: 8px; font-weight: bold; margin-bottom: 4px;">
+                Progreso de Pagos: {{ arr.estadisticas.porcentaje_completado }}%
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ arr.estadisticas.porcentaje_completado }}%;">
+                    {{ arr.estadisticas.porcentaje_completado }}%
+                </div>
+            </div>
+        </div>
+
+        <table class="recibos-table">
+            <thead>
+                <tr>
+                    <th>Pago #</th>
+                    <th>Fecha Subida</th>
+                    <th>Fecha Vencimiento</th>
+                    <th>Interés</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recibo in arr.recibos %}
+                <tr>
+                    <td><strong>{{ recibo.numero_pago }}</strong></td>
+                    <td>{{ recibo.fecha_subida }}</td>
+                    <td>{{ recibo.fecha_vencimiento }}</td>
+                    <td>${{ recibo.interes|floatformat:2 }}</td>
+                    <td>
+                        <span class="estado-badge {% if recibo.estado == 'Vencido' %}estado-vencido{% elif recibo.estado == 'Próximo a vencer' %}estado-proximo{% else %}estado-al-dia{% endif %}">
+                            {{ recibo.estado }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+
+    <div class="footer-info">
+        <p><strong>Arrendify - Sistema de Gestión de Arrendamientos</strong></p>
+        <p>Este reporte contiene información confidencial. Uso exclusivo para fines administrativos.</p>
+    </div>
+</body>
+</html>
