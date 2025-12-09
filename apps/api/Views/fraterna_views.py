@@ -3978,7 +3978,35 @@ class DocumentosArrendatario_GarzaSada(viewsets.ModelViewSet):
         try: 
             print("Creando Documentos Arrendatarios Garza Sada....📄")
             user_session = str(request.user.id)
-            data = request.data
+            
+            # Verificar si el arrendatario existe
+            arrendatario_id = request.data.get('arrendatario')
+            print(f"🔍 Verificando arrendatario con ID: {arrendatario_id} (tipo: {type(arrendatario_id)})")
+            
+            if not arrendatario_id:
+                return Response({'error': 'El ID del arrendatario es requerido'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Convertir a entero
+            try:
+                arrendatario_id = int(arrendatario_id)
+                print(f"✅ ID convertido a entero: {arrendatario_id}")
+            except (ValueError, TypeError):
+                return Response({'error': f'ID del arrendatario inválido: {arrendatario_id}'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Verificar si existe el arrendatario en la base de datos
+            try:
+                arrendatario = Arrendatarios_garzasada.objects.get(id=arrendatario_id)
+                print(f"✅ Arrendatario encontrado: {arrendatario.nombre_arrendatario or arrendatario.nombre_empresa_pm}")
+            except Arrendatarios_garzasada.DoesNotExist:
+                print(f"❌ El arrendatario con ID {arrendatario_id} NO EXISTE en la base de datos")
+                # Listar arrendatarios disponibles
+                arrendatarios_disponibles = Arrendatarios_garzasada.objects.all().values('id', 'nombre_arrendatario', 'nombre_empresa_pm')
+                print(f"📋 Arrendatarios disponibles: {list(arrendatarios_disponibles)}")
+                return Response({
+                    'error': f'El arrendatario con ID {arrendatario_id} no existe',
+                    'arrendatarios_disponibles': list(arrendatarios_disponibles)
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
             data = {
                     "Ine_arrendatario": request.FILES.get('Ine_arrendatario', None),
                     "Ine_obligado": request.FILES.get('Ine_obligado', None),
@@ -3993,7 +4021,7 @@ class DocumentosArrendatario_GarzaSada(viewsets.ModelViewSet):
                     "Ingresos3_obligado": request.FILES.get('Ingresos_obligado3', None),
                     "Extras": request.FILES.get('Extras', None),
                     "Recomendacion_laboral": request.FILES.get('Recomendacion_laboral', None),
-                    "arrendatario":request.data['arrendatario'],
+                    "arrendatario":arrendatario_id,
                     "user":user_session
                 }
           
