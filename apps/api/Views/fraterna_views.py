@@ -6354,9 +6354,9 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
     
-    def enviar_archivo_semillero(self, archivo, info, estatus):
-        #cuando francis este registrado regresar todo como estaba
-        print("Enviar Archivo Investigacion Semillero ====>")
+    def enviar_archivo_garza_sada(self, archivo, info, estatus):
+        # Función específica para enviar archivos de investigación Garza Sada
+        print("Enviar Archivo Investigacion Garza Sada ====>")
         print("PDF ====>",archivo)
         print("Estatus Investigacion ====>",estatus)
         print("INFO Investigacion ====>",info.__dict__)
@@ -6366,7 +6366,8 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
         try:
             remitente = 'notificaciones@arrendify.com'
             destinatario = info.correo_arrendatario
-            pdf_html = contenido_pdf_aprobado_semillero(info,estatus)
+            # Usar la función genérica contenido_pdf_aprobado para Garza Sada
+            pdf_html = contenido_pdf_aprobado(info,estatus)
             print("Destinatario ====>",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
@@ -6417,9 +6418,9 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
     
         
-    def aprobar_residente_semillero(self, request, *args, **kwargs):
+    def aprobar_residente_garza_sada(self, request, *args, **kwargs):
         try:
-            print("Aprobar Prospecto semillero")
+            print("Aprobar Prospecto Garza Sada")
             #Consulata para obtener el inquilino y establecemos fecha de hoy
             today = date.today().strftime('%d/%m/%Y')
             req_dat = request.data
