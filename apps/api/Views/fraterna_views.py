@@ -6367,12 +6367,12 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             remitente = 'notificaciones@arrendify.com'
             destinatario = info.correo_arrendatario
             # Usar la función genérica contenido_pdf_aprobado para Garza Sada
-            pdf_html = contenido_pdf_aprobado(info,estatus)
+            pdf_html = contenido_pdf_aprobado_GS(info,estatus)
             print("Destinatario ====>",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
-            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
-            #Destino=['desarrolloarrendify@gmail.com']
+            #Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
+            Destino=['desarrolloarrendify@gmail.com']
             #Destino=['juridico.arrendify1@gmail.com']
             asunto = f"Resultado Investigación Prospecto {info.nombre_arrendatario}"
             
@@ -6418,7 +6418,7 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
     
         
-    def aprobar_residente_garza_sada(self, request, *args, **kwargs):
+    def aprobar_prospecto_garza_sada(self, request, *args, **kwargs):
         try:
             print("Aprobar Prospecto Garza Sada")
             #Consulata para obtener el inquilino y establecemos fecha de hoy

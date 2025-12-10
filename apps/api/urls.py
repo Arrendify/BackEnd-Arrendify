@@ -79,6 +79,7 @@ urlpatterns = [
     path('garzasada/posicionar_y_generar_urls/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'posicionar_y_generar_urls_gs'}), name='posicionar_y_generar_urls_gs'),
     path('garzasada/posicionar_sobre_existente/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'posicionar_sobre_existente_gs'}), name='posicionar_sobre_existente_gs'),
     path('garzasada/descargar_contrato_base64/', fraterna_views.Contratos_GarzaSada.as_view({'post': 'descargar_contrato_base64'}), name='descargar_contrato_base64_gs'),
+    path('garzasada/aprobar_prospecto/', fraterna_views.InvestigacionGarzaSada.as_view({'post': 'aprobar_prospecto_garza_sada'}), name='aprobar_prospecto_garza_sada'),
     
     #Contratos Dash
     path('dash/almacenar_datos/', ContratosViewSet.as_view({'post': 'almacenar_datos'}), name='guardar_datos_dash'),
