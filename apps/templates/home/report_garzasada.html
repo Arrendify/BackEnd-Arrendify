@@ -518,35 +518,6 @@
         </div>
         &nbsp&nbsp&nbsp&nbsp
         <div class="col">
-          <label style="color:#8082a0;"><b>Empresa:</b></label>
-          <input class="input-chido" style="width:100%" type="text"  value="{{info.lugar_empleo}}">
-        </div>
-      </div>
-      
-      <div class="row mt-2" >
-        <div class="col">
-          <label style="color:#8082a0; width:100%;"><b>Nombre del Jefe:</b></label>
-          <input class="input-chido" style="width:100%;" type="text" value="{{info.nombre_jefe}}">
-        </div>
-        &nbsp&nbsp&nbsp&nbsp
-        <div class="col">
-          <label style="color:#8082a0;"><b>Email del Jefe:</b></label>
-          <input class="input-chido" style="width:100%;" type="text"   value="{{info.email_jefe}}">
-        </div>
-      </div> 
-      
-      <div class="row mt-2" >
-        <div class="col">
-          <label style="color:#8082a0;"><b>Antiguedad:</b></label>
-          <input class="input-chido" style="width:100%" type="text" value="{{info.antiguedad}}">
-      </div>
-      &nbsp&nbsp&nbsp&nbsp
-        <div class="col">
-          <label style="color:#8082a0;"><b>Teléfono del Jefe:</b></label>
-          <input class="input-chido" type="text" style="width:100%;" value="{{info.telefono_jefe}}">
-        </div>
-        &nbsp&nbsp&nbsp&nbsp
-        <div class="col">
           <label style="color:#8082a0;"><b>Ingreso mensual comprobado:</b></label>
           <input class="input-chido" style="width:100%;" type="text"  value="${{datos.ingreso_comprobado}}.00">
         </div> 
@@ -555,7 +526,7 @@
       <div class="row mt-2" >
         <div class="col">
           <label style="color:#8082a0;"><b>Dirección del empleo:</b></label>
-          <input class="input-chido" style="width:100%;" type="text" value="{{info.direccion_empleo}}">
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.domicilio_empleo}}">
         </div>
       </div>
       
@@ -684,7 +655,7 @@
       {% elif aval.tipo_aval == "Obligado Solidario Persona Moral" %}
       <br><br><br><br><br><br>
       {% else %}
-      <br><br><br><br><br>
+      <br><br><br><br><br><br><br><br><br><br><br>
       {% endif %}
 
    {% elif info.regimen_arrendatario == "Persona Moral"%}
