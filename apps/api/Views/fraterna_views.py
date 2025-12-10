@@ -6424,7 +6424,8 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             #Consulata para obtener el inquilino y establecemos fecha de hoy
             today = date.today().strftime('%d/%m/%Y')
             req_dat = request.data
-            info = Arrendatarios_semillero.objects.filter(id = req_dat["id"]).first()
+            # Usar modelo de Arrendatarios_garzasada en lugar de Semillero
+            info = Arrendatarios_garzasada.objects.filter(id = req_dat["id"]).first()
             print("DATA ====>",info.__dict__)   
                  
                  
@@ -6605,7 +6606,7 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             context = {'info': info, "fecha_consulta":today, 'datos':req_dat, 'tsi':tsi, 'tspp':tspp, 'tsc':tsc, 
                        "redes_comentarios":redes_comentarios, 'referencias':referencias, 'antecedentes':antecedentes,'status':status, 'conclusion':conclusion, 'motivo':motivo}
             
-            template = 'home/report_semillero.html'
+            template = 'home/report_garzasada.html'
             html_string = render_to_string(template, context)
 
             # Genera el PDF utilizando weasyprint
@@ -6616,7 +6617,7 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
         
             print("DATOS ARCHIVO ====>",context)
-            correo = self.enviar_archivo_semillero(archivo, context["info"], context["status"])
+            correo = self.enviar_archivo_garza_sada(archivo, context["info"], context["status"])
             print("CORREO ====>",correo)
             if correo.status_code == 200:
                  # Aprobar o desaprobar
