@@ -6354,9 +6354,9 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
     
-    def enviar_archivo_semillero(self, archivo, info, estatus):
-        #cuando francis este registrado regresar todo como estaba
-        print("Enviar Archivo Investigacion Semillero ====>")
+    def enviar_archivo_garza_sada(self, archivo, info, estatus):
+        # Función específica para enviar archivos de investigación Garza Sada
+        print("Enviar Archivo Investigacion Garza Sada ====>")
         print("PDF ====>",archivo)
         print("Estatus Investigacion ====>",estatus)
         print("INFO Investigacion ====>",info.__dict__)
@@ -6366,7 +6366,8 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
         try:
             remitente = 'notificaciones@arrendify.com'
             destinatario = info.correo_arrendatario
-            pdf_html = contenido_pdf_aprobado_semillero(info,estatus)
+            # Usar la función genérica contenido_pdf_aprobado para Garza Sada
+            pdf_html = contenido_pdf_aprobado(info,estatus)
             print("Destinatario ====>",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
@@ -6417,13 +6418,14 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             return Response({'message': 'Error al enviar el correo electrónico.'}, status = 409)
     
         
-    def aprobar_residente_semillero(self, request, *args, **kwargs):
+    def aprobar_residente_garza_sada(self, request, *args, **kwargs):
         try:
-            print("Aprobar Prospecto semillero")
+            print("Aprobar Prospecto Garza Sada")
             #Consulata para obtener el inquilino y establecemos fecha de hoy
             today = date.today().strftime('%d/%m/%Y')
             req_dat = request.data
-            info = Arrendatarios_semillero.objects.filter(id = req_dat["id"]).first()
+            # Usar modelo de Arrendatarios_garzasada en lugar de Semillero
+            info = Arrendatarios_garzasada.objects.filter(id = req_dat["id"]).first()
             print("DATA ====>",info.__dict__)   
                  
                  
@@ -6604,7 +6606,7 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             context = {'info': info, "fecha_consulta":today, 'datos':req_dat, 'tsi':tsi, 'tspp':tspp, 'tsc':tsc, 
                        "redes_comentarios":redes_comentarios, 'referencias':referencias, 'antecedentes':antecedentes,'status':status, 'conclusion':conclusion, 'motivo':motivo}
             
-            template = 'home/report_semillero.html'
+            template = 'home/report_garzasada.html'
             html_string = render_to_string(template, context)
 
             # Genera el PDF utilizando weasyprint
@@ -6615,7 +6617,7 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
         
             print("DATOS ARCHIVO ====>",context)
-            correo = self.enviar_archivo_semillero(archivo, context["info"], context["status"])
+            correo = self.enviar_archivo_garza_sada(archivo, context["info"], context["status"])
             print("CORREO ====>",correo)
             if correo.status_code == 200:
                  # Aprobar o desaprobar

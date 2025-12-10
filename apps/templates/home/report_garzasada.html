@@ -1,0 +1,1495 @@
+{% load humanize %}
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Resultado de investigación</title>
+    <meta name="description" content="Report example">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous"> 
+    
+  </head>
+  <style>    
+    @page {
+      @top-left {
+        background: #231942;
+        color: white;
+        content: counter(page);
+        height: 1cm;
+        text-align: center;
+        width: 1cm;
+      }
+      @top-center {
+        background: #231942;
+        content: '';
+        display: block;
+        height: .05cm;
+        opacity: .5;
+        width: 100%;
+      }
+      @top-right {
+        content: string(heading);
+        font-size: 9pt;
+        height: 1cm;
+        vertical-align: middle;
+        width: 100%;
+      }
+    }
+
+    @page :blank {
+      @top-left { background: none; content: 'none' }
+      @top-center { content: none }
+      @top-right { content: none }
+    }
+    @page no-chapter {
+      @top-left { background: none; content: 'none' }
+      @top-center { content: none }
+      @top-right { content: none }
+    }
+
+    @page :first {
+      margin:0;
+    }
+
+    @page chapter {
+      background: #231942;
+      margin: 0;
+      @top-left { content: none }
+      @top-center { content: none }
+      @top-right { content: none }
+    }
+
+    @page buro {
+      @bottom-left {font-size: 8px; color:gray; content: "1. El presente resultado de investigación así como el score son realizados y emitidos bajo el criterio interno de Arrendify derivado al estudio del prospecto \A 2.-No relacionado con buro." }
+      white-space: pre-wrap;
+    }
+
+    body {
+      color: black;
+      font-family: Arial; 
+			font-size: 12.95px;
+      font-weight: 300;
+      line-height: 1.5;
+    }
+    
+    h1 {
+      color: white;
+      font-size: 38pt;
+      margin: 5cm 2cm 0 2cm;
+      page: no-chapter;
+      width: 100%;
+    }
+    h2, h3, h4 {
+      color: black;
+      font-weight: 400;
+    }
+    h2 {
+      break-before: always;
+      font-size: 28pt;
+      string-set: heading content();
+    }
+    h3 {
+      font-weight: 300;
+      font-size: 15pt;
+    }
+    h4 {
+      font-size: 13pt;
+    }
+
+    {% comment %} Negritas hecho por mis {% endcomment %}
+    b{
+      font-weight: 700;
+    }
+    
+    #cover {
+      align-content: space-between;
+      display: flex;
+      flex-wrap: wrap;
+      height: 297mm;
+    }
+    #cover address {
+      background: #231942;
+      flex: 1 50%;
+      margin: 0 -2cm;
+      padding: 1cm 0;
+      white-space: pre-wrap;
+    }
+    #cover address:first-of-type {
+      padding-left: 3cm;
+    }
+
+    {% comment %} tabla de contenidos {% endcomment %}
+    #contents {
+      break-before: right;
+      break-after: left;
+      page: no-chapter;
+    }
+    #contents h2 {
+      font-size: 20pt;
+      font-weight: 400;
+      margin-bottom: 3cm;
+    }
+    #contents h3 {
+      font-weight: 500;
+      margin: 3em 0 1em;
+    }
+    #contents h3::before {
+      background: #231942;
+      content: '';
+      display: block;
+      height: .08cm;
+      margin-bottom: .25cm;
+      width: 2cm;
+    }
+    #contents ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    #contents ul li {
+      border-top: .25pt solid #c1c1c1;
+      margin: .25cm 0;
+      padding-top: .25cm;
+    }
+    #contents ul li::before {
+      color: #231942;
+      content: '• ';
+      font-size: 40pt;
+      line-height: 16pt;
+      vertical-align: bottom;
+    }
+    #contents ul li a {
+      color: inherit;
+      text-decoration-line: inherit;
+    }
+    #contents ul li a::before {
+      content: target-text(attr(href));
+    }
+    #contents ul li a::after {
+      color: #231942;
+      content: target-counter(attr(href), page);
+      float: right;
+    }
+    
+    {% comment %} hoja 4 info de arrendarios{% endcomment %}
+    #columns section {
+      columns: 2;
+      column-gap: 1cm;
+      padding-top: 1cm;
+    }
+    #columns section p {
+      text-align: justify;
+    }
+    #columns section p:first-of-type {
+      font-weight: 700;
+    }
+
+    #skills h3 {
+      background: #231942;
+      margin: 0 -3cm 1cm;
+      padding: 1cm 1cm 1cm 3cm;
+      width: 21cm;
+    }
+    #skills section {
+      padding: .5cm 0;
+    }
+    #skills section#table-content::before {
+      background: url(https://cdn-icons-png.flaticon.com/512/1827/1827235.png) no-repeat center #5b2992;
+      background-size: 50%;
+      content: '';
+      display: inline-block;
+      float: left;
+      height: 2cm;
+      margin-right: .5cm;
+      vertical-align: middle;
+      width: 2cm;
+    }
+    #skills section#heading::before {
+      background: url(https://cdn-icons-png.flaticon.com/512/3399/3399316.png) no-repeat center #231942;
+      background-size: 50%;
+      content: '';
+      display: inline-block;
+      float: left;
+      height: 2cm;
+      margin-right: .5cm;
+      vertical-align: middle;
+      width: 2cm;
+    }
+    #skills section#multi-columns::before {
+      background: url(https://png.pngtree.com/png-clipart/20230819/original/pngtree-credit-money-bank-icon-picture-image_8064496.png) no-repeat center #231942;
+      background-size: 50%;
+      content: '';
+      display: inline-block;
+      float: left;
+      height: 2cm;
+      margin-right: .5cm;
+      vertical-align: middle;
+      width: 2cm;
+    }
+    #skills section#internal-links::before {
+      background: url(https://st2.depositphotos.com/11574170/44749/v/450/depositphotos_447497642-stock-illustration-bank-icon-website-design-desktop.jpg) no-repeat center #231942;
+      background-size: 50%;
+      content: '';
+      display: inline-block;
+      float: left;
+      height: 2cm;
+      margin-right: .5cm;
+      vertical-align: middle;
+      width: 2cm;
+    }
+    #skills section#style::before {
+      background: url(https://c1.klipartz.com/pngpicture/635/120/sticker-png-online-banking-icon-bank-icon-digital-banking-icon-line-art-house-sign-signage-symbol.png) no-repeat center #231942;
+      background-size: 50%;
+      content: '';
+      display: inline-block;
+      float: left;
+      height: 2cm;
+      margin-right: .5cm;
+      vertical-align: middle;
+      width: 2cm;
+    }
+    #skills section h4 {
+      margin: 0;
+    }
+    #skills section p {
+      margin-top: 0;
+    }
+    
+    #offers {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      page: buro;
+    }
+
+    #offers h2, #offers h3 {
+      width: 100%;
+    }
+    #offers section {
+      width: 30%;
+    }
+    #offers section h4 {
+      margin-bottom: 0;
+    }
+    #offers section ul {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+    }
+    #offers section ul li:not(:last-of-type) {
+      margin: .5cm 0;
+    }
+    #offers section p {
+      background: #231942;
+      display: block;
+      font-size: 15pt;
+      font-weight: 700;
+      margin-bottom: 0;
+      padding: .25cm 0;
+      text-align: center;
+    }
+    
+    #chapter {
+      align-items: center;
+      display: flex;
+      height: 297mm;
+      justify-content: center;
+      page: chapter;
+    }
+    
+    #typography section {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 1cm 0;
+    }
+    #typography section h4 {
+      border-top: 1pt solid;
+      flex: 1 25%;
+      margin: 0;
+    }
+    #typography section h4 + * {
+      flex: 1 75%;
+      margin: 0;
+      padding-left: .5cm;
+    }
+    #typography section p {
+      text-align: justify;
+    }
+    #typography section ul {
+      line-height: 2;
+      list-style: none;
+    }
+    #typography section#small-caps p {
+      font-variant: small-caps;
+    }
+    #typography section#ligatures dl {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    #typography section#ligatures dl dt {
+      font-weight: 400;
+      width: 30%;
+    }
+    #typography section#ligatures dl dd {
+      flex: 1 70%;
+      margin: 0;
+      padding: 0;
+    }
+    #typography section#ligatures .none {
+      font-variant-ligatures: none;
+    }
+    #typography section#ligatures .common {
+      font-variant-ligatures: common-ligatures;
+    }
+    #typography section#ligatures .discretionary {
+      font-variant-ligatures: discretionary-ligatures;
+    }
+    #typography section#ligatures .contextual {
+      font-variant-ligatures: contextual;
+    }
+    #typography section#numbers dl {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    #typography section#numbers dl dt {
+      font-weight: 400;
+      width: 30%;
+    }
+    #typography section#numbers dl dd {
+      flex: 1 70%;
+      margin: 0;
+      padding: 0;
+    }
+    #typography section#numbers #fractions {
+      font-variant-numeric: diagonal-fractions;
+    }
+    #typography section#numbers #ordinals {
+      font-variant-numeric: ordinal;
+    }
+    #typography section#numbers #slashed {
+      font-variant-numeric: slashed-zero;
+    }
+    #typography section#numbers #super {
+      font-variant-position: super;
+    }
+    #typography section#numbers #sub {
+      font-variant-position: sub;
+    }
+    #typography section#figures dl {
+      columns: 4;
+    }
+    #typography section#figures dl dt {
+      font-weight: 400;
+    }
+    #typography section#figures dl dd {
+      display: flex;
+      margin: 0;
+      padding: 0;
+    }
+    #typography section#figures dl dd ul {
+      padding: 0 1em 0 0;
+    }
+    #typography section#figures #oldstyle {
+      font-variant-numeric: oldstyle-nums;
+    }
+    #typography section#figures #tabular {
+      font-variant-numeric: tabular-nums;
+    }
+    #typography section#figures #old-tabular {
+      font-variant-numeric: oldstyle-nums tabular-nums;
+    }
+
+    .contenedor_p1 {
+      position: relative;
+      width: 100%; /* Ajusta el ancho según tus necesidades */
+      max-width: 793px; /* Ancho máximo de la imagen */
+      background-color: red;
+      margin:0
+    }
+
+    .hr{
+      margin: 1rem 0; 
+      color: inherit; 
+      border: 0; 
+      border-top: #231842 solid; 
+      opacity: 0.25;
+      background: #231842;
+    }
+
+    .input-chido {
+    display: block;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    height:30px; 
+    width:180px; 
+    background-color: #f3f2f6; 
+    color:black;
+    font-weight:700;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+}
+  </style>
+  <body>
+    <div id="contenedor_p1">
+      <img src="https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/portada_blanca.jpeg" style="width:794px">
+      
+    </div>
+
+    <div id="tercera-pagina">
+      <h2 id="columns-title" class="mt-3">Información del prospecto</h2>
+      <hr class="hr" > 
+      
+      <div class="row">
+        <div class="col" style="text-align:left">
+          <h3>Datos Generales</h2> 
+        </div>
+        
+        {% if info.regimen_arrendatario == "Persona Fisica" %}
+
+        <div class="col" style="text-align:right; margin-top: 4px;">
+          <label style="color:#8082a0;"><b style="font-weight:900;">Fecha de consulta: {{fecha_consulta}}</b></label>
+        </div>
+      </div>
+      
+      <hr class="hr" style="margin-top: 7px;">
+      <div class="pb-2 mb-2" style="font-size: 10px; margin-top:-12px;">
+        Tenga en cuenta que la información que se muestra en esta página, debajo de este punto, se basa en datos autoinformados del formulario de registro del prospecto.
+      </div>
+      
+      {% comment %} Informacion Personal del prospecto {% endcomment %}
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Nombre Completo:</b></label>
+            <input class="input-chido" style="width:200%" type="text" value="{{info.nombre_arrendatario}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Celular:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.celular_arrendatario}}">
+        </div>
+      </div>
+      
+      <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Email:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.correo_arrendatario}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Identificación: {{info.identificacion_arrendatario}}</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.no_ide_arrendatario}}">
+        </div>
+      </div>   
+
+      <div class="row mt-2" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Estado civil:</b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.estado_civil}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>RFC:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.rfc_arrendatario}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0; width:100%;"><b>Nacionalidad:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.nacionalidad_arrendatario}}">
+        </div>
+      </div>   
+
+      <hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos del empleo</h2>
+      <hr class="hr" >
+      <div class="mb-2" style="font-size: 10px; margin-top:-12px;">
+        Basado en la información proporcionada por el solicitante. 
+      </div>
+      <div class="mb-1" style="font-size: 10px; margin-top:-12px;">
+        Ingreso mensual declarado es diferente al ingreso comprobado. 
+      </div>
+
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Profesión:</b></label>
+            <input class="input-chido" style="width:100%" type="text" value="{{info.empleo}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Empresa:</b></label>
+          <input class="input-chido" style="width:100%" type="text"  value="{{info.lugar_empleo}}">
+        </div>
+      </div>
+      
+      <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0; width:100%;"><b>Nombre del Jefe:</b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.nombre_jefe}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Email del Jefe:</b></label>
+          <input class="input-chido" style="width:100%;" type="text"   value="{{info.email_jefe}}">
+        </div>
+      </div> 
+      
+      <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Antiguedad:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.antiguedad}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Teléfono del Jefe:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{info.telefono_jefe}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Ingreso mensual comprobado:</b></label>
+          <input class="input-chido" style="width:100%;" type="text"  value="${{datos.ingreso_comprobado}}.00">
+        </div> 
+      </div>
+
+      <div class="row mt-2" >
+        <div class="col">
+          <label style="color:#8082a0;"><b>Dirección del empleo:</b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{info.direccion_empleo}}">
+        </div>
+      </div>
+      
+      <hr class="hr" >  
+        <h3 class="mb-2 mt-2">Datos domiciliarios del prospecto</h2>
+      <hr class="hr" >
+
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Direccion Completa:</b></label>
+            <input class="input-chido" type="text" style="font-size:11px; width:100%;" value="{{info.direccion_arrendatario}}">
+        </div>
+      </div>
+      <hr class="hr" > 
+
+      {% elif info.regimen_arrendatario == "Persona Moral" %}
+
+      <div class="col" style="text-align:right; margin-top: 4px;">
+        <label style="color:#8082a0;"><b style="font-weight:900;">Fecha de consulta: {{fecha_consulta}}</b></label>
+      </div>
+    </div>
+    
+    <hr class="hr" style="margin-top: 7px;">
+    <div class="pb-2 mb-2" style="font-size: 10px; margin-top:-12px;">
+      Tenga en cuenta que la información que se muestra en esta página, debajo de este punto, se basa en datos autoinformados del formulario de registro del prospecto.
+    </div>
+    
+    {% comment %} Informacion Personal del prospecto {% endcomment %}
+    <div class="row" >
+      <div class="col">
+          <label style="color:#8082a0;"><b>Razón Social:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.nombre_empresa}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+        <label style="color:#8082a0;"><b>RFC:</b></label>
+        <input class="input-chido" style="width:100%" type="text" value="{{info.rfc_empresa}}">
+      </div>
+    </div>
+    
+    <div class="row mt-2" >
+      <div class="col">
+        <label style="color:#8082a0;"><b>Escritura Publica:</b></label>
+        <input class="input-chido" style="width:100%" type="text" value="{{info.escritura_publica}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+        <label style="color:#8082a0;"><b> Folio Mercantil:</b></label>
+        <input class="input-chido" style="width:100%" type="text" value="{{info.folio_mercantil}}">
+      </div>
+    </div>   
+
+    <div class="row mt-2" >
+      <div class="col">
+          <label style="color:#8082a0;"><b>Nombre Notario:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.nombre_notario}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+        <label style="color:#8082a0;"><b>Número Notario:</b></label>
+        <input class="input-chido" style="width:100%" type="text" value="{{info.numero_notario}}">
+      </div>
+    </div>
+    
+    <hr class="hr" >  
+      <h3 class="mb-2 mt-2">Datos domiciliarios del prospecto</h2>
+    <hr class="hr" >
+
+    <div class="row" >
+      <div class="col">
+          <label style="color:#8082a0;"><b>Direccion Completa:</b></label>
+          <input class="input-chido" type="text" style="font-size:11px; width:100%;" value="{{info.direccion_fiscal}}">
+      </div>
+    </div>
+
+    <hr class="hr" >  
+      <h3 class="mb-2 mt-2">Datos del Representante Legal</h2>
+    <hr class="hr" >
+
+    <div class="row" >
+      <div class="col">
+          <label style="color:#8082a0;"><b>Nombre Completo:</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="{{info.nombre_completo_rl}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+          <label style="color:#8082a0; width:100%;"><b>Identificación: {{info.identificacion_rl}}</b></label>
+          <input class="input-chido" style="width:100%" type="text" value="No. ID: {{info.no_ide_rl}}">
+      </div>
+    </div>
+    
+    <div class="row mt-2" >
+      <div class="col">
+        <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
+        <input class="input-chido" style="width:100%;" type="text" value="{{info.nacionalidad_rl}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+        <label style="color:#8082a0;"><b>RFC:</b></label>
+        <input class="input-chido" style="width:100%;" type="text"  value="{{info.rfc_rl}}">
+      </div>
+      &nbsp&nbsp&nbsp&nbsp
+      <div class="col">
+        <label style="color:#8082a0; width:100%;"><b>Telefono:</b></label>
+        <input class="input-chido" style="font-size:12px; width:100%;" type="text" value="{{info.celular_rl}}">
+      </div>
+    </div>  
+
+    <div class="row mt-2" >
+      <div class="col">
+        <label style="color:#8082a0;"><b>Dirección:</b></label>
+        <input class="input-chido" type="text" style="font-size:13px;  width:100%;" value="{{info.direccion_completa_rl}}">
+      </div>
+    </div>
+      
+    {% endif %}
+
+   {% if info.regimen_arrendatario == "Persona Fisica"%} 
+
+      {% if aval.tipo_aval == "Fiador Solidario Persona Fisica" %}
+      <br><br><br><br><br>
+      {% elif aval.tipo_aval == "Fiador Solidario Persona Moral" %}
+      <br><br><br><br><br><br>
+      {% elif aval.tipo_aval == "Obligado Solidario Persona Fisica" %}
+      <br><br><br><br><br>
+      {% elif aval.tipo_aval == "Obligado Solidario Persona Moral" %}
+      <br><br><br><br><br><br>
+      {% else %}
+      <br><br><br><br><br>
+      {% endif %}
+
+   {% elif info.regimen_arrendatario == "Persona Moral"%}
+
+      {% if aval.tipo_aval == "Fiador Solidario Persona Fisica" %}
+      <br><br><br><br><br><br><br><br><br><br><br>
+      {% elif aval.tipo_aval == "Fiador Solidario Persona Moral" %}
+      <br><br><br><br><br><br><br><br><br><br><br>
+      {% elif aval.tipo_aval == "Obligado Solidario Persona Fisica" %}
+      <br><br><br><br><br><br><br><br><br><br><br>
+      {% elif aval.tipo_aval == "Obligado Solidario Persona Moral" %}
+      <br><br><br><br><br><br><br><br><br><br><br>
+      {% else %}
+      <br><br><br><br><br>
+      {% endif %}
+
+   {% endif %}
+
+      {% if aval.tipo_aval == "Fiador Solidario Persona Fisica" %}
+        <hr class="hr" style="opacity: .9;" >  
+          <h3 class="mb-2 ">Fiador Solidario Persona Fisica</h2>
+        <hr class="hr">
+
+        <div class="row">
+          <div class="col">
+              <label style="color:#8082a0;"><b>Nombre:</b></label>
+              <input class="input-chido" style="width:100%;" type="text" value="{{aval.nombre_completo}}">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label style="color:#8082a0;"><b>Identificación: {{aval.identificacion}}</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="{{aval.no_ide}}">
+          </div>
+          &nbsp&nbsp&nbsp&nbsp
+          <div class="col">
+            <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="{{aval.nacionalidad}}">
+          </div>
+        </div>
+  
+        <div class="row">
+          <div class="col">
+            <label style="color:#8082a0;"><b>Domicilio Actual:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{aval.direccion_completa}}">
+          </div>
+        </div>
+
+        <hr class="hr" >  
+         <h3 class="mb-2 mt-2">Datos del inmueble en garantía</h2>
+        <hr class="hr" >
+
+        <div class="row" >
+          <div class="col">
+              <label style="color:#8082a0;"><b>Escritura pública número:</b></label>
+              <input class="input-chido" style="width:100%; font-size:12.5px;" type="text" value="{{aval.escritura_publica}} Constatada ante el Notario Público No. {{aval.numero_notario}}, LIC.{{aval.nombre_notario}}" >
+          </div>
+        </div>
+        
+        <div class="row" >
+          <div class="col">
+              <label style="color:#8082a0;"><b>Dirección Inmueble:</b></label>
+              <input class="input-chido" style="width:100%;" type="text" value="{{aval.direccion_completa_escrituras}}. ">
+          </div>
+        </div>
+        <div class="row" >
+          <div class="col">
+              <label style="color:#8082a0; width:100%;"><b>Gravámenes:</b></label>
+              <input class="input-chido" style="width:100%;" type="text" value="No constan gravámenes.">
+          </div>
+          &nbsp&nbsp&nbsp&nbsp
+          <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Anotaciones Preventivas:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="No constan para este folio.">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+              <label style="color:#8082a0;"><b>Avisos Preventivos/Otorgamiento vigentes:</b></label>
+              <input class="input-chido" type="text" style="width:100%;" value="No constan.">
+          </div>
+          &nbsp&nbsp&nbsp&nbsp
+          <div class="col">
+            <label style="color:#8082a0;"><b>Entradas presentadas en proceso:</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="Sin entradas para este folio.">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Observaciones:</b></label>
+            <input class="input-chido" style="width:100%;"  type="text" value="No constan.">
+          </div>
+        </div>
+
+      {% elif aval.tipo_aval == "Fiador Solidario Persona Moral" %}
+
+        <hr class="hr" style="opacity: .9;" >  
+        <h3 class="mb-2 mt-2">Fiador Solidario Persona Moral</h2>
+      <hr class="hr">
+
+      <div class="row">
+        <div class="col">
+            <label style="color:#8082a0;"><b>Razón Social:</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="{{aval.nombre_empresa}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>RFC:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.rfc_empresa}}">
+        </div>
+      </div>
+    
+      <div class="row mt-2" > 
+        <div class="col">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label style="color:#8082a0;"><b>Dirección Fiscal:</b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{aval.direccion_fiscal}}">
+        </div>
+      </div>
+
+      <hr class="hr" >  
+      <h3 class="mb-2 mt-2">Datos del inmueble en garantía</h2>
+      <hr class="hr" >
+
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0;"><b>Escritura pública número:</b></label>
+            <input class="input-chido" style="width:100%; font-size:11.5px;" type="text" value="{{aval.escritura_publica_pm}} Constatada ante el Notario Público No.{{info.numero_notario_pm}}, LIC.{{info.nombre_notario_pm}}" >
+        </div>
+      </div>
+      
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Dirección:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{info.direccion_completa_escrituras}}. ">
+        </div>
+      </div>
+      <div class="row" >
+        <div class="col">
+            <label style="color:#8082a0; width:100%;"><b>Gravámenes:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="No constan gravámenes.">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0; width:100%;"><b>Anotaciones Preventivas:</b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="No constan para este folio.">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+            <label style="color:#8082a0;"><b>Avisos Preventivos/Otorgamiento vigentes:</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="No constan.">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Entradas presentadas en proceso:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="Sin entradas para este folio.">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <label style="color:#8082a0; width:100%;"><b>Observaciones:</b></label>
+          <input class="input-chido" style="width:100%;"  type="text" value="No constan.">
+        </div>
+      </div>  
+
+      {% elif aval.tipo_aval == "Obligado Solidario Persona Fisica" %}
+
+      <hr class="hr" style="opacity: .9;" >  
+          <h3 class="mb-2 mt-2">Obligado Solidario Persona Fisica</h2>
+        <hr class="hr">
+
+        <div class="row">
+          <div class="col">
+              <label style="color:#8082a0;"><b>Nombre:</b></label>
+              <input class="input-chido" style="width:100%;" type="text" value="{{aval.nombre_completo}}">
+          </div>
+        </div>
+      
+        <div class="row mt-2" > 
+          <div class="col">
+            <label style="color:#8082a0;"><b>Identificación: {{aval.ide_fiador}}</b></label>
+            <input class="input-chido" type="text" style="width:100%; font-size:11px;" value="{{aval.no_ide}}">
+          </div>
+          &nbsp&nbsp&nbsp&nbsp
+          <div class="col">
+            <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="{{aval.nacionalidad}}">
+          </div>
+        </div>
+  
+        <div class="row">
+          <div class="col">
+            <label style="color:#8082a0;"><b>Domicilio Actual:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{aval.direccion_completa}}">
+          </div>
+        </div>
+
+        <hr class="hr" >  
+         <h3 class="mb-2 mt-2">Datos de Empleo del Obligado</h3>
+        <hr class="hr" >
+
+        <div class="row">
+          <div class="col">
+            <label style="color:#8082a0;"><b>Empleo:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{aval.profesion_fiador}}">
+          </div>
+          &nbsp&nbsp&nbsp&nbsp
+          <div class="col">
+            <label style="color:#8082a0;"><b>Ingreso mensual:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="${{aval.ingreso_men_fiador}}.00">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label style="color:#8082a0;"><b>Lugar de Empleo:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{aval.empresa_fiador}}">
+          </div>
+          &nbsp&nbsp&nbsp&nbsp
+          <div class="col">
+            <label style="color:#8082a0;"><b>Nombre Jefe:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{aval.jefe_directo}}">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label style="color:#8082a0;"><b>Numero Jefe:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{aval.numero_jefe}}">
+          </div>
+          &nbsp&nbsp&nbsp&nbsp
+          <div class="col">
+            <label style="color:#8082a0;"><b>Antiguedad:</b></label>
+            <input class="input-chido" style="width:100%;" type="text" value="{{aval.antiguedad_fiador}}">
+          </div>
+        </div>
+        
+        {% comment %} <div class="row" >
+          <div class="col">
+              <label style="color:#8082a0;"><b>Dirección Empleo:</b></label>
+              <input class="input-chido" style="width:100%;" type="text" value="{{aval.direccion_completa_empleo_fiador }}. ">
+          </div>
+        </div> {% endcomment %}
+        
+      {% elif aval.tipo_aval == "Obligado Solidario Persona Moral" %}
+
+        <hr class="hr" style="opacity: .9;" >  
+        <h3 class="mb-2 mt-2">Obligado Solidario Persona Moral</h2>
+      <hr class="hr">
+
+      <div class="row">
+        <div class="col">
+            <label style="color:#8082a0;"><b>Razón Social:</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="{{aval.nombre_empresa}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>RFC:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.rfc_empresa}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Ingresos:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="${{aval.ingreso_mensual_empresa}}.00">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label style="color:#8082a0;"><b>Dirección Fiscal:</b></label>
+          <input class="input-chido" style="width:100%;" type="text" value="{{aval.direccion_fiscal}}">
+        </div>
+      </div>
+
+      <hr class="hr" >  
+      <h3 class="mb-2 mt-2">Datos del Representante Legal</h2>
+      <hr class="hr" >
+      
+      <div class="row">
+        <div class="col">
+            <label style="color:#8082a0;"><b>Nombre:</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="{{aval.nombre_completo_rl}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>RFC:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.rfc_rl}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Nacionalidad:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.nacionalidad_rl}}">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+            <label style="color:#8082a0;"><b>Identificación:{{identificacion_rl}}</b></label>
+            <input class="input-chido" type="text" style="width:100%;" value="{{aval.no_ide_rl}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Email:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.email_rl}}">
+        </div>
+        &nbsp&nbsp&nbsp&nbsp
+        <div class="col">
+          <label style="color:#8082a0;"><b>Celular:</b></label>
+          <input class="input-chido" type="text" style="width:100%;" value="{{aval.celular_rl}}">
+        </div>
+      </div>
+
+      {% else %}
+        {% comment %} <p>sin fiador pa</p> {% endcomment %}
+      {% endif %}
+    </div>
+
+    {% comment %} Contenido {% endcomment %}
+    <article id="pagina-3">
+      <hr class="hr">  
+        <h3 class="mb-2 mt-2">Referencias Personales, Laborales.</h2>
+      <hr class="hr">
+      <p>Como parte del proceso de investigación, se ha solicitado se nos proporcionen referencias personales del prospecto a fin de poder corroborar diversos ámbitos personales que nos permitan conocer el entorno social del investigado.
+        Derivado a lo anterior una vez corroborado las referencias proporcionadas, podemos referir que el prospecto cuenta con # referencias verificadas siendo estas las siguientes:
+        </p>
+      <table class="table">
+        <tbody>
+          <tr>
+            <td style="width:250px;">{{info.n_ref1}}</td>
+            <td style="width:250px;">{{info.p_ref1}}</td>
+            <th style="width:15px;" scope="row">{% if datos.referencia1 == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</th>
+          </tr>
+          <tr>
+            <td >{{info.n_ref2}}</td>
+            <td >{{info.p_ref2}}</td>
+            <th scope="row">{% if datos.referencia2 == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</th>
+          </tr>
+          <tr>
+            <td >{{info.n_ref3}}</td>
+            <td >{{info.p_ref3}}</td>
+            <th scope="row">{% if datos.referencia3 == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="color:red;">❌</b>{% endif %}</th>
+          </tr>
+        </tbody>
+      </table>
+      <p>{{referencias}}</p>
+
+      {% comment %} <br>  {% endcomment %}
+      <article id="nueva_pag_4">
+        <div style="width:100%" id="conclusion_final">
+          <h2 class="mb-2 mt-2">Resultado de Investigación</h2>
+          <hr class="hr">  
+            <h3 class="mb-2 mt-2"><b>{% if status == "Declinado" %}RECHAZADO{% elif status == "Aprobado_pe" %}APROBADO PARA POLIZA ESPECIAL{% else %}APROBADO{% endif %}</b></h2>
+          <hr class="hr">
+          <br>
+          {% if status == "Declinado" or status == "Aprobado_pe" %}
+            <p style="font-size:14px">{{conclusion}}</p>
+            <br>
+            <p style="font-size:20px">{{motivo | linebreaksbr}}</p>
+          {% elif status == "Aprobado" and antecedentes != "none" %}
+            <p style="font-size:14px">{{conclusion}}</p>
+            <br>
+            <p style="font-size:20px">{{motivo | linebreaksbr}}</p>
+          {% else %}
+            <p style="font-size:14px">{{conclusion}}</p>
+            <br>
+          {% endif %}
+        </div>
+    
+        <br> <br> <br> <br> <br> <br>
+        <br> <br> <br> <br> <br> <br>
+        {% comment %} Firmas {% endcomment %}
+  
+        <p style="font-size:14px">La información descrita en el resultado se detalla en los apartados siguientes de este reporte, los cuales ofrecen un análisis exhaustivo y minucioso de cada elemento relevante. </p>
+        <p style="font-size:14px">Cada apartado está diseñado para abordar de manera específica los distintos aspectos y hallazgos derivados del estudio, proporcionando una visión integral de los datos obtenidos. En los siguientes apartados, se explorarán los detalles técnicos y las interpretaciones clave que permiten comprender en profundidad los resultados presentados. </p>
+        <p style="font-size:14px">Se incluirán Información de las metodologías empleadas, las variables analizadas, y los resultados obtenidos en cada etapa del proceso. Además, se discutirán las implicaciones de los hallazgos y se ofrecerán recomendaciones basadas en el análisis realizado, con esto se busca que el reporte ofrezca una visión clara y completa del resultado de investigación, facilitando la comprensión y evaluación de la información presentada.</p><br>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p><br>
+        <p></p><br>  
+        <p></p><br>  
+        <br>  
+       
+      </article>
+
+
+      <hr class="hr">  
+        <h3 class="mb-2 mt-2">Antecedentes Legales Nacionales</h2>
+      <hr class="hr">
+
+      {% comment %} <p>{{datos.antecedentes}}</p> {% endcomment %}
+      {% if datos.antecedentes %}
+        <p>De acuerdo al análisis sobre los antecedentes legales nacionales e internacionales del prospecto, observamos que cuenta con diversos procesos aperturados en su contra, los cuales 
+          quedaran anexados a este resultado a fin de corrobora lo anteriormente indicado, motivo por el cual se puede determinar que el prospecto no cumple con los criterios de evaluación de ARRENDIFY S.A.P.I. de C.V., por lo tanto, 
+          se estima que el prospecto presume no ser un bien candidato para el proceso de arrendamiento.</p>
+      {% else %}
+        <p>Es de nuestro agrado, informar que el prospecto cumple cabalmente con lo requisitado por ARRENDIFY S.A.P.I. de C.V., toda vez que derivado a la investigación de antecedentes legales a la cual el prospecto se adhiere, 
+          podemos aseverar que no existen impedimentos en el ámbito legal, que supongan una incapacidad en cuanto a su capacidad moral, por lo tanto, se estima que el prospecto presume ser un buen candidato para el proceso de arrendamiento.
+        Aunado a lo anterior se anexa los criterios de investigación a los cuales el prospecto ha sido sometido.
+        </p>
+      
+      {% endif %}
+      
+     {% comment %} <br> {% endcomment %}
+      <div style="border:1px solid #000000; height:377px; width:650px;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="background:#483285; color:white; text-align:center;" scope="col">Materia Y Tipo</th>
+              <th style="background:#483285; color:white;" scope="col">Actor</th>
+              <th style="background:#483285; color:white;" scope="col">Demandado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Extinción De Dominio</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.extincion_de_dominio_actor == "Si" %}<b style="color:green; border-color:black">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.extincion_de_dominio_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
+            <tr>
+              <td style="border-right:1px solid #B2AFBD;">Oral Mercantil-Civil - Mercantil</td>
+              <td style="text-align:center;">{% if datos.omc_mercantil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.antecedentes.omc_mercantil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
+            <tr>
+              <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Mercantil - Ejecutivo Mercantil-Civil - Ejecutivo Mercantil</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.mem_civil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.mem_civil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
+            <tr>
+              <td style="border-right:1px solid #B2AFBD;">Civil - Juicio Hipotecario-Civil - Especial Hipotecario</td>
+              <td style="text-align:center;">{% if datos.cjhc_especial_hipotecario_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.antecedentes.cjhc_especial_hipotecario_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
+            <tr>
+              <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Civil, Mercantil - Ejecutivo Mercantil</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.cmf_em_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.cmf_em_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
+            <tr>
+              <td style="border-right:1px solid #B2AFBD;">Penal - Lesiones,Homicidio</td>
+              <td style="text-align:center;">{% if datos.penal_lesiones_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.antecedentes.penal_lesiones_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
+            <tr>
+              <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Penal - Robo Calificado</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.robo_calificado_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.robo_calificado_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
+            <tr>
+              <td style="border-right:1px solid #B2AFBD;">Civil o Familiar</td>
+              <td style="text-align:center;">{% if datos.civil_mercantil_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="text-align:center;">{% if datos.antecedentes.civil_mercantil_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
+            <tr>
+              <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Civil - Inmobiliario</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.civil_inmobiliario_actor == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+              <td style="width:30px; background:#D2CCE1; text-align:center;">{% if datos.antecedentes.civil_inmobiliario_demandado == "Si" %}<b style="color:green;">✔️</b>{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+
+    </article>
+
+
+    <article id="cuadro_interpol">
+      <h2 class="mt-3">Antecedentes Legales Internacionales</h2>
+      <hr class="hr">
+        <div style="border:1px solid #000000; height:153px; width:650px;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="background:#483285; color:white; text-align:center;" colspan="4">Investigaciones Internacionales</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th style="width:15px; background:#D2CCE1;" scope="row">{% if datos.antecedentes.fbi == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">FBI</td>
+                <td style="width:15px; background:#D2CCE1;">{% if datos.antecedentes.onu == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td style="background:#D2CCE1;">ONU</td>
+              </tr>
+              <tr>
+                <th scope="row">{% if datos.antecedentes.sec == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD;">Sec</td>
+                <td>{% if datos.antecedentes.ofac == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td>OFAC</td>
+              </tr>
+              <tr>
+                <th style="background:#D2CCE1;" scope="row">{% if datos.antecedentes.terroristas_union == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1">Lista de Terroristas de la Union Europea</td>
+                <td style="width:15px; background:#D2CCE1;"></td>
+                <td style="background:#D2CCE1;"></td>
+              </tr>             
+            </tbody>
+          </table>
+        </div>
+
+        <br><br>
+
+        <div style="border:1px solid #000000; height:413px; width:650px;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="background:#483285; color:white; text-align:center;"  colspan="4">Interpol</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th style="width:15px; background:#D2CCE1;" scope="row">{% if datos.antecedentes.alertas_terroristas == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Alertas terroristas y criminales</td>
+                <td style="width:15px; background:#D2CCE1;">{% if datos.antecedentes.trafico_armas == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td style="background:#D2CCE1;">Tráfico de armas de fuego</td>
+              </tr>
+              <tr>
+                <th scope="row">{% if datos.antecedentes.financiamieto_terrorista == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD;">Financiamieto Terrorista</td>
+                <td>{% if datos.antecedentes.trata_personas == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td>Trata de personas y tráfico ilícito de migrantes</td>
+              </tr>
+              <tr>
+                <th style="background:#D2CCE1;" scope="row">{% if datos.antecedentes.lavado_dinero == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1">Lavado de dinero</td>
+                <td style="background:#D2CCE1;">{% if datos.antecedentes.productos_ilegales == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td style="background:#D2CCE1;">Productos Ilegales</td>
+              </tr>
+              <tr>
+                <th scope="row">{% if datos.antecedentes.falsificacion_moneda == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD;">Falsificacion de monedas o documentos de seguridad</td>
+                <td>{% if datos.antecedentes.delitos_maritimos == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td>Delitos Marítimos</td>
+              </tr>
+              <tr>
+                <th style="background:#D2CCE1;" scope="row">{% if datos.antecedentes.delito_contra_menores == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1">Delitos contra menores de edad</td>
+                <td style="background:#D2CCE1;">{% if datos.antecedentes.delincuencia_organizada == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td style="background:#D2CCE1;">Delincuencia Organizada</td>
+              </tr>
+              <tr>
+                <th scope="row">{% if datos.antecedentes.delito_contra_patrimonio == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD;">Delitos contra el patrimonio cultural</td>
+                <td>{% if datos.antecedentes.terrorismo == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td>Terrorismo</td>
+              </tr>
+              <tr>
+                <th style="background:#D2CCE1;" scope="row">{% if datos.antecedentes.ciberdelincuente == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1">Ciberdelincuente</td>
+                <td style="background:#D2CCE1;">{% if datos.antecedentes.delincuencia_vehiculos == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td style="background:#D2CCE1;">Delincuencia relacionada con vehículos</td>
+              </tr>
+              <tr>
+                <th scope="row">{% if datos.antecedentes.trafico_drogas == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD;">Tráfico de drogas</td>
+                <td>{% if datos.antecedentes.crimenes_guerra == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</td>
+                <td>Crimenes de guerra</td>
+              </tr>
+              <tr>
+                <th style="background:#D2CCE1;" scope="row">{% if datos.antecedentes.delincuencia_financiera == "Si" %}✔️{% else %}<b style="background:white;">⬜</b>{% endif %}</th>
+                <td style="border-right:1px solid #B2AFBD; background:#D2CCE1;">Delincuencia financiera</td>
+                <td style="background:#D2CCE1;"></td>
+                <td style="background:#D2CCE1;"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <br><br><br> <br><br><br> <br><br><br><br>
+        <p style="font-size: 10px;">La verificación de antecedentes en un busqueda exhaustiva que se realiza en mas de 110.000 bases de datos de más de 240 países en busca de antecedentes penales, decisiones judiciales, prensa negativa,
+          perfiles sociales, biografías públicas, empleos anteriores y más. Tenga en cuenta que es posible que esto no sea una coincidencia exacta con el prospecto, sino una búsqueda general con los detalles del prospecto, por lo que sugerimos
+          verificar la validez de los datos con el prospecto. </p>
+               
+    </article>
+
+
+  {% comment %} Pagina 4 {% endcomment %}
+  {% if datos.record_rs == "Negativo" %}
+  <div class="mt-3" style="width:100%" id="redes">
+    <hr class="hr">  
+    <h3 class="mb-2 mt-2">Redes sociales</h2>
+    <hr class="hr">
+
+    <p>Lamentamos informarle que, tras una cuidadosa revisión del perfil en redes sociales, hemos encontrado que {{info.nombre}} {{info.apellido}} {{info.apellido1}} cumple con varios criterios que consideramos inaceptables para la convivencia armónica en sociedad. A continuación, se detallan los criterios específicos y los comportamientos observados:</p>
+    {% for clave in redes_comentarios  %}
+    <p><b>{{forloop.counter}}.    {{clave}}</b></p>
+    {% endfor %}
+    <p>Estos comportamientos y contenidos son incompatibles con los valores y principios de nuestra organización, y consideramos que podrían afectar negativamente a la comunidad que se busca atraer.</p>
+    
+    {% comment %} Links redes sociales {% endcomment %}
+    <p>Facebook: {{info.credito.rs_facebook}}.<p>
+    <p>Instagram: {{info.credito.rs_instagram}}.<p>
+    <p>X: {{info.credito.rs_x}}.<p>
+  </div>
+
+  {% elif datos.record_rs == "Positivo" %}
+  <div class="mt-3" style="width:100%" id="redes">
+    <hr class="hr">  
+    <h3 class="mb-2 mt-2">Redes sociales</h2>
+    <hr class="hr">
+
+    <p>Nos complace informarle que, tras una cuidadosa revisión de su perfil en redes sociales, hemos decidido avanzar con su candidatura. 
+      Durante nuestra evaluación, hemos observado que su conducta en redes sociales es ejemplar y consistente con los valores para la convivencia armónica en sociedad. Sus publicaciones son respetuosas, profesionales y positivas, sin ningún indicio de comportamiento inapropiado, discriminatorio u ofensivo. Apreciamos su integridad y la forma en que interactúa con otros usuarios de manera constructiva y respetuosa.
+      Estamos convencidos de que su presencia en redes sociales refleja una actitud acorde con el ambiente que se promueve dentro de un arrendamiento.
+      </p>
+    
+    {% comment %} Links redes sociales {% endcomment %}
+    <p>Facebook: {{info.credito.rs_facebook}}.<p>
+    <p>Instagram: {{info.credito.rs_instagram}}.<p>
+    <p>X: {{info.credito.rs_x}}.<p>
+  </div>
+
+  {% elif datos.record_rs == "Nulo" %}
+  <div class="mt-3" style="width:100%" id="redes">
+    <hr class="hr">  
+    <h3 class="mb-2 mt-2">Redes sociales</h2>
+    <hr class="hr">
+
+    <p>Tras una cuidadosa revisión de su perfil en redes sociales, hemos observado que el prospecto tiene nula o poca actividad en estas plataformas. 
+      Debido a esta limitada actividad, no es posible obtener un perfil detallado de su presencia en redes sociales. Sin embargo, entendemos que no todos 
+      los profesionales eligen utilizar estas plataformas de manera activa y esto no representa ningún inconveniente para nuestra organización en tanto a la evaluación de su perfil en redes sociales.</p>
+    
+    {% comment %} Links redes sociales {% endcomment %}
+    <p>Facebook: {{info.credito.rs_facebook}}.<p>
+    <p>Instagram: {{info.credito.rs_instagram}}.<p>
+    <p>X: {{info.credito.rs_x}}.<p>
+  </div>
+
+  {% elif datos.record_rs == "En_cuenta" %}
+  <div class="mt-3" style="width:100%" id="redes">
+    <hr class="hr">  
+    <h3 class="mb-2 mt-2">Redes sociales</h2>
+    <hr class="hr">
+
+    <p>Al evaluar a {{info.nombre_completo}} a través de su perfil en redes sociales, es fundamental tomar en cuenta una serie de criterios adicionales que pueden influir negativamente en su idoneidad 
+      para la convivencia armónica en sociedad. A continuación, se detallan los puntos a considerar:</p>
+    
+    {% for clave in redes_comentarios  %}
+    <p><b>{{forloop.counter}}.    {{clave}}</b></p>
+    {% endfor %}
+    <p>Tomar en cuenta estos puntos es crucial para evaluar si los candidatos podrían mantener un ambiente respetuoso, profesional y positivo dentro del inmueble arrendado.</p>
+    
+    {% comment %} Links redes sociales {% endcomment %}
+    <p>Facebook: {{info.credito.rs_facebook}}.<p>
+    <p>Instagram: {{info.credito.rs_instagram}}.<p>
+    <p>X: {{info.credito.rs_x}}.<p>
+  </div>
+  {% else %}{% endif %}
+
+    <article id="offers">
+      <div class="row mt-2" style="width:100%">
+        <h2 class="mt-3">Análisis Créditicio</h2>
+        <hr class="hr">
+      </div>
+      {% comment %} texto introductorio {% endcomment %}
+      {% comment %} <p>En este apartado se valorará la capacidad crediticia del prospecto, a fin de determinar si es considerado apto para el cumplimiento de las obligaciones que se buscan contraer, 
+        el presente análisis tomará en cuenta diversos factores a investigar tales como la capacidad economica y compromiso de pagos, los cuales para efectos de esta investigación resultará 
+        indispensable que se tenga un estimado la calidad de persona con la que se generará una relación.
+      </p>  {% endcomment %}
+      <p>En este apartado se evaluará de manera exhaustiva la capacidad crediticia del prospecto, con el objetivo de determinar si es apto para cumplir con las obligaciones financieras que se pretenden contraer.</p>
+      <p>Con el fin de minimizar el riesgo financiero y asegurar que la relación que se establecerá sea con personas que demuestren una alta capacidad para cumplir con sus compromisos de manera puntual y responsable.</p>
+      <p>Este análisis incluirá una revisión detallada de diversos factores, como la solvencia económica y el historial de compromiso con los pagos, para esto se considera el historial crediticio, los ingresos y gastos recurrentes, 
+        las deudas existentes y cualquier otra información relevante que permita una evaluación completa de la capacidad de pago del prospecto. Con ello podemos generar una visión clara y precisa sobre la estabilidad financiera del individuo 
+        y su capacidad para asumir nuevas obligaciones para el arrendamiento.</p>
+
+      <br>
+     
+      <section>
+        <h4> <sup>1</sup> Ingresos vs créditos</h4>
+        <img src="{{tsi}}" style="width:215px; height:100px; margin-left:-16px;"></img>
+        <p style="color:white;">{{datos.score_ingreso}}/100</p>
+        <div class="mt-3">
+          <h4>Puntos a destacar:</h4>
+        </div>
+        <ul>
+          {% if datos.tipo_score_ingreso == "Malo" %}
+            <li>Declara un ingreso mensual es de un valor neto de ${{datos.ingreso_comprobado}}.00</li>
+            <li>Según los ingresos comprobados del prospecto sus egresos son mayores al monto de renta y sus necesidades básicas.</li>
+            <li>Su saldo final es insuficiente para atender imprevistos los cuales pueden llegar a perjudicar el pago de renta.</li>
+          
+          {% elif datos.tipo_score_ingreso == "Regular" %}
+            <li>Declara un ingreso mensual es de un valor neto de ${{datos.ingreso_comprobado}}.00</li>
+            <li>Según los ingresos comprobados del prospecto, llegan al limite de los egresos favorables.</li>
+            <li>El saldo final es considera justo para los requerimientos de ARRENDIFY S.A.P.I. de C.V.</li>
+          
+          {% elif datos.tipo_score_ingreso == "Bueno" %}
+            <li>Declara un ingreso mensual es de un valor neto de ${{datos.ingreso_comprobado}}.00</li>
+            <li>Según los ingresos comprobados del prospecto, son acordes a sus egresos.</li>
+            <li>Cuenta con un saldo total suficientes para el pago de una renta adicional.</li>
+          
+          {% elif datos.tipo_score_ingreso == "Excelente" %}
+            <li>Declara un ingreso mensual de un valor neto de ${{datos.ingreso_comprobado}}.00</li>
+            <li>Cuenta con plena capacidad de pago.</li>
+            <li>Cuenta con un saldo favorable para cubrir necesidades básicas, creditos y hasta un par rentas sin que le cause algún impedimento.</li>
+          
+          {% endif %}          
+        </ul>
+      </section>
+
+      <section>
+        <h4>Pagos Puntuales</h4>
+        <img src="{{tspp}}" style="width:215px; height:100px; margin-left:-16px;"></img>
+        <p style="color:white;">{{datos.score_pp}}/100</p>
+        <div class="mt-3">
+          <h4>Puntos a destacar:</h4>
+        </div>
+        <ul>
+        {% if datos.tipo_score_pp == "Malo" %}
+        <li>Presenta varios creditos con atrasos, haciéndolo una conducta constante.</li>
+        <li>Cuenta con muchas irregularidades en sus pagos.</li>
+        <li>No cubre el compromiso de pago.</li>
+        
+        {% elif datos.tipo_score_pp == "Regular" %}
+          <li>Cuenta con irregularidades de pago no constantes.</li>
+          <li>La mayoría de sus creditos se encuentran al corriente.</li>
+          <li>Los atrasos/ adeudos no perduran demasiado tiempo.</li>
+        
+        {% elif datos.tipo_score_pp == "Bueno" %}
+          <li>La mayoría de sus creditos se encuentran al corriente.</li>
+          <li>Presenta un adeudo no significativo de menos de 30 días.</li>
+          <li>No existe mucha irregularidad de sus pagos en tiempo y forma.</li>
+        
+        {% elif datos.tipo_score_pp == "Excelente" %}
+          <li>La mayoría de sus creditos se encuentran al corriente.</li>
+          <li>No presenta ningun adeudo/atraso significativo.</li>
+          <li>Cuenta con un excelente historial.</li>
+        
+        {% endif %}
+        </ul>
+      </section>
+
+      <section>
+        <h4>Créditos</h4>
+        <img src="{{tsc}}" style="width:215px; height:100px; margin-left:-16px;"></img>
+        <p style="color:white;">{{datos.score_credito}}/100</p>
+
+        <div class="mt-3">
+          <h4>Puntos a destacar:</h4>
+        </div>
+
+        <ul>
+        {% if datos.tipo_score_credito == "Malo" %}
+          <li>Cuenta con creditos en quebrando.</li>
+          <li>Cuenta con adeudos mayores a los 120 dias.</li>
+          <li>Presenta mala disposición de pago.</li>
+        
+        {% elif datos.tipo_score_credito == "Regular" %}
+          <li>Disposición de pago regular.</li>
+          <li>Cuenta con 1 credito en quebranto.</li>
+          <li>Cuenta con adeudos menores a 60 días.</li>
+        
+        {% elif datos.tipo_score_credito == "Bueno" %}
+          <li>Disposición de pago buena.</li>
+          <li>Creditos cerrados al corriente con algunos atrasos.</li>
+          <li>Adeudos de 1 a 30 días.</li>
+        
+        {% elif datos.tipo_score_credito == "Excelente" %}
+          <li>Creditos cerrados al corriente sin atrasos.</li>
+          <li>Cerrados por pagos realizados</li>
+          <li>Su historial crediticio esta limpio.</li>
+        
+        {% endif %}
+        </ul>
+        
+      </section>
+      
+      <br><br><br>
+      
+    </article>
+    {% comment %} Firmas Final {% endcomment %}
+    <br><br><br>
+
+    <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="col" style="text-align: center;"><b>ELABORÓ</b></div>
+    </div>
+
+    <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="col" style="text-align: center;"><b>ARRENDIFY</b></div>
+    </div>
+
+    <br>
+
+    <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="col" style="text-align: center;"><b>DEPARTAMENTO DEL ÁREA LEGAL</b></div>
+    </div>
+
+    <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="col" style="text-align: left;">
+        <a href="www.arrendify.com">www.arrendify.com</a>
+      </div>
+      <div class="col" style="text-align: right;">
+        Teléfono: 01 55 7258 9136
+      </div>
+    </div>
+    
+   
+    
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script> 
+  </body>
+</html>
