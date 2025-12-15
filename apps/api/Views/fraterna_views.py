@@ -6371,8 +6371,8 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             print("Destinatario ====>",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
-            #Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
-            Destino=['desarrolloarrendify@gmail.com']
+            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
+            #Destino=['desarrolloarrendify@gmail.com']
             #Destino=['juridico.arrendify1@gmail.com']
             asunto = f"Resultado Investigación Prospecto {info.nombre_arrendatario}"
             
