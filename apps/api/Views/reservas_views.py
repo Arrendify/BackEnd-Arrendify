@@ -4,9 +4,12 @@ from rest_framework.authentication import TokenAuthentication, SessionAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 
 from ...home.models import ReservaAsador, ReservaAsadorFraterna
 from ..serializers import ReservaAsadorSerializer, ReservaAsadorFraternaSerializer
+
+User = get_user_model()
 
 class ReservaAsadorViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
@@ -18,6 +21,14 @@ class ReservaAsadorViewSet(viewsets.ModelViewSet):
         try:
             user_session = request.user
             data = request.data.copy()
+
+            # Si el que llama es admin (staff/superuser), permitir crear a nombre del usuario enviado
+            if (getattr(request.user, 'is_staff', False) or getattr(request.user, 'is_superuser', False)) and data.get('user'):
+                try:
+                    user_session = User.objects.get(pk=data.get('user'))
+                except User.DoesNotExist:
+                    return Response({'detail': 'Usuario no encontrado.'}, status=status.HTTP_400_BAD_REQUEST)
+
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             instancia = serializer.save(user=user_session, usuario_nombre=getattr(user_session, 'first_name', ''))
@@ -74,6 +85,14 @@ class ReservaAsadorFraternaViewSet(viewsets.ModelViewSet):
         try:
             user_session = request.user
             data = request.data.copy()
+
+            # Si el que llama es admin (staff/superuser), permitir crear a nombre del usuario enviado
+            if (getattr(request.user, 'is_staff', False) or getattr(request.user, 'is_superuser', False)) and data.get('user'):
+                try:
+                    user_session = User.objects.get(pk=data.get('user'))
+                except User.DoesNotExist:
+                    return Response({'detail': 'Usuario no encontrado.'}, status=status.HTTP_400_BAD_REQUEST)
+
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             instancia = serializer.save(user=user_session, usuario_nombre=getattr(user_session, 'first_name', ''))
