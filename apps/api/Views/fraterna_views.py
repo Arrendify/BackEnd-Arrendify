@@ -5018,6 +5018,7 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
             filename = data.get('filename') or 'contrato.pdf'
             b64 = data.get('data_base64')
             no_depa = data.get('no_depa')
+            fecha_celebracion_raw = data.get('fecha_celebracion')
 
             if not arr_id or not b64:
                 return Response({'error': 'arrendatario y data_base64 son requeridos'}, status=400)
@@ -5033,10 +5034,18 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
             if not arr:
                 return Response({'error': 'Arrendatario no encontrado'}, status=404)
 
+            fecha_celebracion = date.today()
+            if fecha_celebracion_raw:
+                try:
+                    fecha_celebracion = datetime.strptime(str(fecha_celebracion_raw), "%Y-%m-%d").date()
+                except Exception:
+                    return Response({'error': 'fecha_celebracion inválida, usa formato YYYY-MM-DD'}, status=400)
+
             contrato = GarzaSadaContratos.objects.create(
                 user=request.user if request.user.is_authenticated else None,
                 arrendatario=arr,
                 no_depa=no_depa or None,
+                fecha_celebracion=fecha_celebracion,
             )
 
             # guardar archivo
@@ -5055,6 +5064,7 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
                 'id': contrato.id,
                 'arrendatario': contrato.arrendatario_id,
                 'no_depa': contrato.no_depa,
+                'fecha_celebracion': str(contrato.fecha_celebracion) if getattr(contrato, 'fecha_celebracion', None) else None,
                 'archivo': contrato.contrato_pdf.url if contrato.contrato_pdf else None,
                 'proceso': proceso.status_proceso,
             }, status=201)
