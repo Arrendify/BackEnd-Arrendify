@@ -69,6 +69,8 @@ router.register(r'reservas_asador_fraterna', ReservaAsadorFraternaViewSet, basen
 router.register(r'arrendatarios_semillero', fraterna_views.Arrendatarios_semilleroViewSet, basename='arrendatarios_semillero')
 router.register(r'documentos_arrendatarios_semillero', fraterna_views.DocumentosArrendatario_semillero, basename='documentos_arrendatarios_semillero')
 router.register(r'contratos_semillero', fraterna_views.Contratos_semillero, basename='contratos_semillero')
+router.register(r'recibos_semillero', fraterna_views.DocumentosArrendamiento_Semillero, basename='recibos_semillero')
+router.register(r'incidencias_semillero', fraterna_views.IncidenciasSemilleroViewSet, basename='incidencias_semillero')
 
 #GarzaSada
 router.register(r'arrendatarios_garzasada', fraterna_views.Arrendatarios_GarzaSadaViewSet, basename='arrendatarios_garzasada')
