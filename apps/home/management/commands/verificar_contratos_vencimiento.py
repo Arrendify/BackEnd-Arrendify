@@ -6,12 +6,15 @@ y generar recordatorios automáticos por email y notificaciones internas
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Q
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
+from decouple import config
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 from apps.home.models import (
     Contratos, FraternaContratos, SemilleroContratos, 
@@ -34,13 +37,29 @@ class Command(BaseCommand):
             action='store_true',
             help='Fuerza el envío de recordatorios aunque ya existan',
         )
+        parser.add_argument(
+            '--notify-email',
+            type=str,
+            help='Email del administrador para recibir resumen de ejecución',
+        )
 
     def handle(self, *args, **options):
         self.dry_run = options['dry_run']
         self.force = options['force']
+        self.notify_email = options.get('notify_email') or 'desarrolloarrendify@gmail.com'
+        
+        # Inicializar contadores de estadísticas
+        self.stats = {
+            'notificaciones_creadas': 0,
+            'notificaciones_eliminadas': 0,
+            'emails_enviados': 0,
+            'contratos_procesados': 0,
+            'errores': 0,
+            'inicio': timezone.now(),
+        }
         
         self.stdout.write(
-            self.style.SUCCESS(f'Iniciando verificación de contratos - {timezone.now()}')
+            self.style.SUCCESS(f'Iniciando verificación de contratos - {self.stats["inicio"]}')
         )
         
         if self.dry_run:
@@ -54,9 +73,20 @@ class Command(BaseCommand):
         self.verificar_contratos_semillero()
         self.verificar_contratos_garzasada()
         
+        self.stats['fin'] = timezone.now()
+        self.stats['duracion'] = (self.stats['fin'] - self.stats['inicio']).total_seconds()
+        
         self.stdout.write(
             self.style.SUCCESS('Verificación completada exitosamente')
         )
+        
+        # Enviar email de resumen si está configurado
+        if self.notify_email and not self.dry_run:
+            self.enviar_resumen_ejecucion()
+        elif self.notify_email and self.dry_run:
+            self.stdout.write(
+                self.style.WARNING(f'[DRY-RUN] Se enviaría resumen a {self.notify_email}')
+            )
 
     def verificar_contratos_generales(self):
         """Verifica contratos generales próximos a vencer"""
@@ -73,6 +103,7 @@ class Command(BaseCommand):
         
         for contrato in contratos:
             try:
+                self.stats['contratos_procesados'] += 1
                 datos = contrato.datos_contratos
                 self.stdout.write(f'Procesando contrato {contrato.id} - Usuario: {contrato.user}')
                 if 'fecha_termino' in datos and datos['fecha_termino']:
@@ -88,6 +119,7 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write('No tiene fecha_vigencia en datos_contratos')
             except Exception as e:
+                self.stats['errores'] += 1
                 self.stdout.write(
                     self.style.ERROR(f'Error procesando contrato general {contrato.id}: {e}')
                 )
@@ -104,12 +136,14 @@ class Command(BaseCommand):
         
         for contrato in contratos:
             try:
+                self.stats['contratos_procesados'] += 1
                 self.stdout.write(f'Procesando contrato Fraterna {contrato.id} - Usuario: {contrato.user}')
                 self.stdout.write(f'Fecha vigencia encontrada: {contrato.fecha_vigencia}')
                 self.procesar_recordatorios_contrato(
                     contrato, contrato.fecha_vigencia, 'fraterna', contrato_fraterna=contrato
                 )
             except Exception as e:
+                self.stats['errores'] += 1
                 self.stdout.write(
                     self.style.ERROR(f'Error procesando contrato Fraterna {contrato.id}: {e}')
                 )
@@ -127,6 +161,7 @@ class Command(BaseCommand):
         
         for contrato in contratos:
             try:
+                self.stats['contratos_procesados'] += 1
                 self.stdout.write(f'Procesando contrato Semillero {contrato.id} - Usuario: {contrato.user}')
                 self.stdout.write(f'Fecha celebración: {contrato.fecha_celebracion}, Duración: {contrato.duracion}')
                 fecha_vigencia = self.calcular_fecha_vigencia(
@@ -140,6 +175,7 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write('No se pudo calcular fecha_vigencia')
             except Exception as e:
+                self.stats['errores'] += 1
                 self.stdout.write(
                     self.style.ERROR(f'Error procesando contrato Semillero {contrato.id}: {e}')
                 )
@@ -157,6 +193,7 @@ class Command(BaseCommand):
         
         for contrato in contratos:
             try:
+                self.stats['contratos_procesados'] += 1
                 self.stdout.write(f'Procesando contrato Garza Sada {contrato.id} - Usuario: {contrato.user}')
                 self.stdout.write(f'Fecha celebración: {contrato.fecha_celebracion}, Duración: {contrato.duracion}')
                 fecha_vigencia = self.calcular_fecha_vigencia(
@@ -170,6 +207,7 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write('No se pudo calcular fecha_vigencia')
             except Exception as e:
+                self.stats['errores'] += 1
                 self.stdout.write(
                     self.style.ERROR(f'Error procesando contrato Garza Sada {contrato.id}: {e}')
                 )
@@ -200,6 +238,7 @@ class Command(BaseCommand):
                 notificaciones_eliminadas = Notificacion.objects.filter(**filtros_vencido).delete()
                 
                 if notificaciones_eliminadas[0] > 0:
+                    self.stats['notificaciones_eliminadas'] += notificaciones_eliminadas[0]
                     self.stdout.write(
                         self.style.SUCCESS(
                             f'🗑️ Eliminadas {notificaciones_eliminadas[0]} notificación(es) de contrato vencido'
@@ -260,6 +299,7 @@ class Command(BaseCommand):
                 todas_notificaciones = Notificacion.objects.filter(**filtros_base).delete()
                 
                 if todas_notificaciones[0] > 0:
+                    self.stats['notificaciones_eliminadas'] += todas_notificaciones[0]
                     self.stdout.write(
                         self.style.SUCCESS(
                             f'🗑️ Eliminadas {todas_notificaciones[0]} notificación(es) prematuras (faltan >3 meses)'
@@ -288,6 +328,7 @@ class Command(BaseCommand):
                     ).delete()
                     
                     if notificaciones_eliminadas[0] > 0:
+                        self.stats['notificaciones_eliminadas'] += notificaciones_eliminadas[0]
                         self.stdout.write(
                             self.style.SUCCESS(
                                 f'🗑️ Eliminadas {notificaciones_eliminadas[0]} notificación(es) incorrectas: {tipo_incorrecto}'
@@ -305,9 +346,9 @@ class Command(BaseCommand):
     
     def crear_recordatorio(self, contrato, fecha_vigencia, tipo_recordatorio, 
                           tipo_contrato, descripcion, **kwargs):
-        """Crea un recordatorio si no existe ya"""
+        """Crea un recordatorio eliminando primero cualquier duplicado existente"""
         
-        # Verificar si ya existe el recordatorio
+        # Filtros para identificar la notificación específica
         filtros = {
             'tipo_notificacion': tipo_recordatorio,
             'tipo_contrato': tipo_contrato,
@@ -315,13 +356,22 @@ class Command(BaseCommand):
         }
         filtros.update(kwargs)
         
-        if not self.force and Notificacion.objects.filter(**filtros).exists():
+        # 🗑️ ELIMINAR cualquier notificación existente del mismo tipo para evitar duplicados
+        if not self.dry_run:
+            notificaciones_eliminadas = Notificacion.objects.filter(**filtros).delete()
+            if notificaciones_eliminadas[0] > 0:
+                self.stats['notificaciones_eliminadas'] += notificaciones_eliminadas[0]
+                self.stdout.write(
+                    self.style.WARNING(
+                        f'🗑️ Eliminada(s) {notificaciones_eliminadas[0]} notificación(es) existente(s) de {tipo_recordatorio} para evitar duplicados'
+                    )
+                )
+        elif Notificacion.objects.filter(**filtros).exists():
             self.stdout.write(
                 self.style.WARNING(
-                    f'Notificación {tipo_recordatorio} para contrato {contrato.id} ya existe - Omitiendo'
+                    f'[DRY-RUN] Se eliminaría notificación existente de {tipo_recordatorio} antes de crear nueva'
                 )
             )
-            return  # Ya existe el recordatorio
         
         # Obtener información del contrato
         info_contrato = self.obtener_info_contrato(contrato, tipo_contrato)
@@ -349,6 +399,7 @@ class Command(BaseCommand):
                 fecha_programada=date.today(),
                 **kwargs
             )
+            self.stats['notificaciones_creadas'] += 1
             
             # Enviar email solo si hay usuario asociado
             if usuario:
@@ -518,18 +569,32 @@ class Command(BaseCommand):
         return f"""Estimado usuario,<br><br>Le recordamos que su contrato de arrendamiento vencerá en <strong>{descripcion}</strong>.<br><br><strong>Detalles del contrato:</strong><br>• Inmueble: {info_contrato.get('inmueble', 'N/A')}<br>• Arrendatario: {info_contrato.get('arrendatario', 'N/A')}<br>• Fecha de vencimiento: <span style="color: #dc3545; font-weight: bold;">{fecha_vigencia.strftime('%d/%m/%Y')}</span><br><br>Le recomendamos contactar al arrendatario para coordinar la renovación del contrato o los procedimientos de desalojo si es necesario.<br><br>Saludos cordiales,<br><strong>Sistema Arrendify</strong>"""
 
     def enviar_email_recordatorio(self, usuario, titulo, mensaje, info_contrato):
-        """Envía email de recordatorio"""
+        """Envía email de recordatorio usando smtplib"""
         try:
             if not self.dry_run and usuario.email:
                 self.stdout.write(f'Intentando enviar email a {usuario.email}')
-                send_mail(
-                    subject=titulo,
-                    message=mensaje,
-                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@arrendify.com'),
-                    recipient_list=[usuario.email],
-                    fail_silently=False,
-                )
                 
+                # Configuración SMTP desde .env
+                smtp_server = 'mail.arrendify.com'
+                smtp_port = 587
+                smtp_username = config('mine_smtp_u')
+                smtp_password = config('mine_smtp_pw')
+                remitente = 'notificaciones@arrendify.com'
+                
+                # Crear mensaje
+                msg = MIMEMultipart()
+                msg['From'] = remitente
+                msg['To'] = usuario.email
+                msg['Subject'] = titulo
+                msg.attach(MIMEText(mensaje, 'plain'))
+                
+                # Enviar email
+                with smtplib.SMTP(smtp_server, smtp_port) as server:
+                    server.starttls()
+                    server.login(smtp_username, smtp_password)
+                    server.sendmail(remitente, usuario.email, msg.as_string())
+                
+                self.stats['emails_enviados'] += 1
                 self.stdout.write(
                     self.style.SUCCESS(f'Email enviado exitosamente a {usuario.email}')
                 )
@@ -547,6 +612,71 @@ class Command(BaseCommand):
             )
             self.stdout.write(
                 self.style.WARNING('Continuando con la creación de notificaciones...')
+            )
+
+    def enviar_resumen_ejecucion(self):
+        """Envía email con resumen de la ejecución del comando usando smtplib"""
+        try:
+            duracion_minutos = round(self.stats['duracion'] / 60, 2)
+            
+            asunto = f"✅ Verificación de Contratos Completada - {self.stats['inicio'].strftime('%d/%m/%Y %H:%M')}"
+            
+            mensaje = f"""
+╔══════════════════════════════════════════════════════════════╗
+║     RESUMEN DE VERIFICACIÓN DE CONTRATOS PRÓXIMOS A VENCER   ║
+╚══════════════════════════════════════════════════════════════╝
+
+📅 Fecha de ejecución: {self.stats['inicio'].strftime('%d/%m/%Y %H:%M:%S')}
+⏱️  Duración: {duracion_minutos} minutos ({self.stats['duracion']} segundos)
+
+📊 ESTADÍSTICAS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  📝 Contratos procesados:        {self.stats['contratos_procesados']}
+  ✅ Notificaciones creadas:      {self.stats['notificaciones_creadas']}
+  🗑️  Notificaciones eliminadas:   {self.stats['notificaciones_eliminadas']}
+  📧 Emails enviados:              {self.stats['emails_enviados']}
+  ❌ Errores encontrados:          {self.stats['errores']}
+
+{'⚠️  MODO DRY-RUN ACTIVADO - No se realizaron cambios reales' if self.dry_run else '✅ Ejecución completada exitosamente'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔔 Este es un mensaje automático del sistema de gestión de contratos.
+   Servidor: {config('SERVER', default='EC2 Production')}
+   
+Para más detalles, revisa los logs del servidor.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sistema Arrendify - Gestión de Contratos
+"""
+            
+            # Configuración SMTP desde .env
+            smtp_server = 'mail.arrendify.com'
+            smtp_port = 587
+            smtp_username = config('mine_smtp_u')
+            smtp_password = config('mine_smtp_pw')
+            remitente = 'notificaciones@arrendify.com'
+            
+            # Crear mensaje
+            msg = MIMEMultipart()
+            msg['From'] = remitente
+            msg['To'] = self.notify_email
+            msg['Subject'] = asunto
+            msg.attach(MIMEText(mensaje, 'plain'))
+            
+            # Enviar email
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_username, smtp_password)
+                server.sendmail(remitente, self.notify_email, msg.as_string())
+            
+            self.stdout.write(
+                self.style.SUCCESS(f'📧 Resumen de ejecución enviado a {self.notify_email}')
+            )
+            
+        except Exception as e:
+            self.stdout.write(
+                self.style.ERROR(f'❌ Error enviando resumen de ejecución: {e}')
             )
 
     def parse_fecha(self, fecha_str):

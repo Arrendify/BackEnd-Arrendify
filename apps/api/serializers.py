@@ -320,6 +320,28 @@ class ContratoSemilleroSerializer(serializers.ModelSerializer): #Semillero Contr
     class Meta:
         model = SemilleroContratos
         fields = '__all__' 
+
+
+class SemilleroArrendamientosSerializer(serializers.ModelSerializer): #Documentos Arrendamientos Semillero
+    # Campos de solo lectura para mostrar información relacionada
+    user_info = User2Serializer(read_only=True, source='user')
+    arrendatario_contrato = Arrentarios_semilleroSerializers(read_only=True, source='arrendatario')
+    proceso_info = ProcesoSemilleroSerializers(read_only=True, source='proceso')
+    contrato_info = ContratoSemilleroSerializer(read_only=True, source='contrato')
+    
+    class Meta:
+        model = DocumentosArrendamientos_semillero
+        fields = '__all__'
+
+
+class IncidenciasSemilleroSerializer(serializers.ModelSerializer): #Incidencias Semillero
+    user_info = User2Serializer(read_only=True, source='user')
+    arrendatario_contrato = Arrentarios_semilleroSerializers(read_only=True, source='arrendatario')
+    contrato_info = ContratoSemilleroSerializer(read_only=True, source='contrato')
+    
+    class Meta:
+        model = IncidenciasSemillero
+        fields = '__all__'
         
  
 ########################## S E M I L L E R O  P U R I S I M A ######################################       

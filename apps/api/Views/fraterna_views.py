@@ -3710,7 +3710,391 @@ class InvestigacionSemillero(viewsets.ModelViewSet):
         
 
 ########################## S E M I L L E R O  P U R I S I M A ######################################
+
+class DocumentosArrendamiento_Semillero(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    queryset = DocumentosArrendamientos_semillero.objects.all()
+    serializer_class = SemilleroArrendamientosSerializer
+    
+    def list(self, request, *args, **kwargs):
+        try:
+            print("Listando Documentos Arrendamiento Semillero....📄")
+            queryset = self.filter_queryset(self.get_queryset())
+            ResidenteSerializers = self.get_serializer(queryset, many=True)
+            return Response(ResidenteSerializers.data ,status=status.HTTP_200_OK)
         
+        except Exception as e:
+            print(f"el error esta en list documentos arrendamientos semillero es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def create(self, request, *args, **kwargs):
+        try: 
+            print("Creando Documentos Arrendamiento Semillero....📄")
+            user_session = request.user
+            data = request.data
+            print("Data ===>", data)
+            print("FILES ===>", request.FILES)
+            
+            contrato_id = data.get('contrato_id', None)
+            sin_recibo = data.get('sin_recibo', 'false').lower() == 'true'
+            numero_pago_manual = data.get('numero_pago', None)
+            
+            print(f"Contrato ID: {contrato_id}, Sin Recibo: {sin_recibo}, Número Pago Manual: {numero_pago_manual}")
+            
+            if contrato_id:
+                print(f"Flujo Semillero - Buscando contrato ID: {contrato_id}")
+                try:
+                    contrato = SemilleroContratos.objects.get(id=contrato_id)
+                    arrendatario = contrato.arrendatario
+                except SemilleroContratos.DoesNotExist:
+                    return Response({'error': f'Contrato ID {contrato_id} no encontrado'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                nombre_usuario = user_session.first_name.strip()
+                print(f"Nombre completo del usuario: {nombre_usuario}")
+                
+                arrendatario = None
+                arrendatario = Arrendatarios_semillero.objects.filter(
+                    Q(nombre_arrendatario__icontains=nombre_usuario) |
+                    Q(arr_nombre_empresa__icontains=nombre_usuario)
+                ).first()
+                
+                if not arrendatario:
+                    primer_nombre = nombre_usuario.split()[0] if nombre_usuario else ""
+                    print(f"Buscando por primer nombre: {primer_nombre}")
+                    arrendatario = Arrendatarios_semillero.objects.filter(
+                        Q(nombre_arrendatario__icontains=primer_nombre) |
+                        Q(arr_nombre_empresa__icontains=primer_nombre)
+                    ).first()
+                
+                if not arrendatario:
+                    palabras = nombre_usuario.split()
+                    for palabra in palabras:
+                        if len(palabra) > 2:
+                            print(f"Buscando por palabra: {palabra}")
+                            arrendatario = Arrendatarios_semillero.objects.filter(
+                                Q(nombre_arrendatario__icontains=palabra) |
+                                Q(arr_nombre_empresa__icontains=palabra)
+                            ).first()
+                            if arrendatario:
+                                break
+                
+                if not arrendatario:
+                    print("Buscando arrendatario asociado directamente al usuario")
+                    arrendatario = Arrendatarios_semillero.objects.filter(user=user_session).first()
+                
+                if not arrendatario:
+                    return Response({
+                        'error': f'No se encontró arrendatario para el usuario: {nombre_usuario}',
+                        'debug_info': f'User ID: {user_session.id}, Username: {user_session.username}'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                try:
+                    contrato = SemilleroContratos.objects.get(arrendatario=arrendatario)
+                except SemilleroContratos.DoesNotExist:
+                    return Response({'error': f'Contrato no encontrado para el arrendatario ID: {arrendatario.id}'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                proceso = ProcesoContrato_semillero.objects.get(contrato=contrato)
+                print(f"Proceso encontrado: {proceso.id}")
+            except ProcesoContrato_semillero.DoesNotExist:
+                return Response({'error': f'Proceso no encontrado para el contrato ID: {contrato.id}'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            duracion_meses = self.extraer_duracion_meses(contrato.duracion)
+            print(f"Duración extraída: {duracion_meses} meses")
+            
+            if numero_pago_manual:
+                numero_pago_actual = int(numero_pago_manual)
+                pago_existente = DocumentosArrendamientos_semillero.objects.filter(
+                    contrato=contrato,
+                    proceso=proceso,
+                    numero_pago=numero_pago_actual
+                ).first()
+                if pago_existente:
+                    return Response({
+                        'error': f'Ya existe un pago registrado con el número {numero_pago_actual} para este contrato',
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                pagos_existentes = DocumentosArrendamientos_semillero.objects.filter(contrato=contrato).count()
+                numero_pago_actual = pagos_existentes + 1
+            
+            renta_total = Decimal(str(contrato.renta)) * duracion_meses if contrato.renta else Decimal('0')
+            interes_aplicado = Decimal('0')
+            fecha_vencimiento = datetime.now().date() + timedelta(days=30)
+            
+            if not sin_recibo:
+                if numero_pago_actual > 1:
+                    ultimo_pago = DocumentosArrendamientos_semillero.objects.filter(
+                        contrato=contrato
+                    ).order_by('-dateTimeOfUpload').first()
+                    
+                    if ultimo_pago and ultimo_pago.fecha_vencimiento:
+                        dias_retraso = (datetime.now().date() - ultimo_pago.fecha_vencimiento).days
+                        if dias_retraso > 0:
+                            interes_mensual = Decimal('0.01')
+                            meses_retraso = Decimal(str(dias_retraso)) / Decimal('30')
+                            interes_aplicado = Decimal(str(contrato.renta)) * interes_mensual * meses_retraso
+            
+            comp_pago_file = request.FILES.get('comp_pago', None)
+            if not sin_recibo and not comp_pago_file:
+                return Response({'error': 'Se requiere archivo de recibo para registrar el pago'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            referencia_pago = data.get('referencia_pago', '')
+            documento_data = {
+                "user": user_session.id,
+                "arrendatario": arrendatario.id,
+                "contrato": contrato.id,
+                "proceso": proceso.id,
+                "comp_pago": comp_pago_file,
+                "referencia_pago": referencia_pago,
+                "numero_pago": numero_pago_actual,
+                "total_pagos": duracion_meses,
+                "renta_total": renta_total,
+                "interes_aplicado": interes_aplicado,
+                "fecha_vencimiento": fecha_vencimiento,
+            }
+            
+            arrendamientos_serializer = self.get_serializer(data=documento_data)
+            arrendamientos_serializer.is_valid(raise_exception=True)
+            arrendamientos_serializer.save()
+            
+            print("Documento Semillero ligado correctamente....✅")
+            return Response(arrendamientos_serializer.data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def extraer_duracion_meses(self, duracion_texto):
+        if not duracion_texto:
+            return 1
+        
+        texto = str(duracion_texto).lower().strip()
+        numeros = re.findall(r'\d+', texto)
+        if numeros:
+            duracion = int(numeros[0])
+            return duracion
+        
+        palabras_meses = {
+            'uno': 1, 'dos': 2, 'tres': 3, 'cuatro': 4, 'cinco': 5, 'seis': 6,
+            'siete': 7, 'ocho': 8, 'nueve': 9, 'diez': 10, 'once': 11, 'doce': 12,
+            'dieciocho': 18, 'veinticuatro': 24, 'treinta': 30, 'treinta y seis': 36
+        }
+        for palabra, valor in palabras_meses.items():
+            if palabra in texto:
+                return valor
+        return 1
+        
+    def destroy(self, request, pk=None, *args, **kwargs):
+        try:
+            print("Eliminando Documentos Arrendamiento Semillero....🗑️")
+            documentos_arrendamiento = self.get_object()
+            documento_arrendamiento_serializer = self.serializer_class(documentos_arrendamiento)
+
+            if documentos_arrendamiento:
+                comp_pago = documento_arrendamiento_serializer.data['comp_pago']
+                print("Eliminando Comprobante de Pago....", comp_pago)
+                
+                documentos_arrendamiento.delete()
+                print("Documentos Arrendamiento Semillero eliminados correctamente....✅")
+                return Response({'message': 'Archivo eliminado correctamente'}, status=204) 
+            else:
+                return Response({'message': 'Error al eliminar archivo'}, status=400)
+        except Exception as e:  
+            print(f"el error es en documentos arrendamiento destroy semillero es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='reporte_completo')
+    def reporte_completo(self, request):
+        """Genera reporte PDF completo de arrendamientos Semillero"""
+        try:
+
+            print("Generando reporte completo de arrendamientos Semillero....📊")
+            es_admin = request.user.is_staff or request.user.is_superuser or request.user.username in ['GarzaSada', 'Fraterna', 'SemilleroPurisima']
+            arrendatario_id = request.query_params.get('arrendatario_id', None)
+            queryset = DocumentosArrendamientos_semillero.objects.select_related('arrendatario', 'contrato', 'proceso')
+
+            if es_admin:
+                if arrendatario_id:
+                    queryset = queryset.filter(arrendatario_id=arrendatario_id)
+            else:
+                nombre_usuario = request.user.first_name.strip()
+                arrendatario = Arrendatarios_semillero.objects.filter(
+                    Q(nombre_arrendatario__icontains=nombre_usuario) | Q(arr_nombre_empresa__icontains=nombre_usuario) | Q(user=request.user)
+                ).first()
+                if not arrendatario:
+                    return Response({'error': 'No se encontró información de arrendamiento para este usuario'}, status=status.HTTP_404_NOT_FOUND)
+                queryset = queryset.filter(arrendatario=arrendatario)
+
+            recibos = queryset.order_by('arrendatario_id', 'numero_pago')
+            arrendatarios_data = defaultdict(lambda: {'arrendatario': {}, 'contrato': {}, 'recibos': [], 'estadisticas': {'total_pagos': 0, 'pagos_realizados': 0, 'pagos_pendientes': 0, 'renta_mensual': 0, 'renta_total': 0, 'total_pagado': 0, 'total_pendiente': 0, 'interes_total': 0, 'porcentaje_completado': 0}})
+
+            for recibo in recibos:
+                if not recibo.arrendatario:
+                    continue
+                arr_id = recibo.arrendatario.id
+                if not arrendatarios_data[arr_id]['arrendatario']:
+                    nombre = recibo.arrendatario.nombre_arrendatario or getattr(recibo.arrendatario, 'arr_nombre_empresa', None) or 'Sin nombre'
+                    arrendatarios_data[arr_id]['arrendatario'] = {'nombre': nombre, 'email': getattr(recibo.arrendatario, 'correo', None) or 'No especificado', 'telefono': getattr(recibo.arrendatario, 'celular', None) or 'No especificado', 'tipo': 'Persona Física' if recibo.arrendatario.nombre_arrendatario else 'Persona Moral'}
+                if recibo.contrato and not arrendatarios_data[arr_id]['contrato']:
+                    contrato = recibo.contrato
+                    arrendatarios_data[arr_id]['contrato'] = {'no_depa': getattr(contrato, 'no_depa', None) or 'N/A', 'duracion': getattr(contrato, 'duracion', None) or 'No especificada', 'fecha_celebracion': getattr(contrato, 'fecha_celebracion', None).strftime('%d/%m/%Y') if getattr(contrato, 'fecha_celebracion', None) else 'N/A', 'fecha_vigencia': getattr(contrato, 'fecha_terminacion', None).strftime('%d/%m/%Y') if getattr(contrato, 'fecha_terminacion', None) else 'N/A', 'renta': float(getattr(contrato, 'renta', None)) if getattr(contrato, 'renta', None) else 0}
+                estado = 'Sin fecha'
+                if getattr(recibo, 'fecha_vencimiento', None):
+                    dias_restantes = (recibo.fecha_vencimiento - date.today()).days
+                    estado = 'Vencido' if dias_restantes < 0 else ('Próximo a vencer' if dias_restantes <= 7 else 'Al día')
+                renta_mensual = float(recibo.contrato.renta) if recibo.contrato and getattr(recibo.contrato, 'renta', None) else 0
+                interes_aplicado = float(recibo.interes_aplicado) if getattr(recibo, 'interes_aplicado', None) else 0
+                arrendatarios_data[arr_id]['recibos'].append({'numero_pago': recibo.numero_pago or 0, 'fecha_subida': recibo.dateTimeOfUpload.strftime('%d/%m/%Y %H:%M') if getattr(recibo, 'dateTimeOfUpload', None) else 'N/A', 'fecha_vencimiento': recibo.fecha_vencimiento.strftime('%d/%m/%Y') if getattr(recibo, 'fecha_vencimiento', None) else 'N/A', 'interes': interes_aplicado, 'estado': estado})
+                stats = arrendatarios_data[arr_id]['estadisticas']
+                stats['total_pagos'] = recibo.total_pagos or 0
+                stats['pagos_realizados'] = len(arrendatarios_data[arr_id]['recibos'])
+                stats['pagos_pendientes'] = stats['total_pagos'] - stats['pagos_realizados']
+                stats['renta_total'] = float(recibo.renta_total) if getattr(recibo, 'renta_total', None) else 0
+                stats['interes_total'] += interes_aplicado
+                if recibo.contrato and getattr(recibo.contrato, 'renta', None):
+                    stats['renta_mensual'] = float(recibo.contrato.renta)
+                    stats['total_pagado'] = stats['renta_mensual'] * stats['pagos_realizados']
+                    stats['total_pendiente'] = stats['renta_mensual'] * stats['pagos_pendientes']
+                if stats['total_pagos'] > 0:
+                    stats['porcentaje_completado'] = round((stats['pagos_realizados'] / stats['total_pagos']) * 100, 1)
+
+            context = {'arrendatarios': list(arrendatarios_data.values()), 'totales': {'total_arrendatarios': len(arrendatarios_data), 'total_recibos': recibos.count(), 'ingresos_totales': sum(a['estadisticas']['total_pagado'] for a in arrendatarios_data.values()), 'pendientes_totales': sum(a['estadisticas']['total_pendiente'] for a in arrendatarios_data.values()), 'intereses_totales': sum(a['estadisticas']['interes_total'] for a in arrendatarios_data.values()), 'contratos_por_vencer': 0, 'pagos_atrasados': 0}, 'fecha_generacion': datetime.now().strftime('%d/%m/%Y %H:%M'), 'usuario_generador': request.user.first_name or request.user.username}
+            template_name = 'home/reporte_arrendamientos_garzasada_admin.html' if es_admin else 'home/reporte_arrendamientos_garzasada_v2.html'
+            html_string = render_to_string(template_name, context)
+            pdf = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="reporte_arrendamientos_semillero{"_admin" if es_admin else ""}_{date.today().strftime("%Y%m%d")}.pdf"'
+            print("Reporte Semillero generado exitosamente....✅")
+            return response
+        except Exception as e:
+            print(f"Error al generar reporte Semillero: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en reporte Semillero: {e}")
+            return Response({'error': f'Error al generar el reporte: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], url_path='lista_arrendatarios')
+    def lista_arrendatarios(self, request):
+        """Lista de arrendatarios Semillero con contratos (solo admin)"""
+        try:
+            es_admin = request.user.is_staff or request.user.is_superuser or request.user.username in ['GarzaSada', 'Fraterna', 'SemilleroPurisima']
+            if not es_admin:
+                return Response({'error': 'Sin permisos'}, status=status.HTTP_403_FORBIDDEN)
+            arrendatario_ids = SemilleroContratos.objects.values_list('arrendatario_id', flat=True).distinct()
+            arrendatarios = Arrendatarios_semillero.objects.filter(id__in=arrendatario_ids).values('id', 'nombre_arrendatario', 'arr_nombre_empresa')
+            lista = [{'id': arr['id'], 'nombre': arr.get('nombre_arrendatario') or arr.get('arr_nombre_empresa')} for arr in arrendatarios if arr.get('nombre_arrendatario') or arr.get('arr_nombre_empresa')]
+            return Response(lista, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Error lista Semillero: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class IncidenciasSemilleroViewSet(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    queryset = IncidenciasSemillero.objects.all()
+    serializer_class = IncidenciasSemilleroSerializer
+    
+    def list(self, request, *args, **kwargs):
+        try:
+            print("Listando Incidencias Semillero....📄")
+            queryset = self.filter_queryset(self.get_queryset())
+            IncidenciasSerializers = self.get_serializer(queryset, many=True)
+            return Response(IncidenciasSerializers.data ,status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(f"el error esta en list incidencias semillero es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+        
+    def create(self, request, *args, **kwargs):
+        try: 
+            print("Creando Solicitud de Incidencia Semillero....📄")
+            user_session = request.user
+            data = request.data
+            print("Data ===>", data)
+            
+            usuarios_autorizados = ['GarzaSada', 'Fraterna', 'SemilleroPurisima']
+            es_usuario_autorizado = (
+                user_session.is_staff or 
+                user_session.is_superuser or 
+                user_session.username in usuarios_autorizados or
+                getattr(user_session, 'pertenece_a', None) in usuarios_autorizados
+            )
+            
+            if es_usuario_autorizado:
+                arrendatario_id = data.get('arrendatario', None)
+                contrato_id = data.get('contrato', None)
+                incidencia_data = {
+                    "user": user_session.id,
+                    "arrendatario": arrendatario_id,
+                    "contrato": contrato_id,
+                    "incidencia": data.get('incidencia', ''),
+                    "tipo_incidencia": data.get('tipo_incidencia', ''),
+                    "prioridad": data.get('prioridad', 'Media'),
+                    "status": "Pendiente de Revisión",
+                }
+            else:
+                nombre_usuario = user_session.first_name.strip()
+                print(f"Nombre completo del usuario: {nombre_usuario}")
+                
+                arrendatario = Arrendatarios_semillero.objects.filter(
+                    Q(nombre_arrendatario__icontains=nombre_usuario) |
+                    Q(arr_nombre_empresa__icontains=nombre_usuario)
+                ).first()
+                
+                if not arrendatario:
+                    primer_nombre = nombre_usuario.split()[0] if nombre_usuario else ""
+                    arrendatario = Arrendatarios_semillero.objects.filter(
+                        Q(nombre_arrendatario__icontains=primer_nombre) |
+                        Q(arr_nombre_empresa__icontains=primer_nombre)
+                    ).first()
+                
+                if not arrendatario:
+                    arrendatario = Arrendatarios_semillero.objects.filter(user=user_session).first()
+                
+                if not arrendatario:
+                    return Response({
+                        'error': f'No se encontró arrendatario para el usuario: {nombre_usuario}',
+                        'debug_info': f'User ID: {user_session.id}, Username: {user_session.username}'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                try:
+                    contrato = SemilleroContratos.objects.get(arrendatario=arrendatario)
+                except SemilleroContratos.DoesNotExist:
+                    return Response({'error': f'Contrato no encontrado para el arrendatario ID: {arrendatario.id}'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                incidencia_data = {
+                    "user": user_session.id,
+                    "arrendatario": arrendatario.id,
+                    "contrato": contrato.id,
+                    "incidencia": data.get('incidencia', ''),
+                    "status": "Pendiente de Revisión",
+                }
+            
+            incidencias_serializer = self.get_serializer(data=incidencia_data)
+            incidencias_serializer.is_valid(raise_exception=True)
+            incidencias_serializer.save()
+            
+            print("Incidencia Semillero creada exitosamente....✅")
+            return Response(incidencias_serializer.data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+
+
 ########################## G A R Z A  S A D A ######################################
 class Arrendatarios_GarzaSadaViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
