@@ -128,6 +128,7 @@ def send_noti_comentario(self, request, *args, **kwargs):
 
 class ArrendadorViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'slug'
     queryset = Propietario.objects.all()
     serializer_class = ArrendadorSerializer
