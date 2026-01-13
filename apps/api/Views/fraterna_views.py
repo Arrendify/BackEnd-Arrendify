@@ -7008,34 +7008,34 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             pdf_file = HTML(string=html_string).write_pdf()
 
             # #aqui hacia abajo es para enviar por email
-            archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
+            # archivo = ContentFile(pdf_file, name='aprobado.pdf') # lo guarda como content raw para enviar el correo
         
-            print("DATOS ARCHIVO ====>",context)
-            correo = self.enviar_archivo_garza_sada(archivo, context["info"], context["status"])
-            print("CORREO ====>",correo)
-            if correo.status_code == 200:
-                 # Aprobar o desaprobar
-                if status == "Aprobado_pe" or status == "Aprobado":  
-                     info.status = "Aprobado"
-                     info.save()
-                else:
-                     info.status = "Rechazado"
-                     info.save()
+            # print("DATOS ARCHIVO ====>",context)
+            # correo = self.enviar_archivo_garza_sada(archivo, context["info"], context["status"])
+            # print("CORREO ====>",correo)
+            # if correo.status_code == 200:
+            #      # Aprobar o desaprobar
+            #     if status == "Aprobado_pe" or status == "Aprobado":  
+            #          info.status = "Aprobado"
+            #          info.save()
+            #     else:
+            #          info.status = "Rechazado"
+            #          info.save()
                 
-                print("Correo ENVIADO")
+            #     print("Correo ENVIADO")
             
-            else:
-                print("Correo NO ENVIADO")
-                Response({"Error":"no se envio el correo"},status = 409)
+            # else:
+            #     print("Correo NO ENVIADO")
+            #     Response({"Error":"no se envio el correo"},status = 409)
             
-            return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
+            # return Response({'mensaje': "Todo salio bien, pdf enviado"}, status = 200)
            
             #de aqui hacia abajo Devuelve el PDF como respuesta
-            # response = HttpResponse(content_type='application/pdf')
-            # response['Content-Disposition'] = 'inline; filename="Pagare.pdf"'
-            # response.write(pdf_file)
-            # print("Finalizamos el proceso de aprobado") 
-            # return response
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="Pagare.pdf"'
+            response.write(pdf_file)
+            print("Finalizamos el proceso de aprobado") 
+            return response
         
         except Exception as e:
             print(f"el error es: {e}")
