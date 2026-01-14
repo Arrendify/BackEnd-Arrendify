@@ -118,7 +118,7 @@ class Inquilino(models.Model):
     # Referencia del Arrendatario Anterior
     rentado_antes=models.CharField(max_length=2, null=True, blank=True)
     nombre_aa=models.CharField(max_length=100, null=True, blank=True)
-    monto_renta_aa=models.BigIntegerField(null=True, blank=True)
+    monto_renta_aa=models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     telefono_aa=models.BigIntegerField(null=True, blank=True)
     motivo_cambio=models.CharField(max_length=100, null=True, blank=True)
     renta_compartida = models.CharField(max_length=2, null=True, blank=True)
@@ -252,7 +252,7 @@ class Arrendatario(models.Model):
     # Referencia del Arrendatario Anterior
     rentado_antes=models.CharField(max_length=2, null=True, blank=True)
     nombre_aa=models.CharField(max_length=100, null=True, blank=True)
-    monto_renta_aa=models.BigIntegerField(null=True, blank=True)
+    monto_renta_aa=models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     telefono_aa=models.BigIntegerField(null=True, blank=True)
     motivo_cambio=models.CharField(max_length=100, null=True, blank=True)
     renta_compartida = models.CharField(max_length=2, null=True, blank=True)
