@@ -76,7 +76,8 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         """Lista todas las notificaciones de la tabla completa"""
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        
+        """Por el momento de manda ninguna data por aqui"""
+        return Response({"Notificaciones": "Sin notificaciones"})
         return Response({
             'count': queryset.count(),
             'results': serializer.data
