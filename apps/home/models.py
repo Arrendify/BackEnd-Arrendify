@@ -2095,6 +2095,12 @@ class FraternaContratos(models.Model):
     medidas=models.CharField(max_length = 100, null = True, blank = True)
     renta=models.CharField(max_length = 100, null = True, blank = True)
     estacionamiento=models.CharField(max_length = 100, null = True, blank = True)
+    precio_estacionamiento_mxn = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    kilowatts_incluidos = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
     #mascotas=models.CharField(max_length = 100, null = True, blank = True)
     #cajones=models.CharField(max_length = 100, null = True, blank = True)
     

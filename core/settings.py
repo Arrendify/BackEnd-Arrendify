@@ -119,6 +119,8 @@ CORS_ORIGIN_WHITELIST = (
     'http://192.168.3.2:8000',
     'http://192.168.1.190:8000',
     'http://localhost',
+    #Nuevo
+    'http://127.0.0.1:8000',
 )
 # CORS_ORIGIN_ALLOW_ALL = True
 # CORS_ALLOW_METHODS = (

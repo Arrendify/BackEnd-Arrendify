@@ -35,6 +35,7 @@ import locale
 from django.utils import timezone
 from ..home.models import FraternaContratos
 from ..api.variables import renovacion_fraterna
+from ..api.Views.fraterna_views import _contraprestacion_fraterna_context
 #Correo
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -558,7 +559,16 @@ def contrato_fraterna_pdf(request):
    
     
  
-    context = {'info': info, 'habitantes_texto':habitantes_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc}
+    context = {
+        **{
+            'info': info,
+            'habitantes_texto': habitantes_texto,
+            'renta_texto': renta_texto,
+            'plano': plano,
+            'plan_loc': plan_loc,
+        },
+        **_contraprestacion_fraterna_context(info),
+    }
     template = 'home/contrato_fraterna.html'
     html_string = render_to_string(template,context)
 
