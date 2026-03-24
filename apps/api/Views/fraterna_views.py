@@ -37,6 +37,27 @@ import logging
 import sys
 logger = logging.getLogger(__name__)
 
+
+def _contraprestacion_fraterna_context(info):
+    """Cuota de estacionamiento en letra y renta integral (contraprestación + cajón)."""
+    renta_num = int(float(info.renta))
+    pe = info.precio_estacionamiento_mxn
+    if pe is not None:
+        precio_int = int(pe)
+        precio_texto = num2words(precio_int, lang='es').capitalize()
+    else:
+        precio_int = None
+        precio_texto = None
+    renta_integral_val = renta_num + (precio_int if precio_int is not None else 0)
+    renta_integral_texto = num2words(renta_integral_val, lang='es').capitalize()
+    return {
+        'precio_estacionamiento_entero': precio_int,
+        'precio_estacionamiento_texto': precio_texto,
+        'renta_integral': renta_integral_val,
+        'renta_integral_texto': renta_integral_texto,
+    }
+
+
 #variables para el correo
 from ..variables import *
 
@@ -882,7 +903,17 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             #obtener la url de el plano que sube fraterna
             plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
            
-            context = {'info': info, 'habitantes_texto':habitantes_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc, 'tabla_inventario':tabla_inventario}
+            context = {
+                **{
+                    'info': info,
+                    'habitantes_texto': habitantes_texto,
+                    'renta_texto': renta_texto,
+                    'plano': plano,
+                    'plan_loc': plan_loc,
+                    'tabla_inventario': tabla_inventario,
+                },
+                **_contraprestacion_fraterna_context(info),
+            }
             template = 'home/contrato_fraterna.html'
             html_string = render_to_string(template,context)
 
@@ -1554,12 +1585,15 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
             
             context = {
-                'info': info, 
-                'habitantes_texto': habitantes_texto, 
-                'renta_texto': renta_texto, 
-                'plano': plano, 
-                'plan_loc': plan_loc, 
-                'tabla_inventario': tabla_inventario
+                **{
+                    'info': info,
+                    'habitantes_texto': habitantes_texto,
+                    'renta_texto': renta_texto,
+                    'plano': plano,
+                    'plan_loc': plan_loc,
+                    'tabla_inventario': tabla_inventario,
+                },
+                **_contraprestacion_fraterna_context(info),
             }
             
             template = 'home/contrato_fraterna.html'
