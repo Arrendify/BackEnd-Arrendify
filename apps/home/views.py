@@ -23,6 +23,7 @@ from django.views.generic import View
 #weasyprint
 from weasyprint import HTML, CSS
 from django.template.loader import render_to_string
+from django.conf import settings
 from django.template.loader import get_template
 #Aprobado Legal
 from num2words import num2words
@@ -569,7 +570,7 @@ def contrato_fraterna_pdf(request):
         },
         **_contraprestacion_fraterna_context(info),
     }
-    template = 'home/contrato_fraterna.html'
+    template = 'home/contrato_fraterna_v2.html' if settings.USE_NEW_FRATERNA_CONTRACT else 'home/contrato_fraterna.html'
     html_string = render_to_string(template,context)
 
     # Genera el PDF utilizando weasyprint

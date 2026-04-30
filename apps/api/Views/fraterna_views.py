@@ -19,6 +19,7 @@ from botocore.exceptions import NoCredentialsError
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from core.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN_ZAPSIGN, API_URL_ZAPSIGN
+from django.conf import settings
 #weasyprint
 from weasyprint import HTML, CSS
 from django.template.loader import render_to_string
@@ -914,7 +915,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 },
                 **_contraprestacion_fraterna_context(info),
             }
-            template = 'home/contrato_fraterna.html'
+            template = 'home/contrato_fraterna_v2.html' if settings.USE_NEW_FRATERNA_CONTRACT else 'home/contrato_fraterna.html'
             html_string = render_to_string(template,context)
 
             # Genera el PDF utilizando weasyprint
@@ -1596,7 +1597,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 **_contraprestacion_fraterna_context(info),
             }
             
-            template = 'home/contrato_fraterna.html'
+            template = 'home/contrato_fraterna_v2.html' if settings.USE_NEW_FRATERNA_CONTRACT else 'home/contrato_fraterna.html'
             html_string = render_to_string(template, context)
             pdf_file = HTML(string=html_string).write_pdf()
             

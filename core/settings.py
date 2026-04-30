@@ -133,6 +133,12 @@ CORS_ORIGIN_WHITELIST = (
 #     'OPTIONS'
 # )
 
+# Feature flag: usar la nueva version del contrato Fraterna (revision Legal 2026-04-30).
+# Hardcodeado en True para activar v2 en prod. Para rollback, cambiar a False y redeployar:
+# los archivos del v1 (apps/templates/home/contrato_fraterna.html y partials/contrato_fraterna_clausulas_cuerpo.html)
+# se conservan en el repo intactos como fallback.
+USE_NEW_FRATERNA_CONTRACT = True
+
 #STRIPE
 STRIPE_SECRET_KEY = config("stripe_secreta", "tu_clave_secreta")
 STRIPE_PUBLIC_KEY = config("stripe_publica", "tu_clave_publica")

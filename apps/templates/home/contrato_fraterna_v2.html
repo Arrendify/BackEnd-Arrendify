@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html>
+<head>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous"> 
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script> 
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js" integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS" crossorigin="anonymous"></script>
+	
+	<meta http-equiv="content-type" content="text/html"/>
+	<meta charset="utf-8">
+	<title>Contrato - Fraterna</title>
+	<meta  name = "viewport" content="width=device-width, initial-scale=1">
+<style>
+		  .table_headers1{
+			align:center; 
+			text-align: center;
+			vertical-align: top; 
+			background-color: #bebebe; 
+			height:12; 
+			color:black; 
+			font-weight: bold; 
+			font-family: Arial;
+			font-size: 13.95px;
+		  }
+		  .celdas{
+			font-family: Arial; 
+			font-size:12px;
+			margin-left: 0.07in;
+		  }
+		  .fuente{
+			font-family: Arial; 
+			font-size: 13px;
+			text-align:justify;
+		  }
+		  .fuente p {
+			font-family: Arial;
+			font-size: 13px;
+			text-align: justify;
+		  }
+
+		  /* Cuerpo del contrato / Declaraciones (estilo documento original) */
+		  .contrato-cuerpo {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 13px;
+			line-height: 1.25;
+		  }
+		  .contrato-cuerpo .contrato-intro-p {
+			margin: 0 0 0.55em 0;
+			text-align: justify;
+		  }
+		  .contrato-partes-inciso {
+			margin: 0 0 0.45em 0;
+			padding-left: 2.35em;
+			text-indent: -2.35em;
+			text-align: justify;
+		  }
+		  .declaraciones-bloque {
+			margin-top: 0.35em;
+		  }
+		  .declaraciones-bloque .declaraciones-titulo {
+			text-align: center;
+			font-weight: bold;
+			font-size: 13px;
+			letter-spacing: 0.06em;
+			margin: 0.85em 0 0.9em 0;
+			text-transform: uppercase;
+		  }
+		  .declaraciones-bloque .declaracion-seccion {
+			font-weight: bold;
+			text-align: justify;
+			margin: 0.65em 0 0.4em 0;
+		  }
+		  .declaraciones-bloque .declaracion-inciso {
+			margin: 0 0 0.55em 0;
+			padding-left: 2.35em;
+			text-indent: -2.35em;
+			text-align: justify;
+			font-size: 13px;
+		  }
+
+		  .clausulas-bloque {
+			margin-top: 0.5em;
+		  }
+		  .clausulas-bloque .clausulas-titulo {
+			text-align: center;
+			font-weight: bold;
+			font-size: 13px;
+			letter-spacing: 0.06em;
+			margin: 0.6em 0 0.5em 0;
+			text-transform: uppercase;
+		  }
+		  .clausulas-bloque .clausula-titulo {
+			font-weight: bold;
+			text-align: left;
+			margin: 0.35em 0 0.5em 0;
+			font-size: 13px;
+		  }
+		  .clausulas-bloque .clausula-p {
+			margin: 0 0 0.65em 0;
+			text-align: justify;
+			font-size: 13px;
+		  }
+		  .clausulas-bloque .clausula-lista-inciso {
+			margin: 0 0 0.45em 0;
+			padding-left: 2.35em;
+			text-indent: -2.35em;
+			text-align: justify;
+			font-size: 13px;
+		  }
+
+		  /* Décima Segunda: jerarquía I / a) / · (como referencia Word) */
+		  .clausula-bloque-decima-segunda .clausula-decima-segunda-titulo {
+			font-weight: bold;
+			margin: 0.35em 0 0.55em 0;
+			font-size: 13px;
+		  }
+		  .clausula-bloque-decima-segunda .clausula-lista-nivel-1 {
+			margin: 0 0 0.45em 0;
+			padding-left: 2.1em;
+			text-indent: -2.1em;
+			text-align: justify;
+			font-size: 13px;
+		  }
+		  .clausula-bloque-decima-segunda .clausula-lista-nivel-2 {
+			margin: 0 0 0.4em 0;
+			padding-left: 3.6em;
+			text-indent: -2.1em;
+			text-align: justify;
+			font-size: 13px;
+		  }
+		  .clausula-bloque-decima-segunda .clausula-lista-nivel-3 {
+			margin: 0 0 0.35em 0;
+			padding-left: 5.2em;
+			text-indent: -1.65em;
+			text-align: justify;
+			font-size: 13px;
+		  }
+		  .clausula-bloque-decima-segunda .clausula-subtitulo-lista {
+			margin: 0.35em 0 0.35em 0;
+			padding-left: 3.6em;
+			text-align: justify;
+			font-weight: bold;
+			font-size: 13px;
+		  }
+		  .clausula-bloque-decima-segunda .clausula-texto-intro-lista {
+			margin: 0 0 0.4em 0;
+			padding-left: 3.6em;
+			text-align: justify;
+			font-size: 13px;
+		  }
+		  .clausula-bloque-decima-segunda .clausula-viñeta-bold {
+			font-weight: bold;
+		  }
+		  .clausula-bloque-decima-segunda .clausula-numero-anomalo {
+			font-weight: bold;
+		  }
+
+		  /* Vigésima Segunda: solo “Anexos.” subrayado; lista de anexos sangrada */
+		  .clausulas-bloque .clausula-titulo-anexos {
+			font-weight: bold;
+		  }
+		  .clausulas-bloque .clausula-titulo-anexos .clausula-solo-subrayado {
+			text-decoration: underline;
+		  }
+		  .clausulas-bloque ul.clausula-lista-anexos {
+			margin: 0.35em 0 0.85em 0;
+			padding-left: 2.5em;
+			list-style: none;
+		  }
+		  .clausulas-bloque ul.clausula-lista-anexos li {
+			margin: 0 0 0.35em 0;
+			padding-left: 0;
+			text-align: justify;
+			font-size: 13px;
+			text-indent: 0;
+		  }
+		  .clausulas-bloque ul.clausula-lista-anexos .anexo-etiqueta {
+			font-weight: bold;
+		  }
+
+		  /* Firmas finales: orden vertical + testigos en dos columnas */
+		  .firmas-contrato-fraterna {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 13px;
+			width: 100%;
+			max-width: 640px;
+			margin: 0.75em auto 0 auto;
+		  }
+		  .firmas-contrato-fraterna .firma-seccion {
+			text-align: center;
+			margin-bottom: 2.5em;
+		  }
+		  .firmas-contrato-fraterna .firma-seccion .firma-rol {
+			font-weight: bold;
+			display: block;
+			margin-bottom: 0.35em;
+		  }
+		  .firmas-contrato-fraterna .firma-seccion .firma-razon-social {
+			font-weight: bold;
+			display: block;
+			margin-bottom: 0.5em;
+		  }
+		  .firmas-contrato-fraterna .firma-linea {
+			border: none;
+			border-top: 1px solid #000;
+			width: 78%;
+			margin: 0.85em auto 0.5em auto;
+		  }
+		  .firmas-contrato-fraterna .firma-nombre {
+			font-weight: bold;
+			display: block;
+			margin-top: 0.35em;
+			word-wrap: break-word;
+		  }
+		  .firmas-contrato-fraterna .firma-calidad {
+			font-weight: bold;
+			display: block;
+			margin-top: 0.2em;
+			font-size: 13px;
+		  }
+		  .firmas-contrato-fraterna .firma-texto-firma {
+			display: block;
+			font-weight: bold;
+			margin-top: 0.35em;
+			word-wrap: break-word;
+		  }
+		  .firmas-contrato-fraterna .firma-testigos-tabla {
+			width: 100%;
+			border-collapse: collapse;
+			margin: 2em 0 0 0;
+		  }
+		  .firmas-contrato-fraterna .firma-testigos-tabla td {
+			width: 50%;
+			vertical-align: top;
+			text-align: center;
+			padding: 0 0.75em;
+		  }
+		  .firmas-contrato-fraterna .firma-testigo-etiqueta {
+			display: block;
+			margin-bottom: 0.55em;
+			font-weight: normal;
+		  }
+		  .firmas-contrato-fraterna .firma-linea-testigo {
+			border: none;
+			border-top: 1px solid #000;
+			width: 88%;
+			margin: 0 auto 0 auto;
+		  }
+		  .firmas-contrato-fraterna .firma-testigo-bajo-linea {
+			margin-top: 0.75em;
+		  }
+		  .firmas-contrato-fraterna .firma-testigo-bajo-linea .firma-texto-firma {
+			margin-top: 0;
+		  }
+		  .firmas-contrato-fraterna .firma-bloque-calidad-testigo {
+			margin-top: 0.35em;
+			font-weight: bold;
+		  }
+
+		  /* Separación controlada entre bloque de firmas (cláusulas) y ANEXO 1 (evita el salto excesivo por <br> repetidos) */
+		  table.anexo-tras-firmas {
+			margin-top: 1.75em;
+		  }
+
+		  /* ANEXO 6 — Times New Roman (refe), cabecera logo + franja, caja de términos, checklist */
+		  .anexo6-bloque {
+			font-family: "Times New Roman", Times, serif;
+			font-size: 13px;
+			margin-left: 0.07in;
+			max-width: 753px;
+		  }
+		  .anexo6-bloque p,
+		  .anexo6-bloque td,
+		  .anexo6-bloque th,
+		  .anexo6-bloque li,
+		  .anexo6-bloque span.anexo6-titulo,
+		  .anexo6-bloque .anexo6-seccion-a,
+		  .anexo6-bloque .anexo6-rest {
+			font-family: "Times New Roman", Times, serif;
+		  }
+		  .anexo6-bloque p {
+			font-size: 13px;
+			text-align: justify;
+			margin: 0 0 0.5em 0;
+		  }
+		  .anexo6-header-wrap {
+			display: table;
+			width: 100%;
+			table-layout: fixed;
+			margin: 0 0 0.65em 0;
+			border-collapse: separate;
+			border-spacing: 0;
+		  }
+		  .anexo6-header-logo {
+			display: table-cell;
+			vertical-align: middle;
+			width: 50%;
+			padding: 0 0.5em 0 0;
+		  }
+		  .anexo6-header-slogan {
+			display: table-cell;
+			vertical-align: middle;
+			width: 50%;
+			text-align: right;
+			padding: 0 0 0 0.5em;
+		  }
+		  .anexo6-logo-img {
+			display: block;
+			max-width: 300px;
+			width: 100%;
+			height: auto;
+			max-height: 80px;
+			object-fit: contain;
+			object-position: left center;
+		  }
+		  .anexo6-banner-morado {
+			display: inline-block;
+			background-color: #6b4e91;
+			color: #ffffff;
+			padding: 0.45em 1.15em 0.55em 1.15em;
+			text-align: center;
+			min-width: 11.5em;
+			box-sizing: border-box;
+		  }
+		  .anexo6-banner-line1 {
+			display: block;
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 10px;
+			font-weight: normal;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+			line-height: 1.2;
+		  }
+		  .anexo6-banner-line2 {
+			display: block;
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 15px;
+			font-weight: bold;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			line-height: 1.15;
+			margin-top: 0.12em;
+		  }
+		  .anexo6-titulo-wrap {
+			text-align: center;
+			margin: 0.65em 0 0.85em 0;
+		  }
+		  .anexo6-titulo {
+			display: inline-block;
+			background-color: #d9d9d9;
+			padding: 0.4em 1em;
+			font-weight: bold;
+			font-size: 13px;
+			font-family: "Times New Roman", Times, serif;
+			text-transform: uppercase;
+			letter-spacing: 0.02em;
+		  }
+		  .anexo6-meta-fila {
+			width: 100%;
+			margin-bottom: 0.35em;
+		  }
+		  .anexo6-meta-fila td {
+			vertical-align: top;
+			font-size: 13px;
+			font-family: "Times New Roman", Times, serif;
+		  }
+		  .anexo6-fecha-hora {
+			text-align: right;
+			white-space: nowrap;
+		  }
+		  .anexo6-datos-residente {
+			margin: 0.65em 0 0.85em 0;
+		  }
+		  .anexo6-datos-residente .anexo6-label {
+			font-weight: bold;
+		  }
+		  .anexo6-caja-terminos {
+			border: 1px solid #000000;
+			padding: 0.65em 0.85em 0.75em 0.85em;
+			margin: 0.5em 0 1em 0;
+			text-align: justify;
+		  }
+		  .anexo6-caja-terminos p {
+			margin: 0 0 0.45em 0;
+		  }
+		  .anexo6-caja-terminos .anexo6-intro-residente {
+			margin-top: 0.35em;
+			margin-bottom: 0.35em;
+		  }
+		  .anexo6-caja-terminos ul {
+			margin: 0.2em 0 0.45em 1.5em;
+			padding-left: 0.5em;
+		  }
+		  .anexo6-caja-terminos ol {
+			margin: 0.2em 0 0.45em 1.5em;
+		  }
+		  .anexo6-caja-terminos li {
+			margin-bottom: 0.2em;
+			text-align: justify;
+		  }
+		  .anexo6-seccion-a {
+			margin: 0.75em 0 0.35em 0;
+			font-weight: bold;
+			font-size: 13px;
+		  }
+		  .anexo6-checklist {
+			list-style: none;
+			margin: 0.35em 0 0.85em 0;
+			padding-left: 0;
+		  }
+		  .anexo6-checklist li {
+			margin: 0.22em 0;
+			padding-left: 0;
+			text-align: left;
+		  }
+		  .anexo6-checklist .anexo6-bull {
+			display: inline-block;
+			width: 0.65em;
+			text-align: center;
+		  }
+		  .anexo6-checklist .anexo6-cb {
+			display: inline-block;
+			margin: 0 0.2em 0 0.1em;
+			font-size: 12px;
+			vertical-align: middle;
+		  }
+		  .anexo6-tabla-b {
+			width: 100%;
+			border-collapse: collapse;
+			margin: 0.5em 0 1em 0;
+			font-family: "Times New Roman", Times, serif;
+			font-size: 13px;
+			table-layout: fixed;
+		  }
+		  /* Evita que WeasyPrint repita los encabezados al partir la tabla entre páginas */
+		  .anexo6-tabla-b thead {
+			display: table-row-group;
+		  }
+		  .anexo6-tabla-b tbody tr {
+			height: 1.5em;
+		  }
+		  .anexo6-tabla-b th,
+		  .anexo6-tabla-b td {
+			border: 1px solid #000000;
+			padding: 0.3em 0.4em;
+			vertical-align: middle;
+		  }
+		  .anexo6-tabla-b .anexo6-b-seccion {
+			text-align: center;
+			font-weight: bold;
+			padding: 0.45em 0.5em;
+		  }
+		  .anexo6-tabla-b .anexo6-b-encabezados th {
+			text-align: center;
+			font-weight: bold;
+			font-size: 12px;
+			text-transform: uppercase;
+			padding: 0.35em 0.3em;
+		  }
+		  .anexo6-tabla-b .anexo6-b-col-num {
+			width: 6%;
+			font-weight: normal;
+		  }
+		  .anexo6-tabla-b .anexo6-b-encabezados .anexo6-b-col-num {
+			text-align: center;
+		  }
+		  .anexo6-tabla-b tbody .anexo6-b-col-num {
+			text-align: right;
+		  }
+		  .anexo6-tabla-b .anexo6-b-col-area {
+			width: 23.5%;
+			text-align: left;
+		  }
+		  .anexo6-tabla-b .anexo6-b-col-concepto {
+			width: 23.5%;
+			text-align: left;
+		  }
+		  .anexo6-tabla-b .anexo6-b-col-obs {
+			width: 23.5%;
+			text-align: left;
+		  }
+		  .anexo6-tabla-b .anexo6-b-col-costos {
+			width: 23.5%;
+			text-align: center;
+		  }
+		  .anexo6-tabla-b tbody td.anexo6-b-vacio {
+			height: 1.5em;
+			min-height: 1.5em;
+			box-sizing: border-box;
+		  }
+		  .anexo6-tabla-b tbody td.anexo6-b-col-num {
+			height: 1.5em;
+			vertical-align: middle;
+		  }
+		  .anexo6-rest > ul {
+			list-style-type: disc;
+			margin: 0.35em 0 0.75em 0;
+			padding-left: 1.5em;
+		  }
+		  .anexo6-rest > ul > li {
+			margin: 0.18em 0;
+			text-align: justify;
+		  }
+		  .anexo6-rest > ul > li.anexo6-li-vacio {
+			list-style-type: disc;
+			min-height: 1.1em;
+		  }
+		  .anexo6-rest > ul > li.anexo6-li-vacio::marker {
+			color: #000000;
+		  }
+		  .anexo6-bloque .anexo6-seccion-e-titulo {
+			margin: 0.65em 0 0.4em 0;
+			font-weight: bold;
+			font-size: 13px;
+			text-align: left;
+		  }
+		  .anexo6-e-lineas {
+			margin: 0 0 0.85em 0;
+		  }
+		  .anexo6-e-linea {
+			display: block;
+			width: 100%;
+			border: none;
+			border-bottom: 1px solid #000000;
+			margin: 0;
+			min-height: 1.2em;
+			box-sizing: border-box;
+		  }
+		  .anexo6-firmas {
+			display: table;
+			width: 100%;
+			table-layout: fixed;
+			margin: 1.25em 0 0.35em 0;
+			border-collapse: separate;
+			border-spacing: 3em 0;
+		  }
+		  .anexo6-firma-col {
+			display: table-cell;
+			width: 50%;
+			vertical-align: top;
+			text-align: center;
+			padding: 0 0.35em;
+		  }
+		  .anexo6-firma-linea {
+			width: 92%;
+			margin: 0 auto 0.65em auto;
+			border: none;
+			border-bottom: 1px solid #000000;
+			min-height: 2.75em;
+			box-sizing: border-box;
+		  }
+		  .anexo6-firma-texto {
+			font-weight: bold;
+			font-size: 12px;
+			line-height: 1.35;
+			text-align: center;
+		  }
+		  .anexo6-firma-texto .anexo6-firma-nombre {
+			display: block;
+			margin-top: 0.35em;
+			text-transform: uppercase;
+			letter-spacing: 0.02em;
+		  }
+
+		  /* ANEXO 6 (ex-Anexo 7) — formato referencia (Times, jerarquía III / e) / servicios / listas) */
+		  .anexo7-mant,
+		  .anexo7-mant p,
+		  .anexo7-mant li,
+		  .anexo7-mant ul {
+			font-family: "Times New Roman", Times, serif;
+		  }
+		  .anexo7-mant {
+			font-size: 13px;
+			text-align: justify;
+		  }
+		  .anexo7-mant .anexo7-inciso-e {
+			margin: 0.35em 0 0.55em 0;
+			padding-left: 1.75em;
+			text-indent: 0;
+			text-align: justify;
+		  }
+		  .anexo7-mant .anexo7-servicios-tit {
+			margin: 0.75em 0 0.35em 0;
+			text-align: left;
+		  }
+		  .anexo7-mant .anexo7-servicios-intro {
+			margin: 0 0 0.35em 0;
+			text-align: left;
+		  }
+		  .anexo7-mant ul.anexo7-lista-main {
+			list-style-type: disc;
+			margin: 0.2em 0 0.45em 0;
+			padding-left: 1.5em;
+		  }
+		  .anexo7-mant ul.anexo7-lista-main > li {
+			margin: 0.15em 0;
+			text-align: justify;
+		  }
+		  .anexo7-mant .anexo7-infra-tit {
+			margin: 0.45em 0 0.35em 1.5em;
+			padding: 0;
+			text-align: left;
+			list-style: none;
+		  }
+
+		  @page {
+			size: A4;
+			margin: 0.1cm 1 1 0.1cm
+		}
+
+		/* Estilo para el inventario*/
+		.container {
+		  position: relative;
+		  width: 100%; 
+		  max-width: 600px; 
+		}
+		
+		.text {
+		  position: absolute;
+		  top: 45px;
+		  left: 185px;
+		  transform: translate(-50%, -50%);
+		  color: black;
+		  font-family: Arial; 
+		  font-size:12px;
+		  text-align:justify;
+		}
+	</style>
+	
+</head>
+
+<body>
+	{% comment %} nota: checar como va a quedar esta parte {% endcomment %}
+<table style="margin-left: 0.07in" width="697" align="left" cellspacing="0" border="0">
+	<colgroup width="286"></colgroup>
+	<colgroup width="60"></colgroup>
+	<colgroup width="97"></colgroup>
+	<colgroup width="42"></colgroup>
+	<colgroup width="101"></colgroup>
+	<colgroup width="104"></colgroup>
+	
+	<tr>
+		<td style="border: 1px solid #000000;" class="table_headers1"  colspan=6 >ARRENDADOR</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">Fraterna Administradora de Proyectos, S.A. de C.V.</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">Representada por:</div></td>
+	</tr>
+
+	<tr>
+		<td style="border: 1px solid #000000;" class="table_headers1"  colspan=6 >ARRENDATARIO</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">PERSONA FÍSICA</div></td>
+	</tr>
+	{% comment %} datos arrendatario {% endcomment %}
+	<tr>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6>
+			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_arrendatario}}</b> / Nacionalidad: {{info.residente.nacionalidad_arrendatario}} / RFC: {{info.residente.rfc_arrendatario}} / Identificación Oficial: {{info.residente.identificacion_arrendatario}} {{info.residente.no_ide_arrendatario}}</div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">RESIDENTE- (PERSONA QUE HABITARA LA PROPIEDAD ARRENDADA)</div></td>
+	</tr>
+	{% if info.residente.aval == "Si" %}
+	<tr>
+		<td style="border-bottom: 1px solid #000000;border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_residente}}</b> / Nacionalidad: {{info.residente.nacionalidad_residente}} / Identificación Oficial: {{info.residente.identificacion_residente}} {{info.residente.no_ide_residente}}</div>
+		</td>
+	</tr>
+	{% else %}
+	<tr>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6>
+			<div class="celdas">Nombre Completo: <b>{{info.residente.nombre_arrendatario}}</b> / Nacionalidad: {{info.residente.nacionalidad_arrendatario}} / RFC: {{info.residente.rfc_arrendatario}} / Identificación Oficial: {{info.residente.identificacion_arrendatario}} {{info.residente.no_ide_arrendatario}}</div>
+		</td>
+	</tr>
+	{% endif %}
+
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">NÚMERO MÁXIMO DE PERSONAS QUE PODRÁN HABITAR LA PROPIEDAD ARRENDADA:</div></td>
+	</tr>
+	<tr>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6><div class="celdas"><b>{{info.habitantes}} [{{habitantes_texto | upper}}] HABITANTES</b></div></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">MASCOTAS: NO APLICA</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">PROPIEDAD ARRENDADA</div></td>
+	</tr>
+
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">Inmueble: &quot;U TOWER&quot;, el cual se encuentra ubicado en Av. Don Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.</div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">Departamento número: {{info.no_depa}}</div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">Cama: {{info.cama}}</div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">Cajón(es) de Estacionamiento:</div></td>
+	</tr>
+	{% if info.estacionamiento == "Si" %}
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">1 CAJÓN DE ESTACIONAMIENTO<br/>
+				Dicho Cajón o Cajones de Estacionamiento, a discreción del Arrendador o la administración, podrán ser fijos
+				en un lugar asignado, o podrán no estar asignados, en cuyo caso el Arrendatario utilizará cualquier
+				lugar(es) que el Arrendador o la administración indiquen al Arrendatario, de tiempo en tiempo. En caso de que el Arrendatario desee dejar de utilizar
+				uno o más Cajones de Estacionamiento, dicha modificación únicamente tendrá validez mediante convenio modificatorio debidamente firmado por todas las
+				partes. Hasta en tanto dicho convenio no sea formalizado, el Arrendatario estará obligado al pago íntegro de la renta del Cajón o Cajones de Estacionamiento, aun cuando su uso sea parcial o nulo, entendiéndose que el pago se realiza por mes completo.
+				</div>
+		</td>
+	</tr>
+	{% else %}
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">0 CAJÓN DE ESTACIONAMIENTO<br/>
+				Dicho Cajón o Cajones de Estacionamiento, a discreción del Arrendador o la administración, podrán ser fijos
+				en un lugar asignado, o podrán no estar asignados, en cuyo caso el Arrendatario utilizará cualquier
+				lugar(es) que el Arrendador o la administración indiquen al Arrendatario, de tiempo en tiempo. En caso de que el Arrendatario desee dejar de utilizar
+				uno o más Cajones de Estacionamiento, dicha modificación únicamente tendrá validez mediante convenio modificatorio debidamente firmado por todas las
+				partes. Hasta en tanto dicho convenio no sea formalizado, el Arrendatario estará obligado al pago íntegro de la renta del Cajón o Cajones de Estacionamiento, aun cuando su uso sea parcial o nulo, entendiéndose que el pago se realiza por mes completo.
+				</div>
+		</td>
+	</tr>
+	{% endif %}
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">PLAZO Y FECHAS</div></td>
+	</tr>
+
+	<tr>
+		<td style="border: 1px solid #000000;" colspan=1 height="17"><div class="celdas">Fecha de Celebración:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.fecha_celebracion}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Plazo de Vigencia:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.duracion}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Fecha de Move in:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.fecha_move_in}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Fecha de Move out:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.fecha_move_out}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; position: relative; top: -157px;" height="17" align="left" colspan=1><div class="celdas">Terminación Anticipada (en su caso):</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:justify;" colspan=5>
+			<div class="celdas">
+				En caso que el Arrendatario decida dar por terminado en forma anticipada el presente Contrato, deberá notificar por escrito al Arrendador su intención de terminar el presente Contrato cuando menos con 45 (cuarenta y cinco) días naturales de anticipación y deberá pagar al Arrendador una pena convencional equivalente a 2 meses de Contraprestación.<br/>
+				Al momento de presentar dicha notificación, el Arrendatario tendrá la opción de presentar al Arrendador un nuevo posible arrendatario, mismo que podrá ser autorizado a entera satisfacción y discreción por el Arrendador. En caso de ser autorizado, se deberá celebrar un nuevo contrato de arrendamiento (sustancialmente en los mismos términos de este Contrato), y cuando menos, por una duración de 6 (seis) meses o por el plazo remanente del Plazo de Vigencia del Contrato actual, lo que resulte mayor.<br/>
+				
+				En caso de que el Arrendador autorice la celebración del nuevo contrato de arrendamiento, el Arrendatario podrá desocupar la Propiedad Arrendada sin la penalidad de terminación anticipada.
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">CONTRAPRESTACIÓN</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Contraprestación mensual:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">${{info.renta | intcomma}}.00 ({{renta_texto}} pesos 00/100 moneda nacional)</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Cuota mensual por cajón de estacionamiento:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">{% if precio_estacionamiento_entero is not None %}${{precio_estacionamiento_entero|intcomma}}.00 ({{precio_estacionamiento_texto}} pesos 00/100 moneda nacional){% else %}—{% endif %}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Renta Integral mensual (Contraprestación + cajón de estacionamiento):</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">${{renta_integral|intcomma}}.00 ({{renta_integral_texto}} pesos 00/100 moneda nacional)</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Póliza jurídica:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">$2,500.00 (dos mil quinientos pesos 00/100 moneda nacional) + IVA </div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Energía Eléctrica:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">{% if info.kilowatts_incluidos is not None %}{{ info.kilowatts_incluidos|floatformat:0 }} KW{% else %}250 KW{% endif %}</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">INFORMACIÓN DE PAGO DE RENTAS</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Banco: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">Banregio</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Cuenta bancaria: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">021727730041</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Para depósitos vía transferencia electrónica (CLABE): </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; position: relative; top: -8px;" colspan=5><div class="celdas">058580217277300416</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Referencia: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">{% if info.no_depa|length == 3 %}UT0{{info.no_depa}}{{info.cama}}{% else %}UT{{info.no_depa}}{{info.cama}}{% endif %}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Pago a nombre de: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">Fraterna Administradora de Proyectos, S.A. de C.V.</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Divisa: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">Pesos</div></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000; text-align: left; font-weight:normal;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">GARANTÍAS</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Depósito en Garantía: </div></td>
+		
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">${{info.renta | intcomma}}.00 ({{renta_texto}} pesos 00/100 moneda nacional)</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; position: relative; top: -20px;" height="17" align="left" colspan=1><div class="celdas">Cuenta Bancaria del Depósito de Garantía:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:justify;" colspan=5>
+			<div class="celdas">
+				Banco: Banregio <br/>
+				Pago a nombre de: Fraterna Administradora de Proyectos, S.A. de C.V. <br/>
+				Cuenta Bancaria: 021727730041 <br/>
+				CLABE Interbancaria: 058580217277300416 <br/>
+				Referencia: {{info.residente.rfc_arrendatario}} <br/>
+				Divisa: Pesos
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Tipo de tarifa:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">&nbsp;</div></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">DOMICILIOS</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">Del Arrendatario: <b>{{info.residente.nombre_arrendatario}}</b><br/>
+				El Arrendatario señala expresa e irrevocablemente como su domicilio el de la Propiedad Arrendada, siendo esta: <b>{{info.residente.direccion_arrendatario}}</b><br/> 
+				Correo electrónico: {{info.residente.correo_arrendatario}} 
+			</div>
+		</td>
+	</tr>
+	{% if info.residente.aval == "Si" %}
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">Residente: <b>{{info.residente.nombre_residente}}</b><br/>
+				El Arrendatario señala expresa e irrevocablemente como su domicilio el de la Propiedad Arrendada, siendo esta: <b>{{info.residente.direccion_residente}}</b><br/> 
+				Correo electrónico: {{info.residente.correo_residente}}
+			</div>
+		</td>
+	</tr>
+	{% else %}
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">Del Arrendatario: <b>{{info.residente.nombre_arrendatario}}</b><br/>
+				El Arrendatario señala expresa e irrevocablemente como su domicilio el de la Propiedad Arrendada, siendo esta: <b>{{info.residente.direccion_arrendatario}}</b><br/> 
+				Correo electrónico: {{info.residente.correo_arrendatario}} 
+			</div>
+		</td>
+	</tr>
+	{% endif %}
+	
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
+			<div class="celdas">Del Arrendador:<br/>
+				El Arrendador señala expresa e irrevocablemente como su domicilio el del Inmueble, siendo este: Av. Don 
+				Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.<br/> 
+				Correo electrónico:  jcasados@fraterna.mx 
+			</div>
+		</td>
+	</tr>
+</table>
+
+<!--comienza la segunda tabla-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td class="fuente" height="21"  valign=middle>
+				El Arrendador, el Arrendatario y el Obligado Solidario aceptan que los términos establecidos en la presente carátula (la “<u>Carátula</u>”) 
+				son parte integrante del Contrato que sigue a esta Carátula, firmando al efecto las Partes de conformidad. Asimismo, reconocen que los términos definidos en la presente Carátula 
+				podrán utilizarse en cualquier otra sección del presente Contrato.
+		</td>
+	</tr>
+	<tr>
+		<td style="page-break-before: always;" class="fuente contrato-cuerpo" valign="top">
+			<p class="contrato-intro-p">Contrato de Arrendamiento (el &quot;<u>Contrato</u>&quot;) que celebran, en la fecha señalada en la Carátula:</p>
+			<p class="contrato-partes-inciso">(i) Fraterna Administradora de Proyectos, S.A. de C.V. (el &quot;<u>Arrendador</u>&quot;);</p>
+			<p class="contrato-partes-inciso">(ii) La persona (física o moral) descrita en la Carátula del presente Contrato en calidad de arrendatario (el &quot;Arrendatario&quot;);</p>
+			<p class="contrato-intro-p">De conformidad con las siguientes Declaraciones y Cláusulas.</p>
+			<div class="declaraciones-bloque">
+				<p class="declaraciones-titulo">DECLARACIONES</p>
+				<p class="declaracion-seccion">I. El Arrendador, a través de su representante legal, declara que:</p>
+				<p class="declaracion-inciso">(a) Es una sociedad mercantil legalmente constituida y existente de conformidad con las leyes mexicanas vigentes, según consta en la Escritura Pública número 28,281, de fecha 26 de abril del 2022, otorgada ante la fe del Lic. Ignacio Gerardo Martínez González, Titular de la Notaría Pública No. 75, con ejercicio en el Primer Distrito Registral y Notarial del Estado de Nuevo León, con residencia en la ciudad de San Pedro Garza García, Nuevo León, y debidamente registrada con fecha 5 de mayo del 2022 ante el Registro Público de la Propiedad y del Comercio de Monterrey, Nuevo León bajo el No. de Folio Mercantil Electrónico N-2022031789.</p>
+				<p class="declaracion-inciso">(b) Su representante legal cuenta con todos los poderes y facultades necesarias y suficientes para la celebración de este Contrato, mismos que no le han sido revocados ni limitados en forma alguna.</p>
+				<p class="declaracion-inciso">(c) Se encuentra en posesión del departamento identificado en la Carátula del presente Contrato como la Propiedad Arrendada, mismo que se encuentra ubicado dentro del Inmueble. La Propiedad Arrendada tiene las características generales que se señalan en el <b><u>Anexo 1</u></b> del presente Contrato.</p>
+				<p class="declaracion-inciso">(d) Es su intención otorgar en arrendamiento a favor del Arrendatario la Propiedad Arrendada, misma que deberá destinarse única y exclusivamente para casa habitación. La localización exacta de la Propiedad Arrendada se encuentra debidamente identificada en el <b><u>Anexo 1</u></b> del presente Contrato.</p>
+				<p class="declaracion-inciso">(e) En caso de ser aplicable, es su intención otorgar en arrendamiento a favor del Arrendatario el o los Cajones de Estacionamiento que se describen en la Carátula del presente Contrato.</p>
+				<p class="declaracion-seccion">II. El Arrendatario, por su propio derecho o a través de su representante legal, según sea el caso, declara que:</p>
+				<p class="declaracion-inciso">(a) Es una persona física con la nacionalidad que se describe en la Carátula del presente Contrato, plenamente capaz para celebrar el presente Contrato, o es una sociedad legalmente constituida y existente de conformidad con las leyes de México, según sea el caso.</p>
+				<p class="declaracion-inciso">(b) Su representante legal cuenta con todos los poderes y facultades necesarias y suficientes para la celebración de este Contrato, mismos que no le han sido revocados ni limitados en forma alguna o celebra el presente Contrato por su propio derecho, según sea el caso.</p>
+				<p class="declaracion-inciso">(c) Es su deseo recibir la Propiedad Arrendada en arrendamiento, en los términos y condiciones establecidos en el presente Contrato, para destinarlo a casa habitación, para su uso propio, así como los Cajones de Estacionamiento, según sea aplicable.</p>
+				<p class="declaracion-inciso">(d) Ha revisado y está de acuerdo en obligarse a cumplir con el Reglamento de Administración que se adjunta al presente Contrato como <b><u>Anexo 2</u></b> (el &quot;Reglamento&quot;). Lo anterior, en el entendido que reconoce y está de acuerdo que el Reglamento podrá variar de tiempo en tiempo, conforme lo establezca el Arrendador, y que dichas modificaciones al Reglamento se harán del conocimiento del Arrendatario y del resto de los inquilinos del Inmueble mediante avisos que sean colocados en las áreas comunes del Inmueble.</p>
+			</div>
+			<div class="clausulas-bloque">
+				<p class="contrato-intro-p">En virtud de las Declaraciones anteriores, las Partes se someten a las siguientes:</p>
+				<p class="clausulas-titulo">CLAUSULAS</p>
+				<p class="clausula-titulo">Primera. <u>Objeto, Entrega y Recepción</u>.</p>
+				<p class="clausula-p">De conformidad con los términos y condiciones establecidos en el presente Contrato, el Arrendador en este acto otorga en arrendamiento al Arrendatario y éste recibe en arrendamiento la Propiedad Arrendada descrita en el <b><u>Anexo 1</u></b>, con todo lo que de hecho y por derecho le corresponde, dándose el Arrendatario por recibido de la Propiedad Arrendada jurídica y materialmente a su entera satisfacción. Las instalaciones y accesorios con los que cuenta la Propiedad Arrendada se describen en la lista de inventario que se adjunta al presente Contrato como <b><u>Anexo 3</u></b>, que firmado por las Partes forma parte integral del mismo.</p>
+				<p class="clausula-p">El Arrendador entrega al Arrendatario la posesión de la Propiedad Arrendada para el uso permitido (de conformidad con los términos establecidos en la cláusula siguiente), sujeto al cumplimiento de todas las disposiciones y restricciones aplicables a su uso conforme al presente Contrato, la legislación aplicable y el Reglamento, en la Fecha de Entrega, según se establece en la Carátula del presente Contrato. Lo anterior, mediante la firma de un acta de entrega y recepción de la Propiedad Arrendada sustancialmente en los términos del documento que se adjunta al presente Contrato como <b><u>Anexo 4</u>.</b></p>
+				<p class="clausula-p">En caso de que así lo hayan acordado las Partes, y según haya sido establecido en la Carátula, conforme a los términos y condiciones del presente Contrato, el Arrendador otorga en arrendamiento al Arrendatario el o los Cajones de Estacionamiento. En la Fecha de Entrega, el Arrendador entregará al Arrendatario, en su caso, el o los Cajones de Estacionamiento, mediante la firma del acta de entrega y recepción del o de los Cajones de Estacionamiento que se adjunta al presente Contrato como <b><u>Anexo 5</u>.</b></p>
+				{% include "home/partials/contrato_fraterna_clausulas_cuerpo_v2.html" %}
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente">Las Partes, sabedoras del alcance jurídico y material del presente Contrato lo firman a su entera conformidad 
+			ante la presencia de dos testigos que dan fe de su celebración y firma en la Fecha de Celebración según se 
+			establece en la Carátula, en la ciudad de Monterrey, Nuevo León.
+			</div></td>
+	</tr>
+	{% comment %} FIRMAS: orden vertical (ref. formato Word) — Arrendador, Arrendatario, testigos en dos columnas, firmas adicionales {% endcomment %}
+	<tr>
+		<td style="height:12px"></td>
+	</tr>
+	<tr>
+		<td>
+			<div class="firmas-contrato-fraterna">
+				<div class="firma-seccion">
+					<span class="firma-rol">El Arrendador</span>
+					<span class="firma-razon-social">FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</span>
+					<hr class="firma-linea" />
+					<span class="firma-nombre">{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</span>
+					<span class="firma-calidad">Representante Legal</span>
+				</div>
+				<div class="firma-seccion">
+					<span class="firma-rol">El Arrendatario</span>
+					<hr class="firma-linea" />
+					<span class="firma-nombre">{{info.residente.nombre_arrendatario}}</span>
+					<span class="firma-calidad" style="font-weight: normal;">Por sus propios derechos.</span>
+				</div>
+				<table class="firma-testigos-tabla" border="0" cellspacing="0" cellpadding="0">
+					<tr>
+						<td>
+							<span class="firma-testigo-etiqueta">Testigo</span>
+							<hr class="firma-linea-testigo" />
+							<div class="firma-testigo-bajo-linea">
+								{% if info.residente.aval == "Si" and info.residente.edad >= "18" %}
+								<span class="firma-texto-firma">{{info.residente.nombre_residente}}</span>
+								{% else %}
+								<span class="firma-texto-firma">*******</span>
+								{% endif %}
+								<div class="firma-bloque-calidad-testigo">Por sus propios derechos.</div>
+							</div>
+						</td>
+						<td>
+							<span class="firma-testigo-etiqueta">Testigo</span>
+							<hr class="firma-linea-testigo" />
+							<div class="firma-testigo-bajo-linea">
+								<span class="firma-texto-firma">*******</span>
+								<div class="firma-bloque-calidad-testigo">Por sus propios derechos.</div>
+							</div>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</td>
+	</tr>
+	
+</table>
+<!--Fin de la segunda tabla-->
+
+<!--ANEXOS TABLAS-->
+<!--Inicio de la PRIMERA TABLA ANEXO 1 Header-->
+
+<table class="anexo-tras-firmas" align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="12" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente">                                               ANEXO 1 - CARACTERISTICAS GENERALES</div></b></td>
+	</tr>	
+	<tr>
+		<td height="12" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+</table>
+<!--Fin de la primera tabla anexos header-->
+<!--Inicio de la SEGUNDA TABLA ANEXO 1-->
+<table style="margin-left: 0.21in; display:block; width:100%" align="left" cellspacing="0" border="0">
+	<colgroup width="100"></colgroup>
+	<colgroup width="600"></colgroup>
+	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000">                                               </font></td>
+		<td height="20" align="left" valign=middle><font color="#000000">                                                                         </font></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000;"  height="17"><div class="celdas">Desarrollo: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" ><div class="celdas">U TOWER</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Departamento: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.no_depa}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Piso:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.piso}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Tipo: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.tipologia}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Medida aproximada:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.medidas}} M2</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Cama:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.cama}}</div></td>
+	</tr>
+</table>
+<!--Inicio de la SEGUNDA TABLA ANEXO 1-->
+
+<!--comienza la cuarta tabla-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle>
+			<div  class="fuente" style="margin-left: 0.14in;">Plano del piso con localización de la propiedad Arrendada.</div>
+		</td>
+	</tr>	
+	<tr>
+		<td height="21"  valign=middle><img src="{{plan_loc}}" style="width:658px; height:271px"></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">Plano Propiedad Arrendada</div></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><img src="{{plano}}" style="width:450px; height:341px"></td>
+	</tr>
+	<tr>
+			<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">ANEXO 2 - REGLAMENTO</div></b></td>
+	</tr>	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;">La Arrendataria en este acto hace constar expresa e inequívocamente que recibió, leyó y entendió el 
+			Reglamento de Operación y está de acuerdo en cumplir con todos los términos y condiciones del mismo 
+			que le son aplicables. 
+			</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+</table>
+<!--Fin de la segunda tabla-->
+
+<!--Estapcio de hoja en blanco-->
+<br><br><br><br><br>
+<br><br><br><br><br>
+<br><br><br><br><br>
+
+<br><br><br><br><br>
+<br><br><br><br><br>
+<br><br><br>
+<!--Estapcio de hoja en blanco-->
+
+<!--inicio tabla inventario ANEXO 3-->
+  <div class="container">
+	<img src="{{tabla_inventario}}" alt="Imagen" style="width:100%; height:850px;">
+	<div class="text">{{info.no_depa}} - {{info.cama}} </div>
+  </div>
+<!--fin tabla inventario-->
+
+<br><br><br><br>
+
+<!--inicio de tabla anexo 4-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">ANEXO 4 - ACTA DE ENTREGA Y RECEPCION</div></b></td>
+	</tr>	
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;"><u>El presente anexo será completado en la fecha de entrega de la Propiedad Arrendada</u></div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>FRATERNA 
+			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>, 
+			en su carácter de <b>ARRENDADOR</b>, y por otra parte, la persona física <b> {{info.residente.nombre_arrendatario}} </b> en su carácter 
+			de <b>ARRENDATARIA</b> respecto del siguiente inmueble: </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+</table>
+<!--Fin de la segunda tabla-->
+
+
+<!--Inicio de la SEGUNDA TABLA ANEXO 4-->
+<table style="margin-left: 0.21in; display:block; width:100%" align="left" cellspacing="0" border="0">
+	<colgroup width="100"></colgroup>
+	<colgroup width="600"></colgroup>
+	
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000">                                               </font></td>
+		<td height="20" align="left" valign=middle><font color="#000000">                                                                         </font></td>
+	</tr>
+	<tr>
+		<td style="border: 1px solid #000000;"  height="17"><div class="celdas">Desarrollo: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" ><div class="celdas">U TOWER</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Piso/Nivel:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.piso}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Departamento: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.no_depa}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Tipo: </div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.tipologia}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Cama:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.cama}}</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Medida aproximada:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.medidas}} M2</div></td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Cama:</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.cama}}</div></td>
+	</tr>
+</table>
+<!--Inicio de la SEGUNDA TABLA ANEXO 4-->
+<!--comienza la sexta tabla-->
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Por lo que se levanta la presente <b>ACTA DE ENTREGA Y RECEPCIÓN</b>, para efecto de dar cumplimiento a lo 
+			establecido en el citado Contrato de Arrendamiento, mediante el cual el <b>ARRENDADOR</b> se obligó a entregar a la 
+			<b>ARRENDATARIA</b> el inmueble el día {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}}.
+		 </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Por consiguiente, se hace constar que siendo las 13:00 horas del {{info.fecha_move_in}}, 
+			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>, 
+			en su carácter de <b>ARRENDADOR</b>, hace la entrega material y jurídica del inmueble descrito en el primer párrafo a 
+			la persona física en su carácter de <b>ARRENDATARIA</b>, quien recibe la posesión material del mismo a su entera 
+			conformidad. 
+		 </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Ambas partes manifiestan estar enteradas perfectamente del contenido y alcance de la presente acta 
+			firmándola de conformidad, en la ciudad de Monterrey, Nuevo León, el día {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}}. 			
+		 </div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+</table>
+
+<div class="row">
+	<div class="col fuente" style="text-align:center;"><b>“EL ARRENDADOR”</b></div>
+	<div class="col fuente" style="text-align:center;"><b>“LA ARRENDATARIA”</b></div>	
+</div>	
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">Fraterna Administradora de Proyectos,</div>
+	<div class="col"></div>
+</div>	
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">S.A. DE C.V.</div>
+	<div class="col"></div>
+</div>
+
+<br><br><br><br><br><br>
+
+<div class="row">
+	<div class="col fuente" style="text-align:center;">____________________________________</div>
+	<div class="col fuente" style="text-align:center;">____________________________________</div>
+</div>
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">Representado en este acto</div>
+	<div class="col fuente" style="font-size:11px; text-align:center;">{{info.residente.nombre_arrendatario}}</div>
+</div>
+
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">por medio de su apoderado legal:</div>
+	<div class="col"></div>
+</div>
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</div>
+	<div class="col"></div>
+</div>
+<!--Fin de la sexta tabla-->
+
+
+<!--fin de anexo 4-->
+<!--inicio de anexo 5 — Acta de entrega de estacionamiento (misma línea visual que Anexo 4) -->
+
+<br><br><br><br>
+
+<table align="left" cellspacing="0" border="0">
+	<colgroup width="753"></colgroup>
+	<colgroup span="18" width="85"></colgroup>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><b><div class="fuente" style="text-align:center;">ANEXO 5 - ACTA DE ENTREGA DE ESTACIONAMIENTO</div></b></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><div class="fuente" style="text-align:center;"><u>El presente anexo será completado en la fecha de entrega de la Propiedad Arrendada.</u></div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>FRATERNA
+			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>,
+			en su carácter de <b>ARRENDADOR</b>, y por otra parte, la persona física <b>{{info.residente.nombre_arrendatario}}</b> en su carácter de
+			<b>ARRENDATARIO</b> respecto del siguiente cajón de estacionamiento:</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><div class="fuente" style="text-align:center;"><b><u>INSERTAR PLANO DEL CAJÓN</u></b></div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Por lo que se levanta la presente <b>ACTA DE ENTREGA Y RECEPCIÓN</b>, para efecto de dar cumplimiento a lo
+			establecido en el citado Contrato de Arrendamiento, mediante el cual el <b>ARRENDADOR</b> se obligó a entregar al
+			<b>ARRENDATARIO</b> el cajón de estacionamiento a más tardar el día {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}}.</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Por consiguiente, se hace constar que siendo las 13:00 horas del {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}},
+			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>,
+			en su carácter de <b>ARRENDADOR</b>, hace la entrega material y jurídica del cajón de estacionamiento descrito en el primer párrafo a
+			la persona física en su carácter de <b>ARRENDATARIO</b>, quien recibe la posesión material del mismo a su entera
+			conformidad.</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+	<tr>
+		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Ambas partes manifiestan estar enteradas perfectamente del contenido y alcance de la presente acta
+			firmándola de conformidad, en la ciudad de Monterrey, Nuevo León, el día {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}}.</div></td>
+	</tr>
+	<tr>
+		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
+	</tr>
+</table>
+
+<div class="row">
+	<div class="col fuente" style="text-align:center;"><b>“EL ARRENDADOR”</b></div>
+	<div class="col fuente" style="text-align:center;"><b>“EL ARRENDATARIO”</b></div>
+</div>
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">Fraterna Administradora de Proyectos,</div>
+	<div class="col"></div>
+</div>
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">S.A. DE C.V.</div>
+	<div class="col"></div>
+</div>
+
+<br><br><br><br><br><br>
+
+<div class="row">
+	<div class="col fuente" style="text-align:center;">____________________________________</div>
+	<div class="col fuente" style="text-align:center;">____________________________________</div>
+</div>
+<div class="row">
+	<div class="col fuente" style="font-size:11px; text-align:center;">Representado en este acto por medio de su apoderado legal: {{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</div>
+	<div class="col fuente" style="font-size:11px; text-align:center;">{{info.residente.nombre_arrendatario}}</div>
+</div>
+
+<!--fin de anexo 5-->
+
+<br><br><br>
+<div class="fuente anexo7-mant" style="margin-left: 0.07in;">
+	<div style="text-align:center;"><b>ANEXO 6 - LEVANTAMIENTO DE REPORTES</b></div>
+	<p>Los reportes deberán realizarse únicamente a través de los canales oficiales de la administración, siendo el único medio válido el correo electrónico: <b>admon@fraterna.mx</b></p>
+	<p><b>Todo reporte deberá incluir:</b></p>
+	<ul class="anexo7-lista-main">
+		<li>Número de departamento.</li>
+		<li>Descripción clara del problema.</li>
+		<li>Evidencia fotográfica (si aplica).</li>
+	</ul>
+	<p>En caso de que el reporte no cumpla con los requisitos anteriores, el Arrendador y/o la administración podrán abstenerse de darle trámite hasta en tanto sea debidamente integrado.</p>
+	<p>Una vez recibido el reporte, el Arrendador y/o la administración contará con un plazo máximo de 5 (cinco) días hábiles para confirmar su recepción, sin que dicha confirmación implique aceptación de responsabilidad ni procedencia del mismo.</p>
+	<p>La programación de cualquier visita de mantenimiento se realizará previa agenda y deberá efectuarse en presencia del Arrendatario y/o Residente, salvo autorización expresa de éste.</p>
+	<p>El Arrendador y/o la administración únicamente atenderán aquellos reportes que correspondan a obligaciones de mantenimiento a cargo del Arrendador, conforme a lo expresamente establecido en la Cláusula Décima Segunda del contrato.</p>
+	<p>El Arrendador y/o la administración se reservan el derecho de determinar, de manera fundada y conforme al contrato, si un reporte corresponde o no a un servicio de mantenimiento a cargo del Arrendador.</p>
+	<p><b>En caso de que el reporte no corresponda a los supuestos señalados:</b></p>
+	<ul class="anexo7-lista-main">
+		<li>No existirá obligación de atención por parte del Arrendador y/o la administración, cualquier gasto, reparación o gestión será responsabilidad exclusiva del Arrendatario y/o el Residente.</li>
+		<li>La orientación, sugerencias o apoyo que, en su caso, brinde la administración respecto de reportes improcedentes, no implicará reconocimiento de responsabilidad, ni generará obligación alguna a cargo del Arrendador y/o la administración.</li>
+	</ul>
+</div>
+
+<!--<img src="ar_logo.png" width=269 height=55>-->
+<br clear=left>
+<!-- ************************************************************************** -->
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+</html>
