@@ -57,7 +57,14 @@ urlpatterns = [
     path('fraterna/generar_paquete_completo/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_paquete_completo_fraterna'}), name='generar_paquete_completo_frat'),
     path('fraterna/generar_urls_firma/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_urls_firma_fraterna'}), name='generar_urls_firma_frat'),
     path('fraterna/mostrar_urls_firma_documento/', fraterna_views.Contratos_fraterna.as_view({'post': 'mostrar_urls_firma_documento_fraterna'}), name='mostrar_urls_firma_documento_frat'),
-    
+
+    #fraterna paquete 1 / paquete 2 (nuevo flujo: contrato/poliza/pagares/manual + comodato/anexos)
+    path('fraterna/generar_anexos/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_anexos'}), name='generar_anexos_frat'),
+    path('fraterna/generar_paquete_1/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_paquete_1'}), name='generar_paquete_1_frat'),
+    path('fraterna/generar_paquete_2/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_paquete_2'}), name='generar_paquete_2_frat'),
+    path('fraterna/generar_urls_firma_paquete_1/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_urls_firma_paquete_1'}), name='generar_urls_firma_paquete_1_frat'),
+    path('fraterna/generar_urls_firma_paquete_2/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_urls_firma_paquete_2'}), name='generar_urls_firma_paquete_2_frat'),
+
     #contrato semillero purisima
     path('semillero/aprobar_contrato/', fraterna_views.Contratos_semillero.as_view({'put': 'aprobar_contrato_semillero'}), name='aprobar_contrato_semillero'),
     path('semillero/desaprobar_contrato/', fraterna_views.Contratos_semillero.as_view({'put': 'desaprobar_contrato_semillero'}), name='desaprobar_contrato_frat'),

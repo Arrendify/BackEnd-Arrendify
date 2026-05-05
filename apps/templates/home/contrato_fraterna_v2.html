@@ -698,12 +698,12 @@
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
-			<div class="celdas">Departamento número: {{info.no_depa}}</div>
+			<div class="celdas">Departamento número: [MENCIONADO EN ANEXO 1]</div>
 		</td>
 	</tr>
 	<tr>
 		<td style="border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
-			<div class="celdas">Cama: {{info.cama}}</div>
+			<div class="celdas">Cama: [MENCIONADO EN ANEXO 1]</div>
 		</td>
 	</tr>
 	<tr>
@@ -808,7 +808,7 @@
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Referencia: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">{% if info.no_depa|length == 3 %}UT0{{info.no_depa}}{{info.cama}}{% else %}UT{{info.no_depa}}{{info.cama}}{% endif %}</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">[MENCIONADO EN ANEXO 1]</div></td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Pago a nombre de: </div></td>
@@ -961,12 +961,14 @@
 					<hr class="firma-linea" />
 					<span class="firma-nombre">{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</span>
 					<span class="firma-calidad">Representante Legal</span>
+					<span style="color:white; font-size:6px;">&lt;&lt;firma_fraterna&gt;&gt;</span>
 				</div>
 				<div class="firma-seccion">
 					<span class="firma-rol">El Arrendatario</span>
 					<hr class="firma-linea" />
 					<span class="firma-nombre">{{info.residente.nombre_arrendatario}}</span>
 					<span class="firma-calidad" style="font-weight: normal;">Por sus propios derechos.</span>
+					<span style="color:white; font-size:6px;">&lt;&lt;firma_arrendatario&gt;&gt;</span>
 				</div>
 				<table class="firma-testigos-tabla" border="0" cellspacing="0" cellpadding="0">
 					<tr>
@@ -980,6 +982,7 @@
 								<span class="firma-texto-firma">*******</span>
 								{% endif %}
 								<div class="firma-bloque-calidad-testigo">Por sus propios derechos.</div>
+								<span style="color:white; font-size:6px;">&lt;&lt;firma_residente&gt;&gt;</span>
 							</div>
 						</td>
 						<td>
@@ -988,6 +991,7 @@
 							<div class="firma-testigo-bajo-linea">
 								<span class="firma-texto-firma">*******</span>
 								<div class="firma-bloque-calidad-testigo">Por sus propios derechos.</div>
+								<span style="color:white; font-size:6px;">&lt;&lt;firma_testigo&gt;&gt;</span>
 							</div>
 						</td>
 					</tr>
@@ -999,375 +1003,6 @@
 </table>
 <!--Fin de la segunda tabla-->
 
-<!--ANEXOS TABLAS-->
-<!--Inicio de la PRIMERA TABLA ANEXO 1 Header-->
-
-<table class="anexo-tras-firmas" align="left" cellspacing="0" border="0">
-	<colgroup width="753"></colgroup>
-	<colgroup span="18" width="85"></colgroup>
-	<tr>
-		<td height="12" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><b><div class="fuente">                                               ANEXO 1 - CARACTERISTICAS GENERALES</div></b></td>
-	</tr>	
-	<tr>
-		<td height="12" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-</table>
-<!--Fin de la primera tabla anexos header-->
-<!--Inicio de la SEGUNDA TABLA ANEXO 1-->
-<table style="margin-left: 0.21in; display:block; width:100%" align="left" cellspacing="0" border="0">
-	<colgroup width="100"></colgroup>
-	<colgroup width="600"></colgroup>
-	
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000">                                               </font></td>
-		<td height="20" align="left" valign=middle><font color="#000000">                                                                         </font></td>
-	</tr>
-	<tr>
-		<td style="border: 1px solid #000000;"  height="17"><div class="celdas">Desarrollo: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" ><div class="celdas">U TOWER</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Departamento: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.no_depa}}</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Piso:</div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.piso}}</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Tipo: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.tipologia}}</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Medida aproximada:</div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.medidas}} M2</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Cama:</div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.cama}}</div></td>
-	</tr>
-</table>
-<!--Inicio de la SEGUNDA TABLA ANEXO 1-->
-
-<!--comienza la cuarta tabla-->
-<table align="left" cellspacing="0" border="0">
-	<colgroup width="753"></colgroup>
-	<colgroup span="18" width="85"></colgroup>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle>
-			<div  class="fuente" style="margin-left: 0.14in;">Plano del piso con localización de la propiedad Arrendada.</div>
-		</td>
-	</tr>	
-	<tr>
-		<td height="21"  valign=middle><img src="{{plan_loc}}" style="width:658px; height:271px"></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">Plano Propiedad Arrendada</div></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><img src="{{plano}}" style="width:450px; height:341px"></td>
-	</tr>
-	<tr>
-			<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">ANEXO 2 - REGLAMENTO</div></b></td>
-	</tr>	
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;">La Arrendataria en este acto hace constar expresa e inequívocamente que recibió, leyó y entendió el 
-			Reglamento de Operación y está de acuerdo en cumplir con todos los términos y condiciones del mismo 
-			que le son aplicables. 
-			</div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-</table>
-<!--Fin de la segunda tabla-->
-
-<!--Estapcio de hoja en blanco-->
-<br><br><br><br><br>
-<br><br><br><br><br>
-<br><br><br><br><br>
-
-<br><br><br><br><br>
-<br><br><br><br><br>
-<br><br><br>
-<!--Estapcio de hoja en blanco-->
-
-<!--inicio tabla inventario ANEXO 3-->
-  <div class="container">
-	<img src="{{tabla_inventario}}" alt="Imagen" style="width:100%; height:850px;">
-	<div class="text">{{info.no_depa}} - {{info.cama}} </div>
-  </div>
-<!--fin tabla inventario-->
-
-<br><br><br><br>
-
-<!--inicio de tabla anexo 4-->
-<table align="left" cellspacing="0" border="0">
-	<colgroup width="753"></colgroup>
-	<colgroup span="18" width="85"></colgroup>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><b><div class="fuente" style="text-align:center;">ANEXO 4 - ACTA DE ENTREGA Y RECEPCION</div></b></td>
-	</tr>	
-	<tr>
-		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;"><u>El presente anexo será completado en la fecha de entrega de la Propiedad Arrendada</u></div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>FRATERNA 
-			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>, 
-			en su carácter de <b>ARRENDADOR</b>, y por otra parte, la persona física <b> {{info.residente.nombre_arrendatario}} </b> en su carácter 
-			de <b>ARRENDATARIA</b> respecto del siguiente inmueble: </div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-</table>
-<!--Fin de la segunda tabla-->
-
-
-<!--Inicio de la SEGUNDA TABLA ANEXO 4-->
-<table style="margin-left: 0.21in; display:block; width:100%" align="left" cellspacing="0" border="0">
-	<colgroup width="100"></colgroup>
-	<colgroup width="600"></colgroup>
-	
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000">                                               </font></td>
-		<td height="20" align="left" valign=middle><font color="#000000">                                                                         </font></td>
-	</tr>
-	<tr>
-		<td style="border: 1px solid #000000;"  height="17"><div class="celdas">Desarrollo: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" ><div class="celdas">U TOWER</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Piso/Nivel:</div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.piso}}</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Departamento: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.no_depa}}</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Tipo: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.tipologia}}</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Cama:</div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.cama}}</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Medida aproximada:</div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.medidas}} M2</div></td>
-	</tr>
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Cama:</div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{info.cama}}</div></td>
-	</tr>
-</table>
-<!--Inicio de la SEGUNDA TABLA ANEXO 4-->
-<!--comienza la sexta tabla-->
-<table align="left" cellspacing="0" border="0">
-	<colgroup width="753"></colgroup>
-	<colgroup span="18" width="85"></colgroup>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Por lo que se levanta la presente <b>ACTA DE ENTREGA Y RECEPCIÓN</b>, para efecto de dar cumplimiento a lo 
-			establecido en el citado Contrato de Arrendamiento, mediante el cual el <b>ARRENDADOR</b> se obligó a entregar a la 
-			<b>ARRENDATARIA</b> el inmueble el día {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}}.
-		 </div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Por consiguiente, se hace constar que siendo las 13:00 horas del {{info.fecha_move_in}}, 
-			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>, 
-			en su carácter de <b>ARRENDADOR</b>, hace la entrega material y jurídica del inmueble descrito en el primer párrafo a 
-			la persona física en su carácter de <b>ARRENDATARIA</b>, quien recibe la posesión material del mismo a su entera 
-			conformidad. 
-		 </div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Ambas partes manifiestan estar enteradas perfectamente del contenido y alcance de la presente acta 
-			firmándola de conformidad, en la ciudad de Monterrey, Nuevo León, el día {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}}. 			
-		 </div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-</table>
-
-<div class="row">
-	<div class="col fuente" style="text-align:center;"><b>“EL ARRENDADOR”</b></div>
-	<div class="col fuente" style="text-align:center;"><b>“LA ARRENDATARIA”</b></div>	
-</div>	
-<div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">Fraterna Administradora de Proyectos,</div>
-	<div class="col"></div>
-</div>	
-<div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">S.A. DE C.V.</div>
-	<div class="col"></div>
-</div>
-
-<br><br><br><br><br><br>
-
-<div class="row">
-	<div class="col fuente" style="text-align:center;">____________________________________</div>
-	<div class="col fuente" style="text-align:center;">____________________________________</div>
-</div>
-<div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">Representado en este acto</div>
-	<div class="col fuente" style="font-size:11px; text-align:center;">{{info.residente.nombre_arrendatario}}</div>
-</div>
-
-<div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">por medio de su apoderado legal:</div>
-	<div class="col"></div>
-</div>
-<div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</div>
-	<div class="col"></div>
-</div>
-<!--Fin de la sexta tabla-->
-
-
-<!--fin de anexo 4-->
-<!--inicio de anexo 5 — Acta de entrega de estacionamiento (misma línea visual que Anexo 4) -->
-
-<br><br><br><br>
-
-<table align="left" cellspacing="0" border="0">
-	<colgroup width="753"></colgroup>
-	<colgroup span="18" width="85"></colgroup>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><b><div class="fuente" style="text-align:center;">ANEXO 5 - ACTA DE ENTREGA DE ESTACIONAMIENTO</div></b></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><div class="fuente" style="text-align:center;"><u>El presente anexo será completado en la fecha de entrega de la Propiedad Arrendada.</u></div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>FRATERNA
-			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>,
-			en su carácter de <b>ARRENDADOR</b>, y por otra parte, la persona física <b>{{info.residente.nombre_arrendatario}}</b> en su carácter de
-			<b>ARRENDATARIO</b> respecto del siguiente cajón de estacionamiento:</div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><div class="fuente" style="text-align:center;"><b><u>INSERTAR PLANO DEL CAJÓN</u></b></div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Por lo que se levanta la presente <b>ACTA DE ENTREGA Y RECEPCIÓN</b>, para efecto de dar cumplimiento a lo
-			establecido en el citado Contrato de Arrendamiento, mediante el cual el <b>ARRENDADOR</b> se obligó a entregar al
-			<b>ARRENDATARIO</b> el cajón de estacionamiento a más tardar el día {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}}.</div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Por consiguiente, se hace constar que siendo las 13:00 horas del {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}},
-			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>,
-			en su carácter de <b>ARRENDADOR</b>, hace la entrega material y jurídica del cajón de estacionamiento descrito en el primer párrafo a
-			la persona física en su carácter de <b>ARRENDATARIO</b>, quien recibe la posesión material del mismo a su entera
-			conformidad.</div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Ambas partes manifiestan estar enteradas perfectamente del contenido y alcance de la presente acta
-			firmándola de conformidad, en la ciudad de Monterrey, Nuevo León, el día {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}}.</div></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-</table>
-
-<div class="row">
-	<div class="col fuente" style="text-align:center;"><b>“EL ARRENDADOR”</b></div>
-	<div class="col fuente" style="text-align:center;"><b>“EL ARRENDATARIO”</b></div>
-</div>
-<div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">Fraterna Administradora de Proyectos,</div>
-	<div class="col"></div>
-</div>
-<div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">S.A. DE C.V.</div>
-	<div class="col"></div>
-</div>
-
-<br><br><br><br><br><br>
-
-<div class="row">
-	<div class="col fuente" style="text-align:center;">____________________________________</div>
-	<div class="col fuente" style="text-align:center;">____________________________________</div>
-</div>
-<div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">Representado en este acto por medio de su apoderado legal: {{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</div>
-	<div class="col fuente" style="font-size:11px; text-align:center;">{{info.residente.nombre_arrendatario}}</div>
-</div>
-
-<!--fin de anexo 5-->
-
-<br><br><br>
-<div class="fuente anexo7-mant" style="margin-left: 0.07in;">
-	<div style="text-align:center;"><b>ANEXO 6 - LEVANTAMIENTO DE REPORTES</b></div>
-	<p>Los reportes deberán realizarse únicamente a través de los canales oficiales de la administración, siendo el único medio válido el correo electrónico: <b>admon@fraterna.mx</b></p>
-	<p><b>Todo reporte deberá incluir:</b></p>
-	<ul class="anexo7-lista-main">
-		<li>Número de departamento.</li>
-		<li>Descripción clara del problema.</li>
-		<li>Evidencia fotográfica (si aplica).</li>
-	</ul>
-	<p>En caso de que el reporte no cumpla con los requisitos anteriores, el Arrendador y/o la administración podrán abstenerse de darle trámite hasta en tanto sea debidamente integrado.</p>
-	<p>Una vez recibido el reporte, el Arrendador y/o la administración contará con un plazo máximo de 5 (cinco) días hábiles para confirmar su recepción, sin que dicha confirmación implique aceptación de responsabilidad ni procedencia del mismo.</p>
-	<p>La programación de cualquier visita de mantenimiento se realizará previa agenda y deberá efectuarse en presencia del Arrendatario y/o Residente, salvo autorización expresa de éste.</p>
-	<p>El Arrendador y/o la administración únicamente atenderán aquellos reportes que correspondan a obligaciones de mantenimiento a cargo del Arrendador, conforme a lo expresamente establecido en la Cláusula Décima Segunda del contrato.</p>
-	<p>El Arrendador y/o la administración se reservan el derecho de determinar, de manera fundada y conforme al contrato, si un reporte corresponde o no a un servicio de mantenimiento a cargo del Arrendador.</p>
-	<p><b>En caso de que el reporte no corresponda a los supuestos señalados:</b></p>
-	<ul class="anexo7-lista-main">
-		<li>No existirá obligación de atención por parte del Arrendador y/o la administración, cualquier gasto, reparación o gestión será responsabilidad exclusiva del Arrendatario y/o el Residente.</li>
-		<li>La orientación, sugerencias o apoyo que, en su caso, brinde la administración respecto de reportes improcedentes, no implicará reconocimiento de responsabilidad, ni generará obligación alguna a cargo del Arrendador y/o la administración.</li>
-	</ul>
-</div>
 
 <!--<img src="ar_logo.png" width=269 height=55>-->
 <br clear=left>

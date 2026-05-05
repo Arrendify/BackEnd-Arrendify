@@ -1112,10 +1112,16 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             "external_id": data["id"],                                         # ID opcional para enlazar con sistema externo
 
             "signers": [  # Lista de personas que deben firmar
+                # NOTA: signature_placement / rubrica_placement permiten posicionar firmas mediante anchors
+                # `<<tag>>` impresos (en color blanco) en el HTML del documento. Ver doc:
+                # https://docs.zapsign.com.br/english/signatarios/adicionar-signatario
+                # Los tags se aplican al documento completo; si NO existen en el PDF, ZapSign cae al
+                # método tradicional via `place-signatures` (coordenadas) que sigue activo para Manual UTO y otras secciones.
                 {
                     "name": "FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR CARLOS MANUEL PADILLA SILVA",
                     "phone_country": "52",
-
+                    "signature_placement": "<<firma_fraterna>>",
+                    "rubrica_placement": "<<rubrica_fraterna>>",
                 },
                 {
                     "name": singer["nombre_arrendatario"],
@@ -1124,6 +1130,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     "phone_number": singer["celular_arrendatario"],
                     "send_automatic_email": True,
                     "send_automatic_whatsapp": False,
+                    "signature_placement": "<<firma_arrendatario>>",
+                    "rubrica_placement": "<<rubrica_arrendatario>>",
                 },
                 {
                     "name": singer["nombre_residente"],
@@ -1132,6 +1140,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     "phone_number": singer["celular_residente"],
                     "send_automatic_email": True,
                     "send_automatic_whatsapp": False,
+                    "signature_placement": "<<firma_residente>>",
+                    "rubrica_placement": "<<rubrica_residente>>",
                 },
                 {
                     "name": "JONATHAN GUADARRAMA SALGADO",
@@ -1139,6 +1149,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     "phone_country": "52",
                     "phone_number": "5531398629",
                     "send_automatic_email": True,
+                    "signature_placement": "<<firma_testigo>>",
+                    "rubrica_placement": "<<rubrica_testigo>>",
                 }
                 # Campos extras para el firmante, consultar documentación, 
                 # ya que algunos tienen costos extra
@@ -1483,6 +1495,418 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     
+
+    # =========================================================================
+    # NUEVO FLUJO PAQUETE 1 / PAQUETE 2 (Fraterna)
+    # Paquete 1: Contrato + Póliza + Pagarés + Manual UTO  (firma primero)
+    # Paquete 2: Comodato + Anexos                          (firma después)
+    # =========================================================================
+
+    def _generar_anexos_interno(self, info):
+        """Genera el PDF solo de los anexos (1-6). Usado en Paquete 2."""
+        try:
+            opciones = {
+                'Loft':   "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/loft.png",
+                'Twin':   "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/double.png",
+                'Squad':  "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/master.png",
+                'Crew':   "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/crew.png",
+                'Party':  "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png",
+            }
+            inventario = {
+                'Loft':   "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.png",
+                'Twin':   "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.png",
+                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.png",
+                'Squad':  "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.png",
+                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.png",
+                'Crew':   "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.png",
+                'Party':  "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.png",
+            }
+            tipologia = info.tipologia
+            plano = opciones.get(tipologia, "")
+            tabla_inventario = inventario.get(tipologia, "")
+            plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
+
+            context = {
+                'info': info,
+                'plano': plano,
+                'plan_loc': plan_loc,
+                'tabla_inventario': tabla_inventario,
+            }
+            template = 'home/anexos_fraterna_v2.html'
+            html_string = render_to_string(template, context)
+            pdf_file = HTML(string=html_string).write_pdf()
+            return pdf_file
+        except Exception as e:
+            print(f"Error generando anexos interno: {e}")
+            raise e
+
+    def _generar_paquete_1_pdf(self, id_paq, pagare_distinto="No", cantidad_pagare="0"):
+        """Paquete 1 = Contrato + Póliza + Pagarés + Manual UTO. Devuelve (nombre, bytes, total_paginas)."""
+        total_paginas = {"arrendamiento": 0, "poliza": 0, "pagares": 0, "manual": 0}
+        locale.setlocale(locale.LC_ALL, "es_MX.utf8")
+
+        info = self.queryset.filter(id=id_paq).first()
+        if not info:
+            raise ValueError("Contrato no encontrado")
+
+        pdf_writer = PdfWriter()
+
+        # 1. Contrato (sin anexos)
+        contrato_pdf = self._generar_contrato_interno(info)
+        contrato_reader = PdfReader(io.BytesIO(contrato_pdf))
+        total_paginas["arrendamiento"] = len(contrato_reader.pages)
+        for page in contrato_reader.pages:
+            pdf_writer.add_page(page)
+
+        # 2. Póliza
+        poliza_pdf = self._generar_poliza_interno(info)
+        poliza_reader = PdfReader(io.BytesIO(poliza_pdf))
+        total_paginas["poliza"] = len(poliza_reader.pages)
+        for page in poliza_reader.pages:
+            pdf_writer.add_page(page)
+
+        # 3. Pagarés
+        pagare_pdf = self._generar_pagare_interno(info, pagare_distinto, cantidad_pagare)
+        pagare_reader = PdfReader(io.BytesIO(pagare_pdf))
+        total_paginas["pagares"] = len(pagare_reader.pages)
+        for page in pagare_reader.pages:
+            pdf_writer.add_page(page)
+
+        # 4. Manual UTO desde AWS
+        manual_url = "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/ManualUtower.pdf"
+        try:
+            response_manual = requests.get(manual_url, timeout=30)
+            response_manual.raise_for_status()
+            manual_reader = PdfReader(io.BytesIO(response_manual.content))
+            total_paginas["manual"] = len(manual_reader.pages)
+            for page in manual_reader.pages:
+                pdf_writer.add_page(page)
+        except Exception as e:
+            print(f"Error al descargar manual UTO: {e}")
+
+        output_pdf = io.BytesIO()
+        pdf_writer.write(output_pdf)
+        output_pdf.seek(0)
+
+        fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
+        nombre_archivo = f"Paquete_1_Fraterna_{info.residente.nombre_arrendatario}_{fecha_actual}.pdf"
+        return nombre_archivo, output_pdf.getvalue(), total_paginas
+
+    def _generar_paquete_2_pdf(self, id_paq):
+        """Paquete 2 = Comodato + Anexos. Devuelve (nombre, bytes, total_paginas)."""
+        total_paginas = {"comodato": 0, "anexos": 0}
+        locale.setlocale(locale.LC_ALL, "es_MX.utf8")
+
+        info = self.queryset.filter(id=id_paq).first()
+        if not info:
+            raise ValueError("Contrato no encontrado")
+
+        pdf_writer = PdfWriter()
+
+        # 1. Comodato
+        comodato_pdf = self._generar_comodato_interno(info)
+        comodato_reader = PdfReader(io.BytesIO(comodato_pdf))
+        total_paginas["comodato"] = len(comodato_reader.pages)
+        for page in comodato_reader.pages:
+            pdf_writer.add_page(page)
+
+        # 2. Anexos
+        anexos_pdf = self._generar_anexos_interno(info)
+        anexos_reader = PdfReader(io.BytesIO(anexos_pdf))
+        total_paginas["anexos"] = len(anexos_reader.pages)
+        for page in anexos_reader.pages:
+            pdf_writer.add_page(page)
+
+        output_pdf = io.BytesIO()
+        pdf_writer.write(output_pdf)
+        output_pdf.seek(0)
+
+        fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
+        nombre_archivo = f"Paquete_2_Fraterna_{info.residente.nombre_arrendatario}_{fecha_actual}.pdf"
+        return nombre_archivo, output_pdf.getvalue(), total_paginas
+
+    def armar_payload_firmas_paquete_1(self, signer_tokens, total_paginas, residente):
+        """Posiciones de firmas para Paquete 1: contrato + póliza + pagarés + manual."""
+        rubricas = []
+        offsets = {}
+        acumulador = 0
+        for nombre, paginas in total_paginas.items():
+            offsets[nombre] = acumulador
+            acumulador += paginas
+
+        posiciones_por_seccion = {"arrendamiento": [], "poliza": [], "pagares": [], "manual": []}
+
+        # Contrato (sin anexos): 3 firmas por página (izq-centro-der)
+        for i in range(total_paginas["arrendamiento"]):
+            posiciones_por_seccion["arrendamiento"].extend([
+                (i, 5.0, 5.0, 0),
+                (i, 5.0, 40.0, 1),
+                (i, 5.0, 75.0, 2),
+            ])
+
+        # Póliza: 3 firmas por página (signer 0, 1, 3)
+        for i in range(total_paginas["poliza"]):
+            posiciones_por_seccion["poliza"].extend([
+                (i, 5.0, 5.0, 0),
+                (i, 5.0, 40.0, 1),
+                (i, 5.0, 75.0, 3),
+            ])
+
+        # Pagarés: residente firma siempre; arrendatario solo si aval=Si y edad>=18
+        aval = residente.get("aval", "").strip()
+        edad = int(residente.get("edad", 0))
+        for i in range(total_paginas["pagares"]):
+            posiciones_por_seccion["pagares"].append((i, 16.0, 55.0, 2))
+            if aval == "Si" and edad >= 18:
+                posiciones_por_seccion["pagares"].append((i, 33.0, 55.0, 1))
+
+        # Manual UTO: 2 firmas por página
+        for i in range(total_paginas["manual"]):
+            posiciones_por_seccion["manual"].extend([
+                (i, 5.0, 55.0, 1),
+                (i, 5.0, 80.0, 2),
+            ])
+
+        for seccion, posiciones in posiciones_por_seccion.items():
+            offset = offsets[seccion]
+            for page, bottom, left, signer_index in posiciones:
+                if signer_index < len(signer_tokens):
+                    rubricas.append({
+                        "page": page + offset,
+                        "relative_position_bottom": bottom,
+                        "relative_position_left": left,
+                        "relative_size_x": 19.55,
+                        "relative_size_y": 9.42,
+                        "type": "signature",
+                        "signer_token": signer_tokens[signer_index],
+                    })
+        return {"rubricas": rubricas}
+
+    def armar_payload_firmas_paquete_2(self, signer_tokens, total_paginas, residente):
+        """Posiciones de firmas para Paquete 2: comodato + anexos.
+
+        Las firmas se colocan por DOBLE vía:
+          1. Coordenadas (este `place-signatures`): comodato en sus 6 posiciones específicas;
+             anexos con 3 firmas al fondo de cada página (izq-centro-der).
+          2. Anchors `<<firma_X>>` (ver `signature_placement` en `build_payload_to_zapsign`):
+             ZapSign los detecta automáticamente en los HTMLs y coloca firmas extras encima
+             de las líneas pre-impresas (Anexo 4 y 5 hoy; ampliable a contrato/comodato).
+        ZapSign acepta ambos sistemas en paralelo sin conflicto.
+        """
+        rubricas = []
+        offsets = {}
+        acumulador = 0
+        for nombre, paginas in total_paginas.items():
+            offsets[nombre] = acumulador
+            acumulador += paginas
+
+        posiciones_por_seccion = {
+            "comodato": [
+                (0, 1.5, 5.0, 0),
+                (0, 1.5, 75.0, 1),
+                (1, 13.0, 18.0, 0),
+                (1, 13.0, 65.0, 1),
+                (2, 5.0, 75.0, 1),
+                (3, 26.5, 18.0, 1),
+            ],
+            "anexos": [],
+        }
+
+        # Anexos: 3 firmas por página (mismo patrón que el contrato).
+        # Coexiste con anchors `<<firma_X>>` en Anexos 4/5 — ZapSign coloca ambas.
+        for i in range(total_paginas["anexos"]):
+            posiciones_por_seccion["anexos"].extend([
+                (i, 5.0, 5.0, 0),
+                (i, 5.0, 40.0, 1),
+                (i, 5.0, 75.0, 2),
+            ])
+
+        for seccion, posiciones in posiciones_por_seccion.items():
+            offset = offsets[seccion]
+            for page, bottom, left, signer_index in posiciones:
+                if signer_index < len(signer_tokens):
+                    rubricas.append({
+                        "page": page + offset,
+                        "relative_position_bottom": bottom,
+                        "relative_position_left": left,
+                        "relative_size_x": 19.55,
+                        "relative_size_y": 9.42,
+                        "type": "signature",
+                        "signer_token": signer_tokens[signer_index],
+                    })
+        return {"rubricas": rubricas}
+
+    def _subir_paquete_a_zapsign(self, contrato_data, armar_payload_firmas_fn, persistir_token=True):
+        """
+        Sube un paquete a ZapSign con la función de posicionamiento dada.
+        - persistir_token=True  → guarda doc_token en info.token (Paquete 1).
+        - persistir_token=False → solo lo retorna en la respuesta (Paquete 2; FraternaContratos solo tiene un campo token).
+        """
+        payload = self.build_payload_to_zapsign(contrato_data)
+        headers = {
+            'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}',
+            'Content-Type': 'application/json',
+        }
+        url = f'{API_URL_ZAPSIGN}docs/'
+
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            response.raise_for_status()
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = {"raw_response": response.text}
+
+            doc_token = response_data.get("token")
+            signer_tokens = [s.get("token") for s in response_data.get("signers", []) if s.get("token")]
+            if not doc_token:
+                raise ValueError("No se pudo obtener el token del documento desde la respuesta.")
+
+            if persistir_token:
+                info = self.queryset.filter(id=contrato_data["id"]).first()
+                if info:
+                    info.token = doc_token
+                    info.save()
+
+            rubricas_payload = armar_payload_firmas_fn(
+                signer_tokens, contrato_data["total_paginas"], contrato_data["residente"]
+            )
+            posicionar_url = f'{API_URL_ZAPSIGN}docs/{doc_token}/place-signatures/'
+            posicionar_response = requests.post(posicionar_url, headers=headers, json=rubricas_payload, timeout=60)
+            posicionar_response.raise_for_status()
+
+            return {
+                "payload": payload,
+                "doc_token": doc_token,
+                "zapsign_new_doc": response_data,
+                "rubricas_payload": rubricas_payload,
+                "rubricas_response": posicionar_response.text or "Sin contenido",
+            }
+        except requests.exceptions.Timeout:
+            print("Error: Tiempo de espera agotado al comunicar con ZapSign.")
+        except requests.exceptions.RequestException as e:
+            print(f"Error en la solicitud a Zap-Sign: {e}")
+        except Exception as e:
+            print(f"Error inesperado: {e}")
+        return None
+
+    def generar_anexos(self, request, *args, **kwargs):
+        """Endpoint utility: descarga PDF solo de los anexos."""
+        try:
+            data = request.data
+            id_paq = data["id"] if isinstance(data, dict) else data
+            info = self.queryset.filter(id=id_paq).first()
+            if not info:
+                return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+            pdf_file = self._generar_anexos_interno(info)
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="Anexos_Fraterna.pdf"'
+            response.write(pdf_file)
+            return response
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en generar_anexos línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def generar_paquete_1(self, request, *args, **kwargs):
+        """Descarga PDF del Paquete 1 (contrato + póliza + pagarés + manual)."""
+        try:
+            data = request.data
+            if isinstance(data, dict):
+                id_paq = data["id"]
+                pagare_distinto = data.get("pagare_distinto", "No")
+                cantidad_pagare = data.get("cantidad_pagare", "0")
+            else:
+                id_paq = data
+                pagare_distinto = "No"
+                cantidad_pagare = "0"
+
+            nombre_archivo, pdf_bytes, _ = self._generar_paquete_1_pdf(id_paq, pagare_distinto, cantidad_pagare)
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+            response.write(pdf_bytes)
+            return response
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en generar_paquete_1 línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def generar_paquete_2(self, request, *args, **kwargs):
+        """Descarga PDF del Paquete 2 (comodato + anexos)."""
+        try:
+            data = request.data
+            id_paq = data["id"] if isinstance(data, dict) else data
+
+            nombre_archivo, pdf_bytes, _ = self._generar_paquete_2_pdf(id_paq)
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+            response.write(pdf_bytes)
+            return response
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en generar_paquete_2 línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def generar_urls_firma_paquete_1(self, request, *args, **kwargs):
+        """Manda Paquete 1 a ZapSign. Persiste doc_token en info.token."""
+        try:
+            data = request.data
+            if not isinstance(data, dict):
+                return Response({'error': 'Se requiere id_contrato y residente_contrato'}, status=status.HTTP_400_BAD_REQUEST)
+            id_paq = data["id_contrato"]
+            pagare_distinto = data.get("pagare_distinto", "No")
+            cantidad_pagare = data.get("cantidad_pagare", "0")
+            residente = data["residente_contrato"]
+
+            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_1_pdf(id_paq, pagare_distinto, cantidad_pagare)
+            base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+
+            contrato_data = {
+                "id": id_paq,
+                "filename": nombre_archivo,
+                "base64_pfd": base64_pdf,
+                "residente": residente,
+                "total_paginas": total_paginas,
+            }
+            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_1, persistir_token=True)
+            return Response({"respuestaZS": resultado, "paquete": "1"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en generar_urls_firma_paquete_1 línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def generar_urls_firma_paquete_2(self, request, *args, **kwargs):
+        """Manda Paquete 2 a ZapSign. NO persiste el token (lo retorna en la respuesta para que la UI lo guarde)."""
+        try:
+            data = request.data
+            if not isinstance(data, dict):
+                return Response({'error': 'Se requiere id_contrato y residente_contrato'}, status=status.HTTP_400_BAD_REQUEST)
+            id_paq = data["id_contrato"]
+            residente = data["residente_contrato"]
+
+            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_2_pdf(id_paq)
+            base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+
+            contrato_data = {
+                "id": id_paq,
+                "filename": nombre_archivo,
+                "base64_pfd": base64_pdf,
+                "residente": residente,
+                "total_paginas": total_paginas,
+            }
+            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_2, persistir_token=False)
+            return Response({"respuestaZS": resultado, "paquete": "2"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en generar_urls_firma_paquete_2 línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    # =========================================================================
+    # FIN PAQUETE 1 / PAQUETE 2
+    # =========================================================================
 
     def _generar_comodato_interno(self, info):
         """Función interna para generar el PDF del comodato"""
