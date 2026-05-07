@@ -646,7 +646,7 @@
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">Fraterna Administradora de Proyectos, S.A. de C.V.</div></td>
 	</tr>
 	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">Representada por:</div></td>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">Representada por: {{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</div></td>
 	</tr>
 
 	<tr>
@@ -696,6 +696,13 @@
 			<div class="celdas">Inmueble: &quot;U TOWER&quot;, el cual se encuentra ubicado en Av. Don Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.</div>
 		</td>
 	</tr>
+	{% if info.tipologia and info.tipologia|cut:"-"|cut:" " %}
+	<tr>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
+			<div class="celdas">Tipología: {{ info.tipologia }}</div>
+		</td>
+	</tr>
+	{% endif %}
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
 			<div class="celdas">Departamento número: [MENCIONADO EN ANEXO 1]</div>
@@ -879,7 +886,7 @@
 			<div class="celdas">Del Arrendador:<br/>
 				El Arrendador señala expresa e irrevocablemente como su domicilio el del Inmueble, siendo este: Av. Don 
 				Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.<br/> 
-				Correo electrónico:  jcasados@fraterna.mx 
+				Correo electrónico:  legal@fraterna.mx
 			</div>
 		</td>
 	</tr>
@@ -959,7 +966,7 @@
 					<span class="firma-rol">El Arrendador</span>
 					<span class="firma-razon-social">FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</span>
 					<hr class="firma-linea" />
-					<span class="firma-nombre">{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</span>
+					<span class="firma-nombre">{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</span>
 					<span class="firma-calidad">Representante Legal</span>
 					<span style="color:white; font-size:6px;">&lt;&lt;firma_fraterna&gt;&gt;</span>
 				</div>

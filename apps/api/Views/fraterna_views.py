@@ -327,7 +327,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
         try:
             remitente = 'notificaciones@arrendify.com'
             # destinatario = 'jsepulvedaarrendify@gmail.com'
-            destinatario = 'jcasados@fraterna.mx'
+            destinatario = 'legal@fraterna.mx'
             # destinatario2 = 'juridico.arrendify1@gmail.com'
             destinatario2 = 'smosqueda@fraterna.mx'
             
@@ -895,6 +895,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             }
             
             tipologia = info.tipologia
+            plano = ""
+            tabla_inventario = ""
             if tipologia in opciones and tipologia in inventario:
                 plano = opciones[tipologia]
                 tabla_inventario = inventario[tipologia]
@@ -973,6 +975,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             }
             
             tipologia = info.tipologia
+            plano = ""
+            tabla_inventario = ""
             if tipologia in opciones and tipologia in inventario:
                 plano = opciones[tipologia]
                 tabla_inventario = inventario[tipologia]
@@ -2922,7 +2926,7 @@ class Arrendatarios_semilleroViewSet(viewsets.ModelViewSet):
         try:
             remitente = 'notificaciones@arrendify.com'
             # destinatario = 'jsepulvedaarrendify@gmail.com'
-            destinatario = 'jcasados@fraterna.mx'
+            destinatario = 'legal@fraterna.mx'
             # destinatario2 = 'juridico.arrendify1@gmail.com'
             destinatario2 = 'smosqueda@fraterna.mx'
             
@@ -4751,7 +4755,7 @@ class Arrendatarios_GarzaSadaViewSet(viewsets.ModelViewSet):
         try:
             remitente = 'notificaciones@arrendify.com'
             # destinatario = 'jsepulvedaarrendify@gmail.com'
-            destinatario = 'jcasados@fraterna.mx'
+            destinatario = 'legal@fraterna.mx'
             # destinatario2 = 'juridico.arrendify1@gmail.com'
             destinatario2 = 'smosqueda@fraterna.mx'
             

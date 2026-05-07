@@ -646,7 +646,7 @@
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">Fraterna Administradora de Proyectos, S.A. de C.V.</div></td>
 	</tr>
 	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">Representada por:</div></td>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">Representada por: {{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</div></td>
 	</tr>
 
 	<tr>
@@ -879,7 +879,7 @@
 			<div class="celdas">Del Arrendador:<br/>
 				El Arrendador señala expresa e irrevocablemente como su domicilio el del Inmueble, siendo este: Av. Don 
 				Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.<br/> 
-				Correo electrónico:  jcasados@fraterna.mx 
+				Correo electrónico:  legal@fraterna.mx
 			</div>
 		</td>
 	</tr>
@@ -959,7 +959,7 @@
 					<span class="firma-rol">El Arrendador</span>
 					<span class="firma-razon-social">FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</span>
 					<hr class="firma-linea" />
-					<span class="firma-nombre">{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</span>
+					<span class="firma-nombre">{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</span>
 					<span class="firma-calidad">Representante Legal</span>
 				</div>
 				<div class="firma-seccion">
@@ -1137,7 +1137,7 @@
 	</tr>
 	<tr>
 		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>FRATERNA 
-			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>, 
+			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>, 
 			en su carácter de <b>ARRENDADOR</b>, y por otra parte, la persona física <b> {{info.residente.nombre_arrendatario}} </b> en su carácter 
 			de <b>ARRENDATARIA</b> respecto del siguiente inmueble: </div></td>
 	</tr>
@@ -1205,7 +1205,7 @@
 	</tr>
 	<tr>
 		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Por consiguiente, se hace constar que siendo las 13:00 horas del {{info.fecha_move_in}}, 
-			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>, 
+			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>, 
 			en su carácter de <b>ARRENDADOR</b>, hace la entrega material y jurídica del inmueble descrito en el primer párrafo a 
 			la persona física en su carácter de <b>ARRENDATARIA</b>, quien recibe la posesión material del mismo a su entera 
 			conformidad. 
@@ -1253,7 +1253,7 @@
 	<div class="col"></div>
 </div>
 <div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</div>
+	<div class="col fuente" style="font-size:11px; text-align:center;">{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</div>
 	<div class="col"></div>
 </div>
 <!--Fin de la sexta tabla-->
@@ -1281,7 +1281,7 @@
 	</tr>
 	<tr>
 		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>FRATERNA
-			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>,
+			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>,
 			en su carácter de <b>ARRENDADOR</b>, y por otra parte, la persona física <b>{{info.residente.nombre_arrendatario}}</b> en su carácter de
 			<b>ARRENDATARIO</b> respecto del siguiente cajón de estacionamiento:</div></td>
 	</tr>
@@ -1304,7 +1304,7 @@
 	</tr>
 	<tr>
 		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Por consiguiente, se hace constar que siendo las 13:00 horas del {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}},
-			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</b>,
+			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por el señor <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>,
 			en su carácter de <b>ARRENDADOR</b>, hace la entrega material y jurídica del cajón de estacionamiento descrito en el primer párrafo a
 			la persona física en su carácter de <b>ARRENDATARIO</b>, quien recibe la posesión material del mismo a su entera
 			conformidad.</div></td>
@@ -1341,7 +1341,7 @@
 	<div class="col fuente" style="text-align:center;">____________________________________</div>
 </div>
 <div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">Representado en este acto por medio de su apoderado legal: {{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</div>
+	<div class="col fuente" style="font-size:11px; text-align:center;">Representado en este acto por medio de su apoderado legal: {{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</div>
 	<div class="col fuente" style="font-size:11px; text-align:center;">{{info.residente.nombre_arrendatario}}</div>
 </div>
 
@@ -1467,7 +1467,7 @@
 				&quot;FRATERNA ADMINISTRADORA DE<br />
 				PROYECTOS, S.A. DE C.V.&quot;<br />
 				REPRESENTADA POR<br />
-				<span class="anexo6-firma-nombre">{{ representante_fraterna|default:"Carlos Manuel Padilla Silva" }}</span>
+				<span class="anexo6-firma-nombre">{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</span>
 			</div>
 		</div>
 		<div class="anexo6-firma-col">

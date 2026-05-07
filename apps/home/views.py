@@ -552,6 +552,7 @@ def contrato_fraterna_pdf(request):
         'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png"
     }
     tipologia = info.tipologia
+    plano = ""
     if tipologia in opciones:
         plano = opciones[tipologia]
         print(f"Tu Tipologia es: {tipologia}, URL: {plano}")
