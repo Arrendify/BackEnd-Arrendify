@@ -291,3 +291,12 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 #ZAPSIGN
 API_TOKEN_ZAPSIGN = config("API_TOKEN_ZAPSIGN", "tu_clave_secreta")
 API_URL_ZAPSIGN = config("API_URL_ZAPSIGN", "https://api.zapsign.com.br")
+
+try:
+    from .local_settings import *  # noqa
+except ImportError:
+    pass
+
+# Extiende whitelist CORS con orígenes locales declarados en local_settings (si existen).
+# Permite mantener este archivo libre de URLs locales sin perder el dev local.
+CORS_ORIGIN_WHITELIST = tuple(CORS_ORIGIN_WHITELIST) + tuple(globals().get('LOCAL_EXTRA_CORS', ()))
