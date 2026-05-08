@@ -178,6 +178,37 @@
 			font-weight: bold;
 		  }
 
+		  /* Resaltado gris (background) replicando los párrafos sombreados de la referencia legal */
+		  .clausulas-bloque .clausula-resaltado {
+			background-color: #d9d9d9;
+		  }
+		  /* Resaltado verde brillante (highlighter) — Anexo 6 nuevo en Vigésima Cuarta */
+		  .clausulas-bloque .clausula-resaltado-verde {
+			background-color: #00ff00;
+		  }
+		  /* Párrafos del cuerpo subrayados + sombreado (referencia Décima Segunda intro) */
+		  .clausulas-bloque .clausula-p-subrayada {
+			text-decoration: underline;
+			background-color: #d9d9d9;
+		  }
+		  /* Sub-listas tipo a) b) c) d) con cierre paréntesis (referencia Quinta numerales 1-10) */
+		  .clausulas-bloque ol[type="a"] {
+			list-style: none;
+			counter-reset: list-alpha;
+			padding-left: 1.6em;
+		  }
+		  .clausulas-bloque ol[type="a"] > li {
+			counter-increment: list-alpha;
+			position: relative;
+		  }
+		  .clausulas-bloque ol[type="a"] > li::before {
+			content: counter(list-alpha, lower-alpha) ") ";
+			position: absolute;
+			left: -1.6em;
+			width: 1.4em;
+			text-align: left;
+		  }
+
 		  /* Firmas finales: orden vertical + testigos en dos columnas */
 		  .firmas-contrato-fraterna {
 			font-family: Arial, Helvetica, sans-serif;
@@ -204,7 +235,7 @@
 			border: none;
 			border-top: 1px solid #000;
 			width: 78%;
-			margin: 0.85em auto 0.5em auto;
+			margin: 3.2em auto 0.5em auto;
 		  }
 		  .firmas-contrato-fraterna .firma-nombre {
 			font-weight: bold;
@@ -244,7 +275,7 @@
 			border: none;
 			border-top: 1px solid #000;
 			width: 88%;
-			margin: 0 auto 0 auto;
+			margin: 3em auto 0 auto;
 		  }
 		  .firmas-contrato-fraterna .firma-testigo-bajo-linea {
 			margin-top: 0.75em;
@@ -688,7 +719,7 @@
 		<td style="border: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">MASCOTAS: NO APLICA</div></td>
 	</tr>
 	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in">PROPIEDAD ARRENDADA</div></td>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000;" class="table_headers1"  colspan=6 ><div style="margin-left: 0.07in; text-align: center;">PROPIEDAD<br/>ARRENDADA</div></td>
 	</tr>
 
 	<tr>
@@ -934,22 +965,10 @@
 			</div>
 		</td>
 	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
-		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
-	</tr>
-	<tr>
+		<tr>
+			<td height="14"></td>
+		</tr>
+		<tr>
 		<td height="21"  valign=middle><div class="fuente">Las Partes, sabedoras del alcance jurídico y material del presente Contrato lo firman a su entera conformidad 
 			ante la presencia de dos testigos que dan fe de su celebración y firma en la Fecha de Celebración según se 
 			establece en la Carátula, en la ciudad de Monterrey, Nuevo León.

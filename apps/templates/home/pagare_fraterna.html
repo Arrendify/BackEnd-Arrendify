@@ -55,10 +55,21 @@
     text-justify: inter-word;
   }
 
+  /* Cada pagaré ocupa su propia hoja; el último NO fuerza salto (evitar página en blanco final) */
+  .pagare-iteration {
+    display: block;
+  }
+  .pagare-iteration.pagare-page-break {
+    page-break-after: always;
+    -webkit-column-break-after: always;
+    break-after: page;
+  }
+
   </style>
 </head>
 <body>
   {% for mes,anio in lista_fechas %}
+  <div class="pagare-iteration{% if not forloop.last %} pagare-page-break{% endif %}">
   <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12 text-center">
@@ -115,7 +126,7 @@
                 <span class="justi" id="ref4">Debemos y pagaremos incondicionalmente por este pagaré a la orden de:</span>
             </p>
             <p>
-                <span class="justi negritas" id="ref4"><b>''FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR CARLOS MANUEL PADILLA SILVA</b></span>
+                <span class="justi negritas" id="ref4"><b>''FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR ALMA GABRIELA GRANADOS CASTILLO</b></span>
             </p>
             <br>
             <p id="ref8">
@@ -160,7 +171,7 @@
                 <span class="justi" id="ref4">Debemos y pagaremos incondicionalmente por este pagaré a la orden de:</span>
             </p>
             <p>
-                <span class="justi negritas" id="ref4"><b>''FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR CARLOS MANUEL PADILLA SILVA</b></span>
+                <span class="justi negritas" id="ref4"><b>''FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR ALMA GABRIELA GRANADOS CASTILLO</b></span>
             </p>
             <br>
             <p id="ref8">
@@ -225,8 +236,7 @@
         </div>
     </div>
 </div>
- 
- 
+ </div>
 {% endfor %}
 </body>
 </html>

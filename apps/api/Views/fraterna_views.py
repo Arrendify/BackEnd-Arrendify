@@ -718,101 +718,31 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
     def generar_pagare(self, request, *args, **kwargs):
+        """Descarga el PDF de pagarés. Lee `pagare_distinto` y `cantidad_primer_pagare`
+        del propio modelo (capturados en el form de creación/edición del contrato)."""
         try:
-            #activamos la libreri de locale para obtener el mes en español
             print("Generar Pagare Fraterna")
-            locale.setlocale(locale.LC_ALL,"es_MX.utf8")
-            id_paq = request.data["id"]
-            pagare_distinto = request.data["pagare_distinto"]
-            
-            if pagare_distinto == "Si":
-                if "." not in request.data["cantidad_pagare"]:
-                    print("no hay yaya pagare")
-                    cantidad_pagare = request.data["cantidad_pagare"]
-                    cantidad_decimal = "00"
-                    cantidad_letra = num2words(cantidad_pagare, lang='es')
-                
-                else:
-                    cantidad_completa = request.data["cantidad_pagare"].split(".")
-                    cantidad_pagare = cantidad_completa[0]
-                    cantidad_decimal = cantidad_completa[1]
-                    cantidad_letra = num2words(cantidad_pagare, lang='es')
-            else:
-                cantidad_pagare = 0
-                cantidad_decimal = "00"
-                cantidad_letra = num2words(cantidad_pagare, lang='es')
-            
-            print(pagare_distinto)
-            print(cantidad_pagare)   
+            locale.setlocale(locale.LC_ALL, "es_MX.utf8")
+            data = request.data
+            id_paq = data["id"] if isinstance(data, dict) else data
 
-            # id_paq = request.data
-            print("el id que llega", id_paq)
-            info = self.queryset.filter(id = id_paq).first()
-            print(info.__dict__)       
-            # Definir la fecha inicial
-            fecha_inicial = info.fecha_move_in
-            print(fecha_inicial)
-            #fecha_inicial = datetime(2024, 3, 20)
-            #checar si cambiar el primer dia o algo asi
-            # fecha inicial move in
-            dia = fecha_inicial.day
-            
-            # Definir la duración en meses
-            duracion_meses = info.duracion.split()
-            duracion_meses = int(duracion_meses[0])
-            print("duracion en meses",duracion_meses)
-            # Calcular la fecha final
-            fecha_final = fecha_inicial + relativedelta(months=duracion_meses)
-            # Lista para almacenar las fechas iteradas (solo meses y años)
-            fechas_iteradas = []
-            # Iterar sobre todos los meses entre la fecha inicial y la fecha final
-            while fecha_inicial < fecha_final:
-                nombre_mes = fecha_inicial.strftime("%B")  # %B da el nombre completo del mes
-                print("fecha",fecha_inicial.year)
-                fechas_iteradas.append((nombre_mes.capitalize(),fecha_inicial.year))      
-                fecha_inicial += relativedelta(months=1)
-            
-            print("fechas_iteradas",fechas_iteradas)
-            # Imprimir la lista de fechas iteradas
-            for month, year in fechas_iteradas:
-                print(f"Año: {year}, Mes: {month}")
-            
-            #obtenermos la renta para pasarla a letra
-            if "." not in info.renta:
-                print("no hay yaya")
-                number = int(info.renta)
-                renta_decimal = "00"
-                text_representation = num2words(number, lang='es').capitalize()
-               
-            else:
-                print("tengo punto en renta")
-                renta_completa = info.renta.split(".")
-                info.renta = renta_completa[0]
-                renta_decimal = renta_completa[1]
-                text_representation = num2words(renta_completa[0], lang='es').capitalize()
+            info = self.queryset.filter(id=id_paq).first()
+            if not info:
+                return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-            # 'es' para español, puedes cambiarlo según el idioma deseado
-            
-            context = {'info': info, 'dia':dia ,'lista_fechas':fechas_iteradas, 'text_representation':text_representation, 'duracion_meses':duracion_meses, 'pagare_distinto':pagare_distinto , 'cantidad_pagare':cantidad_pagare, 'cantidad_letra':cantidad_letra, 'cantidad_decimal':cantidad_decimal, 'renta_decimal':renta_decimal}
-            
-            template = 'home/pagare_fraterna.html'
-            html_string = render_to_string(template, context)
+            # `_generar_pagare_interno` lee `pagare_distinto` y `cantidad_primer_pagare` del modelo
+            pdf_file = self._generar_pagare_interno(info)
 
-            # Genera el PDF utilizando weasyprint
-            pdf_file = HTML(string=html_string).write_pdf()
-
-            # Devuelve el PDF como respuesta
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
             response.write(pdf_file)
-
             return HttpResponse(response, content_type='application/pdf')
-    
+
         except Exception as e:
             print(f"el error es: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
-            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def generar_poliza(self, request, *args, **kwargs):
         try:
@@ -1006,23 +936,39 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
     
-    def _generar_paquete_fraterna_pdf(self, id_paq, pagare_distinto="No", cantidad_pagare="0"):
+    def _generar_paquete_fraterna_pdf(self, id_paq, pagare_distinto=None, cantidad_pagare=None):
         """
-        Función auxiliar que genera un paquete PDF combinado con los siguientes documentos:
-        1. Comodato
-        2. Contrato
-        3. Manual UTO (descargado desde AWS)
-        4. Póliza
-        5. Pagarés
+        Paquete COMPLETO = Paquete 1 + Paquete 2 concatenados.
 
-        Parámetros:
-            - id_paq: ID del contrato
-            - pagare_distinto: "Sí" o "No"
-            - cantidad_pagare: Cantidad de pagarés si aplica
+        Orden final del PDF:
+            Paquete 1: Contrato → Póliza → Manual UTO → Pagarés
+            Paquete 2: Comodato → Anexos
 
-        Devuelve:
-            - tuple: (nombre_archivo, bytes del PDF combinado)
+        Devuelve: (nombre_archivo, bytes del PDF combinado, total_paginas)
         """
+        _, pdf_p1, total_p1 = self._generar_paquete_1_pdf(id_paq, pagare_distinto, cantidad_pagare)
+        _, pdf_p2, total_p2 = self._generar_paquete_2_pdf(id_paq)
+
+        pdf_writer = PdfWriter()
+        for page in PdfReader(io.BytesIO(pdf_p1)).pages:
+            pdf_writer.add_page(page)
+        for page in PdfReader(io.BytesIO(pdf_p2)).pages:
+            pdf_writer.add_page(page)
+
+        output_pdf = io.BytesIO()
+        pdf_writer.write(output_pdf)
+        output_pdf.seek(0)
+
+        info = self.queryset.filter(id=id_paq).first()
+        nombre_inquilino = info.residente.nombre_arrendatario if info and info.residente else "contrato"
+        fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
+        nombre_archivo = f"Paquete_Completo_Fraterna_{nombre_inquilino}_{fecha_actual}.pdf"
+        total_paginas = {**total_p1, **total_p2}
+        return nombre_archivo, output_pdf.getvalue(), total_paginas
+
+    def _generar_paquete_fraterna_pdf_legacy(self, id_paq, pagare_distinto="No", cantidad_pagare="0"):
+        """LEGACY (no usado por el endpoint actual). Versión antigua del paquete combinado.
+        Se mantiene por si se requiere el orden viejo (Comodato + Contrato + Manual + Póliza + Pagarés)."""
         # Guardar el registro de paginas totales para usar en coordenadas de firmantes
         total_paginas = {
             "comodato": 0,
@@ -1122,7 +1068,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 # Los tags se aplican al documento completo; si NO existen en el PDF, ZapSign cae al
                 # método tradicional via `place-signatures` (coordenadas) que sigue activo para Manual UTO y otras secciones.
                 {
-                    "name": "FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR CARLOS MANUEL PADILLA SILVA",
+                    "name": "FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR ALMA GABRIELA GRANADOS CASTILLO",
                     "phone_country": "52",
                     "signature_placement": "<<firma_fraterna>>",
                     "rubrica_placement": "<<rubrica_fraterna>>",
@@ -1416,21 +1362,15 @@ class Contratos_fraterna(viewsets.ModelViewSet):
 
     def generar_paquete_completo_fraterna(self, request, *args, **kwargs):
         """
-        Devuelve el paquete combinado en formato PDF descargable para visualizar en el front.
+        Devuelve el paquete completo (P1 + P2) en formato PDF descargable.
+        `pagare_distinto` y `cantidad_primer_pagare` se leen del modelo del contrato.
         """
         try:
             print("Generando paquete completo Fraterna")
             data = request.data
-            if isinstance(data, dict):
-                id_paq = data["id"]
-                pagare_distinto = data.get("pagare_distinto", "No")
-                cantidad_pagare = data.get("cantidad_pagare", "0")
-            else:
-                id_paq = data
-                pagare_distinto = "No"
-                cantidad_pagare = "0"
+            id_paq = data["id"] if isinstance(data, dict) else data
 
-            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_fraterna_pdf(id_paq, pagare_distinto, cantidad_pagare)
+            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_fraterna_pdf(id_paq)
 
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
@@ -1546,9 +1486,11 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print(f"Error generando anexos interno: {e}")
             raise e
 
-    def _generar_paquete_1_pdf(self, id_paq, pagare_distinto="No", cantidad_pagare="0"):
-        """Paquete 1 = Contrato + Póliza + Pagarés + Manual UTO. Devuelve (nombre, bytes, total_paginas)."""
-        total_paginas = {"arrendamiento": 0, "poliza": 0, "pagares": 0, "manual": 0}
+    def _generar_paquete_1_pdf(self, id_paq, pagare_distinto=None, cantidad_pagare=None):
+        """Paquete 1 = Contrato + Póliza + Manual UTO + Pagarés (al final, sin firmas ZapSign).
+        `pagare_distinto`/`cantidad_pagare` opcionales: si vienen None se leen del modelo.
+        Devuelve (nombre, bytes, total_paginas)."""
+        total_paginas = {"arrendamiento": 0, "poliza": 0, "manual": 0, "pagares": 0}
         locale.setlocale(locale.LC_ALL, "es_MX.utf8")
 
         info = self.queryset.filter(id=id_paq).first()
@@ -1571,14 +1513,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         for page in poliza_reader.pages:
             pdf_writer.add_page(page)
 
-        # 3. Pagarés
-        pagare_pdf = self._generar_pagare_interno(info, pagare_distinto, cantidad_pagare)
-        pagare_reader = PdfReader(io.BytesIO(pagare_pdf))
-        total_paginas["pagares"] = len(pagare_reader.pages)
-        for page in pagare_reader.pages:
-            pdf_writer.add_page(page)
-
-        # 4. Manual UTO desde AWS
+        # 3. Manual UTO desde AWS
         manual_url = "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/ManualUtower.pdf"
         try:
             response_manual = requests.get(manual_url, timeout=30)
@@ -1589,6 +1524,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 pdf_writer.add_page(page)
         except Exception as e:
             print(f"Error al descargar manual UTO: {e}")
+
+        # 4. Pagarés (al final, sin firmas ZapSign — ver armar_payload_firmas_paquete_1)
+        pagare_pdf = self._generar_pagare_interno(info, pagare_distinto, cantidad_pagare)
+        pagare_reader = PdfReader(io.BytesIO(pagare_pdf))
+        total_paginas["pagares"] = len(pagare_reader.pages)
+        for page in pagare_reader.pages:
+            pdf_writer.add_page(page)
 
         output_pdf = io.BytesIO()
         pdf_writer.write(output_pdf)
@@ -1632,7 +1574,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         return nombre_archivo, output_pdf.getvalue(), total_paginas
 
     def armar_payload_firmas_paquete_1(self, signer_tokens, total_paginas, residente):
-        """Posiciones de firmas para Paquete 1: contrato + póliza + pagarés + manual."""
+        """Posiciones de firmas para Paquete 1: contrato + póliza + manual + pagarés.
+        Los pagarés van INCLUIDOS en el PDF pero SIN firmas ZapSign (decisión legal/operativa)."""
         rubricas = []
         offsets = {}
         acumulador = 0
@@ -1640,7 +1583,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             offsets[nombre] = acumulador
             acumulador += paginas
 
-        posiciones_por_seccion = {"arrendamiento": [], "poliza": [], "pagares": [], "manual": []}
+        posiciones_por_seccion = {"arrendamiento": [], "poliza": [], "manual": [], "pagares": []}
 
         # Contrato (sin anexos): 3 firmas por página (izq-centro-der)
         for i in range(total_paginas["arrendamiento"]):
@@ -1658,20 +1601,16 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 (i, 5.0, 75.0, 3),
             ])
 
-        # Pagarés: residente firma siempre; arrendatario solo si aval=Si y edad>=18
-        aval = residente.get("aval", "").strip()
-        edad = int(residente.get("edad", 0))
-        for i in range(total_paginas["pagares"]):
-            posiciones_por_seccion["pagares"].append((i, 16.0, 55.0, 2))
-            if aval == "Si" and edad >= 18:
-                posiciones_por_seccion["pagares"].append((i, 33.0, 55.0, 1))
-
         # Manual UTO: 2 firmas por página
         for i in range(total_paginas["manual"]):
             posiciones_por_seccion["manual"].extend([
                 (i, 5.0, 55.0, 1),
                 (i, 5.0, 80.0, 2),
             ])
+
+        # Pagarés: SIN firmas ZapSign — pero las páginas están en el PDF al final.
+        # (residente sigue siendo signer 2 si en el futuro se quieren reactivar)
+        _ = residente  # silenciar lint, no se usa con la decisión actual
 
         for seccion, posiciones in posiciones_por_seccion.items():
             offset = offsets[seccion]
@@ -1816,19 +1755,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def generar_paquete_1(self, request, *args, **kwargs):
-        """Descarga PDF del Paquete 1 (contrato + póliza + pagarés + manual)."""
+        """Descarga PDF del Paquete 1 (contrato + póliza + manual + pagarés).
+        `pagare_distinto` y `cantidad_primer_pagare` se leen del modelo del contrato."""
         try:
             data = request.data
-            if isinstance(data, dict):
-                id_paq = data["id"]
-                pagare_distinto = data.get("pagare_distinto", "No")
-                cantidad_pagare = data.get("cantidad_pagare", "0")
-            else:
-                id_paq = data
-                pagare_distinto = "No"
-                cantidad_pagare = "0"
+            id_paq = data["id"] if isinstance(data, dict) else data
 
-            nombre_archivo, pdf_bytes, _ = self._generar_paquete_1_pdf(id_paq, pagare_distinto, cantidad_pagare)
+            nombre_archivo, pdf_bytes, _ = self._generar_paquete_1_pdf(id_paq)
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
             response.write(pdf_bytes)
@@ -1855,17 +1788,16 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def generar_urls_firma_paquete_1(self, request, *args, **kwargs):
-        """Manda Paquete 1 a ZapSign. Persiste doc_token en info.token."""
+        """Manda Paquete 1 a ZapSign. Persiste doc_token en info.token.
+        Lee pagare_distinto/cantidad del modelo del contrato."""
         try:
             data = request.data
             if not isinstance(data, dict):
                 return Response({'error': 'Se requiere id_contrato y residente_contrato'}, status=status.HTTP_400_BAD_REQUEST)
             id_paq = data["id_contrato"]
-            pagare_distinto = data.get("pagare_distinto", "No")
-            cantidad_pagare = data.get("cantidad_pagare", "0")
             residente = data["residente_contrato"]
 
-            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_1_pdf(id_paq, pagare_distinto, cantidad_pagare)
+            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_1_pdf(id_paq)
             base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
 
             contrato_data = {
@@ -2069,9 +2001,19 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print(f"Error generando póliza interna: {e}")
             raise e
     
-    def _generar_pagare_interno(self, info, pagare_distinto, cantidad_pagare):
-        """Función interna para generar el PDF del pagaré"""
+    def _generar_pagare_interno(self, info, pagare_distinto=None, cantidad_pagare=None):
+        """Función interna para generar el PDF del pagaré.
+
+        Args opcionales para compatibilidad con llamadas viejas. Si no vienen,
+        se leen del propio modelo (`info.pagare_distinto` y `info.cantidad_primer_pagare`).
+        """
         try:
+            # Si no se pasaron explícitos, leer del modelo
+            if pagare_distinto is None:
+                pagare_distinto = (info.pagare_distinto or "No")
+            if cantidad_pagare is None:
+                cantidad_pagare = (info.cantidad_primer_pagare or "0")
+
             # Procesar cantidad del pagaré
             if pagare_distinto == "Si":
                 if "." not in str(cantidad_pagare):
@@ -2091,22 +2033,25 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             # Definir la fecha inicial
             fecha_inicial = info.fecha_move_in
             dia = fecha_inicial.day
-            
-            # Definir la duración en meses
-            duracion_meses = info.duracion.split()
-            duracion_meses = int(duracion_meses[0])
-            
-            # Calcular la fecha final
-            fecha_final = fecha_inicial + relativedelta(months=duracion_meses)
-            
-            # Lista para almacenar las fechas iteradas
+
+            # Duración en meses (lo que dice el contrato — fuente autoritativa para "X de N")
+            try:
+                duracion_meses = int(info.duracion.split()[0])
+            except (ValueError, AttributeError, IndexError):
+                duracion_meses = 0
+
+            # Generar 1 pagaré por cada mes según `duracion_meses`.
+            # Para contratos cortos (< 1 mes) generamos exactamente 1 pagaré que cubre el periodo.
             fechas_iteradas = []
-            fecha_temp = fecha_inicial
-            
-            while fecha_temp < fecha_final:
-                nombre_mes = fecha_temp.strftime("%B")
-                fechas_iteradas.append((nombre_mes.capitalize(), fecha_temp.year))
-                fecha_temp += relativedelta(months=1)
+            num_pagares = duracion_meses if duracion_meses > 0 else 1
+            for offset in range(num_pagares):
+                fecha_pagare = fecha_inicial + relativedelta(months=offset)
+                nombre_mes = fecha_pagare.strftime("%B")
+                fechas_iteradas.append((nombre_mes.capitalize(), fecha_pagare.year))
+
+            # Asegurar que `duracion_meses` (usado para mostrar "1 de N") nunca sea 0
+            if duracion_meses == 0:
+                duracion_meses = num_pagares
             
             # Obtener la renta para pasarla a letra
             if "." not in info.renta:
@@ -6576,7 +6521,7 @@ class Contratos_GarzaSada(viewsets.ModelViewSet):
         
         # Firmante 0: Fraterna (representa a Garza Sada)
         firmantes.append({
-            "name": "FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR CARLOS MANUEL PADILLA SILVA",
+            "name": "FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.'' REPRESENTADA POR ALMA GABRIELA GRANADOS CASTILLO",
             "phone_country": "52",
             # TODO: Agregar email y teléfono del representante de Garza Sada
         })

@@ -2112,7 +2112,12 @@ class FraternaContratos(models.Model):
 
     plano_localizacion = models.FileField(null=True, blank=True, upload_to=get_plano_upload_path, max_length=255)
     token = models.CharField(max_length = 100, null = True, blank = True)
-    
+
+    # Pagaré: configuración persistente (antes capturada vía modal en propuesta.html)
+    # pagare_distinto = "Si" si el primer pagaré tiene un monto distinto al resto (típicamente prorrateo del primer mes)
+    pagare_distinto = models.CharField(max_length=2, null=True, blank=True, default="No")
+    cantidad_primer_pagare = models.CharField(max_length=20, null=True, blank=True)
+
     class Meta:
             db_table = 'fraterna_contrato'
     
