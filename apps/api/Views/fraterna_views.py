@@ -7442,14 +7442,145 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'inline; filename="Pagare.pdf"'
             response.write(pdf_file)
-            print("Finalizamos el proceso de aprobado") 
+            print("Finalizamos el proceso de aprobado")
             return response
-        
+
         except Exception as e:
             print(f"el error es: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
-            return Response({'error': str(e)}, status = "404")  
-        
-        
+            return Response({'error': str(e)}, status = "404")
+
+
+class DepartamentosFraterna(viewsets.ViewSet):
+    """Vista agregada de departamentos Fraterna a partir de DISTINCT no_depa.
+
+    list: cada depto con su estado actual (ocupado / reservado / disponible),
+          residente y fecha de salida del contrato vigente si aplica.
+    retrieve: historial de contratos del depto (lookup por no_depa).
+    """
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    lookup_value_regex = '[^/]+'
+
+    @staticmethod
+    def _residente_nombre(residente):
+        if not residente:
+            return None
+        return (
+            getattr(residente, 'nombre_arrendatario', None)
+            or getattr(residente, 'nombre_empresa_pm', None)
+            or getattr(residente, 'nombre_residente', None)
+            or None
+        )
+
+    @staticmethod
+    def _ultimo_status(contrato):
+        proc = ProcesoContrato.objects.filter(contrato=contrato).order_by('-fecha', '-id').first()
+        return (proc.status_proceso or '').strip() if proc else ''
+
+    def list(self, request, *args, **kwargs):
+        try:
+            today = date.today()
+
+            deptos = (
+                FraternaContratos.objects
+                .exclude(no_depa__isnull=True)
+                .exclude(no_depa__exact='')
+                .values_list('no_depa', flat=True)
+                .distinct()
+            )
+
+            result = []
+            for no_depa in deptos:
+                vigente = (
+                    FraternaContratos.objects
+                    .filter(no_depa=no_depa)
+                    .filter(fecha_move_in__lte=today, fecha_move_out__gte=today)
+                    .select_related('residente')
+                    .order_by('-fecha_celebracion', '-id')
+                    .first()
+                )
+
+                estado = 'disponible'
+                residente_nombre = None
+                fecha_fin = None
+                contrato_id = None
+                status_v = ''
+
+                if vigente:
+                    status_v = self._ultimo_status(vigente)
+                    s_lower = status_v.lower()
+                    if s_lower == 'aprobado':
+                        estado = 'ocupado'
+                    elif s_lower in ('en revision', 'en revisión'):
+                        estado = 'reservado'
+                    else:
+                        # vigente por fechas pero sin proceso 'Aprobado': lo tratamos como reservado
+                        estado = 'reservado'
+
+                    residente_nombre = self._residente_nombre(vigente.residente)
+                    fecha_fin = vigente.fecha_move_out
+                    contrato_id = vigente.id
+
+                result.append({
+                    'no_depa': no_depa,
+                    'estado': estado,
+                    'residente_nombre': residente_nombre,
+                    'fecha_fin': fecha_fin,
+                    'contrato_id': contrato_id,
+                    'status_proceso': status_v or None,
+                })
+
+            orden_estado = {'ocupado': 0, 'reservado': 1, 'disponible': 2}
+            result.sort(key=lambda x: (orden_estado[x['estado']], x['no_depa']))
+
+            resumen = {
+                'total': len(result),
+                'ocupados': sum(1 for r in result if r['estado'] == 'ocupado'),
+                'reservados': sum(1 for r in result if r['estado'] == 'reservado'),
+                'disponibles': sum(1 for r in result if r['estado'] == 'disponible'),
+            }
+
+            return Response({'resumen': resumen, 'departamentos': result}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"error en DepartamentosFraterna.list: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        try:
+            no_depa = pk
+            contratos = (
+                FraternaContratos.objects
+                .filter(no_depa=no_depa)
+                .select_related('residente')
+                .order_by('-fecha_celebracion', '-id')
+            )
+
+            data = []
+            for c in contratos:
+                data.append({
+                    'id': c.id,
+                    'residente_nombre': self._residente_nombre(c.residente),
+                    'residente_id': c.residente_id,
+                    'fecha_celebracion': c.fecha_celebracion,
+                    'fecha_vigencia': c.fecha_vigencia,
+                    'fecha_move_in': c.fecha_move_in,
+                    'fecha_move_out': c.fecha_move_out,
+                    'duracion': c.duracion,
+                    'renta': c.renta,
+                    'status_proceso': self._ultimo_status(c) or None,
+                })
+
+            return Response({'no_depa': no_depa, 'contratos': data}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"error en DepartamentosFraterna.retrieve: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 ########################## G A R Z A  S A D A ######################################
