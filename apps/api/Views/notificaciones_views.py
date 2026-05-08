@@ -24,12 +24,28 @@ class NotificacionViewSet(viewsets.ModelViewSet):
 
     ADMIN_USERNAMES = {"GarzaSada", "Fraterna", "SemilleroPurisima", "ElbaJ", "AngelinaCastillo"}
 
+    # Mapeo a tipo_contrato del modelo Notificacion. `pertenece_a` es la fuente real
+    # (cubre admins normales/agentes asignados a un tenant); `username` es fallback
+    # para las cuentas paraguas (Fraterna/GarzaSada/SemilleroPurisima) cuyo pertenece_a es None.
+    TENANT_BY_PERTENECE_A = {
+        "Fraterna": "fraterna",
+        "GarzaSada": "garzasada",
+        "SemilleroPurisima": "semillero",
+    }
+    TENANT_BY_USERNAME = {
+        "Fraterna": "fraterna",
+        "GarzaSada": "garzasada",
+        "SemilleroPurisima": "semillero",
+    }
+
     def get_queryset(self):
         """Notificaciones visibles para el usuario autenticado.
 
         - Sin usuario autenticado: nada.
-        - Admin (staff o username en ADMIN_USERNAMES): ve todas las del tenant
-          siguiendo el patrón previo (oculta_admin=False salvo ?incluir_ocultas=1).
+        - Superuser: ve todas (con regla oculta_admin).
+        - Admin de tenant (staff o username en ADMIN_USERNAMES): solo las de
+          su tipo_contrato según TENANT_BY_USERNAME / TENANT_BY_PERTENECE_A.
+          Si no hay mapping, ve todas (staff Arrendify global).
         - Usuario regular: solo las suyas (filter user=request.user).
         """
         qs = Notificacion.objects.all().order_by('-fecha_creacion')
@@ -38,8 +54,17 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         if not user or not getattr(user, 'is_authenticated', False):
             return qs.none()
 
-        es_admin = bool(getattr(user, 'is_staff', False)) or getattr(user, 'username', None) in self.ADMIN_USERNAMES
+        username = getattr(user, 'username', None)
+        es_admin = bool(getattr(user, 'is_staff', False)) or username in self.ADMIN_USERNAMES
+
         if es_admin:
+            if not getattr(user, 'is_superuser', False):
+                tenant = (
+                    self.TENANT_BY_PERTENECE_A.get(getattr(user, 'pertenece_a', None))
+                    or self.TENANT_BY_USERNAME.get(username)
+                )
+                if tenant:
+                    qs = qs.filter(tipo_contrato=tenant)
             incluir_ocultas = req.query_params.get('incluir_ocultas') if req else None
             if not incluir_ocultas:
                 qs = qs.filter(oculta_admin=False)
