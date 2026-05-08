@@ -22,19 +22,30 @@ class NotificacionViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
+    ADMIN_USERNAMES = {"GarzaSada", "Fraterna", "SemilleroPurisima", "ElbaJ", "AngelinaCastillo"}
+
     def get_queryset(self):
-        """Obtiene todas las notificaciones de la tabla con reglas para admin"""
+        """Notificaciones visibles para el usuario autenticado.
+
+        - Sin usuario autenticado: nada.
+        - Admin (staff o username en ADMIN_USERNAMES): ve todas las del tenant
+          siguiendo el patrón previo (oculta_admin=False salvo ?incluir_ocultas=1).
+        - Usuario regular: solo las suyas (filter user=request.user).
+        """
         qs = Notificacion.objects.all().order_by('-fecha_creacion')
-        # Si es "admin" (por username), por defecto ocultar las marcadas como oculta_admin, a menos que pida incluirlas
-        try:
-            req = getattr(self, 'request', None)
-            if req and getattr(req, 'user', None) and (getattr(req.user, 'is_staff', False) or getattr(req.user, 'username', None) in {"GarzaSada", "Fraterna", "SemilleroPurisima", "ElbaJ", "AngelinaCastillo"}):
-                incluir_ocultas = req.query_params.get('incluir_ocultas')
-                if not incluir_ocultas:
-                    qs = qs.filter(oculta_admin=False)
-        except Exception:
-            pass
-        return qs
+        req = getattr(self, 'request', None)
+        user = getattr(req, 'user', None) if req else None
+        if not user or not getattr(user, 'is_authenticated', False):
+            return qs.none()
+
+        es_admin = bool(getattr(user, 'is_staff', False)) or getattr(user, 'username', None) in self.ADMIN_USERNAMES
+        if es_admin:
+            incluir_ocultas = req.query_params.get('incluir_ocultas') if req else None
+            if not incluir_ocultas:
+                qs = qs.filter(oculta_admin=False)
+            return qs
+
+        return qs.filter(user=user)
 
     @action(detail=False, methods=['post'], url_path='crear_comunicado')
     def crear_comunicado(self, request):
@@ -73,14 +84,12 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         return Response(ser.data, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
-        """Lista todas las notificaciones de la tabla completa"""
+        """Lista las notificaciones visibles para el usuario autenticado."""
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        """Por el momento de manda ninguna data por aqui"""
-        return Response({"Notificaciones": "Sin notificaciones"})
         return Response({
             'count': queryset.count(),
-            'results': serializer.data
+            'results': serializer.data,
         })
 
     @action(detail=False, methods=['get'])
