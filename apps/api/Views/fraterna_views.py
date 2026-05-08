@@ -1681,11 +1681,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     })
         return {"rubricas": rubricas}
 
-    def _subir_paquete_a_zapsign(self, contrato_data, armar_payload_firmas_fn, persistir_token=True):
+    def _subir_paquete_a_zapsign(self, contrato_data, armar_payload_firmas_fn, persistir_token=True, campo_token='token'):
         """
         Sube un paquete a ZapSign con la función de posicionamiento dada.
-        - persistir_token=True  → guarda doc_token en info.token (Paquete 1).
-        - persistir_token=False → solo lo retorna en la respuesta (Paquete 2; FraternaContratos solo tiene un campo token).
+        - persistir_token=True (default) → guarda doc_token en `info.<campo_token>`.
+        - campo_token='token'           → Paquete 1 (default).
+        - campo_token='token_paquete_2' → Paquete 2.
+        - persistir_token=False         → solo lo retorna en la respuesta (legacy).
         """
         payload = self.build_payload_to_zapsign(contrato_data)
         headers = {
@@ -1710,7 +1712,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             if persistir_token:
                 info = self.queryset.filter(id=contrato_data["id"]).first()
                 if info:
-                    info.token = doc_token
+                    setattr(info, campo_token, doc_token)
                     info.save()
 
             rubricas_payload = armar_payload_firmas_fn(
@@ -1815,7 +1817,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def generar_urls_firma_paquete_2(self, request, *args, **kwargs):
-        """Manda Paquete 2 a ZapSign. NO persiste el token (lo retorna en la respuesta para que la UI lo guarde)."""
+        """Manda Paquete 2 a ZapSign y persiste el doc_token en `FraternaContratos.token_paquete_2`."""
         try:
             data = request.data
             if not isinstance(data, dict):
@@ -1833,7 +1835,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 "residente": residente,
                 "total_paginas": total_paginas,
             }
-            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_2, persistir_token=False)
+            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_2, persistir_token=True, campo_token='token_paquete_2')
             return Response({"respuestaZS": resultado, "paquete": "2"}, status=status.HTTP_200_OK)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()

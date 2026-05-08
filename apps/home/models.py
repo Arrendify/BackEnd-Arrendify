@@ -2111,7 +2111,11 @@ class FraternaContratos(models.Model):
     fecha_move_out=models.DateField(null=True, blank=True)
 
     plano_localizacion = models.FileField(null=True, blank=True, upload_to=get_plano_upload_path, max_length=255)
+    # `token` = doc_token de ZapSign del Paquete 1 (contrato/póliza/pagarés/manual)
     token = models.CharField(max_length = 100, null = True, blank = True)
+    # `token_paquete_2` = doc_token de ZapSign del Paquete 2 (comodato/anexos).
+    # Antes vivía solo en localStorage del navegador → no era visible para otros admins.
+    token_paquete_2 = models.CharField(max_length=100, null=True, blank=True)
 
     # Pagaré: configuración persistente (antes capturada vía modal en propuesta.html)
     # pagare_distinto = "Si" si el primer pagaré tiene un monto distinto al resto (típicamente prorrateo del primer mes)
