@@ -249,10 +249,25 @@ class ProcesoFraternaSerializers(serializers.ModelSerializer): #ProcesoContrato
 class ContratoFraternaSerializer(serializers.ModelSerializer): #Fraterna Contratos
     residente_contrato = ResidenteSerializers(read_only=True, source='residente')
     proceso = ProcesoFraternaSerializers(many=True, read_only=True, source ='contrato')
-    
+
     class Meta:
         model = FraternaContratos
-        fields = '__all__' 
+        fields = '__all__'
+
+
+class RecibosPolizaResidenteSerializer(serializers.ModelSerializer):
+    residente_nombre = serializers.SerializerMethodField(read_only=True)
+    contrato_no_depa = serializers.CharField(source='contrato.no_depa', read_only=True)
+    aprobado_por_username = serializers.CharField(source='aprobado_por.username', read_only=True)
+
+    class Meta:
+        model = RecibosPolizaResidente
+        fields = '__all__'
+
+    def get_residente_nombre(self, obj):
+        if not obj.residente:
+            return None
+        return obj.residente.nombre_residente or obj.residente.nombre_arrendatario
         
 class FraternaArrendamientosSerializer(serializers.ModelSerializer): #Documentos Arrendamientos Fraterna
     # Campos de solo lectura para mostrar información relacionada

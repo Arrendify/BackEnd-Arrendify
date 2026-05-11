@@ -65,6 +65,7 @@ router.register(r'recibos_fraterna', fraterna_views.DocumentosArrendamientosFrat
 router.register(r'incidencias_fraterna', fraterna_views.IncidenciasFraterna, basename='incidencias_fraterna')
 router.register(r'reservas_asador_fraterna', ReservaAsadorFraternaViewSet, basename='reservas_asador_fraterna')
 router.register(r'departamentos_fraterna', fraterna_views.DepartamentosFraterna, basename='departamentos_fraterna')
+router.register(r'recibos_poliza_residente', fraterna_views.RecibosPolizaResidenteViewSet, basename='recibos_poliza_residente')
 
 #SEMILLERO PURISIMA
 router.register(r'arrendatarios_semillero', fraterna_views.Arrendatarios_semilleroViewSet, basename='arrendatarios_semillero')

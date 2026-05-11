@@ -28,6 +28,7 @@ from django.template.loader import get_template
 from num2words import num2words
 from datetime import date
 from datetime import datetime
+from django.utils import timezone
 
 #Libreria para obtener el lenguaje en español
 import locale
@@ -525,8 +526,8 @@ class DocumentosRes(viewsets.ModelViewSet):
                 archivo = instance.Recomendacion_laboral
                 eliminar_archivo_s3(archivo)
                 instance.Recomendacion_laboral = Recomendacion_laboral  # Actualizar el archivo adjunto sin eliminar el anterior
-            
-        
+
+
             serializer.update(instance, serializer.validated_data)
             print(serializer.data['Ine'])# Actualizar el archivo adjunto sin eliminar el anterior
             print(serializer)# Actualizar el archivo adjunto sin eliminar el anterior
@@ -7583,6 +7584,93 @@ class DepartamentosFraterna(viewsets.ViewSet):
             print(f"error en DepartamentosFraterna.retrieve: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
+    """CRUD de recibos de pago de póliza por residente Fraterna.
+
+    Soporta multi-archivo: cada fila = un recibo. Filtra por `?residente=<id>` y/o `?contrato=<id>`.
+    DELETE limpia el archivo asociado en S3.
+    """
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = RecibosPolizaResidente.objects.all().order_by('-fecha_pago', '-fecha_subida')
+    serializer_class = RecibosPolizaResidenteSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        residente_id = self.request.query_params.get('residente')
+        contrato_id = self.request.query_params.get('contrato')
+        if residente_id:
+            qs = qs.filter(residente_id=residente_id)
+        if contrato_id:
+            qs = qs.filter(contrato_id=contrato_id)
+        return qs
+
+    def perform_create(self, serializer):
+        # Auditoría: registra quién subió el recibo.
+        serializer.save(user=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            # Borra archivo de S3 antes de eliminar la fila para no dejar huérfanos.
+            if instance.archivo:
+                eliminar_archivo_s3(instance.archivo)
+            return super().destroy(request, *args, **kwargs)
+        except Exception as e:
+            print(f"error en RecibosPolizaResidenteViewSet.destroy: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error línea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='contratos_de_residente')
+    def contratos_de_residente(self, request):
+        """Devuelve solo `id, no_depa, fechas` de los contratos Fraterna del residente.
+
+        Evita pedir el LIST completo de /contratos_fraterna/ (739 filas con anidados pesados)
+        cuando solo se necesita poblar el dropdown del modal de recibos.
+        """
+        residente_id = request.query_params.get('residente')
+        if not residente_id:
+            return Response([], status=status.HTTP_200_OK)
+        contratos = (
+            FraternaContratos.objects
+            .filter(residente_id=residente_id)
+            .order_by('-fecha_celebracion', '-id')
+            .values('id', 'no_depa', 'fecha_move_in', 'fecha_move_out')
+        )
+        return Response(list(contratos), status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def aprobar(self, request, pk=None):
+        """Marca el recibo como aprobado. Registra quién y cuándo (auditoría)."""
+        try:
+            recibo = self.get_object()
+            recibo.aprobado = True
+            recibo.aprobado_por = request.user
+            recibo.fecha_aprobacion = timezone.now()
+            recibo.save(update_fields=['aprobado', 'aprobado_por', 'fecha_aprobacion'])
+            ser = self.get_serializer(recibo)
+            return Response(ser.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"error en aprobar recibo: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def desaprobar(self, request, pk=None):
+        """Revierte la aprobación del recibo, limpia metadatos de auditoría."""
+        try:
+            recibo = self.get_object()
+            recibo.aprobado = False
+            recibo.aprobado_por = None
+            recibo.fecha_aprobacion = None
+            recibo.save(update_fields=['aprobado', 'aprobado_por', 'fecha_aprobacion'])
+            ser = self.get_serializer(recibo)
+            return Response(ser.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"error en desaprobar recibo: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 ########################## G A R Z A  S A D A ######################################

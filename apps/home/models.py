@@ -2055,7 +2055,7 @@ class DocumentosResidentes(models.Model):
         ip = inq_split.replace(" ", "_")
         print(ip)
         return f'Fraterna/residente/{ip}/Recomendacion_laboral/{filename}'
-    
+
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     residente = models.ForeignKey(Residentes, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
@@ -2127,15 +2127,55 @@ class FraternaContratos(models.Model):
     
     
 class ProcesoContrato(models.Model):
-       
+
         usuario = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
         contrato = models.ForeignKey(FraternaContratos, null=True, blank=True, on_delete=models.CASCADE,related_name="contrato")
         fecha = models.DateField(null=True, blank=True)
         status_proceso=models.CharField(max_length = 100, null = True, blank = True)
         contador = models.IntegerField(null=True, blank=True, default = 2)
-        
+
         class Meta:
             db_table = 'fraterna_proceso'
+
+
+class RecibosPolizaResidente(models.Model):
+    """Recibos de pago de póliza subidos por/para residentes Fraterna.
+
+    Cada fila es un recibo individual (multi-archivo por residente).
+    Vincula opcionalmente con FraternaContratos para preservar contexto del contrato vivo.
+    """
+    def get_recibo_upload_path(self, filename):
+        nombre = (self.residente.nombre_residente or self.residente.nombre_arrendatario or 'sin_nombre').replace(' ', '_')
+        if '.' in filename:
+            base, ext = filename.rsplit('.', 1)
+        else:
+            base, ext = filename, 'pdf'
+        fecha = date.today().strftime('%Y-%m-%d')
+        return f'Fraterna/residente/{nombre}/Recibos_poliza/{base}_{fecha}.{ext}'
+
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    residente = models.ForeignKey(Residentes, on_delete=models.CASCADE, related_name='recibos_poliza')
+    contrato = models.ForeignKey(FraternaContratos, null=True, blank=True, on_delete=models.SET_NULL, related_name='recibos_poliza')
+    archivo = models.FileField(upload_to=get_recibo_upload_path, max_length=255)
+    monto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    fecha_pago = models.DateField(null=True, blank=True, help_text='Fecha del pago de la póliza')
+    referencia = models.CharField(max_length=100, null=True, blank=True, help_text='Folio, transferencia, etc.')
+    comentarios = models.TextField(null=True, blank=True)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    # Revisión / aprobación
+    aprobado = models.BooleanField(default=False)
+    fecha_aprobacion = models.DateTimeField(null=True, blank=True)
+    aprobado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='recibos_poliza_aprobados',
+    )
+
+    class Meta:
+        db_table = 'fraterna_recibos_poliza_residente'
+        ordering = ['-fecha_pago', '-fecha_subida']
             
             
 class IncidenciasFraterna(models.Model):
