@@ -7456,11 +7456,16 @@ class InvestigacionGarzaSada(viewsets.ModelViewSet):
 
 
 class DepartamentosFraterna(viewsets.ViewSet):
-    """Vista agregada de departamentos Fraterna a partir de DISTINCT no_depa.
+    """Vista agregada de departamentos Fraterna, jerarquía Departamento → Camas → Contratos.
 
-    list: cada depto con su estado actual (ocupado / reservado / disponible),
-          residente y fecha de salida del contrato vigente si aplica.
-    retrieve: historial de contratos del depto (lookup por no_depa).
+    list: cada depto con contadores de camas (ocupadas/reservadas/disponibles)
+          y estado derivado (ocupado/parcial/reservado/disponible).
+    retrieve: lista de camas del depto con su estado y contrato vigente.
+    historial_cama: historial de contratos de una cama específica del depto.
+
+    Regla de ocupación: status_proceso='Aprobado' con `fecha_celebracion ≤ hoy ≤ fecha_vigencia`.
+    `fecha_move_in/move_out` se conservan informativos y no afectan el estado.
+    Camas se comparan por `UPPER(TRIM(cama))` para tolerar inconsistencias de captura.
     """
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -7478,69 +7483,150 @@ class DepartamentosFraterna(viewsets.ViewSet):
         )
 
     @staticmethod
-    def _ultimo_status(contrato):
-        proc = ProcesoContrato.objects.filter(contrato=contrato).order_by('-fecha', '-id').first()
-        return (proc.status_proceso or '').strip() if proc else ''
+    def _normalize_cama(raw):
+        if raw is None:
+            return None
+        s = str(raw).strip()
+        return s.upper() if s else None
+
+    @staticmethod
+    def _status_por_contrato(contrato_ids):
+        """Devuelve {contrato_id: status_str} con el último ProcesoContrato por contrato."""
+        if not contrato_ids:
+            return {}
+        procesos = (
+            ProcesoContrato.objects
+            .filter(contrato_id__in=contrato_ids)
+            .order_by('contrato_id', '-fecha', '-id')
+            .values('contrato_id', 'status_proceso')
+        )
+        out = {}
+        for p in procesos:
+            cid = p['contrato_id']
+            if cid not in out:
+                out[cid] = (p['status_proceso'] or '').strip()
+        return out
+
+    @staticmethod
+    def _estado_por_status(status_str):
+        s_lower = (status_str or '').lower()
+        if s_lower == 'aprobado':
+            return 'ocupado'
+        # 'en revisión' / 'en revision' / vacío / cualquier otro → reservado mientras esté en ventana
+        return 'reservado'
+
+    @staticmethod
+    def _estado_depa(camas_info):
+        """Dado un dict {cama: {estado}}, devuelve el estado agregado del depa."""
+        if not camas_info:
+            return 'disponible'
+        estados = {info['estado'] for info in camas_info.values()}
+        if estados == {'ocupado'}:
+            return 'ocupado'
+        if estados == {'disponible'}:
+            return 'disponible'
+        if estados == {'reservado'}:
+            return 'reservado'
+        if 'ocupado' in estados or 'reservado' in estados:
+            if 'disponible' in estados:
+                return 'parcial'
+            # mezcla ocupado + reservado, sin disponibles → parcial también
+            return 'parcial'
+        return 'disponible'
+
+    def _build_camas_de_depa(self, no_depa=None):
+        """Construye la estructura de camas, agrupada por (no_depa, cama_norm).
+
+        Para cada cama elige el contrato 'representativo' actual: primero un Aprobado vigente
+        en `[fecha_celebracion, fecha_vigencia]`; si no, un En Revisión en ventana; si no, None.
+        """
+        today = date.today()
+        qs = (
+            FraternaContratos.objects
+            .exclude(no_depa__isnull=True)
+            .exclude(no_depa__exact='')
+            .select_related('residente')
+            .order_by('no_depa', '-fecha_celebracion', '-id')
+        )
+        if no_depa is not None:
+            qs = qs.filter(no_depa=no_depa)
+
+        contratos = list(qs)
+        status_map = self._status_por_contrato([c.id for c in contratos])
+
+        # camas[no_depa][cama_norm] = {'cama','estado','contrato','status'}
+        camas = {}
+        rank = {'ocupado': 2, 'reservado': 1, 'disponible': 0}
+
+        for c in contratos:
+            cama_norm = self._normalize_cama(c.cama)
+            if cama_norm is None:
+                continue
+
+            depa_bucket = camas.setdefault(c.no_depa, {})
+            existing = depa_bucket.get(cama_norm)
+
+            in_window = (
+                c.fecha_celebracion is not None
+                and c.fecha_vigencia is not None
+                and c.fecha_celebracion <= today <= c.fecha_vigencia
+            )
+
+            if in_window:
+                status_str = status_map.get(c.id, '')
+                nuevo_estado = self._estado_por_status(status_str)
+                candidato = {
+                    'cama': cama_norm,
+                    'estado': nuevo_estado,
+                    'contrato': c,
+                    'status': status_str,
+                }
+            else:
+                # Este contrato no vigente; solo sirve para asegurar existencia de la cama.
+                candidato = {
+                    'cama': cama_norm,
+                    'estado': 'disponible',
+                    'contrato': None,
+                    'status': '',
+                }
+
+            if existing is None or rank[candidato['estado']] > rank[existing['estado']]:
+                depa_bucket[cama_norm] = candidato
+
+        return camas
 
     def list(self, request, *args, **kwargs):
         try:
-            today = date.today()
-
-            deptos = (
-                FraternaContratos.objects
-                .exclude(no_depa__isnull=True)
-                .exclude(no_depa__exact='')
-                .values_list('no_depa', flat=True)
-                .distinct()
-            )
+            camas = self._build_camas_de_depa()
 
             result = []
-            for no_depa in deptos:
-                vigente = (
-                    FraternaContratos.objects
-                    .filter(no_depa=no_depa)
-                    .filter(fecha_move_in__lte=today, fecha_move_out__gte=today)
-                    .select_related('residente')
-                    .order_by('-fecha_celebracion', '-id')
-                    .first()
-                )
-
-                estado = 'disponible'
-                residente_nombre = None
-                fecha_fin = None
-                contrato_id = None
-                status_v = ''
-
-                if vigente:
-                    status_v = self._ultimo_status(vigente)
-                    s_lower = status_v.lower()
-                    if s_lower == 'aprobado':
-                        estado = 'ocupado'
-                    elif s_lower in ('en revision', 'en revisión'):
-                        estado = 'reservado'
-                    else:
-                        # vigente por fechas pero sin proceso 'Aprobado': lo tratamos como reservado
-                        estado = 'reservado'
-
-                    residente_nombre = self._residente_nombre(vigente.residente)
-                    fecha_fin = vigente.fecha_move_out
-                    contrato_id = vigente.id
+            for no_depa, camas_info in camas.items():
+                contadores = {'ocupado': 0, 'reservado': 0, 'disponible': 0}
+                proxima_vigencia = None
+                for info in camas_info.values():
+                    contadores[info['estado']] += 1
+                    if info['estado'] == 'ocupado' and info['contrato'] is not None:
+                        fv = info['contrato'].fecha_vigencia
+                        if fv and (proxima_vigencia is None or fv < proxima_vigencia):
+                            proxima_vigencia = fv
 
                 result.append({
                     'no_depa': no_depa,
-                    'estado': estado,
-                    'residente_nombre': residente_nombre,
-                    'fecha_fin': fecha_fin,
-                    'contrato_id': contrato_id,
-                    'status_proceso': status_v or None,
+                    'estado': self._estado_depa(camas_info),
+                    'camas_total': len(camas_info),
+                    'camas_ocupadas': contadores['ocupado'],
+                    'camas_reservadas': contadores['reservado'],
+                    'camas_disponibles': contadores['disponible'],
+                    'proxima_vigencia': proxima_vigencia,
                 })
 
-            orden_estado = {'ocupado': 0, 'reservado': 1, 'disponible': 2}
+            orden_estado = {'ocupado': 0, 'parcial': 1, 'reservado': 2, 'disponible': 3}
             result.sort(key=lambda x: (orden_estado[x['estado']], x['no_depa']))
 
             resumen = {
                 'total': len(result),
                 'ocupados': sum(1 for r in result if r['estado'] == 'ocupado'),
+                'parciales': sum(1 for r in result if r['estado'] == 'parcial'),
                 'reservados': sum(1 for r in result if r['estado'] == 'reservado'),
                 'disponibles': sum(1 for r in result if r['estado'] == 'disponible'),
             }
@@ -7556,6 +7642,54 @@ class DepartamentosFraterna(viewsets.ViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         try:
             no_depa = pk
+            camas = self._build_camas_de_depa(no_depa=no_depa)
+            camas_info = camas.get(no_depa, {})
+
+            camas_data = []
+            contadores = {'ocupado': 0, 'reservado': 0, 'disponible': 0}
+            for cama_norm in sorted(camas_info.keys()):
+                info = camas_info[cama_norm]
+                contadores[info['estado']] += 1
+                c = info['contrato']
+                camas_data.append({
+                    'cama': cama_norm,
+                    'estado': info['estado'],
+                    'status_proceso': info['status'] or None,
+                    'residente_nombre': self._residente_nombre(c.residente) if c else None,
+                    'residente_id': c.residente_id if c else None,
+                    'fecha_celebracion': c.fecha_celebracion if c else None,
+                    'fecha_vigencia': c.fecha_vigencia if c else None,
+                    'fecha_move_in': c.fecha_move_in if c else None,
+                    'fecha_move_out': c.fecha_move_out if c else None,
+                    'renta': c.renta if c else None,
+                    'contrato_id_vigente': c.id if c else None,
+                })
+
+            resumen = {
+                'camas_total': len(camas_info),
+                'camas_ocupadas': contadores['ocupado'],
+                'camas_reservadas': contadores['reservado'],
+                'camas_disponibles': contadores['disponible'],
+                'estado_depa': self._estado_depa(camas_info),
+            }
+
+            return Response({'no_depa': no_depa, 'resumen': resumen, 'camas': camas_data}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"error en DepartamentosFraterna.retrieve: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'], url_path=r'camas/(?P<cama>[^/]+)')
+    def historial_cama(self, request, pk=None, cama=None, *args, **kwargs):
+        """Historial completo de contratos de una cama dentro de un depa."""
+        try:
+            no_depa = pk
+            cama_norm = self._normalize_cama(cama)
+            if cama_norm is None:
+                return Response({'error': 'cama vacía'}, status=status.HTTP_400_BAD_REQUEST)
+
             contratos = (
                 FraternaContratos.objects
                 .filter(no_depa=no_depa)
@@ -7563,8 +7697,14 @@ class DepartamentosFraterna(viewsets.ViewSet):
                 .order_by('-fecha_celebracion', '-id')
             )
 
+            # Filtrar por cama normalizada en Python (más simple que un Func/Upper en query
+            # y el volumen por depa es bajo — <= ~30 filas).
+            contratos_cama = [c for c in contratos if self._normalize_cama(c.cama) == cama_norm]
+
+            status_map = self._status_por_contrato([c.id for c in contratos_cama])
+
             data = []
-            for c in contratos:
+            for c in contratos_cama:
                 data.append({
                     'id': c.id,
                     'residente_nombre': self._residente_nombre(c.residente),
@@ -7575,13 +7715,14 @@ class DepartamentosFraterna(viewsets.ViewSet):
                     'fecha_move_out': c.fecha_move_out,
                     'duracion': c.duracion,
                     'renta': c.renta,
-                    'status_proceso': self._ultimo_status(c) or None,
+                    'cama_original': c.cama,
+                    'status_proceso': status_map.get(c.id, '') or None,
                 })
 
-            return Response({'no_depa': no_depa, 'contratos': data}, status=status.HTTP_200_OK)
+            return Response({'no_depa': no_depa, 'cama': cama_norm, 'contratos': data}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            print(f"error en DepartamentosFraterna.retrieve: {e}")
+            print(f"error en DepartamentosFraterna.historial_cama: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
