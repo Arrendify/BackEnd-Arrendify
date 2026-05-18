@@ -7483,6 +7483,22 @@ class DepartamentosFraterna(viewsets.ViewSet):
         )
 
     @staticmethod
+    def _residente_detalle(residente):
+        if not residente:
+            return {
+                'arrendatario_nombre': None,
+                'arrendatario_sexo': None,
+                'residente_extra_nombre': None,
+                'residente_extra_sexo': None,
+            }
+        return {
+            'arrendatario_nombre': getattr(residente, 'nombre_arrendatario', None) or None,
+            'arrendatario_sexo': getattr(residente, 'sexo_arrendatario', None) or None,
+            'residente_extra_nombre': getattr(residente, 'nombre_residente', None) or None,
+            'residente_extra_sexo': getattr(residente, 'sexo', None) or None,
+        }
+
+    @staticmethod
     def _normalize_cama(raw):
         if raw is None:
             return None
@@ -7651,12 +7667,14 @@ class DepartamentosFraterna(viewsets.ViewSet):
                 info = camas_info[cama_norm]
                 contadores[info['estado']] += 1
                 c = info['contrato']
+                residente_detalle = self._residente_detalle(c.residente) if c else self._residente_detalle(None)
                 camas_data.append({
                     'cama': cama_norm,
                     'estado': info['estado'],
                     'status_proceso': info['status'] or None,
                     'residente_nombre': self._residente_nombre(c.residente) if c else None,
                     'residente_id': c.residente_id if c else None,
+                    **residente_detalle,
                     'fecha_celebracion': c.fecha_celebracion if c else None,
                     'fecha_vigencia': c.fecha_vigencia if c else None,
                     'fecha_move_in': c.fecha_move_in if c else None,
