@@ -11,6 +11,7 @@ from .Views.contratos_dash_view import *
 from .Views.investigaciones_views import *
 from .Views.stripe_view import CreateStripeCheckoutSession
 from .Views.notificaciones_views import NotificacionViewSet
+from .Views.zapsign_webhook import zapsign_webhook
 
 
 urlpatterns = [
@@ -64,6 +65,7 @@ urlpatterns = [
     path('fraterna/generar_paquete_2/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_paquete_2'}), name='generar_paquete_2_frat'),
     path('fraterna/generar_urls_firma_paquete_1/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_urls_firma_paquete_1'}), name='generar_urls_firma_paquete_1_frat'),
     path('fraterna/generar_urls_firma_paquete_2/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_urls_firma_paquete_2'}), name='generar_urls_firma_paquete_2_frat'),
+    path('fraterna/generar_reporte_contratos/', fraterna_views.Contratos_fraterna.as_view({'post': 'generar_reporte_contratos'}), name='generar_reporte_contratos_frat'),
 
     #contrato semillero purisima
     path('semillero/aprobar_contrato/', fraterna_views.Contratos_semillero.as_view({'put': 'aprobar_contrato_semillero'}), name='aprobar_contrato_semillero'),
@@ -112,6 +114,8 @@ urlpatterns = [
     
     #STRIPE
     path('stripe-webhook/', stripe_webhook, name='stripe-webhook'),
+    #ZAPSIGN
+    path('zapsign-webhook/', zapsign_webhook, name='zapsign-webhook'),
     path('check-payment-status/', CheckPaymentStatus.as_view(), name='check-payment-status'),
     #manejamos el index con la pag404
     path('health/', health_check, name='health_check'),

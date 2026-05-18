@@ -1847,6 +1847,95 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     # FIN PAQUETE 1 / PAQUETE 2
     # =========================================================================
 
+    def generar_reporte_contratos(self, request, *args, **kwargs):
+        """Genera un PDF con el reporte de contratos Fraterna celebrados en un mes/anio.
+        Recibe { "mes": 1-12, "anio": YYYY }; filtra por fecha_celebracion."""
+        try:
+            data = request.data
+            mes = int(data.get('mes'))
+            anio = int(data.get('anio'))
+            if mes < 1 or mes > 12:
+                return Response({'error': 'Mes invalido (1-12).'}, status=status.HTTP_400_BAD_REQUEST)
+
+            contratos = self.queryset.filter(
+                fecha_celebracion__year=anio,
+                fecha_celebracion__month=mes,
+            ).order_by('fecha_celebracion')
+
+            meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+
+            filas = []
+            suma_renta = 0.0
+            total_aprobados = 0
+            por_tipologia = {}
+            pill_map = {
+                'aprobado': 'pill-ok',
+                'en revision': 'pill-rev', 'en revisión': 'pill-rev',
+                'firmado': 'pill-firm',
+            }
+            for c in contratos:
+                try:
+                    renta_val = float(c.renta) if c.renta not in (None, '') else 0.0
+                except (ValueError, TypeError):
+                    renta_val = 0.0
+
+                tipologia = (c.tipologia or '').strip() or 'Sin tipologia'
+                por_tipologia[tipologia] = por_tipologia.get(tipologia, 0) + 1
+
+                proceso = c.contrato.order_by('-id').first()
+                estatus = proceso.status_proceso if (proceso and proceso.status_proceso) else '-'
+                estatus_norm = estatus.strip().lower()
+
+                # La suma de renta mensual solo considera contratos en estado Aprobado.
+                if estatus_norm == 'aprobado':
+                    total_aprobados += 1
+                    suma_renta += renta_val
+
+                if c.residente:
+                    residente_nombre = c.residente.nombre_residente or c.residente.nombre_arrendatario or '-'
+                else:
+                    residente_nombre = '-'
+
+                filas.append({
+                    'no_depa': c.no_depa or '-',
+                    'residente': residente_nombre,
+                    'tipologia': tipologia,
+                    'fecha_celebracion': c.fecha_celebracion.strftime('%d/%m/%Y') if c.fecha_celebracion else '-',
+                    'fecha_vigencia': c.fecha_vigencia.strftime('%d/%m/%Y') if c.fecha_vigencia else '-',
+                    'renta': f"${renta_val:,.2f}",
+                    'estatus': estatus,
+                    'pill': pill_map.get(estatus_norm, 'pill-other'),
+                })
+
+            desglose = [{'tipologia': t, 'cantidad': n} for t, n in sorted(por_tipologia.items())]
+
+            context = {
+                'mes_nombre': meses_es[mes],
+                'anio': anio,
+                'total': len(filas),
+                'total_aprobados': total_aprobados,
+                'suma_renta': f"${suma_renta:,.2f}",
+                'desglose': desglose,
+                'filas': filas,
+                'generado': datetime.now().strftime('%d/%m/%Y %H:%M'),
+            }
+
+            html_string = render_to_string('home/reporte_contratos_fraterna.html', context)
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            response = HttpResponse(pdf_file, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="Reporte_Contratos_Fraterna_{anio}_{mes:02d}.pdf"'
+            return response
+
+        except (TypeError, ValueError):
+            return Response({'error': 'Parametros invalidos: se requiere mes (1-12) y anio.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en generar_reporte_contratos linea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     def _generar_comodato_interno(self, info):
         """Función interna para generar el PDF del comodato"""
         try:

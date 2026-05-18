@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+    @page {
+        size: A4 landscape;
+        margin: 1.5cm 1.7cm 1.9cm 1.7cm;
+        @bottom-left {
+            content: "FRATERNA · Reporte de contratos celebrados — {{ mes_nombre }} {{ anio }}";
+            font-family: Helvetica, Arial, sans-serif; font-size: 7pt; color: #9a96a3;
+        }
+        @bottom-center {
+            content: "Documento confidencial · uso interno";
+            font-family: Helvetica, Arial, sans-serif; font-size: 7pt; color: #c2bece;
+        }
+        @bottom-right {
+            content: "Página " counter(page) " de " counter(pages);
+            font-family: Helvetica, Arial, sans-serif; font-size: 7pt; color: #9a96a3;
+        }
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: Helvetica, Arial, sans-serif; color: #34313d; font-size: 9.5pt; margin: 0; }
+
+    /* ---- Membrete ---- */
+    .brand { font-size: 16pt; font-weight: bold; letter-spacing: 4px; color: #672584; }
+    .brand-sub { font-size: 6.8pt; letter-spacing: 2px; color: #9a96a3; text-transform: uppercase; margin-top: 2px; }
+    .rule { height: 2.6pt; background: #672584; margin-top: 8px; }
+    .rule + .rule { height: 0.6pt; background: #ddd6e8; margin-top: 2pt; }
+
+    /* ---- Bloque de título ---- */
+    .titleblock { margin: 18px 0 4px; }
+    .eyebrow { font-size: 7.5pt; font-weight: bold; letter-spacing: 2.4px; color: #9a96a3; text-transform: uppercase; }
+    .doc-title { font-size: 21pt; font-weight: bold; color: #2b2733; margin: 3px 0 0; }
+    .doc-period { font-size: 11pt; font-weight: bold; color: #672584; margin-top: 2px; }
+    .meta { font-size: 7.6pt; color: #9a96a3; margin-top: 8px; }
+    .meta strong { color: #6a6676; font-weight: bold; }
+
+    /* ---- Encabezados de sección ---- */
+    .section { font-size: 8.4pt; font-weight: bold; color: #672584; text-transform: uppercase;
+               letter-spacing: 1.4px; margin: 22px 0 9px; padding-bottom: 4px;
+               border-bottom: 1pt solid #672584; }
+    .section .n { color: #b9a9cd; margin-right: 5px; }
+
+    /* ---- Tarjetas de resumen ---- */
+    .tiles { width: 100%; border-collapse: collapse; }
+    .tiles td { width: 33.33%; padding: 0 6px; vertical-align: top; }
+    .tiles td:first-child { padding-left: 0; }
+    .tiles td:last-child { padding-right: 0; }
+    .tile { border: 0.8pt solid #e4def0; border-radius: 6px; background: #faf8fc; padding: 11px 15px; }
+    .tile-accent { border-color: #672584; background: #672584; }
+    .t-label { font-size: 6.8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #8d7fa6; }
+    .tile-accent .t-label { color: #d6c6e8; }
+    .t-value { font-size: 19pt; font-weight: bold; color: #2b2733; margin-top: 4px; }
+    .tile-accent .t-value { color: #ffffff; }
+    .t-note { font-size: 6.6pt; color: #a8a2b5; margin-top: 3px; }
+    .tile-accent .t-note { color: #cdb9e1; }
+
+    /* ---- Tablas de datos ---- */
+    table.data { width: 100%; border-collapse: collapse; }
+    table.data thead th { background: #2b2733; color: #ffffff; font-size: 6.8pt; font-weight: bold;
+                          text-transform: uppercase; letter-spacing: 0.7px; padding: 7px 9px; text-align: left; }
+    table.data tbody td { padding: 6px 9px; border-bottom: 0.6pt solid #ebeaef; font-size: 8.4pt; }
+    table.data tbody tr:nth-child(even) td { background: #f8f7fa; }
+    table.data tbody tr:last-child td { border-bottom: 1pt solid #cfc8dd; }
+    .num { text-align: right; }
+    table.data.tipo-table { width: 46%; }
+
+    /* ---- Pastilla de estatus ---- */
+    .pill { display: inline-block; padding: 1.5pt 8pt; border-radius: 9pt; font-size: 6.6pt;
+            font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; }
+    .pill-ok    { background: #e3f4e7; color: #1f7a37; }
+    .pill-rev   { background: #fdf0d6; color: #97640f; }
+    .pill-firm  { background: #dfeafb; color: #1f5aa8; }
+    .pill-other { background: #ececef; color: #6a6676; }
+
+    .empty { color: #9a96a3; font-style: italic; padding: 34px 0; text-align: center;
+             font-size: 11pt; border: 0.8pt dashed #ddd6e8; border-radius: 6px; background: #faf9fc; }
+</style>
+</head>
+<body>
+
+    <div class="brand">FRATERNA</div>
+    <div class="brand-sub">Administradora de Proyectos</div>
+    <div class="rule"></div>
+    <div class="rule"></div>
+
+    <div class="titleblock">
+        <div class="eyebrow">Reporte mensual</div>
+        <div class="doc-title">Contratos celebrados</div>
+        <div class="doc-period">{{ mes_nombre }} {{ anio }}</div>
+        <div class="meta">
+            <strong>Periodo:</strong> {{ mes_nombre }} {{ anio }} &nbsp;&middot;&nbsp;
+            <strong>Criterio:</strong> fecha de celebración &nbsp;&middot;&nbsp;
+            <strong>Generado:</strong> {{ generado }} &nbsp;&middot;&nbsp;
+            <strong>Clasificación:</strong> uso interno
+        </div>
+    </div>
+
+    {% if total %}
+    <div class="section"><span class="n">1</span>Resumen ejecutivo</div>
+    <table class="tiles">
+        <tr>
+            <td>
+                <div class="tile">
+                    <div class="t-label">Contratos celebrados</div>
+                    <div class="t-value">{{ total }}</div>
+                    <div class="t-note">firmados en el periodo</div>
+                </div>
+            </td>
+            <td>
+                <div class="tile">
+                    <div class="t-label">Contratos aprobados</div>
+                    <div class="t-value">{{ total_aprobados }}</div>
+                    <div class="t-note">de {{ total }} celebrados</div>
+                </div>
+            </td>
+            <td>
+                <div class="tile tile-accent">
+                    <div class="t-label">Renta mensual · aprobados</div>
+                    <div class="t-value">{{ suma_renta }}</div>
+                    <div class="t-note">suma solo de contratos aprobados</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section"><span class="n">2</span>Desglose por tipología</div>
+    <table class="data tipo-table">
+        <thead>
+            <tr><th>Tipología</th><th class="num">Contratos</th></tr>
+        </thead>
+        <tbody>
+            {% for d in desglose %}
+            <tr><td>{{ d.tipologia }}</td><td class="num">{{ d.cantidad }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="section"><span class="n">3</span>Detalle de contratos</div>
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Depto</th>
+                <th>Residente</th>
+                <th>Tipología</th>
+                <th>Celebración</th>
+                <th>Vigencia</th>
+                <th class="num">Renta mensual</th>
+                <th>Estatus</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in filas %}
+            <tr>
+                <td>{{ f.no_depa }}</td>
+                <td>{{ f.residente }}</td>
+                <td>{{ f.tipologia }}</td>
+                <td>{{ f.fecha_celebracion }}</td>
+                <td>{{ f.fecha_vigencia }}</td>
+                <td class="num">{{ f.renta }}</td>
+                <td><span class="pill {{ f.pill }}">{{ f.estatus }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="section"><span class="n">1</span>Resumen ejecutivo</div>
+    <div class="empty">Sin contratos celebrados en {{ mes_nombre }} {{ anio }}.</div>
+    {% endif %}
+
+</body>
+</html>
