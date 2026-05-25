@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:/Users/carlo/BackEnd-Arrendify\" && ./venv/Scripts/python.exe manage.py shell *)",
+      "Bash(C:/Users/carlo/BackEnd-Arrendify/venv/Scripts/python.exe manage.py shell *)",
+      "Bash(./venv/Scripts/python.exe manage.py shell *)"
+    ]
+  }
+}

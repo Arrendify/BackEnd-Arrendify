@@ -331,6 +331,7 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             destinatario = 'legal@fraterna.mx'
             # destinatario2 = 'juridico.arrendify1@gmail.com'
             destinatario2 = 'smosqueda@fraterna.mx'
+            destinatarios = [destinatario, destinatario2]  # envia a legal@fraterna.mx + smosqueda@fraterna.mx (fix NameError)
             
             
             asunto = f"Resultado Investigación Arrendatario {arrendatario}"

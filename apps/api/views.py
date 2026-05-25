@@ -196,7 +196,7 @@ class investigaciones(viewsets.ModelViewSet):
    
     def list(self, request, *args, **kwargs):
         user_session = request.user       
-        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion" or user_session.username == "AndresMtzO" or user_session.username == "MIRIAM" or user_session.username == "jon_admin" or user_session.username == "SUArrendify" or user_session.username == "Becarios":
+        if user_session.username == "Arrendatario1" or user_session.username == "Legal" or  user_session.username == "Investigacion" or user_session.username == "AndresMtzO" or user_session.username == "MIRIAM" or user_session.username == "jon_admin" or user_session.username == "SUArrendify" or user_session.username == "Becarios" or user_session.username == "PatataKunAdmin":
             print("Si eres el elegido")
             qs = request.GET.get('nombre')     
             try:
@@ -547,7 +547,7 @@ class investigaciones(viewsets.ModelViewSet):
             print("destinatario normalito",destinatario)
             
             #hacemos una lista destinatarios para enviar el correo
-            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com']
+            Destino=['juridico.arrendify1@gmail.com',f'{destinatario}','inmobiliarias.arrendify@gmail.com','desarrolloarrendify@gmail.com','elcharlyalv@gmail.com']  # + correo dev (Carlos) para recibir copia
             #Destino=['desarrolloarrendify@gmail.com']
             #Destino=['juridico.arrendify1@gmail.com']
             asunto = f"Resultado Investigación Prospecto {info.nombre_completo}"
