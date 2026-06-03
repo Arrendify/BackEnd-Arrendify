@@ -2117,6 +2117,13 @@ class FraternaContratos(models.Model):
     # Antes vivía solo en localStorage del navegador → no era visible para otros admins.
     token_paquete_2 = models.CharField(max_length=100, null=True, blank=True)
 
+    # Estado de firma reportado por el webhook de ZapSign (push). Refleja el
+    # `status` del documento ZapSign de cada paquete ("pending" -> "signed"/"refused").
+    # Vacío hasta que ZapSign emita el primer evento. Se actualiza en
+    # apps/api/Views/zapsign_webhook.py emparejando por token (token=P1, token_paquete_2=P2).
+    estado_firma_paquete_1 = models.CharField(max_length=30, null=True, blank=True)
+    estado_firma_paquete_2 = models.CharField(max_length=30, null=True, blank=True)
+
     # Pagaré: configuración persistente (antes capturada vía modal en propuesta.html)
     # pagare_distinto = "Si" si el primer pagaré tiene un monto distinto al resto (típicamente prorrateo del primer mes)
     pagare_distinto = models.CharField(max_length=2, null=True, blank=True, default="No")

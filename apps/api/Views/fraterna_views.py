@@ -1715,6 +1715,12 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 info = self.queryset.filter(id=contrato_data["id"]).first()
                 if info:
                     setattr(info, campo_token, doc_token)
+                    # Inicializa el estado de firma del paquete en "pending";
+                    # el webhook de ZapSign lo pasará a "signed"/"refused".
+                    campo_estado = ('estado_firma_paquete_2'
+                                    if campo_token == 'token_paquete_2'
+                                    else 'estado_firma_paquete_1')
+                    setattr(info, campo_estado, 'pending')
                     info.save()
 
             rubricas_payload = armar_payload_firmas_fn(
