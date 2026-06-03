@@ -2122,6 +2122,10 @@ class FraternaContratos(models.Model):
     pagare_distinto = models.CharField(max_length=2, null=True, blank=True, default="No")
     cantidad_primer_pagare = models.CharField(max_length=20, null=True, blank=True)
 
+    # FK al inventario físico (Fase 2). Aditiva: NO reemplaza no_depa/cama (quedan como histórico).
+    cama_ref = models.ForeignKey('FraternaCama', null=True, blank=True,
+                                 on_delete=models.SET_NULL, related_name='contratos')
+
     class Meta:
             db_table = 'fraterna_contrato'
     
@@ -2310,6 +2314,76 @@ class ReservaAsadorFraterna(models.Model):
             siguiente = 1 if not ultimo else (ultimo.id + 1)
             self.folio = f"ASFT{str(siguiente).zfill(4)}"
         return super().save(*args, **kwargs)
+
+
+# ============================ INVENTARIO uTOWER (Fraterna) ============================
+# Inventario físico del edificio uTower, sembrado desde el Excel "Estado de casa - utower".
+# Se separa de los contratos a propósito: el inventario (departamentos/camas) es estable y
+# existe aunque no haya contrato; los contratos rotan y (Fase 2) referenciarán la cama por FK.
+# Una cama se identifica por `cama` (código dentro del depa, ej. "D2"). Su nomenclatura de
+# negocio "{no_depa}-{cama}" (ej. "102-D2") se deriva por property y NO se almacena.
+
+class FraternaDepartamento(models.Model):
+    """Departamento físico de uTower (catálogo de inventario, no de contratos)."""
+    id = models.AutoField(primary_key=True)
+    no_depa = models.CharField(max_length=20, unique=True)          # "101", "102"
+    nivel = models.CharField(max_length=10, null=True, blank=True)  # "PB", "N2".."N12"
+    tipologia = models.CharField(max_length=50, null=True, blank=True)  # "double", "squad", "crew"...
+    es_residencial = models.BooleanField(default=True)              # False: 103 muestra, 104 oficina
+    # Estado agregado del depa, derivado de sus camas (cache; lo mantendrá un signal)
+    status = models.CharField(max_length=20, default='disponible',
+                              choices=[('disponible', 'Disponible'), ('parcial', 'Parcial'), ('ocupado', 'Ocupado')])
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'fraterna_departamento'
+        ordering = ['no_depa']
+        verbose_name = 'Departamento Fraterna'
+        verbose_name_plural = 'Departamentos Fraterna'
+
+    def __str__(self):
+        return f"{self.no_depa} ({self.tipologia or '-'})"
+
+
+class FraternaCama(models.Model):
+    """Cama de uTower = unidad rentable mínima (1 residente). Pertenece a un departamento.
+
+    Los campos `excel_*` son un snapshot del estado reportado en el Excel; NO son la
+    ocupación derivada de contratos (eso se resolverá al referenciar contratos en Fase 2).
+    """
+    id = models.AutoField(primary_key=True)
+    departamento = models.ForeignKey(FraternaDepartamento, on_delete=models.CASCADE, related_name='camas')
+    cama = models.CharField(max_length=20)                          # código dentro del depa, ej. "A1", "D2"
+    es_residencial = models.BooleanField(default=True)
+    # Estado de ocupación (por ahora sembrado del Excel; lo mantendrá un signal de contratos)
+    status = models.CharField(max_length=20, default='disponible',
+                              choices=[('disponible', 'Disponible'), ('ocupada', 'Ocupada')])
+    fecha_ocupacion_inicio = models.DateField(null=True, blank=True)
+    fecha_ocupacion_termino = models.DateField(null=True, blank=True)
+    # --- Ocupante: `residente` viene del Excel; `arrendatario` se deriva de los contratos (cama_ref) ---
+    residente = models.CharField(max_length=200, null=True, blank=True)
+    arrendatario = models.CharField(max_length=200, null=True, blank=True)
+    genero = models.CharField(max_length=20, null=True, blank=True)  # del color del Excel: rosa=Femenino, ocupada sin rosa=Masculino
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'fraterna_cama'
+        ordering = ['departamento', 'cama']
+        constraints = [
+            models.UniqueConstraint(fields=['departamento', 'cama'], name='uniq_fraterna_depa_cama'),
+        ]
+        verbose_name = 'Cama Fraterna'
+        verbose_name_plural = 'Camas Fraterna'
+
+    @property
+    def nomenclatura(self):
+        """Llave de negocio derivada (no se almacena): "{no_depa}-{cama}", ej. "102-D2"."""
+        return f"{self.departamento.no_depa}-{self.cama}"
+
+    def __str__(self):
+        return self.nomenclatura
     
 
 ########################## F R A T E R N A ######################################

@@ -7703,37 +7703,35 @@ class DepartamentosFraterna(viewsets.ViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            camas = self._build_camas_de_depa()
-
+            # Lee del INVENTARIO físico (FraternaDepartamento/FraternaCama), no de contratos.
+            # 'reservados' y 'proxima_vigencia' provienen de contratos → fase posterior (0/None).
             result = []
-            for no_depa, camas_info in camas.items():
-                contadores = {'ocupado': 0, 'reservado': 0, 'disponible': 0}
-                proxima_vigencia = None
-                for info in camas_info.values():
-                    contadores[info['estado']] += 1
-                    if info['estado'] == 'ocupado' and info['contrato'] is not None:
-                        fv = info['contrato'].fecha_vigencia
-                        if fv and (proxima_vigencia is None or fv < proxima_vigencia):
-                            proxima_vigencia = fv
-
+            for d in FraternaDepartamento.objects.prefetch_related('camas').all():
+                camas = list(d.camas.all())
+                ocup = sum(1 for c in camas if c.status == 'ocupada')
+                disp = sum(1 for c in camas if c.status == 'disponible')
                 result.append({
-                    'no_depa': no_depa,
-                    'estado': self._estado_depa(camas_info),
-                    'camas_total': len(camas_info),
-                    'camas_ocupadas': contadores['ocupado'],
-                    'camas_reservadas': contadores['reservado'],
-                    'camas_disponibles': contadores['disponible'],
-                    'proxima_vigencia': proxima_vigencia,
+                    'no_depa': d.no_depa,
+                    'estado': d.status,                 # ocupado / parcial / disponible
+                    'nivel': d.nivel,
+                    'tipologia': d.tipologia,
+                    'es_residencial': d.es_residencial,
+                    'camas_total': len(camas),
+                    'camas_ocupadas': ocup,
+                    'camas_reservadas': 0,              # contratos → fase posterior
+                    'camas_disponibles': disp,
+                    'proxima_vigencia': None,           # contratos → fase posterior
+                    'actualizado': d.actualizado,
                 })
 
             orden_estado = {'ocupado': 0, 'parcial': 1, 'reservado': 2, 'disponible': 3}
-            result.sort(key=lambda x: (orden_estado[x['estado']], x['no_depa']))
+            result.sort(key=lambda x: (orden_estado.get(x['estado'], 9), x['no_depa']))
 
             resumen = {
                 'total': len(result),
                 'ocupados': sum(1 for r in result if r['estado'] == 'ocupado'),
                 'parciales': sum(1 for r in result if r['estado'] == 'parcial'),
-                'reservados': sum(1 for r in result if r['estado'] == 'reservado'),
+                'reservados': 0,
                 'disponibles': sum(1 for r in result if r['estado'] == 'disponible'),
             }
 
@@ -7748,37 +7746,49 @@ class DepartamentosFraterna(viewsets.ViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         try:
             no_depa = pk
-            camas = self._build_camas_de_depa(no_depa=no_depa)
-            camas_info = camas.get(no_depa, {})
+            # Lee las camas del INVENTARIO. Datos de contrato (arrendatario/sexo/vigencia/renta)
+            # → fase posterior (null por ahora); se muestra el residente reportado en el Excel.
+            depto = (FraternaDepartamento.objects
+                     .filter(no_depa=no_depa)
+                     .prefetch_related('camas')
+                     .first())
+            camas = sorted(depto.camas.all(), key=lambda c: c.cama) if depto else []
 
             camas_data = []
             contadores = {'ocupado': 0, 'reservado': 0, 'disponible': 0}
-            for cama_norm in sorted(camas_info.keys()):
-                info = camas_info[cama_norm]
-                contadores[info['estado']] += 1
-                c = info['contrato']
-                residente_detalle = self._residente_detalle(c.residente) if c else self._residente_detalle(None)
+            for c in camas:
+                estado = 'ocupado' if c.status == 'ocupada' else 'disponible'
+                contadores[estado] += 1
                 camas_data.append({
-                    'cama': cama_norm,
-                    'estado': info['estado'],
-                    'status_proceso': info['status'] or None,
-                    'residente_nombre': self._residente_nombre(c.residente) if c else None,
-                    'residente_id': c.residente_id if c else None,
-                    **residente_detalle,
-                    'fecha_celebracion': c.fecha_celebracion if c else None,
-                    'fecha_vigencia': c.fecha_vigencia if c else None,
-                    'fecha_move_in': c.fecha_move_in if c else None,
-                    'fecha_move_out': c.fecha_move_out if c else None,
-                    'renta': c.renta if c else None,
-                    'contrato_id_vigente': c.id if c else None,
+                    'cama': c.cama,
+                    'nomenclatura': c.nomenclatura,
+                    'estado': estado,
+                    'residente_nombre': c.residente,
+                    'residente_extra_nombre': c.residente,
+                    'arrendatario_nombre': c.arrendatario,
+                    'genero': c.genero,
+                    'fecha_ocupacion_inicio': c.fecha_ocupacion_inicio,
+                    'fecha_ocupacion_termino': c.fecha_ocupacion_termino,
+                    'actualizado': c.actualizado,
+                    # Detalle de contrato (sexo/fechas/renta) — fase posterior (null por ahora)
+                    'status_proceso': None,
+                    'residente_id': None,
+                    'arrendatario_sexo': None,
+                    'residente_extra_sexo': None,
+                    'fecha_celebracion': None,
+                    'fecha_vigencia': None,
+                    'fecha_move_in': None,
+                    'fecha_move_out': None,
+                    'renta': None,
+                    'contrato_id_vigente': None,
                 })
 
             resumen = {
-                'camas_total': len(camas_info),
+                'camas_total': len(camas),
                 'camas_ocupadas': contadores['ocupado'],
                 'camas_reservadas': contadores['reservado'],
                 'camas_disponibles': contadores['disponible'],
-                'estado_depa': self._estado_depa(camas_info),
+                'estado_depa': depto.status if depto else 'disponible',
             }
 
             return Response({'no_depa': no_depa, 'resumen': resumen, 'camas': camas_data}, status=status.HTTP_200_OK)
@@ -7791,28 +7801,26 @@ class DepartamentosFraterna(viewsets.ViewSet):
 
     @action(detail=True, methods=['get'], url_path=r'camas/(?P<cama>[^/]+)')
     def historial_cama(self, request, pk=None, cama=None, *args, **kwargs):
-        """Historial completo de contratos de una cama dentro de un depa."""
+        """Historial de contratos vinculados a una cama del inventario (vía cama_ref)."""
         try:
             no_depa = pk
-            cama_norm = self._normalize_cama(cama)
-            if cama_norm is None:
-                return Response({'error': 'cama vacía'}, status=status.HTTP_400_BAD_REQUEST)
+            cama_in = (cama or '').strip().upper()
+            depto = (FraternaDepartamento.objects
+                     .filter(no_depa=no_depa)
+                     .prefetch_related('camas')
+                     .first())
+            cama_obj = None
+            if depto:
+                cama_obj = next((c for c in depto.camas.all()
+                                 if (c.cama or '').strip().upper() == cama_in), None)
+            if not cama_obj:
+                return Response({'no_depa': no_depa, 'cama': cama, 'contratos': []}, status=status.HTTP_200_OK)
 
-            contratos = (
-                FraternaContratos.objects
-                .filter(no_depa=no_depa)
-                .select_related('residente')
-                .order_by('-fecha_celebracion', '-id')
-            )
-
-            # Filtrar por cama normalizada en Python (más simple que un Func/Upper en query
-            # y el volumen por depa es bajo — <= ~30 filas).
-            contratos_cama = [c for c in contratos if self._normalize_cama(c.cama) == cama_norm]
-
-            status_map = self._status_por_contrato([c.id for c in contratos_cama])
+            contratos = list(cama_obj.contratos.select_related('residente').order_by('-fecha_celebracion', '-id'))
+            status_map = self._status_por_contrato([c.id for c in contratos])
 
             data = []
-            for c in contratos_cama:
+            for c in contratos:
                 data.append({
                     'id': c.id,
                     'residente_nombre': self._residente_nombre(c.residente),
@@ -7827,7 +7835,9 @@ class DepartamentosFraterna(viewsets.ViewSet):
                     'status_proceso': status_map.get(c.id, '') or None,
                 })
 
-            return Response({'no_depa': no_depa, 'cama': cama_norm, 'contratos': data}, status=status.HTTP_200_OK)
+            return Response({'no_depa': no_depa, 'cama': cama_obj.cama,
+                             'nomenclatura': cama_obj.nomenclatura, 'contratos': data},
+                            status=status.HTTP_200_OK)
 
         except Exception as e:
             print(f"error en DepartamentosFraterna.historial_cama: {e}")
