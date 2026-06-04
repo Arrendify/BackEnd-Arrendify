@@ -14,6 +14,7 @@ from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_MISSED, EVENT_JOB_EXEC
 from django.conf import settings
 from django.utils import timezone
 from django.core.management import call_command
+from django.db import transaction
 
 from datetime import date, timedelta
 import logging
@@ -117,6 +118,45 @@ def verificar_contratos_vencimiento():
         logger.exception("Error ejecutando verificación de contratos")
 
 
+def liberar_camas_vencidas():
+    """Job diario: libera la cama de los contratos Fraterna cuyo periodo terminó.
+
+    Un contrato `estado_contrato='actual'` con `fecha_vigencia < hoy` (se venció y NO
+    fue reemplazado por una renovación, que lo habría dejado en 'expirado') -> se
+    libera su cama (`cama_ref.liberar()`: queda 'disponible', se borra el ocupante; el
+    status del depa se recalcula SOLO por el signal post_save de FraternaCama) y el
+    contrato pasa a 'expirado'. Solo toca contratos 'actual' con cama: los históricos
+    (estado_contrato NULL) y los ya 'expirado' se ignoran, y vigencia NULL no entra.
+    Idempotente: tras la 1a pasada el contrato ya no es 'actual' -> no se reprocesa.
+    """
+    try:
+        hoy = timezone.now().date()
+        vencidos = list(
+            FraternaContratos.objects
+            .filter(estado_contrato='actual', fecha_vigencia__lt=hoy, cama_ref__isnull=False)
+            .select_related('cama_ref')
+        )
+        liberadas = 0
+        for con in vencidos:
+            try:
+                with transaction.atomic():
+                    con.cama_ref.liberar(fecha_termino=hoy)   # -> signal -> recalcula depa
+                    con.estado_contrato = 'expirado'
+                    con.save(update_fields=['estado_contrato'])
+                liberadas += 1
+                logger.info(
+                    f"[liberar_camas_vencidas] contrato {con.id} vencido ({con.fecha_vigencia}) "
+                    f"-> 'expirado'; cama {con.cama_ref_id} liberada"
+                )
+            except Exception:
+                logger.exception(
+                    f"[liberar_camas_vencidas] error liberando contrato {getattr(con, 'id', 'N/A')}"
+                )
+        logger.warning(f"[liberar_camas_vencidas] {liberadas}/{len(vencidos)} cama(s) liberada(s) por vencimiento")
+    except Exception:
+        logger.exception("Error en liberar_camas_vencidas")
+
+
 # ========================= SCHEDULER ========================= #
 
 def _listener(event):
@@ -171,6 +211,17 @@ def ensure_scheduler_started():
         trigger=CronTrigger(hour=12, minute=59, timezone=tz),
         id='eliminar_vencidos_diario',
         name='Eliminar cotizaciones vencidas',
+        replace_existing=True,
+        coalesce=True,
+        misfire_grace_time=3600,
+    )
+
+    # Liberar camas de contratos Fraterna vencidos DIARIO 09:10
+    sched.add_job(
+        liberar_camas_vencidas,
+        trigger=CronTrigger(hour=9, minute=10, timezone=tz),
+        id='liberar_camas_vencidas_diario',
+        name='Liberar camas de contratos Fraterna vencidos',
         replace_existing=True,
         coalesce=True,
         misfire_grace_time=3600,

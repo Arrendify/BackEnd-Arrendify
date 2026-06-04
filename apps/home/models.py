@@ -2133,8 +2133,24 @@ class FraternaContratos(models.Model):
     cama_ref = models.ForeignKey('FraternaCama', null=True, blank=True,
                                  on_delete=models.SET_NULL, related_name='contratos')
 
+    # Estado del contrato frente a la cama (ciclo de vida). NULL = sin determinar (default;
+    # los contratos históricos quedan así, NO se backfillea). El webhook de ZapSign lo pone en
+    # 'actual' cuando AMBOS paquetes quedan firmados (y manda a 'expirado' al 'actual' previo de
+    # esa cama, en ese orden). El UniqueConstraint de abajo garantiza máx. 1 'actual' por cama.
+    estado_contrato = models.CharField(
+        max_length=20, null=True, blank=True,
+        choices=[('actual', 'Actual'), ('expirado', 'Expirado')],
+    )
+
     class Meta:
             db_table = 'fraterna_contrato'
+            constraints = [
+                models.UniqueConstraint(
+                    fields=['cama_ref'],
+                    condition=models.Q(estado_contrato='actual'),
+                    name='uniq_contrato_activo_por_cama',
+                ),
+            ]
     
     
 class ProcesoContrato(models.Model):
@@ -2352,6 +2368,32 @@ class FraternaDepartamento(models.Model):
     def __str__(self):
         return f"{self.no_depa} ({self.tipologia or '-'})"
 
+    def recalcular_status(self, guardar=True):
+        """Recalcula el `status` agregado del depa a partir del status de sus camas.
+
+        Regla: sin camas o ninguna ocupada -> 'disponible'; todas ocupadas -> 'ocupado';
+        algunas ocupadas -> 'parcial'. Persiste SIEMPRE (cuando guardar=True), aunque el
+        estado agregado NO cambie, para que `actualizado` refleje el ultimo movimiento de
+        ocupacion de cualquiera de sus camas (lo dispara el signal post_save de la cama).
+        Mantiene el cache `status` que lee DepartamentosFraterna.list (que ademas cuenta
+        camas por su `status`). Devuelve True si el estado cambio (False si solo se
+        refresco la fecha).
+        """
+        camas = list(self.camas.all())
+        total = len(camas)
+        ocupadas = sum(1 for c in camas if c.status == 'ocupada')
+        if total == 0 or ocupadas == 0:
+            nuevo = 'disponible'
+        elif ocupadas == total:
+            nuevo = 'ocupado'
+        else:
+            nuevo = 'parcial'
+        cambio = nuevo != self.status
+        self.status = nuevo
+        if guardar:
+            self.save(update_fields=['status', 'actualizado'])
+        return cambio
+
 
 class FraternaCama(models.Model):
     """Cama de uTower = unidad rentable mínima (1 residente). Pertenece a un departamento.
@@ -2391,6 +2433,74 @@ class FraternaCama(models.Model):
 
     def __str__(self):
         return self.nomenclatura
+
+    def ocupar_desde_contrato(self, contrato, guardar=True):
+        """Marca esta cama como 'ocupada' copiando al ocupante desde un contrato.
+
+        Toma residente/arrendatario/genero/fecha de inicio del contrato (via su FK
+        `residente`) y limpia la fecha de termino. Sobreescribe al ocupante anterior
+        (renovacion o cambio de residente en la misma cama). El status del depa se
+        recalcula solo por el signal post_save de abajo, no aqui.
+        """
+        res = contrato.residente
+        self.status = 'ocupada'
+        if res is not None:
+            self.residente = (getattr(res, 'nombre_residente', '') or '').strip() or None
+            self.arrendatario = (getattr(res, 'nombre_arrendatario', '') or '').strip() or None
+            genero = _genero_desde_sexo(getattr(res, 'sexo', None))
+            if genero:
+                self.genero = genero
+        self.fecha_ocupacion_inicio = (
+            contrato.fecha_move_in or contrato.fecha_celebracion or date.today()
+        )
+        self.fecha_ocupacion_termino = None
+        if guardar:
+            self.save(update_fields=[
+                'status', 'residente', 'arrendatario', 'genero',
+                'fecha_ocupacion_inicio', 'fecha_ocupacion_termino', 'actualizado',
+            ])
+
+    def liberar(self, fecha_termino=None, guardar=True):
+        """Libera la cama: la marca 'disponible' y borra al ocupante (residente/
+        arrendatario/genero) y la `fecha_ocupacion_inicio`; registra
+        `fecha_ocupacion_termino` (= hoy si no se da otra). El status del depa se
+        recalcula solo por el signal post_save. Reutilizable: la usan el job diario
+        de vencimiento y el (futuro) boton manual 'Liberar cama'."""
+        self.status = 'disponible'
+        self.residente = None
+        self.arrendatario = None
+        self.genero = None
+        self.fecha_ocupacion_inicio = None
+        self.fecha_ocupacion_termino = fecha_termino or date.today()
+        if guardar:
+            self.save(update_fields=[
+                'status', 'residente', 'arrendatario', 'genero',
+                'fecha_ocupacion_inicio', 'fecha_ocupacion_termino', 'actualizado',
+            ])
+
+
+def _genero_desde_sexo(sexo):
+    """Normaliza el `sexo` del residente al convenio de genero de la cama
+    ('Femenino'/'Masculino'). Devuelve None si esta vacio o no se reconoce."""
+    s = (sexo or '').strip().lower()
+    if not s:
+        return None
+    if s.startswith('f') or s.startswith('muj'):                     # Femenino, F, Mujer
+        return 'Femenino'
+    if s.startswith('m') or s.startswith('h') or s.startswith('v'):  # Masculino, M, Hombre, Varon
+        return 'Masculino'
+    return None
+
+
+@receiver(post_save, sender=FraternaCama)
+def _fraterna_cama_recalcular_depa(sender, instance, **kwargs):
+    """Mantiene `FraternaDepartamento.status` derivado de sus camas: cualquier alta
+    o cambio de una cama recalcula el estado de su depa (disponible/parcial/ocupado).
+    Desacopla la regla del punto que la dispara (webhook de firma, futuro boton
+    'liberar cama', edicion manual)."""
+    depa = instance.departamento
+    if depa is not None:
+        depa.recalcular_status()
     
 
 ########################## F R A T E R N A ######################################

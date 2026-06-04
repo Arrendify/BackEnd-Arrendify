@@ -22,6 +22,7 @@ Registrar en ZapSign la URL:  https://<dominio-backend>/zapsign-webhook/
 import json
 import logging
 
+from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -99,8 +100,36 @@ def zapsign_webhook(request):
         "[ZapSign webhook] contrato id=%s %s=%s", contrato.id, campo, doc_status,
     )
 
+    # --- Ciclo de vida del contrato vs la cama (estado_contrato) ---
+    # Cuando AMBOS paquetes quedan firmados, el contrato (si tiene cama y no esta
+    # ya 'actual') se vuelve 'actual'. Se expira el 'actual' previo de ESA cama
+    # PRIMERO y luego se activa este (el orden importa: el UniqueConstraint parcial
+    # es inmediato/no-diferible). Idempotente. NO toca la ocupacion de la cama.
+    if (contrato.estado_firma_paquete_1 == 'signed'
+            and contrato.estado_firma_paquete_2 == 'signed'
+            and contrato.cama_ref_id
+            and contrato.estado_contrato != 'actual'):
+        with transaction.atomic():
+            FraternaContratos.objects.filter(
+                cama_ref_id=contrato.cama_ref_id, estado_contrato='actual',
+            ).exclude(id=contrato.id).update(estado_contrato='expirado')
+            contrato.estado_contrato = 'actual'
+            contrato.save(update_fields=['estado_contrato'])
+            # Al activarse, la cama del inventario pasa a 'ocupada' con el ocupante de
+            # este contrato (residente/arrendatario/genero/fecha). El status del depa se
+            # recalcula solo via el signal post_save de FraternaCama. Va dentro de la
+            # misma transaccion: si la ocupacion falla, se revierte tambien la activacion.
+            cama = contrato.cama_ref
+            if cama is not None:
+                cama.ocupar_desde_contrato(contrato)
+        logger.warning(
+            "[ZapSign webhook] contrato id=%s -> estado_contrato=actual (cama_ref_id=%s)",
+            contrato.id, contrato.cama_ref_id,
+        )
+
     return JsonResponse(
         {'received': True, 'persisted': True, 'contrato_id': contrato.id,
-         'campo': campo, 'status': doc_status},
+         'campo': campo, 'status': doc_status,
+         'estado_contrato': contrato.estado_contrato},
         status=200,
     )

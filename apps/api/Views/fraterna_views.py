@@ -17,6 +17,7 @@ import boto3
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
 from django.db.models import Q
+from django.db import transaction
 from django.core.exceptions import ValidationError
 from core.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN_ZAPSIGN, API_URL_ZAPSIGN
 from django.conf import settings
@@ -7716,6 +7717,8 @@ class DepartamentosFraterna(viewsets.ViewSet):
                 camas = list(d.camas.all())
                 ocup = sum(1 for c in camas if c.status == 'ocupada')
                 disp = sum(1 for c in camas if c.status == 'disponible')
+                # Géneros presentes en las camas del depa (para el filtro por género del FE).
+                generos = sorted({(c.genero or '').strip() for c in camas if (c.genero or '').strip()})
                 result.append({
                     'no_depa': d.no_depa,
                     'estado': d.status,                 # ocupado / parcial / disponible
@@ -7726,6 +7729,7 @@ class DepartamentosFraterna(viewsets.ViewSet):
                     'camas_ocupadas': ocup,
                     'camas_reservadas': 0,              # contratos → fase posterior
                     'camas_disponibles': disp,
+                    'generos': generos,
                     'proxima_vigencia': None,           # contratos → fase posterior
                     'actualizado': d.actualizado,
                 })
@@ -7760,12 +7764,24 @@ class DepartamentosFraterna(viewsets.ViewSet):
                      .first())
             camas = sorted(depto.camas.all(), key=lambda c: c.cama) if depto else []
 
+            # Contrato 'actual' por cama (a lo más 1 por el UniqueConstraint) -> lo usa el
+            # botón "Liberar cama" del FE para un confirm contextual; al liberar, el backend
+            # expira ese contrato.
+            contratos_activos = {}
+            if camas:
+                for k in (FraternaContratos.objects
+                          .filter(cama_ref_id__in=[c.id for c in camas], estado_contrato='actual')
+                          .values('id', 'cama_ref_id', 'fecha_vigencia')):
+                    contratos_activos[k['cama_ref_id']] = k
+
             camas_data = []
             contadores = {'ocupado': 0, 'reservado': 0, 'disponible': 0}
             for c in camas:
                 estado = 'ocupado' if c.status == 'ocupada' else 'disponible'
                 contadores[estado] += 1
+                _act = contratos_activos.get(c.id)
                 camas_data.append({
+                    'id': c.id,
                     'cama': c.cama,
                     'nomenclatura': c.nomenclatura,
                     'estado': estado,
@@ -7776,6 +7792,8 @@ class DepartamentosFraterna(viewsets.ViewSet):
                     'fecha_ocupacion_inicio': c.fecha_ocupacion_inicio,
                     'fecha_ocupacion_termino': c.fecha_ocupacion_termino,
                     'actualizado': c.actualizado,
+                    'contrato_activo_id': _act['id'] if _act else None,
+                    'contrato_activo_vigencia': _act['fecha_vigencia'] if _act else None,
                     # Detalle de contrato (sexo/fechas/renta) — fase posterior (null por ahora)
                     'status_proceso': None,
                     'residente_id': None,
@@ -7849,6 +7867,52 @@ class DepartamentosFraterna(viewsets.ViewSet):
             print(f"error en DepartamentosFraterna.historial_cama: {e}")
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], url_path='liberar_cama')
+    def liberar_cama(self, request):
+        """Libera manualmente una cama del inventario (botón de UI).
+
+        Pone la cama en 'disponible' y borra al ocupante (vía FraternaCama.liberar()).
+        Si la cama tiene un contrato 'actual' (a lo más 1 por el UniqueConstraint), lo
+        expira en la MISMA transacción para no dejar cama libre + contrato activo (estado
+        inconsistente). NO toca fecha_move_out ni otra data del contrato. El status del
+        depa se recalcula solo por el signal post_save de la cama.
+        """
+        try:
+            cama_id = request.data.get('cama_id')
+            if not cama_id:
+                return Response({'error': 'Falta cama_id'}, status=status.HTTP_400_BAD_REQUEST)
+            cama = (FraternaCama.objects
+                    .select_related('departamento')
+                    .filter(pk=cama_id)
+                    .first())
+            if cama is None:
+                return Response({'error': 'Cama no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+            with transaction.atomic():
+                expirados = (FraternaContratos.objects
+                             .filter(cama_ref=cama, estado_contrato='actual')
+                             .update(estado_contrato='expirado'))
+                cama.liberar()   # -> signal post_save -> recalcula el status del depa
+
+            cama.refresh_from_db()
+            depa = cama.departamento
+            depa.refresh_from_db()
+            return Response({
+                'ok': True,
+                'cama_id': cama.id,
+                'nomenclatura': cama.nomenclatura,
+                'cama_status': cama.status,
+                'contratos_expirados': expirados,
+                'depa_no': depa.no_depa,
+                'depa_status': depa.status,
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"error en DepartamentosFraterna.liberar_cama: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en liberar_cama línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
