@@ -1337,15 +1337,21 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 cantidad_pagare = "0"
 
             
+            # Fix (A) consistencia: firmantes desde la BD (fuente de verdad), no del snapshot del FE.
+            info = self.queryset.filter(id=id_paq).first()
+            if not info or not info.residente:
+                return Response({'error': 'Contrato o residente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            residente = ResidenteSerializers(info.residente).data
+
             nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_fraterna_pdf(id_paq, pagare_distinto, cantidad_pagare)
             base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
             print("Paquete EN BASE 64")
 
             contrato_data = {
-                "id": id_paq, 
-                "filename": nombre_archivo, 
-                "base64_pfd": base64_pdf, 
-                "residente": data["residente_contrato"],
+                "id": id_paq,
+                "filename": nombre_archivo,
+                "base64_pfd": base64_pdf,
+                "residente": residente,
                 "total_paginas": total_paginas
                 }
             #funcion de prueba solicitar documento a zapsign
@@ -1806,7 +1812,12 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             if not isinstance(data, dict):
                 return Response({'error': 'Se requiere id_contrato y residente_contrato'}, status=status.HTTP_400_BAD_REQUEST)
             id_paq = data["id_contrato"]
-            residente = data["residente_contrato"]
+            # Fix (A) consistencia: los firmantes se re-derivan de la BD (fuente de verdad),
+            # NO del snapshot del FE (`residente_contrato`), que podia venir viejo/duplicado.
+            info = self.queryset.filter(id=id_paq).first()
+            if not info or not info.residente:
+                return Response({'error': 'Contrato o residente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            residente = ResidenteSerializers(info.residente).data
 
             nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_1_pdf(id_paq)
             base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
@@ -1832,7 +1843,12 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             if not isinstance(data, dict):
                 return Response({'error': 'Se requiere id_contrato y residente_contrato'}, status=status.HTTP_400_BAD_REQUEST)
             id_paq = data["id_contrato"]
-            residente = data["residente_contrato"]
+            # Fix (A) consistencia: los firmantes se re-derivan de la BD (fuente de verdad),
+            # NO del snapshot del FE (`residente_contrato`), que podia venir viejo/duplicado.
+            info = self.queryset.filter(id=id_paq).first()
+            if not info or not info.residente:
+                return Response({'error': 'Contrato o residente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            residente = ResidenteSerializers(info.residente).data
 
             nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_2_pdf(id_paq)
             base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
