@@ -1850,6 +1850,14 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 return Response({'error': 'Contrato o residente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
             residente = ResidenteSerializers(info.residente).data
 
+            # El Anexo del Paquete 2 imprime departamento y cama; si faltan, el documento
+            # sale con "None". Se bloquea la generacion hasta que el contrato los tenga.
+            if not (info.no_depa and str(info.no_depa).strip()) or not (info.cama and str(info.cama).strip()):
+                return Response(
+                    {'error': 'Falta asignar departamento y/o cama al contrato. Asignalos antes de generar el Paquete 2.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_2_pdf(id_paq)
             base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
 
