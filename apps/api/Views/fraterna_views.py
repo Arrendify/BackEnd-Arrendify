@@ -973,7 +973,66 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
-        
+
+    def resetear_firmas(self, request, *args, **kwargs):
+        """Reinicia los enlaces de firma de un contrato Fraterna.
+
+        Guarda los tokens/estados de firma actuales (Paquete 1 y 2) en
+        `FraternaFirmaHistorial` y luego los limpia (a NULL) en el contrato, para
+        que se puedan generar enlaces nuevos por el flujo normal (Generar Firmas
+        Paquete 1, que vuelve a aparecer cuando `token` queda vacio).
+
+        Se limpia `estado_firma_paquete_*` JUNTO con cada token: asi una firma del
+        documento viejo no puede disparar la ocupacion de cama del webhook
+        (`zapsign_webhook.py`, que la activa cuando AMBOS paquetes quedan 'signed').
+        NO toca `cama_ref` ni `estado_contrato`: una cama ya ocupada se queda igual.
+        El documento viejo en ZapSign no se borra; queda huerfano (su token ya no
+        empareja con ningun contrato) y su rastro queda en esta bitacora.
+        """
+        try:
+            instance = self.queryset.get(id=request.data["id"])
+            # Nada que reiniciar si el contrato no tiene ningun enlace generado.
+            if not (instance.token or instance.token_paquete_2):
+                return Response(
+                    {'error': 'Este contrato no tiene enlaces de firma generados.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            try:
+                usuario = (getattr(request.user, 'email', '') or
+                           getattr(request.user, 'username', '') or '')
+            except Exception:
+                usuario = ''
+
+            with transaction.atomic():
+                FraternaFirmaHistorial.objects.create(
+                    contrato=instance,
+                    token_1_viejo=instance.token,
+                    estado_firma_1_viejo=instance.estado_firma_paquete_1,
+                    token_2_viejo=instance.token_paquete_2,
+                    estado_firma_2_viejo=instance.estado_firma_paquete_2,
+                    motivo=(request.data.get('motivo') or None),
+                    usuario=(usuario or None),
+                )
+                instance.token = None
+                instance.token_paquete_2 = None
+                instance.estado_firma_paquete_1 = None
+                instance.estado_firma_paquete_2 = None
+                instance.save(update_fields=[
+                    'token', 'token_paquete_2',
+                    'estado_firma_paquete_1', 'estado_firma_paquete_2',
+                ])
+
+            return Response(
+                {'Exito': 'Enlaces de firma reiniciados; los anteriores quedaron en el historial.'},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     def generar_pagare(self, request, *args, **kwargs):
         """Descarga el PDF de pagarés. Lee `pagare_distinto` y `cantidad_primer_pagare`
         del propio modelo (capturados en el form de creación/edición del contrato)."""

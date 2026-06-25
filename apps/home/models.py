@@ -2153,6 +2153,31 @@ class FraternaContratos(models.Model):
             ]
     
     
+class FraternaFirmaHistorial(models.Model):
+    """Bitacora de reinicios de firma de un contrato Fraterna.
+
+    Cada fila es un snapshot de los tokens/estados de firma que tenia el contrato
+    ANTES de limpiarlos para poder generar enlaces de firma nuevos (accion
+    `resetear_firmas` de Contratos_fraterna). Es solo auditoria/respaldo: el
+    webhook de ZapSign sigue emparejando contra FraternaContratos.token /
+    token_paquete_2, NUNCA contra esta tabla.
+    """
+    contrato = models.ForeignKey(
+        FraternaContratos, on_delete=models.CASCADE, related_name='firmas_historial',
+    )
+    token_1_viejo = models.CharField(max_length=100, null=True, blank=True)
+    estado_firma_1_viejo = models.CharField(max_length=30, null=True, blank=True)
+    token_2_viejo = models.CharField(max_length=100, null=True, blank=True)
+    estado_firma_2_viejo = models.CharField(max_length=30, null=True, blank=True)
+    motivo = models.CharField(max_length=255, null=True, blank=True)
+    usuario = models.CharField(max_length=150, null=True, blank=True)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'fraterna_firma_historial'
+        ordering = ['-creado']
+
+
 class ProcesoContrato(models.Model):
 
         usuario = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
