@@ -212,6 +212,71 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
         
+    @action(detail=False, methods=['get'], url_path='buscar')
+    def buscar(self, request, *args, **kwargs):
+        """Búsqueda paginada de residentes para el picker del modal de creación de contrato.
+        ADITIVO: no altera list() (que sigue devolviendo el array completo para residentes.html).
+        Respeta la MISMA visibilidad que list(): staff ve todo; el resto solo lo suyo / su inmobiliaria.
+        Query params: q (texto), page (1..), page_size (1..50, def 10).
+        """
+        from django.core.paginator import Paginator
+        try:
+            user_session = request.user
+
+            # Mismo gating de visibilidad que list()
+            if user_session.is_staff:
+                base_qs = Residentes.objects.all()
+            elif user_session.rol == "Inmobiliaria" or user_session.username == "ElbaJ":
+                agentes = User.objects.filter(pertenece_a=user_session.name_inmobiliaria)
+                base_qs = Residentes.objects.filter(Q(user_id__in=agentes) | Q(user_id=user_session))
+            else:
+                base_qs = Residentes.objects.filter(user_id=user_session)
+
+            q = (request.query_params.get('q') or '').strip()
+            if q:
+                base_qs = base_qs.filter(
+                    Q(nombre_residente__icontains=q) |
+                    Q(nombre_arrendatario__icontains=q) |
+                    Q(correo_residente__icontains=q) |
+                    Q(correo_arrendatario__icontains=q) |
+                    Q(celular_residente__icontains=q)
+                )
+
+            base_qs = base_qs.order_by('-id')
+
+            try:
+                page = int(request.query_params.get('page', 1))
+            except (TypeError, ValueError):
+                page = 1
+            try:
+                page_size = int(request.query_params.get('page_size', 10))
+            except (TypeError, ValueError):
+                page_size = 10
+            page_size = max(1, min(page_size, 50))  # tope defensivo
+
+            # Solo los campos que el picker muestra → payload ligero
+            valores = base_qs.values(
+                'id', 'nombre_residente', 'nombre_arrendatario',
+                'correo_residente', 'celular_residente',
+            )
+
+            paginator = Paginator(valores, page_size)
+            page_obj = paginator.get_page(page)  # get_page clampea páginas fuera de rango
+
+            return Response({
+                'results': list(page_obj.object_list),
+                'count': paginator.count,
+                'page': page_obj.number,
+                'num_pages': paginator.num_pages,
+                'page_size': page_size,
+                'has_next': page_obj.has_next(),
+                'has_previous': page_obj.has_previous(),
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en buscar residentes (archivo {exc_tb.tb_frame.f_code.co_filename}, método {exc_tb.tb_frame.f_code.co_name}, línea {exc_tb.tb_lineno}): {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     def create(self, request, *args, **kwargs):
         try:
             user_session = request.user
@@ -637,6 +702,112 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
     
+    @action(detail=False, methods=['get'], url_path='tabla')
+    def tabla(self, request, *args, **kwargs):
+        """Endpoint DataTables server-side para la tabla de contratos (propuesta.html).
+        ADITIVO: NO altera list() (que otras 4 paginas — departamentos, incidencias,
+        cama_historial, arrendamientos — consumen completo). Misma visibilidad que list().
+        Params DataTables: draw, start, length, search[value], order[0][column], order[0][dir]
+        + filtro custom: tipologia."""
+        try:
+            user_session = request.user
+
+            # Mismo gating de visibilidad que list()
+            if user_session.is_staff:
+                base = FraternaContratos.objects.all()
+            elif user_session.rol == "Inmobiliaria":
+                agentes = User.objects.filter(pertenece_a=user_session.name_inmobiliaria)
+                base = FraternaContratos.objects.filter(
+                    Q(user_id=user_session.id) | Q(user_id__in=agentes.values('id'))
+                )
+            elif user_session.rol == "Agente":
+                base = FraternaContratos.objects.filter(user_id=user_session)
+            else:
+                base = FraternaContratos.objects.none()
+
+            records_total = base.count()
+            qs = base
+
+            # Filtro por tipologia
+            tipologia = (request.query_params.get('tipologia') or '').strip()
+            if tipologia:
+                if tipologia == 'Sin tipologia':
+                    qs = qs.filter(
+                        Q(tipologia__isnull=True) | Q(tipologia='') |
+                        Q(tipologia='--------') | Q(tipologia='---------')
+                    )
+                else:
+                    qs = qs.filter(tipologia__iexact=tipologia)
+
+            # Busqueda global (DataTables search[value])
+            search_value = (request.query_params.get('search[value]') or '').strip()
+            if search_value:
+                cond = (
+                    Q(no_depa__icontains=search_value) |
+                    Q(cama__icontains=search_value) |
+                    Q(tipologia__icontains=search_value) |
+                    Q(residente__nombre_arrendatario__icontains=search_value) |
+                    Q(residente__nombre_residente__icontains=search_value)
+                )
+                if search_value.isdigit():
+                    cond = cond | Q(id=int(search_value))
+                qs = qs.filter(cond)
+
+            records_filtered = qs.count()
+
+            # Orden (solo columnas con campo en BD; el resto cae a id)
+            col_map = {
+                0: 'id', 1: 'no_depa',
+                2: 'residente__nombre_arrendatario',
+                3: 'residente__nombre_residente',
+                4: 'fecha_vigencia',
+            }
+            try:
+                order_col = int(request.query_params.get('order[0][column]', 0))
+            except (TypeError, ValueError):
+                order_col = 0
+            order_field = col_map.get(order_col, 'id')
+            if request.query_params.get('order[0][dir]', 'desc') == 'desc':
+                order_field = '-' + order_field
+            qs = qs.order_by(order_field)
+
+            # Paginacion por indices (start/length de DataTables)
+            try:
+                start = int(request.query_params.get('start', 0))
+            except (TypeError, ValueError):
+                start = 0
+            try:
+                length = int(request.query_params.get('length', 10))
+            except (TypeError, ValueError):
+                length = 10
+            if length <= 0:
+                length = 10            # DataTables manda -1 para "todos"; lo acotamos
+            length = min(length, 100)  # tope defensivo
+            page_qs = qs[start:start + length]
+
+            data = self.get_serializer(page_qs, many=True).data
+            if user_session.is_staff:
+                for item in data:
+                    item['is_staff'] = True
+
+            try:
+                draw = int(request.query_params.get('draw', 1))
+            except (TypeError, ValueError):
+                draw = 1
+
+            return Response({
+                'draw': draw,
+                'recordsTotal': records_total,
+                'recordsFiltered': records_filtered,
+                'data': data,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en tabla contratos (linea {exc_tb.tb_lineno}): {e}")
+            return Response({
+                'draw': 0, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': [], 'error': str(e),
+            }, status=status.HTTP_200_OK)
+
     def update(self, request, *args, **kwargs):
         try:
             #primero verificamos que tenga contadores activos
