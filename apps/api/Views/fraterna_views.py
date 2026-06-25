@@ -277,6 +277,89 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Error en buscar residentes (archivo {exc_tb.tb_frame.f_code.co_filename}, método {exc_tb.tb_frame.f_code.co_name}, línea {exc_tb.tb_lineno}): {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['get'], url_path='tabla')
+    def tabla(self, request, *args, **kwargs):
+        """Endpoint DataTables server-side para la tabla de residentes (residentes.html).
+        ADITIVO: NO altera list() (lo consumen contratos_edit + 3 arrendamientos_edit). Misma visibilidad.
+        Params DataTables: draw, start, length, search[value], order[0][column], order[0][dir]."""
+        from django.core.paginator import Paginator  # noqa: F401 (no usado; slicing manual)
+        try:
+            user_session = request.user
+
+            # Mismo gating de visibilidad que list()
+            if user_session.is_staff:
+                base = Residentes.objects.all()
+            elif user_session.rol == "Inmobiliaria" or user_session.username == "ElbaJ":
+                agentes = User.objects.filter(pertenece_a=user_session.name_inmobiliaria)
+                base = Residentes.objects.filter(Q(user_id__in=agentes) | Q(user_id=user_session))
+            else:
+                base = Residentes.objects.filter(user_id=user_session)
+
+            records_total = base.count()
+            qs = base
+
+            # Busqueda global (DataTables search[value])
+            search_value = (request.query_params.get('search[value]') or '').strip()
+            if search_value:
+                cond = (
+                    Q(nombre_residente__icontains=search_value) |
+                    Q(nombre_arrendatario__icontains=search_value) |
+                    Q(correo_arrendatario__icontains=search_value) |
+                    Q(correo_residente__icontains=search_value) |
+                    Q(celular_arrendatario__icontains=search_value) |
+                    Q(celular_residente__icontains=search_value)
+                )
+                if search_value.isdigit():
+                    cond = cond | Q(id=int(search_value))
+                qs = qs.filter(cond)
+
+            records_filtered = qs.count()
+
+            # Orden (solo columnas con campo en BD; el resto cae a id)
+            col_map = {0: 'id', 2: 'nombre_arrendatario', 3: 'celular_arrendatario', 4: 'nombre_residente'}
+            try:
+                order_col = int(request.query_params.get('order[0][column]', 0))
+            except (TypeError, ValueError):
+                order_col = 0
+            order_field = col_map.get(order_col, 'id')
+            if request.query_params.get('order[0][dir]', 'desc') == 'desc':
+                order_field = '-' + order_field
+            qs = qs.order_by(order_field)
+
+            # Paginacion por indices (start/length de DataTables)
+            try:
+                start = int(request.query_params.get('start', 0))
+            except (TypeError, ValueError):
+                start = 0
+            try:
+                length = int(request.query_params.get('length', 10))
+            except (TypeError, ValueError):
+                length = 10
+            if length <= 0:
+                length = 10
+            length = min(length, 100)
+            page_qs = qs[start:start + length]
+
+            data = self.get_serializer(page_qs, many=True).data
+
+            try:
+                draw = int(request.query_params.get('draw', 1))
+            except (TypeError, ValueError):
+                draw = 1
+
+            return Response({
+                'draw': draw,
+                'recordsTotal': records_total,
+                'recordsFiltered': records_filtered,
+                'data': data,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en tabla residentes (linea {exc_tb.tb_lineno}): {e}")
+            return Response({
+                'draw': 0, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': [], 'error': str(e),
+            }, status=status.HTTP_200_OK)
+
     def create(self, request, *args, **kwargs):
         try:
             user_session = request.user
