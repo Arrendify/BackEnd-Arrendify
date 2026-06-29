@@ -217,15 +217,20 @@ def ensure_scheduler_started():
     )
 
     # Liberar camas de contratos Fraterna vencidos DIARIO 09:10
-    sched.add_job(
-        liberar_camas_vencidas,
-        trigger=CronTrigger(hour=9, minute=10, timezone=tz),
-        id='liberar_camas_vencidas_diario',
-        name='Liberar camas de contratos Fraterna vencidos',
-        replace_existing=True,
-        coalesce=True,
-        misfire_grace_time=3600,
-    )
+    # DESACTIVADO 2026-06-29 (a pedido): la liberación de camas será SOLO manual
+    # (botón "Liberar cama" en la UI) o por el flujo de contrato (al reasignar una cama
+    # ocupada, o cuando el webhook activa un contrato y expira el 'actual' previo de esa
+    # cama). Se quita el auto-vaciado por fecha de vigencia. La función liberar_camas_vencidas()
+    # se CONSERVA intacta arriba; para reactivar a futuro, descomentar este bloque.
+    # sched.add_job(
+    #     liberar_camas_vencidas,
+    #     trigger=CronTrigger(hour=9, minute=10, timezone=tz),
+    #     id='liberar_camas_vencidas_diario',
+    #     name='Liberar camas de contratos Fraterna vencidos',
+    #     replace_existing=True,
+    #     coalesce=True,
+    #     misfire_grace_time=3600,
+    # )
 
     # Inicia si no está corriendo
     if not getattr(sched, 'running', False):
