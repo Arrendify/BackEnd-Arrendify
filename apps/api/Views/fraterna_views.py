@@ -16,7 +16,7 @@ from django.forms.models import model_to_dict
 import boto3
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
-from django.db.models import Q
+from django.db.models import Q, Func
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from core.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN_ZAPSIGN, API_URL_ZAPSIGN
@@ -35,10 +35,26 @@ from django.utils import timezone
 import locale
 
 import re
+import unicodedata
 #obtener Logs de errores
 import logging
 import sys
 logger = logging.getLogger(__name__)
+
+
+class Unaccent(Func):
+    """Aplica unaccent() de Postgres sobre un campo, para busquedas insensibles a acentos.
+    Requiere la extension 'unaccent' (ya instalada en local y prod)."""
+    function = 'unaccent'
+    arity = 1
+
+
+def _sin_acentos(texto):
+    """Quita diacriticos del lado Python para normalizar el termino de busqueda igual
+    que unaccent() normaliza la columna en SQL (asi 'jesus' == 'Jesús', 'garcia' == 'García')."""
+    if not texto:
+        return texto
+    return ''.join(c for c in unicodedata.normalize('NFKD', texto) if not unicodedata.combining(c))
 
 
 def _contraprestacion_fraterna_context(info):
@@ -301,9 +317,16 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             # Busqueda global (DataTables search[value])
             search_value = (request.query_params.get('search[value]') or '').strip()
             if search_value:
+                # Busqueda insensible a acentos en los nombres: unaccent() sobre la columna
+                # + termino sin acentos. Asi "jesus" encuentra "Jesús", "garcia" -> "García".
+                term_sa = _sin_acentos(search_value)
+                qs = qs.annotate(
+                    _na_ua=Unaccent('nombre_arrendatario'),
+                    _nr_ua=Unaccent('nombre_residente'),
+                )
                 cond = (
-                    Q(nombre_residente__icontains=search_value) |
-                    Q(nombre_arrendatario__icontains=search_value) |
+                    Q(_nr_ua__icontains=term_sa) |
+                    Q(_na_ua__icontains=term_sa) |
                     Q(correo_arrendatario__icontains=search_value) |
                     Q(correo_residente__icontains=search_value) |
                     Q(celular_arrendatario__icontains=search_value) |
@@ -825,12 +848,20 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             # Busqueda global (DataTables search[value])
             search_value = (request.query_params.get('search[value]') or '').strip()
             if search_value:
+                # Busqueda insensible a acentos en nombres y tipologia: unaccent() sobre la
+                # columna + termino sin acentos. "jesus" -> "Jesús", "recamara" -> "Recámara".
+                term_sa = _sin_acentos(search_value)
+                qs = qs.annotate(
+                    _na_ua=Unaccent('residente__nombre_arrendatario'),
+                    _nr_ua=Unaccent('residente__nombre_residente'),
+                    _tip_ua=Unaccent('tipologia'),
+                )
                 cond = (
                     Q(no_depa__icontains=search_value) |
                     Q(cama__icontains=search_value) |
-                    Q(tipologia__icontains=search_value) |
-                    Q(residente__nombre_arrendatario__icontains=search_value) |
-                    Q(residente__nombre_residente__icontains=search_value)
+                    Q(_tip_ua__icontains=term_sa) |
+                    Q(_na_ua__icontains=term_sa) |
+                    Q(_nr_ua__icontains=term_sa)
                 )
                 if search_value.isdigit():
                     cond = cond | Q(id=int(search_value))
