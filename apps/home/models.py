@@ -12,6 +12,7 @@ import random
 from unittest.util import _MAX_LENGTH
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from django.core.files.storage import FileSystemStorage
 
@@ -2128,6 +2129,12 @@ class FraternaContratos(models.Model):
     # pagare_distinto = "Si" si el primer pagaré tiene un monto distinto al resto (típicamente prorrateo del primer mes)
     pagare_distinto = models.CharField(max_length=2, null=True, blank=True, default="No")
     cantidad_primer_pagare = models.CharField(max_length=20, null=True, blank=True)
+    # Día límite de pago de la renta (1-31). NULL = 5 (comportamiento histórico).
+    # Lo imprimen la cláusula Cuarta del contrato (N, y su moratorio N+1) y los
+    # pagarés 2..N; si el mes no alcanza (p.ej. 31 en febrero) el pagaré usa el
+    # último día real de ese mes.
+    dia_pago = models.IntegerField(null=True, blank=True,
+                                   validators=[MinValueValidator(1), MaxValueValidator(31)])
 
     # FK al inventario físico (Fase 2). Aditiva: NO reemplaza no_depa/cama (quedan como histórico).
     cama_ref = models.ForeignKey('FraternaCama', null=True, blank=True,

@@ -30,6 +30,7 @@ from num2words import num2words
 from datetime import date
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from calendar import monthrange
 #Libreria para obtener el lenguaje en español
 import locale
 #Renovacion de contratos
@@ -749,19 +750,21 @@ def pagare_fraterna(request):
     print("duracion en meses",duracion_meses)
     # Calcular la fecha final
     fecha_final = fecha_inicial + relativedelta(months=duracion_meses)
-    # Lista para almacenar las fechas iteradas (solo meses y años)
+    # Lista para almacenar las fechas iteradas (mes, año, día impreso).
+    # Día por pagaré: el 1ro lleva el día real del move-in; los siguientes el
+    # dia_pago del contrato (default 5) recortado al último día real del mes
+    # (espejo de _generar_pagare_interno en fraterna_views.py).
+    dia_pago = info.dia_pago or 5
     fechas_iteradas = []
     # Iterar sobre todos los meses entre la fecha inicial y la fecha final
     while fecha_inicial < fecha_final:
         nombre_mes = fecha_inicial.strftime("%B")  # %B da el nombre completo del mes
         print("fecha",fecha_inicial.year)
-        fechas_iteradas.append((nombre_mes.capitalize(),fecha_inicial.year))      
+        dia_mes = dia if not fechas_iteradas else min(dia_pago, monthrange(fecha_inicial.year, fecha_inicial.month)[1])
+        fechas_iteradas.append((nombre_mes.capitalize(),fecha_inicial.year,dia_mes))
         fecha_inicial += relativedelta(months=1)
-    
+
     print("fechas_iteradas",fechas_iteradas)
-    # Imprimir la lista de fechas iteradas
-    for month, year in fechas_iteradas:
-        print(f"Año: {year}, Mes: {month}")
      
     #obtenermos la renta para pasarla a letra
     number = info.renta
@@ -792,19 +795,21 @@ def pagare_fraterna_pdf(request):
     print("duracion en meses",duracion_meses)
     # Calcular la fecha final
     fecha_final = fecha_inicial + relativedelta(months=duracion_meses)
-    # Lista para almacenar las fechas iteradas (solo meses y años)
+    # Lista para almacenar las fechas iteradas (mes, año, día impreso).
+    # Día por pagaré: el 1ro lleva el día real del move-in; los siguientes el
+    # dia_pago del contrato (default 5) recortado al último día real del mes
+    # (espejo de _generar_pagare_interno en fraterna_views.py).
+    dia_pago = info.dia_pago or 5
     fechas_iteradas = []
     # Iterar sobre todos los meses entre la fecha inicial y la fecha final
     while fecha_inicial < fecha_final:
         nombre_mes = fecha_inicial.strftime("%B")  # %B da el nombre completo del mes
         print("fecha",fecha_inicial.year)
-        fechas_iteradas.append((nombre_mes.capitalize(),fecha_inicial.year))      
+        dia_mes = dia if not fechas_iteradas else min(dia_pago, monthrange(fecha_inicial.year, fecha_inicial.month)[1])
+        fechas_iteradas.append((nombre_mes.capitalize(),fecha_inicial.year,dia_mes))
         fecha_inicial += relativedelta(months=1)
-    
+
     print("fechas_iteradas",fechas_iteradas)
-    # Imprimir la lista de fechas iteradas
-    for month, year in fechas_iteradas:
-        print(f"Año: {year}, Mes: {month}")
      
     #obtenermos la renta para pasarla a letra
     number = info.renta

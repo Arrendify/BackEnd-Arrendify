@@ -68,7 +68,9 @@
   </style>
 </head>
 <body>
-  {% for mes,anio in lista_fechas %}
+  {% comment %} dia_mes ya viene ajustado de Python: 1er pagaré = día del move-in;
+  siguientes = dia_pago del contrato (default 5) recortado al último día real del mes. {% endcomment %}
+  {% for mes,anio,dia_mes in lista_fechas %}
   <div class="pagare-iteration{% if not forloop.last %} pagare-page-break{% endif %}">
   <div class="container">
     <div class="row justify-content-center">
@@ -111,11 +113,7 @@
             <p id="ref8" class="text-center">
                 <span id="ref5">{{info.inmueble.estado}} </span>
                 <span id="ref5">En EL ESTADO DE NUEVO LEON a </span>
-                {% if mes == "Febrero" and dia > 28 %}
-                <span id="ref5">28</span>
-                {% else %}
-                <span id="ref5">{{dia}}</span>
-                {% endif %}
+                <span id="ref5">{{dia_mes}}</span>
                 <span id="ref5">de</span>
                 <span id="ref6">{{mes}}</span>
                 <span id="ref7">de</span>
@@ -131,11 +129,7 @@
             <br>
             <p id="ref8">
                 <span id="ref5">En EL ESTADO DE NUEVO LEON a</span>
-                {% if mes == "Febrero" and dia > 28 %}
-                <span id="ref5">28</span>
-                {% else %}
-                <span id="ref5">{{dia}}</span>
-                {% endif %}
+                <span id="ref5">{{dia_mes}}</span>
                 <span id="ref5">de</span>
                 <span id="ref6">{{mes}}</span>
                 <span id="ref7">de</span>
@@ -156,11 +150,7 @@
             <p id="ref8" class="text-center">
                 <span id="ref5">{{info.inmueble.estado}} </span>
                 <span id="ref5">En EL ESTADO DE NUEVO LEON a </span>
-                {% if mes == "Febrero" and dia > 28 %}
-                <span id="ref5">5</span>
-                {% else %}
-                <span id="ref5">5</span>
-                {% endif %}
+                <span id="ref5">{{dia_mes}}</span>
                 <span id="ref5">de</span>
                 <span id="ref6">{{mes}}</span>
                 <span id="ref7">de</span>
@@ -176,11 +166,7 @@
             <br>
             <p id="ref8">
                 <span id="ref5">En EL ESTADO DE NUEVO LEON a</span>
-                {% if mes == "Febrero" and dia > 28 %}
-                <span id="ref5">5</span>
-                {% else %}
-                <span id="ref5">5</span>
-                {% endif %}
+                <span id="ref5">{{dia_mes}}</span>
                 <span id="ref5">de</span>
                 <span id="ref6">{{mes}}</span>
                 <span id="ref7">de</span>

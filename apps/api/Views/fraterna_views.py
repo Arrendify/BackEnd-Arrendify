@@ -29,6 +29,7 @@ from django.template.loader import get_template
 from num2words import num2words
 from datetime import date
 from datetime import datetime
+from calendar import monthrange
 from django.utils import timezone
 
 #Libreria para obtener el lenguaje en español
@@ -57,8 +58,22 @@ def _sin_acentos(texto):
     return ''.join(c for c in unicodedata.normalize('NFKD', texto) if not unicodedata.combining(c))
 
 
+def _ordinal_abreviado(n):
+    """Ordinal corto en español: 6 -> '6to' (como el '6to (sexto)' de la cláusula Cuarta)."""
+    if 11 <= (n % 100) <= 13:
+        return f"{n}vo"
+    sufijos = {1: 'er', 2: 'do', 3: 'er', 4: 'to', 5: 'to', 6: 'to', 7: 'mo', 8: 'vo', 9: 'no', 0: 'mo'}
+    return f"{n}{sufijos[n % 10]}"
+
+
+def _dia_pago_fraterna(info):
+    """Día límite de pago de la renta (1-31). NULL/0 -> 5 (default histórico)."""
+    return getattr(info, 'dia_pago', None) or 5
+
+
 def _contraprestacion_fraterna_context(info):
-    """Cuota de estacionamiento en letra y renta integral (contraprestación + cajón)."""
+    """Variables de la cláusula Cuarta: cuota de estacionamiento en letra, renta
+    integral (contraprestación + cajón) y día de pago (N y su moratorio N+1)."""
     renta_num = int(float(info.renta))
     pe = info.precio_estacionamiento_mxn
     if pe is not None:
@@ -69,11 +84,17 @@ def _contraprestacion_fraterna_context(info):
         precio_texto = None
     renta_integral_val = renta_num + (precio_int if precio_int is not None else 0)
     renta_integral_texto = num2words(renta_integral_val, lang='es').capitalize()
+    dia_pago = _dia_pago_fraterna(info)
+    dia_moratorio = dia_pago + 1
     return {
         'precio_estacionamiento_entero': precio_int,
         'precio_estacionamiento_texto': precio_texto,
         'renta_integral': renta_integral_val,
         'renta_integral_texto': renta_integral_texto,
+        'dia_pago_num': dia_pago,
+        'dia_pago_texto': num2words(dia_pago, lang='es'),
+        'dia_moratorio_abrev': _ordinal_abreviado(dia_moratorio),
+        'dia_moratorio_texto': num2words(dia_moratorio, lang='es', to='ordinal'),
     }
 
 
@@ -2510,12 +2531,21 @@ class Contratos_fraterna(viewsets.ModelViewSet):
 
             # Generar 1 pagaré por cada mes según `duracion_meses`.
             # Para contratos cortos (< 1 mes) generamos exactamente 1 pagaré que cubre el periodo.
+            # Día impreso: el 1er pagaré lleva el día real del move-in (mes de entrada,
+            # prorrateable vía pagare_distinto); los siguientes vencen el `dia_pago` del
+            # contrato (default 5), ajustado al último día real del mes si no alcanza
+            # (p.ej. 31 -> 28/29 en febrero, 30 en abril).
+            dia_pago = _dia_pago_fraterna(info)
             fechas_iteradas = []
             num_pagares = duracion_meses if duracion_meses > 0 else 1
             for offset in range(num_pagares):
                 fecha_pagare = fecha_inicial + relativedelta(months=offset)
                 nombre_mes = fecha_pagare.strftime("%B")
-                fechas_iteradas.append((nombre_mes.capitalize(), fecha_pagare.year))
+                if offset == 0:
+                    dia_mes = fecha_inicial.day
+                else:
+                    dia_mes = min(dia_pago, monthrange(fecha_pagare.year, fecha_pagare.month)[1])
+                fechas_iteradas.append((nombre_mes.capitalize(), fecha_pagare.year, dia_mes))
 
             # Asegurar que `duracion_meses` (usado para mostrar "1 de N") nunca sea 0
             if duracion_meses == 0:
