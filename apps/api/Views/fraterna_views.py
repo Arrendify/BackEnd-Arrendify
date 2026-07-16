@@ -138,7 +138,24 @@ def eliminar_archivo_s3(file_name):
         print("El archivo se eliminó correctamente de S3.")
     except NoCredentialsError:
         print("No se encontraron las credenciales de AWS.",{NoCredentialsError})
-        
+
+def plano_es_exclusivo(path):
+    """True si ese plano lo escribio SOLO un contrato, o sea: si se puede borrar sin danar a nadie.
+
+    Hay dos generaciones de paths conviviendo:
+      - historicos: `Fraterna/plano_localizacion/PLANOS_PISO_3-11.png` (plano, sin carpeta).
+        El upload_to viejo guardaba el nombre crudo del archivo, asi que los contratos que
+        subieron un archivo con el mismo nombre acabaron COMPARTIENDO el objeto (191 comparten
+        ese). Borrarlos deja el anexo sin plano a todos los demas: asi se rompieron 236.
+      - nuevos: `Fraterna/plano_localizacion/<id>/<uuid>_PLANO.png`. El uuid los hace unicos
+        por upload, asi que nadie mas los referencia y limpiarlos es seguro.
+    La carpeta es lo que distingue una generacion de la otra.
+    """
+    prefijo = 'Fraterna/plano_localizacion/'
+    if not path or not path.startswith(prefijo):
+        return False
+    return '/' in path[len(prefijo):]
+
 # ----------------------------------Metodo para disparar notificaciones a varios destinos----------------------------------------------- #
 def send_noti_varios(self, request, *args, **kwargs):
         print("entramos al metodo de notificaiones independientes")
@@ -950,20 +967,34 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             partial = kwargs.pop('partial', False)
             instance = self.get_object()
            
-            # Verificar si se proporciona un nuevo archivo adjunto
+            # Plano anterior: se limpia DESPUES de guardar (ver mas abajo). Antes se borraba
+            # aqui, antes de validar: si el serializer fallaba, el contrato se quedaba sin el
+            # viejo y sin el nuevo. El serializer ya asigna el archivo desde request.data.
+            plano_anterior = ''
             if 'plano_localizacion' in request.data:
-                print("entro aqui")
-                nuevo = request.data['plano_localizacion']
-                archivo = instance.plano_localizacion
-                eliminar_archivo_s3(archivo)
-                instance.plano_localizacion = nuevo  # Actualizar el archivo adjunto sin eliminar el anterior
-                        
+                plano_anterior = str(instance.plano_localizacion or '')
+            # El FE manda borrar_plano='true' cuando piden quitar el plano: un <input type=file>
+            # no sabe expresar "sin archivo" y DRF rechaza el string vacio en un FileField. Va
+            # como campo extra a proposito: el serializer lo ignora (no existe en el modelo).
+            borrar_plano = str(request.data.get('borrar_plano', '')).lower() == 'true'
+            if borrar_plano:
+                plano_anterior = str(instance.plano_localizacion or '')
+
             proceso = ProcesoContrato.objects.all().get(contrato_id = instance.id)
             print("el contador es: ",proceso.contador)
             if (proceso.contador > 0 ):
                 serializer = self.get_serializer(instance, data=request.data, partial=partial)
                 if serializer.is_valid(raise_exception=True):
                     self.perform_update(serializer)
+                    if borrar_plano:
+                        instance.plano_localizacion = None
+                        instance.save(update_fields=['plano_localizacion'])
+                    # El plano nuevo ya esta en S3 (o se quito): recien ahora se limpia el
+                    # anterior, y solo si era exclusivo de este contrato (los viejos estan
+                    # compartidos: borrarlos deja sin plano a los otros que apuntan al mismo).
+                    if plano_anterior and plano_anterior != str(instance.plano_localizacion or ''):
+                        if plano_es_exclusivo(plano_anterior):
+                            eliminar_archivo_s3(plano_anterior)
                     # proceso.contador = proceso.contador - 1
                     # proceso.save()
                     print("edito proceso contrato")

@@ -8,6 +8,7 @@ from pyexpat import model
 
 import string
 import random
+import uuid
 
 from unittest.util import _MAX_LENGTH
 from django.db import models
@@ -2083,7 +2084,12 @@ class DocumentosResidentes(models.Model):
 #Datos De contrato
 class FraternaContratos(models.Model):
     def get_plano_upload_path(self, filename):
-            return f'Fraterna/plano_localizacion/{filename}'
+            # Carpeta propia por contrato + sufijo aleatorio. Antes era el nombre CRUDO del
+            # archivo: como S3 direcciona por nombre y sobrescribe, dos contratos que subian
+            # un archivo con el mismo nombre acababan apuntando al MISMO objeto (191 comparten
+            # PLANOS_PISO_3-11.png) y un resubido les cambiaba el plano a todos. El uuid hace
+            # unico cada upload aunque el alta todavia no tenga id.
+            return f'Fraterna/plano_localizacion/{self.id or "nuevo"}/{uuid.uuid4().hex[:8]}_{filename}'
      
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
