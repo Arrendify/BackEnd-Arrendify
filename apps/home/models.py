@@ -2022,47 +2022,47 @@ class Residentes(models.Model):
         db_table = 'residentes'
     
 class DocumentosResidentes(models.Model):
+    # Uploads en carpeta por ID de residente (el id no cambia ni se repite; el nombre
+    # si: hay homonimos y nombres con acentos) y con nombre de archivo FIJO por campo:
+    # la key resultante es unica por construccion, asi que reemplazar un documento
+    # sobrescribe su propia key y no queda nada que borrar. Los paths viejos (por
+    # nombre de residente) pueden estar compartidos entre registros o entre Ine e
+    # Ine_arr: nunca se borran ni se reescriben.
+    def _upload_path(self, carpeta, nombre, filename):
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+        ext = ext or 'pdf'
+        if self.residente_id:
+            return f'Fraterna/residente/{self.residente_id}/{carpeta}/{nombre}.{ext}'
+        return f'Fraterna/residente/sin_residente/{carpeta}/{uuid.uuid4().hex[:8]}_{nombre}.{ext}'
+
     def get_ine_upload_path(self, filename):
-        inq_split = str(self.residente.nombre_residente)
-        ip = inq_split.replace(" ", "_")
-        print(ip)
-        return f'Fraterna/residente/{ip}/INE/{filename}'
-    
+        # Convencion real en prod: Ine = ARRENDATARIO (el sufijo _arr del campo vecino miente).
+        return self._upload_path('INE', 'INE_ARRENDATARIO', filename)
+
+    def get_ine_arr_upload_path(self, filename):
+        # Convencion real en prod: Ine_arr = RESIDENTE.
+        return self._upload_path('INE', 'INE_RESIDENTE', filename)
+
     def get_dom_upload_path(self, filename):
-        inq_split = str(self.residente.nombre_residente)
-        ip = inq_split.replace(" ", "_")
-        print(ip)
-        return f'Fraterna/residente/{ip}/Comprobante_de_domicilio/{filename}'
-    
+        return self._upload_path('Comprobante_de_domicilio', 'COMPROBANTE_DOMICILIO', filename)
+
     def get_rfc_upload_path(self, filename):
-        inq_split = str(self.residente.nombre_residente)
-        ip = inq_split.replace(" ", "_")
-        print(ip)
-        return f'Fraterna/residente/{ip}/RFC/{filename}'
-   
+        return self._upload_path('RFC', 'CONSTANCIA_FISCAL', filename)
+
     def get_ingresos_upload_path(self, filename):
-        inq_split = str(self.residente.nombre_residente)
-        ip = inq_split.replace(" ", "_")
-        print(ip)
-        return f'Fraterna/residente/{ip}/Ingresos/{filename}'
-   
+        return self._upload_path('Ingresos', 'INGRESOS', filename)
+
     def get_extras_upload_path(self, filename):
-        inq_split = str(self.residente.nombre_residente)
-        ip = inq_split.replace(" ", "_")
-        print(ip)
-        return f'Fraterna/residente/{ip}/Documentos_extras/{filename}'
-   
+        return self._upload_path('Documentos_extras', 'DOCUMENTOS_EXTRAS', filename)
+
     def get_rl_upload_path(self, filename):
-        inq_split = str(self.residente.nombre_residente)
-        ip = inq_split.replace(" ", "_")
-        print(ip)
-        return f'Fraterna/residente/{ip}/Recomendacion_laboral/{filename}'
+        return self._upload_path('Recomendacion_laboral', 'RECOMENDACION_LABORAL', filename)
 
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     residente = models.ForeignKey(Residentes, null=True, blank=True, on_delete=models.CASCADE,related_name="archivos")
     Ine = models.FileField(upload_to=get_ine_upload_path, max_length=255)
-    Ine_arr = models.FileField(null=True, blank=True, upload_to=get_ine_upload_path, max_length=255)
+    Ine_arr = models.FileField(null=True, blank=True, upload_to=get_ine_arr_upload_path, max_length=255)
     Comp_dom = models.FileField(upload_to =get_dom_upload_path, max_length=255)
     Rfc = models.FileField(upload_to = get_rfc_upload_path, max_length=255)
     Ingresos = models.FileField(null=True, blank=True,upload_to = get_ingresos_upload_path, max_length=255)
@@ -2210,13 +2210,12 @@ class RecibosPolizaResidente(models.Model):
     Vincula opcionalmente con FraternaContratos para preservar contexto del contrato vivo.
     """
     def get_recibo_upload_path(self, filename):
-        nombre = (self.residente.nombre_residente or self.residente.nombre_arrendatario or 'sin_nombre').replace(' ', '_')
-        if '.' in filename:
-            base, ext = filename.rsplit('.', 1)
-        else:
-            base, ext = filename, 'pdf'
+        # Carpeta por ID de residente (no por nombre: homonimos y acentos colisionan) y
+        # nombre unico por fila: es multi-archivo, un nombre fijo se pisaria a si mismo
+        # y el nombre crudo colisionaba si subian dos con el mismo nombre el mismo dia.
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
         fecha = date.today().strftime('%Y-%m-%d')
-        return f'Fraterna/residente/{nombre}/Recibos_poliza/{base}_{fecha}.{ext}'
+        return f'Fraterna/residente/{self.residente_id}/Recibos_poliza/RECIBO_{fecha}_{uuid.uuid4().hex[:8]}.{ext or "pdf"}'
 
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)

@@ -691,57 +691,26 @@ class DocumentosRes(viewsets.ModelViewSet):
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            print(request.data)
-            # Verificar si se proporciona un nuevo archivo adjunto
-            if 'Ine' in request.data:
-                print("entro aqui")
-                Ine = request.data['Ine']
-                archivo = instance.Ine
-                eliminar_archivo_s3(archivo)
-                instance.Ine = Ine  # Actualizar el archivo adjunto sin eliminar el anterior
-            
-            if 'Ine_arr' in request.data:
-                print("arr")
-                Ine_arr = request.data['Ine_arr']
-                archivo = instance.Ine_arr
-                eliminar_archivo_s3(archivo)
-                instance.Ine_arr = Ine_arr  # Actualizar el archivo adjunto sin eliminar el anterior
-                
-            if 'Comp_dom' in request.data:
-                Comp_dom = request.data['Comp_dom']
-                archivo = instance.Comp_dom
-                print(archivo)
-                eliminar_archivo_s3(archivo)
-                instance.Comp_dom = Comp_dom  # Actualizar el archivo adjunto sin eliminar el anterior
-                
-            if 'Rfc' in request.data:
-                Rfc = request.data['Rfc']
-                archivo = instance.Rfc
-                eliminar_archivo_s3(archivo)
-                instance.Rfc = Rfc  # Actualizar el archivo adjunto sin eliminar el anterior
-            
-            if 'Extras' in request.data:
-                Extras = request.data['Extras']
-                archivo = instance.Extras
-                eliminar_archivo_s3(archivo)
-                instance.Extras = Extras  # Actualizar el archivo adjunto sin eliminar el anterior
-            
-            if 'Ingresos' in request.data:
-                Ingresos = request.data['Ingresos']
-                archivo = instance.Ingresos
-                eliminar_archivo_s3(archivo)
-                instance.Ingresos = Ingresos  # Actualizar el archivo adjunto sin eliminar el anterior
-            
-            if 'Recomendacion_laboral' in request.data:
-                Recomendacion_laboral = request.data['Recomendacion_laboral']
-                archivo = instance.Recomendacion_laboral
-                eliminar_archivo_s3(archivo)
-                instance.Recomendacion_laboral = Recomendacion_laboral  # Actualizar el archivo adjunto sin eliminar el anterior
 
+            # Los archivos viejos NO se borran antes de guardar: esas keys pueden estar
+            # compartidas (dos registros que subieron un archivo con el mismo nombre, o
+            # Ine/Ine_arr apuntando al mismo objeto) y borrarlas dejaba al vecino con
+            # AccessDenied. Con el path por id de residente, reemplazar un documento
+            # sobrescribe su propia key; solo queda residuo si el reemplazo cambio de
+            # key (p.ej. de .pdf a .jpg) y ahi se limpia solo si la key vieja es de la
+            # generacion nueva (carpeta por id = exclusiva de este registro).
+            campos_archivo = ['Ine', 'Ine_arr', 'Comp_dom', 'Rfc', 'Ingresos', 'Extras', 'Recomendacion_laboral']
+            previos = {campo: str(getattr(instance, campo) or '') for campo in campos_archivo}
 
-            serializer.update(instance, serializer.validated_data)
-            print(serializer.data['Ine'])# Actualizar el archivo adjunto sin eliminar el anterior
-            print(serializer)# Actualizar el archivo adjunto sin eliminar el anterior
+            self.perform_update(serializer)
+
+            prefijo_propio = f'Fraterna/residente/{instance.residente_id}/'
+            for campo in campos_archivo:
+                viejo = previos[campo]
+                nuevo = str(getattr(instance, campo) or '')
+                if viejo and viejo != nuevo and viejo.startswith(prefijo_propio):
+                    eliminar_archivo_s3(viejo)
+
             return Response(serializer.data)
 
         
@@ -8373,8 +8342,11 @@ class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            # Borra archivo de S3 antes de eliminar la fila para no dejar huérfanos.
-            if instance.archivo:
+            # Borra el archivo de S3 solo si es de la generacion por id (carpeta del
+            # residente + nombre unico por fila = nadie mas referencia esa key). Los
+            # paths viejos por nombre podian estar compartidos: esos no se tocan.
+            prefijo_propio = f'Fraterna/residente/{instance.residente_id}/Recibos_poliza/'
+            if instance.archivo and str(instance.archivo).startswith(prefijo_propio):
                 eliminar_archivo_s3(instance.archivo)
             return super().destroy(request, *args, **kwargs)
         except Exception as e:
