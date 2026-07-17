@@ -6,6 +6,7 @@ Copyright (c) 2019 - present AppSeed.us
 from calendar import c
 from pyexpat import model
 
+import os
 import string
 import random
 import uuid
@@ -2084,12 +2085,17 @@ class DocumentosResidentes(models.Model):
 #Datos De contrato
 class FraternaContratos(models.Model):
     def get_plano_upload_path(self, filename):
-            # Carpeta propia por contrato + sufijo aleatorio. Antes era el nombre CRUDO del
-            # archivo: como S3 direcciona por nombre y sobrescribe, dos contratos que subian
-            # un archivo con el mismo nombre acababan apuntando al MISMO objeto (191 comparten
-            # PLANOS_PISO_3-11.png) y un resubido les cambiaba el plano a todos. El uuid hace
-            # unico cada upload aunque el alta todavia no tenga id.
-            return f'Fraterna/plano_localizacion/{self.id or "nuevo"}/{uuid.uuid4().hex[:8]}_{filename}'
+            # Key FIJA y plana: {id}_plano_localizacion.{ext} en el root de la carpeta (un
+            # archivo por contrato no amerita una subcarpeta cada uno). Antes se guardaba el
+            # nombre CRUDO del archivo: como S3 direcciona por nombre y sobrescribe, dos
+            # contratos que subian un archivo con el mismo nombre acababan apuntando al MISMO
+            # objeto (191 comparten PLANOS_PISO_3-11.png) y un resubido les cambiaba el plano
+            # a todos. El id del contrato en el nombre hace la key exclusiva, y resubir con la
+            # misma extension sobrescribe la propia key (sin residuo). El alta todavia no
+            # tiene id: ahi la unicidad la pone el uuid.
+            ext = os.path.splitext(filename)[1].lower()
+            dueno = self.id or f'nuevo_{uuid.uuid4().hex[:8]}'
+            return f'Fraterna/plano_localizacion/{dueno}_plano_localizacion{ext}'
      
     id = models.AutoField(primary_key=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)

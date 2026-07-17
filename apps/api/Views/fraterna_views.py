@@ -139,22 +139,36 @@ def eliminar_archivo_s3(file_name):
     except NoCredentialsError:
         print("No se encontraron las credenciales de AWS.",{NoCredentialsError})
 
-def plano_es_exclusivo(path):
-    """True si ese plano lo escribio SOLO un contrato, o sea: si se puede borrar sin danar a nadie.
+def plano_es_exclusivo(path, contrato_id=None):
+    """True si ese plano es de UN solo contrato, o sea: si se puede borrar sin danar a nadie.
 
-    Hay dos generaciones de paths conviviendo:
-      - historicos: `Fraterna/plano_localizacion/PLANOS_PISO_3-11.png` (plano, sin carpeta).
-        El upload_to viejo guardaba el nombre crudo del archivo, asi que los contratos que
-        subieron un archivo con el mismo nombre acabaron COMPARTIENDO el objeto (191 comparten
-        ese). Borrarlos deja el anexo sin plano a todos los demas: asi se rompieron 236.
-      - nuevos: `Fraterna/plano_localizacion/<id>/<uuid>_PLANO.png`. El uuid los hace unicos
-        por upload, asi que nadie mas los referencia y limpiarlos es seguro.
-    La carpeta es lo que distingue una generacion de la otra.
+    Hay tres generaciones de paths conviviendo bajo `Fraterna/plano_localizacion/`:
+      - historicos: `PLANOS_PISO_3-11.png` (el nombre crudo del archivo subido). Los
+        contratos que subieron un archivo con el mismo nombre acabaron COMPARTIENDO el
+        objeto (191 comparten ese). Borrarlos deja el anexo sin plano a todos los demas:
+        asi se rompieron 236. Intocables: jamas se limpian.
+      - intermedios: `<id>/<uuid8>_PLANO.png` (carpeta por contrato; vida corta, se
+        reconocen por si algun upload alcanzo a caer ahi).
+      - actuales: `<id>_plano_localizacion.png` / `nuevo_<uuid8>_plano_localizacion.png`
+        (key fija por contrato, plana en el root; el alta aun no tiene id, de ahi el uuid).
+    Un nombre historico no puede coincidir con los patrones nuevos: exigen id numerico o
+    uuid pegados al token exacto `_plano_localizacion`.
+
+    Ademas del patron se verifica contra la BD que NINGUNA otra fila apunte al mismo path:
+    los flujos que clonan contratos (p.ej. renovaciones) copian el value del FileField tal
+    cual, y ahi una key "exclusiva por construccion" queda compartida entre origen y copia.
     """
     prefijo = 'Fraterna/plano_localizacion/'
     if not path or not path.startswith(prefijo):
         return False
-    return '/' in path[len(prefijo):]
+    resto = path[len(prefijo):]
+    generacion_nueva = '/' in resto or re.match(r'^(\d+|nuevo_[0-9a-f]{8})_plano_localizacion[^/]*$', resto)
+    if not generacion_nueva:
+        return False
+    otros = FraternaContratos.objects.filter(plano_localizacion=path)
+    if contrato_id is not None:
+        otros = otros.exclude(id=contrato_id)
+    return not otros.exists()
 
 # ----------------------------------Metodo para disparar notificaciones a varios destinos----------------------------------------------- #
 def send_noti_varios(self, request, *args, **kwargs):
@@ -962,7 +976,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     # anterior, y solo si era exclusivo de este contrato (los viejos estan
                     # compartidos: borrarlos deja sin plano a los otros que apuntan al mismo).
                     if plano_anterior and plano_anterior != str(instance.plano_localizacion or ''):
-                        if plano_es_exclusivo(plano_anterior):
+                        if plano_es_exclusivo(plano_anterior, instance.id):
                             eliminar_archivo_s3(plano_anterior)
                     # proceso.contador = proceso.contador - 1
                     # proceso.save()
