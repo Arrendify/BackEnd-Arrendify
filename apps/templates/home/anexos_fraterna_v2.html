@@ -8,7 +8,7 @@
 
 	<meta http-equiv="content-type" content="text/html"/>
 	<meta charset="utf-8">
-	<title>Anexos - Fraterna</title>
+	<title>Anexos - {{ marca_nombre_corto|default:"Fraterna" }}</title>
 	<meta  name = "viewport" content="width=device-width, initial-scale=1">
 <style>
 		  .table_headers1{
@@ -659,7 +659,7 @@
 	</tr>
 	<tr>
 		<td style="border: 1px solid #000000;"  height="17" colspan=1><div class="celdas">Desarrollo: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">U TOWER</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{ marca_nombre_inmueble|default:"U TOWER" }}</div></td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Departamento: </div></td>
@@ -705,12 +705,14 @@
 	<tr>
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
+	{% if not es_demo %}
 	<tr>
 		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">Plano Propiedad Arrendada</div></td>
 	</tr>
 	<tr>
 		<td height="21"  valign=middle><img src="{{plano}}" style="width:450px; height:341px"></td>
 	</tr>
+	{% endif %}
 	<tr>
 			<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
@@ -732,6 +734,7 @@
 </table>
 <!--Fin de la segunda tabla-->
 
+{% if not es_demo %}
 <!--Estapcio de hoja en blanco-->
 <br><br><br><br><br>
 <br><br><br><br><br>
@@ -748,6 +751,7 @@
 	<div class="text">{{info.no_depa}} - {{info.cama}} </div>
   </div>
 <!--fin tabla inventario-->
+{% endif %}
 
 <br><br><br><br>
 
@@ -768,8 +772,7 @@
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>FRATERNA
-			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>,
+		<td height="21"  valign=middle><div class="fuente"  style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>{{ marca_razon_social_mayus|default:"FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V." }}</b>, representada por <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>,
 			en su carácter de <b>ARRENDADOR</b>, y por otra parte, la persona física <b> {{info.residente.nombre_arrendatario}} </b> en su carácter
 			de <b>ARRENDATARIA</b> respecto del siguiente inmueble: </div></td>
 	</tr>
@@ -791,7 +794,7 @@
 	</tr>
 	<tr>
 		<td style="border: 1px solid #000000;"  height="17" colspan=1><div class="celdas">Desarrollo: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">U TOWER</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000; text-align:center;" colspan=5><div class="celdas">{{ marca_nombre_inmueble|default:"U TOWER" }}</div></td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Piso/Nivel:</div></td>
@@ -837,7 +840,7 @@
 	</tr>
 	<tr>
 		<td height="21"  valign=middle><div class="fuente" style="margin-left: 0.07in;">       Por consiguiente, se hace constar que siendo las 13:00 horas del {{info.fecha_move_in}},
-			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>,
+			<b>{{ marca_razon_social_mayus|default:"FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V." }}</b>, representada por <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>,
 			en su carácter de <b>ARRENDADOR</b>, hace la entrega material y jurídica del inmueble descrito en el primer párrafo a
 			la persona física en su carácter de <b>ARRENDATARIA</b>, quien recibe la posesión material del mismo a su entera
 			conformidad.
@@ -861,7 +864,7 @@
 	<div class="col fuente" style="text-align:center;"><b>“LA ARRENDATARIA”</b></div>
 </div>
 <div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">Fraterna Administradora de Proyectos,</div>
+	<div class="col fuente" style="font-size:11px; text-align:center;">{{ marca_razon_social_l1|default:"Fraterna Administradora de Proyectos," }}</div>
 	<div class="col"></div>
 </div>
 <div class="row">
@@ -912,8 +915,7 @@
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
 	<tr>
-		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>FRATERNA
-			ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>,
+		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Documento que forma parte del Contrato de Arrendamiento de fecha {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}} celebrado por <b>{{ marca_razon_social_mayus|default:"FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V." }}</b>, representada por <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>,
 			en su carácter de <b>ARRENDADOR</b>, y por otra parte, la persona física <b>{{info.residente.nombre_arrendatario}}</b> en su carácter de
 			<b>ARRENDATARIO</b> respecto del siguiente cajón de estacionamiento:</div></td>
 	</tr>
@@ -936,7 +938,7 @@
 	</tr>
 	<tr>
 		<td height="21" valign=middle><div class="fuente" style="margin-left: 0.07in;">Por consiguiente, se hace constar que siendo las 13:00 horas del {{info.fecha_move_in | date:"SHORT_DATE_FORMAT"}},
-			<b>FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</b>, representada por <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>,
+			<b>{{ marca_razon_social_mayus|default:"FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V." }}</b>, representada por <b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b>,
 			en su carácter de <b>ARRENDADOR</b>, hace la entrega material y jurídica del cajón de estacionamiento descrito en el primer párrafo a
 			la persona física en su carácter de <b>ARRENDATARIO</b>, quien recibe la posesión material del mismo a su entera
 			conformidad.</div></td>
@@ -958,7 +960,7 @@
 	<div class="col fuente" style="text-align:center;"><b>“EL ARRENDATARIO”</b></div>
 </div>
 <div class="row">
-	<div class="col fuente" style="font-size:11px; text-align:center;">Fraterna Administradora de Proyectos,</div>
+	<div class="col fuente" style="font-size:11px; text-align:center;">{{ marca_razon_social_l1|default:"Fraterna Administradora de Proyectos," }}</div>
 	<div class="col"></div>
 </div>
 <div class="row">
@@ -982,7 +984,7 @@
 <br><br><br>
 <div class="fuente anexo7-mant" style="margin-left: 0.07in;">
 	<div style="text-align:center;"><b>ANEXO 6 - LEVANTAMIENTO DE REPORTES</b></div>
-	<p>Los reportes deberán realizarse únicamente a través de los canales oficiales de la administración, siendo el único medio válido el correo electrónico: <b>admon@fraterna.mx</b></p>
+	<p>Los reportes deberán realizarse únicamente a través de los canales oficiales de la administración, siendo el único medio válido el correo electrónico: <b>{{ marca_correo_admin|default:"admon@fraterna.mx" }}</b></p>
 	<p><b>Todo reporte deberá incluir:</b></p>
 	<ul class="anexo7-lista-main">
 		<li>Número de departamento.</li>
@@ -1003,7 +1005,7 @@
 	<div class="anexo6-firmas">
 		<div class="anexo6-firma-col">
 			<div class="anexo6-firma-texto">"EL ARRENDADOR"</div>
-			<div style="font-size: 11px; margin-top: 0.2em;">Fraterna Administradora de Proyectos, S.A. DE C.V.</div>
+			<div style="font-size: 11px; margin-top: 0.2em;">{{ marca_razon_social|default:"Fraterna Administradora de Proyectos, S.A. DE C.V." }}</div>
 			<div class="anexo6-firma-linea" style="margin-top: 3.5em;"></div>
 			<div style="font-size: 11px;">Representado en este acto por medio de su apoderado legal:</div>
 			<div style="font-size: 11px;">{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</div>

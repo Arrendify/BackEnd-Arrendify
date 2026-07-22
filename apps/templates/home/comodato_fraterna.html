@@ -8,7 +8,7 @@
 	
 	<meta http-equiv="content-type" content="text/html"/>
 	<meta charset="utf-8">
-	<title>Comodato - Fraterna</title>
+	<title>Comodato - {{ marca_nombre_corto|default:"Fraterna" }}</title>
 	<meta  name = "viewport" content="width=device-width, initial-scale=1">
 <style>
 		  .table_headers1{
@@ -80,8 +80,8 @@
 	<tr>
 		<td height="21"  valign=middle>
 			<div class="fuente">
-				<b>CONTRATO DE COMODATO</b> que formalizan por una parte la sociedad <b>PATRIMONIO TORRE VERDE, S.A. DE C.V.</b>
-				representada en este acto por, el señor <b>ALMA GABRIELA GRANADOS CASTILLO</b> a quien en lo sucesivo se le denominará
+				<b>CONTRATO DE COMODATO</b> que formalizan por una parte la sociedad <b>{{ marca_comodante_mayus|default:"PATRIMONIO TORRE VERDE, S.A. DE C.V." }}</b>
+				representada en este acto por, el señor <b>{{ marca_representante_mayus|default:"ALMA GABRIELA GRANADOS CASTILLO" }}</b> a quien en lo sucesivo se le denominará
 				como <b>“EL COMODANTE”</b> y por otra parte <b>{{info.residente.nombre_arrendatario | upper}}</b> a quien en lo sucesivo se les denominará 
 				como <b>“EL COMODATARIO”</b>, en conjunto <b>“LAS PARTES”</b>; mismas que se sujetan a las Declaraciones y Cláusulas 
 				siguientes: 
@@ -106,21 +106,14 @@
 	</tr>
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">(b)     Que LOS MUEBLES se encuentran dentro del Departamento {{info.no_depa}} de <b>{{info.medidas}} M2</b> en el Nivel {{info.piso}} del proyecto 
-			denominado como Utower ubicado en la Avenida Don Luis G. Sada No. 202, Colonia Regina, CP 64500, Monterrey, Nuevo León, México. 
+			denominado como {{ marca_ubicacion_comodato|default:'Utower ubicado en la Avenida Don Luis G. Sada No. 202, Colonia Regina, CP 64500, Monterrey, Nuevo León, México' }}. 
 			</div></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><div class="fuente">(c)     Que es una sociedad anónima de capital variable debidamente constituida conforme a las leyes mexicanas según 
-			consta en la Escritura Pública No. 18,065 de fecha 26 de febrero del 2018, otorgada ante la fe del licenciado 
-			Francisco Garza Calderón, Notario Público Suplente de la Notaría Pública número 75, debidamente inscrita en el 
-			Instituto Registral y Catastral en el Estado de Nuevo León bajo el FME N-2018021694 con fecha 12 de abril del año 
-			2018. </div></td>
+		<td height="21"  valign=middle><div class="fuente">(c)     {{ marca_comodato_decl_constitucion|default:"Que es una sociedad anónima de capital variable debidamente constituida conforme a las leyes mexicanas según consta en la Escritura Pública No. 18,065 de fecha 26 de febrero del 2018, otorgada ante la fe del licenciado Francisco Garza Calderón, Notario Público Suplente de la Notaría Pública número 75, debidamente inscrita en el Instituto Registral y Catastral en el Estado de Nuevo León bajo el FME N-2018021694 con fecha 12 de abril del año 2018." }} </div></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><div class="fuente">(d)     En fecha 10 de febrero del 2020 cambio de denominación social a Patrimonio Torre Verde, S.A. de C.V. mediante 
-			Escritura Pública No. 22,768 otorgada ante la fe del licenciado Ignacio Gerardo Martínez González, Notario Público 
-			Titular de la Notaría Pública No. 75 con ejercicio en el primer distrito, debidamente inscrita en el Instituto Registral 
-			y Catastral en el Estado de Nuevo León bajo el FME N-2018021694 de fecha 19 de febrero del año 2020. 
+		<td height="21"  valign=middle><div class="fuente">(d)     {{ marca_comodato_decl_denominacion|default:"En fecha 10 de febrero del 2020 cambio de denominación social a Patrimonio Torre Verde, S.A. de C.V. mediante Escritura Pública No. 22,768 otorgada ante la fe del licenciado Ignacio Gerardo Martínez González, Notario Público Titular de la Notaría Pública No. 75 con ejercicio en el primer distrito, debidamente inscrita en el Instituto Registral y Catastral en el Estado de Nuevo León bajo el FME N-2018021694 de fecha 19 de febrero del año 2020." }} 
 			</div></td>
 	</tr>
 	<tr>
@@ -131,7 +124,7 @@
 		</div></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><div class="fuente">(g)     Que el Registro Federal de Contribuyentes de su representada es <b>DIT180226CR7</b>.
+		<td height="21"  valign=middle><div class="fuente">(g)     Que el Registro Federal de Contribuyentes de su representada es <b>{{ marca_comodato_rfc|default:"DIT180226CR7" }}</b>.
 		</div></td>
 	</tr>
 	<tr>
@@ -273,7 +266,7 @@
 		<div class="col fuente" style="text-align:center;"><b>“EL COMODATARIO”</b></div>	
 	</div>	
 	<div class="row">
-		<div class="col fuente" style="font-size:11px; text-align:center;"><b>Patrimonio Torre Verde, S.A. de C.V.</b></div>
+		<div class="col fuente" style="font-size:11px; text-align:center;"><b>{{ marca_comodante|default:"Patrimonio Torre Verde, S.A. de C.V." }}</b></div>
 		<div class="col"></div>
 	</div>	
 
@@ -289,7 +282,7 @@
 	</div>
 	
 	<div class="row">
-		<div class="col fuente" style="font-size:11px; text-align:center;"><b>Alma Gabriela Granados Castillo</b></div>
+		<div class="col fuente" style="font-size:11px; text-align:center;"><b>{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</b></div>
 		<div class="col fuente" style="font-size:11px; text-align:center;">{{info.residente.nombre_arrendatario}}</div>
 	</div>
 
@@ -303,15 +296,18 @@
 	<tr>
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
+	{% if not es_demo %}
 	<tr>
 		<td height="21"  valign=middle><b><div class="fuente">                                                                                  ANEXO 1</div></b></td>
 	</tr>	
 	<tr>
 		<td height="21"  valign=middle><div class="fuente">                                                                        Inventario de Muebles</div></td>
-	</tr>	
+	</tr>
+	{% endif %}	
 </table>
 <!--Fin de la primera tabla anexos header-->
 
+{% if not es_demo %}
 <!--Inicio de la SEGUNDA TABLA ANEXO 1-->
   <div class="container">
 	<img src="{{tabla_inventario}}" alt="Imagen" style="width:100%; height:850px;">
@@ -319,6 +315,7 @@
 	<div class="text_anexo"><b>Anexo I cuadro para tapar esta informacion</b></div>
   </div>
 <!--fin tabla inventario-->
+{% endif %}
 
 <!--inicio de tabla anexo 4-->
 <table align="left" cellspacing="0" border="0">
@@ -356,11 +353,8 @@
 		<td height="20" align="left" valign=middle><font color="#000000"><br></font></td>
 	</tr>
 	<tr>
-		<td height="21"  valign=middle><div class="fuente" >Debo y Pagaré incondicionalmente por el presente PAGARÉ a la empresa denominada PATRIMONIO TORRE VERDE, 
-			S.A. DE C.V., el día: <b>{{info.fecha_move_out}}</b>, en el domicilio ubicado en la Avenida Don Luis G. Sada No. 202, 
-			Colonia Regina, CP 64500, Monterrey, Nuevo León, México, la cantidad de <b>${{info.renta | intcomma}}.00 ({{renta_texto}} pesos 00/100 M.N.)</b>. 
-			El importe será cubierto en una sola exhibición, pagadera en el <b>Banco Banregio, en la cuenta de cheques no. 021-
-			76523-003-06, con CLABE Interbancaria 058580217652300361, con la referencia {{info.residente.rfc_arrendatario | upper}}.</b> Este Título de Crédito podrá ser cobrable única y exclusivamente, si al término 
+		<td height="21"  valign=middle><div class="fuente" >Debo y Pagaré incondicionalmente por el presente PAGARÉ a la empresa denominada {{ marca_comodante_mayus|default:"PATRIMONIO TORRE VERDE, S.A. DE C.V." }}, el día: <b>{{info.fecha_move_out}}</b>, en el domicilio ubicado en {{ marca_domicilio_comodato|default:'la Avenida Don Luis G. Sada No. 202, Colonia Regina, CP 64500, Monterrey, Nuevo León, México' }}, la cantidad de <b>${{info.renta | intcomma}}.00 ({{renta_texto}} pesos 00/100 M.N.)</b>. 
+			El importe será cubierto en una sola exhibición, pagadera en el <b>Banco {{ marca_banco|default:"Banregio" }}, en la cuenta de cheques no. {{ marca_cuenta_comodato|default:"021-76523-003-06" }}, con CLABE Interbancaria {{ marca_clabe_comodato|default:"058580217652300361" }}, con la referencia {{info.residente.rfc_arrendatario | upper}}.</b> Este Título de Crédito podrá ser cobrable única y exclusivamente, si al término 
 			del presente Contrato de Comodato, se presentasen daños o extravío en los Muebles de dicho instrumento 
 			causados directa o indirectamente por el Comodatario. De igual forma, al término de vigencia del Contrato 
 			mencionado, este Pagaré deberá ser entregado al Comodatario.  </div></td>

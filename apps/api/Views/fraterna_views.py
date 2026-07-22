@@ -42,6 +42,17 @@ import logging
 import sys
 logger = logging.getLogger(__name__)
 
+# Modo demostraciones (rol="Demo"): enmascarado de PII, marca blanca en PDFs
+# y ZapSign sandbox. Ver apps/api/utils/demo_mode.py
+from ..utils.demo_mode import (
+    es_usuario_demo,
+    marca_para,
+    contrato_es_del_usuario,
+    enmascarar_contrato_serializado,
+    enmascarar_lista_contratos,
+    aplicar_demo_a_payload_zapsign,
+)
+
 
 class Unaccent(Func):
     """Aplica unaccent() de Postgres sobre un campo, para busquedas insensibles a acentos.
@@ -225,8 +236,15 @@ class ResidenteViewSet(viewsets.ModelViewSet):
                 residentes =  Residentes.objects.all().order_by('-id')
                 serializer = self.get_serializer(residentes, many=True)
                 return Response(serializer.data, status= status.HTTP_200_OK)
-            
-           elif user_session.rol == "Inmobiliaria" or user_session.username == "ElbaJ": 
+
+           elif es_usuario_demo(user_session):
+                # Demo: ve todos los residentes (la página se ve poblada);
+                # el front le oculta la columna de celular y las acciones ajenas.
+                residentes = Residentes.objects.all().order_by('-id')
+                serializer = self.get_serializer(residentes, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+           elif user_session.rol == "Inmobiliaria" or user_session.username == "ElbaJ":
                 #tengo que busca a los inquilinos que tiene a un agente vinculado
                 print("soy inmobiliaria", user_session.name_inmobiliaria)
                 agentes = User.objects.all().filter(pertenece_a = user_session.name_inmobiliaria) 
@@ -294,6 +312,9 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             # Mismo gating de visibilidad que list()
             if user_session.is_staff:
                 base_qs = Residentes.objects.all()
+            elif es_usuario_demo(user_session):
+                # Demo: el picker se ve poblado (el front oculta el contacto)
+                base_qs = Residentes.objects.all()
             elif user_session.rol == "Inmobiliaria" or user_session.username == "ElbaJ":
                 agentes = User.objects.filter(pertenece_a=user_session.name_inmobiliaria)
                 base_qs = Residentes.objects.filter(Q(user_id__in=agentes) | Q(user_id=user_session))
@@ -356,6 +377,10 @@ class ResidenteViewSet(viewsets.ModelViewSet):
 
             # Mismo gating de visibilidad que list()
             if user_session.is_staff:
+                base = Residentes.objects.all()
+            elif es_usuario_demo(user_session):
+                # Demo: la tabla de residentes se ve poblada (el front oculta
+                # celular y limita acciones a los propios).
                 base = Residentes.objects.all()
             elif user_session.rol == "Inmobiliaria" or user_session.username == "ElbaJ":
                 agentes = User.objects.filter(pertenece_a=user_session.name_inmobiliaria)
@@ -464,6 +489,11 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             print(request.data)
             instance = self.get_object()
             print("instance",instance)
+            if es_usuario_demo(request.user) and instance.user_id != request.user.id:
+                return Response(
+                    {'error': 'Cuenta de demostración: solo puedes editar residentes creados por ti.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             #print(serializer)
             if serializer.is_valid(raise_exception=True):
@@ -504,6 +534,11 @@ class ResidenteViewSet(viewsets.ModelViewSet):
         try:
             print("LLegando a eliminar residente")
             Residentes = self.get_object()
+            if es_usuario_demo(request.user) and Residentes.user_id != request.user.id:
+                return Response(
+                    {'error': 'Cuenta de demostración: solo puedes eliminar residentes creados por ti.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             if Residentes:
                 Residentes.delete()
                 return Response({'message': 'Fiador obligado eliminado'}, status=204)
@@ -511,9 +546,16 @@ class ResidenteViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
   
-    def mandar_aprobado(self, request, *args, **kwargs):  
+    def mandar_aprobado(self, request, *args, **kwargs):
         try:
             print("Aprobar al residente")
+            # Aprobar dispara correos REALES de resultado de investigación:
+            # bloqueado por completo para cuentas de demostración.
+            if es_usuario_demo(request.user):
+                return Response(
+                    {'error': 'Cuenta de demostración: aprobar residentes no está disponible.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             info = request.data
             print("el id que llega", info )
             print("accediendo a informacion", info["estado_civil"])
@@ -740,22 +782,47 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     # permission_classes = [IsAuthenticated]
     queryset = FraternaContratos.objects.all()
     serializer_class = ContratoFraternaSerializer
-    
+
+    def _guard_demo(self, request, id_contrato):
+        """Cuentas demo: solo operan contratos propios. Devuelve Response 403
+        si el contrato existe y es ajeno; None deja seguir el flujo normal
+        (los 404 los resuelve cada método como siempre)."""
+        if not es_usuario_demo(request.user):
+            return None
+        try:
+            info = self.queryset.filter(id=id_contrato).first()
+        except (TypeError, ValueError):
+            return None
+        if info is None or contrato_es_del_usuario(request.user, info):
+            return None
+        return Response(
+            {'error': 'Cuenta de demostración: esta acción solo está disponible en contratos creados por ti.'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
     def list(self, request, *args, **kwargs):
         try:
-           user_session = request.user       
+           user_session = request.user
            if user_session.is_staff:
                print("Esta entrando a listar contratos semullero")
                contratos =  FraternaContratos.objects.all().order_by('-id')
                serializer = self.get_serializer(contratos, many=True)
                serialized_data = serializer.data
-                
+
                # Agregar el campo 'is_staff'
                for item in serialized_data:
                  item['is_staff'] = True
-                
+
                return Response(serialized_data)
-           
+
+           elif es_usuario_demo(user_session):
+               # Demo: ve todas las filas (mismo volumen que staff) pero con la
+               # PII y tokens de firma de contratos ajenos enmascarados.
+               contratos = FraternaContratos.objects.all().order_by('-id')
+               serializer = self.get_serializer(contratos, many=True)
+               serialized_data = enmascarar_lista_contratos(user_session, serializer.data)
+               return Response(serialized_data, status=status.HTTP_200_OK)
+
            elif user_session.rol == "Inmobiliaria":
                #primero obtenemos mis agentes.
                print("soy inmobiliaria en listar contratos", user_session.name_inmobiliaria)
@@ -810,7 +877,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     info = contrato_serializer.save(user = user_session)
                     nuevo_proceso.contrato = info
                     nuevo_proceso.save()
-                    send_noti_varios(FraternaContratos, request, title="Nueva solicitud de contrato en Fraterna", text=f"A nombre del Arrendatario {info.residente.nombre_arrendatario}", url = f"fraterna/contrato/#{info.residente.id}_{info.cama}_{info.no_depa}")
+                    # Las solicitudes de cuentas demo no notifican al staff real.
+                    if not es_usuario_demo(user_session):
+                        send_noti_varios(FraternaContratos, request, title="Nueva solicitud de contrato en Fraterna", text=f"A nombre del Arrendatario {info.residente.nombre_arrendatario}", url = f"fraterna/contrato/#{info.residente.id}_{info.cama}_{info.no_depa}")
                     print("despues de metodo send_noti")
                     print("Se Guardado solicitud")
                     return Response({'Residentes': contrato_serializer.data}, status=status.HTTP_201_CREATED)
@@ -841,6 +910,10 @@ class Contratos_fraterna(viewsets.ModelViewSet):
 
             # Mismo gating de visibilidad que list()
             if user_session.is_staff:
+                base = FraternaContratos.objects.all()
+            elif es_usuario_demo(user_session):
+                # Demo: ve todo el universo, pero abajo se enmascara la PII de
+                # filas ajenas y se recorta la búsqueda por nombre.
                 base = FraternaContratos.objects.all()
             elif user_session.rol == "Inmobiliaria":
                 agentes = User.objects.filter(pertenece_a=user_session.name_inmobiliaria)
@@ -924,6 +997,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             if user_session.is_staff:
                 for item in data:
                     item['is_staff'] = True
+            data = enmascarar_lista_contratos(user_session, data)
 
             try:
                 draw = int(request.query_params.get('draw', 1))
@@ -943,13 +1017,27 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 'draw': 0, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': [], 'error': str(e),
             }, status=status.HTTP_200_OK)
 
+    def retrieve(self, request, *args, **kwargs):
+        """Igual que el retrieve default, pero para cuentas demo enmascara la
+        PII/tokens si el contrato no es suyo (misma máscara que list/tabla)."""
+        response = super().retrieve(request, *args, **kwargs)
+        if es_usuario_demo(request.user) and isinstance(response.data, dict):
+            if response.data.get('user') != request.user.id:
+                enmascarar_contrato_serializado(response.data)
+        return response
+
     def update(self, request, *args, **kwargs):
         try:
             #primero verificamos que tenga contadores activos
             print("Esta entrando a actualizar Contratos Fraterna")
             partial = kwargs.pop('partial', False)
             instance = self.get_object()
-           
+            if es_usuario_demo(request.user) and not contrato_es_del_usuario(request.user, instance):
+                return Response(
+                    {'error': 'Cuenta de demostración: solo puedes editar contratos creados por ti.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
             # Plano anterior: se limpia DESPUES de guardar (ver mas abajo). Antes se borraba
             # aqui, antes de validar: si el serializer fallaba, el contrato se quedaba sin el
             # viejo y sin el nuevo. El serializer ya asigna el archivo desde request.data.
@@ -997,17 +1085,25 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     def destroy(self,request, *args, **kwargs):
         try:
             residente = self.get_object()
+            if es_usuario_demo(request.user) and not contrato_es_del_usuario(request.user, residente):
+                return Response(
+                    {'error': 'Cuenta de demostración: solo puedes eliminar contratos creados por ti.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             if residente:
                 residente.delete()
                 return Response({'message': 'residente eliminado'}, status=204)
             return Response({'message': 'Error al eliminar'}, status=400)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def aprobar_contrato(self, request, *args, **kwargs):
         try:
             print("update status contrato")
             print("Request",request.data)
+            bloqueo_demo = self._guard_demo(request, request.data.get("id"))
+            if bloqueo_demo:
+                return bloqueo_demo
             instance = self.queryset.get(id = request.data["id"])
             print("mi id es: ",instance.id)
             print(instance.__dict__)
@@ -1026,6 +1122,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     def desaprobar_contrato(self, request, *args, **kwargs):
         try:
             print("desaprobar Contrato")
+            bloqueo_demo = self._guard_demo(request, request.data.get("id"))
+            if bloqueo_demo:
+                return bloqueo_demo
             instance = self.queryset.get(id = request.data["id"])
             #se utiliza el "get" en lugar del filter para obtener el objeto y no un queryset
             proceso = ProcesoContrato.objects.all().get(contrato_id = instance.id)
@@ -1056,6 +1155,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         empareja con ningun contrato) y su rastro queda en esta bitacora.
         """
         try:
+            bloqueo_demo = self._guard_demo(request, request.data.get("id"))
+            if bloqueo_demo:
+                return bloqueo_demo
             instance = self.queryset.get(id=request.data["id"])
             # Nada que reiniciar si el contrato no tiene ningun enlace generado.
             if not (instance.token or instance.token_paquete_2):
@@ -1108,12 +1210,16 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
 
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
+
             info = self.queryset.filter(id=id_paq).first()
             if not info:
                 return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
             # `_generar_pagare_interno` lee `pagare_distinto` y `cantidad_primer_pagare` del modelo
-            pdf_file = self._generar_pagare_interno(info)
+            pdf_file = self._generar_pagare_interno(info, marca=marca_para(request.user))
 
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="Pagare.pdf"'
@@ -1131,9 +1237,12 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print("Generar Poliza Fraterna")
             id_paq = request.data
             print("el id que llega", id_paq)
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)
-            
+
             #vamos a genenrar el numero de contrato
             arrendatario = info.residente.nombre_arrendatario
             primera_letra = arrendatario[0].upper()  # Obtiene la primera letra
@@ -1150,7 +1259,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             renta_texto = num2words(renta, lang='es').capitalize()
             
        
-            context = {'info': info, 'renta_texto':renta_texto, 'nom_contrato':nom_contrato,}
+            context = {'info': info, 'renta_texto':renta_texto, 'nom_contrato':nom_contrato, **(marca_para(request.user) or {})}
             template = 'home/poliza_fraterna.html'
             html_string = render_to_string(template,context)
 
@@ -1174,8 +1283,11 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print("Generar contrato Fraterna")
             id_paq = request.data
             print("el id que llega", id_paq)
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
             info = self.queryset.filter(id = id_paq).first()
-            print(info.__dict__)       
+            print(info.__dict__)
             #obtenermos la renta para pasarla a letra
             habitantes = int(info.habitantes)
             habitantes_texto = num2words(habitantes, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
@@ -1228,6 +1340,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     'tabla_inventario': tabla_inventario,
                 },
                 **_contraprestacion_fraterna_context(info),
+                **(marca_para(request.user) or {}),
             }
             template = 'home/contrato_fraterna_v2.html' if settings.USE_NEW_FRATERNA_CONTRACT else 'home/contrato_fraterna.html'
             html_string = render_to_string(template,context)
@@ -1253,8 +1366,11 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print("Generar comodato Fraterna")
             id_paq = request.data
             print("el id que llega", id_paq)
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
             info = self.queryset.filter(id = id_paq).first()
-            print(info.__dict__)       
+            print(info.__dict__)
             #obtenermos la duracion para pasarla a letra
             duracion_meses = info.duracion.split()
             duracion_meses = int(duracion_meses[0])
@@ -1298,7 +1414,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             #obtener la url de el plano que sube fraterna
             plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
            
-            context = {'info': info, 'duracion_meses':duracion_meses, 'duracion_texto':duracion_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc, 'tabla_inventario':tabla_inventario}
+            context = {'info': info, 'duracion_meses':duracion_meses, 'duracion_texto':duracion_texto, 'renta_texto':renta_texto, 'plano':plano, 'plan_loc':plan_loc, 'tabla_inventario':tabla_inventario, **(marca_para(request.user) or {})}
             template = 'home/comodato_fraterna.html'
             html_string = render_to_string(template,context)
 
@@ -1318,7 +1434,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
     
-    def _generar_paquete_fraterna_pdf(self, id_paq, pagare_distinto=None, cantidad_pagare=None):
+    def _generar_paquete_fraterna_pdf(self, id_paq, pagare_distinto=None, cantidad_pagare=None, marca=None):
         """
         Paquete COMPLETO = Paquete 1 + Paquete 2 concatenados.
 
@@ -1326,10 +1442,11 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             Paquete 1: Contrato → Póliza → Manual UTO → Pagarés
             Paquete 2: Comodato → Anexos
 
+        `marca`: contexto de marca blanca (cuentas demo); None = Fraterna normal.
         Devuelve: (nombre_archivo, bytes del PDF combinado, total_paginas)
         """
-        _, pdf_p1, total_p1 = self._generar_paquete_1_pdf(id_paq, pagare_distinto, cantidad_pagare)
-        _, pdf_p2, total_p2 = self._generar_paquete_2_pdf(id_paq)
+        _, pdf_p1, total_p1 = self._generar_paquete_1_pdf(id_paq, pagare_distinto, cantidad_pagare, marca=marca)
+        _, pdf_p2, total_p2 = self._generar_paquete_2_pdf(id_paq, marca=marca)
 
         pdf_writer = PdfWriter()
         for page in PdfReader(io.BytesIO(pdf_p1)).pages:
@@ -1344,7 +1461,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         info = self.queryset.filter(id=id_paq).first()
         nombre_inquilino = info.residente.nombre_arrendatario if info and info.residente else "contrato"
         fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
-        nombre_archivo = f"Paquete_Completo_Fraterna_{nombre_inquilino}_{fecha_actual}.pdf"
+        marca_slug = (marca or {}).get('marca_slug', 'Fraterna')
+        nombre_archivo = f"Paquete_Completo_{marca_slug}_{nombre_inquilino}_{fecha_actual}.pdf"
         total_paginas = {**total_p1, **total_p2}
         return nombre_archivo, output_pdf.getvalue(), total_paginas
 
@@ -1428,17 +1546,20 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         return nombre_archivo, output_pdf.getvalue(), total_paginas
 
 
-    def build_payload_to_zapsign(self, contrato_data):
+    def build_payload_to_zapsign(self, contrato_data, marca=None):
         """ Datos del contrado: contrato_data = {"id", "filename", "base64_pfd", "residente"}
             Aquí armamos el payload que se va enviar para la solicitud
-            de creacion del documento 
+            de creacion del documento
 
+            `marca`: contexto de marca blanca (cuentas demo). Con marca demo, el
+            payload sale en sandbox, con firmante 1/testigo ficticios y todos
+            los correos redirigidos al usuario demo (ver demo_mode.py).
         """
         data = contrato_data
         singer = data["residente"]
         brand_logo = "https://pagosprueba.s3.us-east-1.amazonaws.com/ZapSign/logo-contratodearrendamiento.webp"
 
-        return {
+        payload = {
             "name": data["filename"],                                          # Nombre del documento que verá el usuario
             "base64_pdf": data["base64_pfd"],                                  # PDF codificado en base64 (sin encabezado data:...)
             "external_id": data["id"],                                         # ID opcional para enlazar con sistema externo
@@ -1533,7 +1654,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             "allow_refuse_signature": True,                                  # Permite al firmante rechazar la firma
             "disable_signers_get_original_file": False                       # Bloquea que los firmantes descarguen el documento final
         }
-    
+
+        return aplicar_demo_a_payload_zapsign(payload, marca)
+
     def armar_payload_posiciones_firma(self, signer_tokens, total_paginas, residente):
         rubricas = []
 
@@ -1618,9 +1741,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         return {"rubricas": rubricas}
 
 
-    def subir_documento_a_zapsign(self, contrato_data):
+    def subir_documento_a_zapsign(self, contrato_data, marca=None):
         # Armar payload para subir documento
-        payload = self.build_payload_to_zapsign(contrato_data)
+        payload = self.build_payload_to_zapsign(contrato_data, marca=marca)
 
         headers = {
             'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}',
@@ -1716,13 +1839,18 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 cantidad_pagare = "0"
 
             
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
+            marca = marca_para(request.user)
+
             # Fix (A) consistencia: firmantes desde la BD (fuente de verdad), no del snapshot del FE.
             info = self.queryset.filter(id=id_paq).first()
             if not info or not info.residente:
                 return Response({'error': 'Contrato o residente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
             residente = ResidenteSerializers(info.residente).data
 
-            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_fraterna_pdf(id_paq, pagare_distinto, cantidad_pagare)
+            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_fraterna_pdf(id_paq, pagare_distinto, cantidad_pagare, marca=marca)
             base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
             print("Paquete EN BASE 64")
 
@@ -1734,7 +1862,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 "total_paginas": total_paginas
                 }
             #funcion de prueba solicitar documento a zapsign
-            resultado = self.subir_documento_a_zapsign(contrato_data)
+            resultado = self.subir_documento_a_zapsign(contrato_data, marca=marca)
             return Response({
                 "filename": "simula nombre",
                 "pdf_base64": "base64_pdfj89d789a8su39889",
@@ -1758,7 +1886,11 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
 
-            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_fraterna_pdf(id_paq)
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
+
+            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_fraterna_pdf(id_paq, marca=marca_para(request.user))
 
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
@@ -1834,7 +1966,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     # Paquete 2: Comodato + Anexos                          (firma después)
     # =========================================================================
 
-    def _generar_anexos_interno(self, info):
+    def _generar_anexos_interno(self, info, marca=None):
         """Genera el PDF solo de los anexos (1-6). Usado en Paquete 2."""
         try:
             opciones = {
@@ -1865,6 +1997,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 'plano': plano,
                 'plan_loc': plan_loc,
                 'tabla_inventario': tabla_inventario,
+                **(marca or {}),
             }
             template = 'home/anexos_fraterna_v2.html'
             html_string = render_to_string(template, context)
@@ -1874,9 +2007,12 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print(f"Error generando anexos interno: {e}")
             raise e
 
-    def _generar_paquete_1_pdf(self, id_paq, pagare_distinto=None, cantidad_pagare=None):
+    def _generar_paquete_1_pdf(self, id_paq, pagare_distinto=None, cantidad_pagare=None, marca=None):
         """Paquete 1 = Contrato + Póliza + Manual UTO + Pagarés (al final, sin firmas ZapSign).
         `pagare_distinto`/`cantidad_pagare` opcionales: si vienen None se leen del modelo.
+        `marca`: contexto de marca blanca (cuentas demo); en demo se OMITE el
+        Manual UTO (PDF estático con marca Fraterna) — total_paginas["manual"]=0
+        mantiene las coordenadas de firma consistentes.
         Devuelve (nombre, bytes, total_paginas)."""
         total_paginas = {"arrendamiento": 0, "poliza": 0, "manual": 0, "pagares": 0}
         locale.setlocale(locale.LC_ALL, "es_MX.utf8")
@@ -1888,33 +2024,34 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         pdf_writer = PdfWriter()
 
         # 1. Contrato (sin anexos)
-        contrato_pdf = self._generar_contrato_interno(info)
+        contrato_pdf = self._generar_contrato_interno(info, marca=marca)
         contrato_reader = PdfReader(io.BytesIO(contrato_pdf))
         total_paginas["arrendamiento"] = len(contrato_reader.pages)
         for page in contrato_reader.pages:
             pdf_writer.add_page(page)
 
         # 2. Póliza
-        poliza_pdf = self._generar_poliza_interno(info)
+        poliza_pdf = self._generar_poliza_interno(info, marca=marca)
         poliza_reader = PdfReader(io.BytesIO(poliza_pdf))
         total_paginas["poliza"] = len(poliza_reader.pages)
         for page in poliza_reader.pages:
             pdf_writer.add_page(page)
 
-        # 3. Manual UTO desde AWS
-        manual_url = "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/ManualUtower.pdf"
-        try:
-            response_manual = requests.get(manual_url, timeout=30)
-            response_manual.raise_for_status()
-            manual_reader = PdfReader(io.BytesIO(response_manual.content))
-            total_paginas["manual"] = len(manual_reader.pages)
-            for page in manual_reader.pages:
-                pdf_writer.add_page(page)
-        except Exception as e:
-            print(f"Error al descargar manual UTO: {e}")
+        # 3. Manual UTO desde AWS (omitido en demo: es un PDF con marca Fraterna)
+        if not (marca and marca.get('es_demo')):
+            manual_url = "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/ManualUtower.pdf"
+            try:
+                response_manual = requests.get(manual_url, timeout=30)
+                response_manual.raise_for_status()
+                manual_reader = PdfReader(io.BytesIO(response_manual.content))
+                total_paginas["manual"] = len(manual_reader.pages)
+                for page in manual_reader.pages:
+                    pdf_writer.add_page(page)
+            except Exception as e:
+                print(f"Error al descargar manual UTO: {e}")
 
         # 4. Pagarés (al final, sin firmas ZapSign — ver armar_payload_firmas_paquete_1)
-        pagare_pdf = self._generar_pagare_interno(info, pagare_distinto, cantidad_pagare)
+        pagare_pdf = self._generar_pagare_interno(info, pagare_distinto, cantidad_pagare, marca=marca)
         pagare_reader = PdfReader(io.BytesIO(pagare_pdf))
         total_paginas["pagares"] = len(pagare_reader.pages)
         for page in pagare_reader.pages:
@@ -1925,10 +2062,11 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         output_pdf.seek(0)
 
         fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
-        nombre_archivo = f"Paquete_1_Fraterna_{info.residente.nombre_arrendatario}_{fecha_actual}.pdf"
+        marca_slug = (marca or {}).get('marca_slug', 'Fraterna')
+        nombre_archivo = f"Paquete_1_{marca_slug}_{info.residente.nombre_arrendatario}_{fecha_actual}.pdf"
         return nombre_archivo, output_pdf.getvalue(), total_paginas
 
-    def _generar_paquete_2_pdf(self, id_paq):
+    def _generar_paquete_2_pdf(self, id_paq, marca=None):
         """Paquete 2 = Comodato + Anexos. Devuelve (nombre, bytes, total_paginas)."""
         total_paginas = {"comodato": 0, "anexos": 0}
         locale.setlocale(locale.LC_ALL, "es_MX.utf8")
@@ -1940,14 +2078,14 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         pdf_writer = PdfWriter()
 
         # 1. Comodato
-        comodato_pdf = self._generar_comodato_interno(info)
+        comodato_pdf = self._generar_comodato_interno(info, marca=marca)
         comodato_reader = PdfReader(io.BytesIO(comodato_pdf))
         total_paginas["comodato"] = len(comodato_reader.pages)
         for page in comodato_reader.pages:
             pdf_writer.add_page(page)
 
         # 2. Anexos
-        anexos_pdf = self._generar_anexos_interno(info)
+        anexos_pdf = self._generar_anexos_interno(info, marca=marca)
         anexos_reader = PdfReader(io.BytesIO(anexos_pdf))
         total_paginas["anexos"] = len(anexos_reader.pages)
         for page in anexos_reader.pages:
@@ -1958,7 +2096,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         output_pdf.seek(0)
 
         fecha_actual = dt.now().strftime("%Y%m%d_%H%M%S")
-        nombre_archivo = f"Paquete_2_Fraterna_{info.residente.nombre_arrendatario}_{fecha_actual}.pdf"
+        marca_slug = (marca or {}).get('marca_slug', 'Fraterna')
+        nombre_archivo = f"Paquete_2_{marca_slug}_{info.residente.nombre_arrendatario}_{fecha_actual}.pdf"
         return nombre_archivo, output_pdf.getvalue(), total_paginas
 
     def armar_payload_firmas_paquete_1(self, signer_tokens, total_paginas, residente):
@@ -2069,15 +2208,16 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     })
         return {"rubricas": rubricas}
 
-    def _subir_paquete_a_zapsign(self, contrato_data, armar_payload_firmas_fn, persistir_token=True, campo_token='token'):
+    def _subir_paquete_a_zapsign(self, contrato_data, armar_payload_firmas_fn, persistir_token=True, campo_token='token', marca=None):
         """
         Sube un paquete a ZapSign con la función de posicionamiento dada.
         - persistir_token=True (default) → guarda doc_token en `info.<campo_token>`.
         - campo_token='token'           → Paquete 1 (default).
         - campo_token='token_paquete_2' → Paquete 2.
         - persistir_token=False         → solo lo retorna en la respuesta (legacy).
+        - marca                          → marca blanca demo (sandbox ZapSign).
         """
-        payload = self.build_payload_to_zapsign(contrato_data)
+        payload = self.build_payload_to_zapsign(contrato_data, marca=marca)
         headers = {
             'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}',
             'Content-Type': 'application/json',
@@ -2136,11 +2276,14 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         try:
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
             info = self.queryset.filter(id=id_paq).first()
             if not info:
                 return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-            pdf_file = self._generar_anexos_interno(info)
+            pdf_file = self._generar_anexos_interno(info, marca=marca_para(request.user))
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="Anexos_Fraterna.pdf"'
             response.write(pdf_file)
@@ -2157,7 +2300,11 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
 
-            nombre_archivo, pdf_bytes, _ = self._generar_paquete_1_pdf(id_paq)
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
+
+            nombre_archivo, pdf_bytes, _ = self._generar_paquete_1_pdf(id_paq, marca=marca_para(request.user))
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
             response.write(pdf_bytes)
@@ -2173,7 +2320,11 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
 
-            nombre_archivo, pdf_bytes, _ = self._generar_paquete_2_pdf(id_paq)
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
+
+            nombre_archivo, pdf_bytes, _ = self._generar_paquete_2_pdf(id_paq, marca=marca_para(request.user))
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
             response.write(pdf_bytes)
@@ -2191,6 +2342,10 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             if not isinstance(data, dict):
                 return Response({'error': 'Se requiere id_contrato y residente_contrato'}, status=status.HTTP_400_BAD_REQUEST)
             id_paq = data["id_contrato"]
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
+            marca = marca_para(request.user)
             # Fix (A) consistencia: los firmantes se re-derivan de la BD (fuente de verdad),
             # NO del snapshot del FE (`residente_contrato`), que podia venir viejo/duplicado.
             info = self.queryset.filter(id=id_paq).first()
@@ -2198,7 +2353,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 return Response({'error': 'Contrato o residente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
             residente = ResidenteSerializers(info.residente).data
 
-            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_1_pdf(id_paq)
+            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_1_pdf(id_paq, marca=marca)
             base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
 
             contrato_data = {
@@ -2208,7 +2363,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 "residente": residente,
                 "total_paginas": total_paginas,
             }
-            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_1, persistir_token=True)
+            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_1, persistir_token=True, marca=marca)
             return Response({"respuestaZS": resultado, "paquete": "1"}, status=status.HTTP_200_OK)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -2222,6 +2377,10 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             if not isinstance(data, dict):
                 return Response({'error': 'Se requiere id_contrato y residente_contrato'}, status=status.HTTP_400_BAD_REQUEST)
             id_paq = data["id_contrato"]
+            bloqueo_demo = self._guard_demo(request, id_paq)
+            if bloqueo_demo:
+                return bloqueo_demo
+            marca = marca_para(request.user)
             # Fix (A) consistencia: los firmantes se re-derivan de la BD (fuente de verdad),
             # NO del snapshot del FE (`residente_contrato`), que podia venir viejo/duplicado.
             info = self.queryset.filter(id=id_paq).first()
@@ -2237,7 +2396,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_2_pdf(id_paq)
+            nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_2_pdf(id_paq, marca=marca)
             base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
 
             contrato_data = {
@@ -2247,7 +2406,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 "residente": residente,
                 "total_paginas": total_paginas,
             }
-            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_2, persistir_token=True, campo_token='token_paquete_2')
+            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_2, persistir_token=True, campo_token='token_paquete_2', marca=marca)
             return Response({"respuestaZS": resultado, "paquete": "2"}, status=status.HTTP_200_OK)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -2347,7 +2506,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Error en generar_reporte_contratos linea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def _generar_comodato_interno(self, info):
+    def _generar_comodato_interno(self, info, marca=None):
         """Función interna para generar el PDF del comodato"""
         try:
             # Obtener la duración para pasarla a letra
@@ -2389,15 +2548,16 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
             
             context = {
-                'info': info, 
-                'duracion_meses': duracion_meses, 
-                'duracion_texto': duracion_texto, 
-                'renta_texto': renta_texto, 
-                'plano': plano, 
-                'plan_loc': plan_loc, 
-                'tabla_inventario': tabla_inventario
+                'info': info,
+                'duracion_meses': duracion_meses,
+                'duracion_texto': duracion_texto,
+                'renta_texto': renta_texto,
+                'plano': plano,
+                'plan_loc': plan_loc,
+                'tabla_inventario': tabla_inventario,
+                **(marca or {}),
             }
-            
+
             template = 'home/comodato_fraterna.html'
             html_string = render_to_string(template, context)
             pdf_file = HTML(string=html_string).write_pdf()
@@ -2408,7 +2568,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print(f"Error generando comodato interno: {e}")
             raise e
     
-    def _generar_contrato_interno(self, info):
+    def _generar_contrato_interno(self, info, marca=None):
         """Función interna para generar el PDF del contrato"""
         try:
             # Obtener la cantidad de habitantes para pasarla a letra
@@ -2458,8 +2618,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     'tabla_inventario': tabla_inventario,
                 },
                 **_contraprestacion_fraterna_context(info),
+                **(marca or {}),
             }
-            
+
             template = 'home/contrato_fraterna_v2.html' if settings.USE_NEW_FRATERNA_CONTRACT else 'home/contrato_fraterna.html'
             html_string = render_to_string(template, context)
             pdf_file = HTML(string=html_string).write_pdf()
@@ -2470,7 +2631,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print(f"Error generando contrato interno: {e}")
             raise e
     
-    def _generar_poliza_interno(self, info):
+    def _generar_poliza_interno(self, info, marca=None):
         """Función interna para generar el PDF de la póliza"""
         try:
             # Generar el número de contrato
@@ -2489,11 +2650,12 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             renta_texto = num2words(renta, lang='es').capitalize()
             
             context = {
-                'info': info, 
-                'renta_texto': renta_texto, 
-                'nom_contrato': nom_contrato
+                'info': info,
+                'renta_texto': renta_texto,
+                'nom_contrato': nom_contrato,
+                **(marca or {}),
             }
-            
+
             template = 'home/poliza_fraterna.html'
             html_string = render_to_string(template, context)
             pdf_file = HTML(string=html_string).write_pdf()
@@ -2504,11 +2666,12 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print(f"Error generando póliza interna: {e}")
             raise e
     
-    def _generar_pagare_interno(self, info, pagare_distinto=None, cantidad_pagare=None):
+    def _generar_pagare_interno(self, info, pagare_distinto=None, cantidad_pagare=None, marca=None):
         """Función interna para generar el PDF del pagaré.
 
         Args opcionales para compatibilidad con llamadas viejas. Si no vienen,
         se leen del propio modelo (`info.pagare_distinto` y `info.cantidad_primer_pagare`).
+        `marca`: contexto de marca blanca (cuentas demo).
         """
         try:
             # Si no se pasaron explícitos, leer del modelo
@@ -2577,18 +2740,19 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 text_representation = num2words(number, lang='es').capitalize()
             
             context = {
-                'info': info, 
+                'info': info,
                 'dia': dia,
-                'lista_fechas': fechas_iteradas, 
-                'text_representation': text_representation, 
-                'duracion_meses': duracion_meses, 
+                'lista_fechas': fechas_iteradas,
+                'text_representation': text_representation,
+                'duracion_meses': duracion_meses,
                 'pagare_distinto': pagare_distinto,
-                'cantidad_pagare': cantidad_pagare_num, 
-                'cantidad_letra': cantidad_letra, 
-                'cantidad_decimal': cantidad_decimal, 
-                'renta_decimal': renta_decimal
+                'cantidad_pagare': cantidad_pagare_num,
+                'cantidad_letra': cantidad_letra,
+                'cantidad_decimal': cantidad_decimal,
+                'renta_decimal': renta_decimal,
+                **(marca or {}),
             }
-            
+
             template = 'home/pagare_fraterna.html'
             html_string = render_to_string(template, context)
             pdf_file = HTML(string=html_string).write_pdf()
@@ -2603,6 +2767,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         try:
             print("Renovar el contrato pa")
             print("Request",request.data)
+            bloqueo_demo = self._guard_demo(request, request.data.get("id"))
+            if bloqueo_demo:
+                return bloqueo_demo
             instance = self.queryset.get(id = request.data["id"])
             print("mi id es: ",instance.id)
             print(instance.__dict__)

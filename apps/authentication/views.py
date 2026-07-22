@@ -109,6 +109,10 @@ class Login(ObtainAuthToken):
                     user_payload = arrendify_user.data
                 elif residente_user.data.get('rol') == "Residente":
                     user_payload = residente_user.data
+                elif arrendify_user.data.get('rol') == "Demo":
+                    # Cuentas de demostración: el front necesita id/rol/is_staff
+                    # en localStorage para gatear sidebar y acciones de la tabla.
+                    user_payload = arrendify_user.data
                 else:
                     user_payload = user_serializer.data
 

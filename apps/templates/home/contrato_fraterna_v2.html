@@ -8,7 +8,7 @@
 	
 	<meta http-equiv="content-type" content="text/html"/>
 	<meta charset="utf-8">
-	<title>Contrato - Fraterna</title>
+	<title>Contrato - {{ marca_nombre_corto|default:"Fraterna" }}</title>
 	<meta  name = "viewport" content="width=device-width, initial-scale=1">
 <style>
 		  .table_headers1{
@@ -675,7 +675,7 @@
 		<td style="border: 1px solid #000000;" class="table_headers1"  colspan=6 >ARRENDADOR</td>
 	</tr>
 	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">Fraterna Administradora de Proyectos, S.A. de C.V.</div></td>
+		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">{{ marca_razon_social|default:"Fraterna Administradora de Proyectos, S.A. de C.V." }}</div></td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; text-align: left;" class="table_headers1"  colspan=6><div style="margin-left: 0.07in">Representada por: {{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</div></td>
@@ -725,7 +725,7 @@
 
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
-			<div class="celdas">Inmueble: &quot;U TOWER&quot;, el cual se encuentra ubicado en Av. Don Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.</div>
+			<div class="celdas">Inmueble: {{ marca_inmueble_caratula|default:'"U TOWER", el cual se encuentra ubicado en Av. Don Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.' }}</div>
 		</td>
 	</tr>
 	{% if info.tipologia and info.tipologia|cut:"-"|cut:" " %}
@@ -835,15 +835,15 @@
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Banco: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">Banregio</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">{{ marca_banco|default:"Banregio" }}</div></td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Cuenta bancaria: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">021727730041</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">{{ marca_cuenta_bancaria|default:"021727730041" }}</div></td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Para depósitos vía transferencia electrónica (CLABE): </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; position: relative; top: -8px;" colspan=5><div class="celdas">058580217277300416</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; position: relative; top: -8px;" colspan=5><div class="celdas">{{ marca_clabe|default:"058580217277300416" }}</div></td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Referencia: </div></td>
@@ -851,7 +851,7 @@
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Pago a nombre de: </div></td>
-		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">Fraterna Administradora de Proyectos, S.A. de C.V.</div></td>
+		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000" colspan=5><div class="celdas">{{ marca_razon_social|default:"Fraterna Administradora de Proyectos, S.A. de C.V." }}</div></td>
 	</tr>
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=1><div class="celdas">Divisa: </div></td>
@@ -869,10 +869,10 @@
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000; position: relative; top: -20px;" height="17" align="left" colspan=1><div class="celdas">Cuenta Bancaria del Depósito de Garantía:</div></td>
 		<td style="border-top: 1px solid #000000; border-bottom: 1px solid #000000;  border-right: 1px solid #000000; text-align:justify;" colspan=5>
 			<div class="celdas">
-				Banco: Banregio <br/>
-				Pago a nombre de: Fraterna Administradora de Proyectos, S.A. de C.V. <br/>
-				Cuenta Bancaria: 021727730041 <br/>
-				CLABE Interbancaria: 058580217277300416 <br/>
+				Banco: {{ marca_banco|default:"Banregio" }} <br/>
+				Pago a nombre de: {{ marca_razon_social|default:"Fraterna Administradora de Proyectos, S.A. de C.V." }} <br/>
+				Cuenta Bancaria: {{ marca_cuenta_bancaria|default:"021727730041" }} <br/>
+				CLABE Interbancaria: {{ marca_clabe|default:"058580217277300416" }} <br/>
 				Referencia: {{info.residente.rfc_arrendatario}} <br/>
 				Divisa: Pesos
 			</div>
@@ -916,9 +916,8 @@
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="34" colspan=6 >
 			<div class="celdas">Del Arrendador:<br/>
-				El Arrendador señala expresa e irrevocablemente como su domicilio el del Inmueble, siendo este: Av. Don
-				Luis G. Sada, número 202, Col. Regina, Monterrey, Nuevo León y/o Calle Padre Mier No. 1545, Interior 501, Colonia Maria Luisa, Monterrey, Nuevo León.<br/>
-				Correo electrónico:  legal@fraterna.mx
+				El Arrendador señala expresa e irrevocablemente como su domicilio el del Inmueble, siendo este: {{ marca_domicilio_arrendador|default:"Av. Don Luis G. Sada, número 202, Col. Regina, Monterrey, Nuevo León y/o Calle Padre Mier No. 1545, Interior 501, Colonia Maria Luisa, Monterrey, Nuevo León" }}.<br/>
+				Correo electrónico:  {{ marca_correo_legal|default:"legal@fraterna.mx" }}
 			</div>
 		</td>
 	</tr>
@@ -938,13 +937,13 @@
 	<tr>
 		<td style="page-break-before: always;" class="fuente contrato-cuerpo" valign="top">
 			<p class="contrato-intro-p">Contrato de Arrendamiento (el &quot;<u>Contrato</u>&quot;) que celebran, en la fecha señalada en la Carátula:</p>
-			<p class="contrato-partes-inciso">(i) Fraterna Administradora de Proyectos, S.A. de C.V. (el &quot;<u>Arrendador</u>&quot;);</p>
+			<p class="contrato-partes-inciso">(i) {{ marca_razon_social|default:"Fraterna Administradora de Proyectos, S.A. de C.V." }} (el &quot;<u>Arrendador</u>&quot;);</p>
 			<p class="contrato-partes-inciso">(ii) La persona (física o moral) descrita en la Carátula del presente Contrato en calidad de arrendatario (el &quot;Arrendatario&quot;);</p>
 			<p class="contrato-intro-p">De conformidad con las siguientes Declaraciones y Cláusulas.</p>
 			<div class="declaraciones-bloque">
 				<p class="declaraciones-titulo">DECLARACIONES</p>
 				<p class="declaracion-seccion">I. El Arrendador, a través de su representante legal, declara que:</p>
-				<p class="declaracion-inciso">(a) Es una sociedad mercantil legalmente constituida y existente de conformidad con las leyes mexicanas vigentes, según consta en la Escritura Pública número 28,281, de fecha 26 de abril del 2022, otorgada ante la fe del Lic. Ignacio Gerardo Martínez González, Titular de la Notaría Pública No. 75, con ejercicio en el Primer Distrito Registral y Notarial del Estado de Nuevo León, con residencia en la ciudad de San Pedro Garza García, Nuevo León, y debidamente registrada con fecha 5 de mayo del 2022 ante el Registro Público de la Propiedad y del Comercio de Monterrey, Nuevo León bajo el No. de Folio Mercantil Electrónico N-2022031789.</p>
+				<p class="declaracion-inciso">(a) {{ marca_declaracion_constitucion|default:"Es una sociedad mercantil legalmente constituida y existente de conformidad con las leyes mexicanas vigentes, según consta en la Escritura Pública número 28,281, de fecha 26 de abril del 2022, otorgada ante la fe del Lic. Ignacio Gerardo Martínez González, Titular de la Notaría Pública No. 75, con ejercicio en el Primer Distrito Registral y Notarial del Estado de Nuevo León, con residencia en la ciudad de San Pedro Garza García, Nuevo León, y debidamente registrada con fecha 5 de mayo del 2022 ante el Registro Público de la Propiedad y del Comercio de Monterrey, Nuevo León bajo el No. de Folio Mercantil Electrónico N-2022031789." }}</p>
 				<p class="declaracion-inciso">(b) Su representante legal cuenta con todos los poderes y facultades necesarias y suficientes para la celebración de este Contrato, mismos que no le han sido revocados ni limitados en forma alguna.</p>
 				<p class="declaracion-inciso">(c) Se encuentra en posesión del departamento identificado en la Carátula del presente Contrato como la Propiedad Arrendada, mismo que se encuentra ubicado dentro del Inmueble. La Propiedad Arrendada tiene las características generales que se señalan en el <b><u>Anexo 1</u></b> del presente Contrato.</p>
 				<p class="declaracion-inciso">(d) Es su intención otorgar en arrendamiento a favor del Arrendatario la Propiedad Arrendada, misma que deberá destinarse única y exclusivamente para casa habitación. La localización exacta de la Propiedad Arrendada se encuentra debidamente identificada en el <b><u>Anexo 1</u></b> del presente Contrato.</p>
@@ -984,7 +983,7 @@
 			<div class="firmas-contrato-fraterna">
 				<div class="firma-seccion">
 					<span class="firma-rol">El Arrendador</span>
-					<span class="firma-razon-social">FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V.</span>
+					<span class="firma-razon-social">{{ marca_razon_social_mayus|default:"FRATERNA ADMINISTRADORA DE PROYECTOS, S.A. DE C.V." }}</span>
 					<hr class="firma-linea" />
 					<span class="firma-nombre">{{ representante_fraterna|default:"Alma Gabriela Granados Castillo" }}</span>
 					<span class="firma-calidad">Representante Legal</span>
