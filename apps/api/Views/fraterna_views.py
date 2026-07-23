@@ -42,14 +42,14 @@ import logging
 import sys
 logger = logging.getLogger(__name__)
 
-# Modo demostraciones (rol="Demo"): enmascarado de PII, marca blanca en PDFs
-# y ZapSign sandbox. Ver apps/api/utils/demo_mode.py
+# Modo demostraciones (rol="Demo"): marca blanca en PDFs y firmas redirigidas.
+# Desde 2026-07-22 (decisión del usuario) la cuenta demo ve y edita todo; el
+# candado solo-propios aplica únicamente a firmas/renovación/borrado.
+# Ver apps/api/utils/demo_mode.py
 from ..utils.demo_mode import (
     es_usuario_demo,
     marca_para,
     contrato_es_del_usuario,
-    enmascarar_contrato_serializado,
-    enmascarar_lista_contratos,
     aplicar_demo_a_payload_zapsign,
 )
 
@@ -489,11 +489,8 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             print(request.data)
             instance = self.get_object()
             print("instance",instance)
-            if es_usuario_demo(request.user) and instance.user_id != request.user.id:
-                return Response(
-                    {'error': 'Cuenta de demostración: solo puedes editar residentes creados por ti.'},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+            # Cuentas demo: editar residentes ajenos quedó ABIERTO (decisión del
+            # usuario 2026-07-22); borrar y aprobar siguen restringidos abajo.
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             #print(serializer)
             if serializer.is_valid(raise_exception=True):
@@ -784,9 +781,12 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     serializer_class = ContratoFraternaSerializer
 
     def _guard_demo(self, request, id_contrato):
-        """Cuentas demo: solo operan contratos propios. Devuelve Response 403
-        si el contrato existe y es ajeno; None deja seguir el flujo normal
-        (los 404 los resuelve cada método como siempre)."""
+        """Cuentas demo: candado solo-propios. Desde 2026-07-22 aplica SOLO a
+        las acciones de firma (generar/regenerar/resetear enlaces), renovación
+        y borrado, porque alcanzan firmantes y documentos legales REALES.
+        Editar, aprobar y descargas quedaron abiertos en contratos ajenos
+        (decisión del usuario). Devuelve Response 403 si el contrato existe y
+        es ajeno; None deja seguir (los 404 los resuelve cada método)."""
         if not es_usuario_demo(request.user):
             return None
         try:
@@ -816,12 +816,12 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                return Response(serialized_data)
 
            elif es_usuario_demo(user_session):
-               # Demo: ve todas las filas (mismo volumen que staff) pero con la
-               # PII y tokens de firma de contratos ajenos enmascarados.
+               # Demo: misma respuesta completa que staff (decisión del usuario
+               # 2026-07-22: la cuenta demo edita cualquier contrato y el form de
+               # edición se llena con estos mismos datos).
                contratos = FraternaContratos.objects.all().order_by('-id')
                serializer = self.get_serializer(contratos, many=True)
-               serialized_data = enmascarar_lista_contratos(user_session, serializer.data)
-               return Response(serialized_data, status=status.HTTP_200_OK)
+               return Response(serializer.data, status=status.HTTP_200_OK)
 
            elif user_session.rol == "Inmobiliaria":
                #primero obtenemos mis agentes.
@@ -912,8 +912,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             if user_session.is_staff:
                 base = FraternaContratos.objects.all()
             elif es_usuario_demo(user_session):
-                # Demo: ve todo el universo, pero abajo se enmascara la PII de
-                # filas ajenas y se recorta la búsqueda por nombre.
+                # Demo: ve todo el universo, misma respuesta que staff (ver
+                # nota en list(); decisión del usuario 2026-07-22).
                 base = FraternaContratos.objects.all()
             elif user_session.rol == "Inmobiliaria":
                 agentes = User.objects.filter(pertenece_a=user_session.name_inmobiliaria)
@@ -997,7 +997,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             if user_session.is_staff:
                 for item in data:
                     item['is_staff'] = True
-            data = enmascarar_lista_contratos(user_session, data)
 
             try:
                 draw = int(request.query_params.get('draw', 1))
@@ -1017,26 +1016,14 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 'draw': 0, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': [], 'error': str(e),
             }, status=status.HTTP_200_OK)
 
-    def retrieve(self, request, *args, **kwargs):
-        """Igual que el retrieve default, pero para cuentas demo enmascara la
-        PII/tokens si el contrato no es suyo (misma máscara que list/tabla)."""
-        response = super().retrieve(request, *args, **kwargs)
-        if es_usuario_demo(request.user) and isinstance(response.data, dict):
-            if response.data.get('user') != request.user.id:
-                enmascarar_contrato_serializado(response.data)
-        return response
-
     def update(self, request, *args, **kwargs):
         try:
             #primero verificamos que tenga contadores activos
             print("Esta entrando a actualizar Contratos Fraterna")
             partial = kwargs.pop('partial', False)
             instance = self.get_object()
-            if es_usuario_demo(request.user) and not contrato_es_del_usuario(request.user, instance):
-                return Response(
-                    {'error': 'Cuenta de demostración: solo puedes editar contratos creados por ti.'},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+            # Cuentas demo: editar contratos ajenos quedó ABIERTO (decisión del
+            # usuario 2026-07-22); firmas/renovación/borrado siguen con _guard_demo.
 
             # Plano anterior: se limpia DESPUES de guardar (ver mas abajo). Antes se borraba
             # aqui, antes de validar: si el serializer fallaba, el contrato se quedaba sin el
@@ -1101,9 +1088,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         try:
             print("update status contrato")
             print("Request",request.data)
-            bloqueo_demo = self._guard_demo(request, request.data.get("id"))
-            if bloqueo_demo:
-                return bloqueo_demo
             instance = self.queryset.get(id = request.data["id"])
             print("mi id es: ",instance.id)
             print(instance.__dict__)
@@ -1122,9 +1106,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     def desaprobar_contrato(self, request, *args, **kwargs):
         try:
             print("desaprobar Contrato")
-            bloqueo_demo = self._guard_demo(request, request.data.get("id"))
-            if bloqueo_demo:
-                return bloqueo_demo
             instance = self.queryset.get(id = request.data["id"])
             #se utiliza el "get" en lugar del filter para obtener el objeto y no un queryset
             proceso = ProcesoContrato.objects.all().get(contrato_id = instance.id)
@@ -1210,10 +1191,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
 
-            bloqueo_demo = self._guard_demo(request, id_paq)
-            if bloqueo_demo:
-                return bloqueo_demo
-
             info = self.queryset.filter(id=id_paq).first()
             if not info:
                 return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
@@ -1237,9 +1214,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print("Generar Poliza Fraterna")
             id_paq = request.data
             print("el id que llega", id_paq)
-            bloqueo_demo = self._guard_demo(request, id_paq)
-            if bloqueo_demo:
-                return bloqueo_demo
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)
 
@@ -1283,9 +1257,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print("Generar contrato Fraterna")
             id_paq = request.data
             print("el id que llega", id_paq)
-            bloqueo_demo = self._guard_demo(request, id_paq)
-            if bloqueo_demo:
-                return bloqueo_demo
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)
             #obtenermos la renta para pasarla a letra
@@ -1366,9 +1337,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print("Generar comodato Fraterna")
             id_paq = request.data
             print("el id que llega", id_paq)
-            bloqueo_demo = self._guard_demo(request, id_paq)
-            if bloqueo_demo:
-                return bloqueo_demo
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)
             #obtenermos la duracion para pasarla a letra
@@ -1886,10 +1854,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
 
-            bloqueo_demo = self._guard_demo(request, id_paq)
-            if bloqueo_demo:
-                return bloqueo_demo
-
             nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_fraterna_pdf(id_paq, marca=marca_para(request.user))
 
             response = HttpResponse(content_type='application/pdf')
@@ -2276,9 +2240,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         try:
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
-            bloqueo_demo = self._guard_demo(request, id_paq)
-            if bloqueo_demo:
-                return bloqueo_demo
             info = self.queryset.filter(id=id_paq).first()
             if not info:
                 return Response({'error': 'Contrato no encontrado'}, status=status.HTTP_404_NOT_FOUND)
@@ -2300,10 +2261,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
 
-            bloqueo_demo = self._guard_demo(request, id_paq)
-            if bloqueo_demo:
-                return bloqueo_demo
-
             nombre_archivo, pdf_bytes, _ = self._generar_paquete_1_pdf(id_paq, marca=marca_para(request.user))
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
@@ -2319,10 +2276,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         try:
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
-
-            bloqueo_demo = self._guard_demo(request, id_paq)
-            if bloqueo_demo:
-                return bloqueo_demo
 
             nombre_archivo, pdf_bytes, _ = self._generar_paquete_2_pdf(id_paq, marca=marca_para(request.user))
             response = HttpResponse(content_type='application/pdf')

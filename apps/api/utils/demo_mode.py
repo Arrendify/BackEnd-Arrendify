@@ -12,6 +12,12 @@ vista, pero:
     |default a los valores Fraterna reales (usuarios normales: salida idéntica).
   - Sus solicitudes de firma van a ZapSign en sandbox, a carpeta propia y con
     los correos apuntando al propio usuario demo (nadie real recibe nada).
+
+NOTA 2026-07-22 (decisión del usuario): los puntos 1 y 2 ya no aplican tal
+cual — la cuenta demo ahora ve las listas completas y puede editar, aprobar y
+descargar en cualquier registro. _guard_demo quedó solo en firmas, renovación
+y borrado, y aprobar residentes sigue bloqueado. Las funciones enmascarar_*
+de abajo quedaron sin llamadores; se conservan por si se revierte.
 """
 
 ROL_DEMO = "Demo"
