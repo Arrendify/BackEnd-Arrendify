@@ -152,19 +152,18 @@ def expirar_contratos_vencidos():
         expirados = 0
         for con in candidatos:
             try:
-                firmadas = getattr(con, 'rondas_firmadas', None) or []
-                if firmadas:
-                    vigencia = firmadas[0].fecha_vigencia   # comprometida (ronda firmada)
-                else:
-                    vigencia = con.fecha_vigencia           # legacy sin bitácora
+                # Fecha de término: la MISMA que pinta el calendario de contratos
+                # (`FraternaContratos.vigencia_efectiva`, definición compartida).
+                vigencia, fuente = con.vigencia_efectiva()
                 if not vigencia or vigencia >= hoy:
                     continue
                 con.estado_contrato = 'expirado'
                 con.save(update_fields=['estado_contrato'])
                 expirados += 1
+                firmadas = getattr(con, 'rondas_firmadas', None) or []
                 logger.info(
                     f"[expirar_contratos_vencidos] contrato {con.id} vencido el {vigencia} "
-                    f"({'vigencia comprometida ronda ' + str(firmadas[0].numero) if firmadas else 'fecha del contrato, legacy'}) "
+                    f"({'vigencia comprometida ronda ' + str(firmadas[0].numero) if fuente == 'ronda' else 'fecha del contrato, legacy'}) "
                     f"-> 'expirado' (cama intacta)"
                 )
             except Exception:

@@ -16,7 +16,7 @@ from django.forms.models import model_to_dict
 import boto3
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
-from django.db.models import Q, Func, Max, Count
+from django.db.models import Q, Func, Max, Count, Prefetch
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from core.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN_ZAPSIGN, API_URL_ZAPSIGN
@@ -1050,6 +1050,272 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             return Response({
                 'draw': 0, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': [], 'error': str(e),
             }, status=status.HTTP_200_OK)
+
+    # Ventana del AVISO anticipado del calendario de contratos. Es MAS ancha a
+    # proposito que VENTANA_POR_RENOVAR_DIAS (30, ver abajo): a 45 dias el equipo
+    # VE VENIR el vencimiento en el calendario y puede planear; a 30 el sistema
+    # habilita el disparo de renovacion (flag `por_renovar` + job de correos
+    # `renovar_contrato`). Escalon deliberado, no dos numeros que se contradicen.
+    DIAS_AVISO_TERMINO = 45
+
+    def _base_visible_calendario(self, user_session):
+        """Universo de contratos que este usuario puede ver: mismo gating que
+        list()/tabla(), extraido para que los dos endpoints del calendario no
+        lleven copias que puedan divergir."""
+        if user_session.is_staff or es_usuario_demo(user_session):
+            # Demo ve el universo completo, igual que staff (decision 2026-07-22).
+            return FraternaContratos.objects.all()
+        if user_session.rol == "Inmobiliaria":
+            agentes = User.objects.filter(pertenece_a=user_session.name_inmobiliaria)
+            return FraternaContratos.objects.filter(
+                Q(user_id=user_session.id) | Q(user_id__in=agentes.values('id'))
+            )
+        if user_session.rol == "Agente":
+            return FraternaContratos.objects.filter(user_id=user_session)
+        return FraternaContratos.objects.none()
+
+    def _leyenda_termino(self, fin, hoy):
+        """Cuanto le queda al contrato, en el idioma de la UI."""
+        dias = (fin - hoy).days
+        if dias == 0:
+            return 'Finaliza hoy'
+        if dias == 1:
+            return 'Finaliza mañana'
+        if dias > 1:
+            return f'Finalizará en {dias} días'
+        if dias == -1:
+            return 'Finalizó ayer'
+        return f'Finalizó hace {abs(dias)} días'
+
+    @action(detail=False, methods=['get'], url_path='calendario_ficha')
+    def calendario_ficha(self, request, *args, **kwargs):
+        """Ficha INFORMATIVA de un contrato para el modal del calendario.
+
+        El calendario no navega al detalle (decision del usuario 2026-07-27):
+        al hacer clic en un evento se abre un modal de solo lectura con lo que
+        el equipo necesita para decidir si renovar y a quien llamar. Endpoint
+        aparte del listado del mes a proposito: la lista se queda ligera (130
+        eventos en junio) y la ficha pide lo pesado solo del contrato clicado.
+
+        Las fechas salen de la RONDA DE FIRMA ACTIVA (la ultima 'firmado' = el
+        termino en pie, la misma que manda en `vigencia_efectiva`), no de la
+        fila: la fila es la copia de trabajo del siguiente intento. Un contrato
+        legacy sin bitacora cae a las fechas de la fila y lo dice en `fuente`.
+
+        Params: `id` = id del contrato.
+        """
+        try:
+            base = self._base_visible_calendario(request.user)
+            try:
+                id_contrato = int(request.query_params.get('id') or 0)
+            except (TypeError, ValueError):
+                return Response({'error': 'id inválido'}, status=status.HTTP_400_BAD_REQUEST)
+
+            con = (base.filter(id=id_contrato)
+                   .select_related('residente', 'cama_ref', 'cama_ref__departamento')
+                   .prefetch_related(Prefetch(
+                       'rondas_firma',
+                       queryset=FraternaRondaFirma.objects.filter(
+                           estado='firmado').order_by('-numero'),
+                       to_attr='rondas_firmadas',
+                   )).first())
+            if con is None:
+                return Response({'error': 'Contrato no encontrado'},
+                                status=status.HTTP_404_NOT_FOUND)
+
+            hoy = timezone.now().date()
+            fin, fuente = con.vigencia_efectiva()
+            firmadas = getattr(con, 'rondas_firmadas', None) or []
+            ronda = firmadas[0] if firmadas else None
+
+            def _iso(f):
+                return f.isoformat() if f else None
+
+            # Fechas congeladas de la ronda activa; sin bitacora, las de la fila.
+            if ronda is not None:
+                fechas = {
+                    'celebracion': _iso(ronda.fecha_celebracion),
+                    'vigencia': _iso(ronda.fecha_vigencia),
+                    'move_in': _iso(ronda.fecha_move_in),
+                    'move_out': _iso(ronda.fecha_move_out),
+                }
+                datos_ronda = {
+                    'numero': ronda.numero,
+                    'uuid': str(ronda.uuid) if ronda.uuid else None,
+                    'tipo': ronda.tipo,
+                    'estado': ronda.estado,
+                    'mono_paquete': ronda.mono_paquete,
+                }
+            else:
+                fechas = {
+                    'celebracion': _iso(con.fecha_celebracion),
+                    'vigencia': _iso(con.fecha_vigencia),
+                    'move_in': _iso(con.fecha_move_in),
+                    'move_out': _iso(con.fecha_move_out),
+                }
+                datos_ronda = None
+
+            res = con.residente
+            # Piso: el `nivel` del inventario ("PB", "N7") manda sobre el texto
+            # libre de la fila, que lo capturo un humano.
+            piso = ''
+            if con.cama_ref_id and con.cama_ref and con.cama_ref.departamento_id:
+                piso = con.cama_ref.departamento.nivel or ''
+            piso = piso or con.piso or ''
+
+            return Response({
+                'contrato_id': con.id,
+                'estado_contrato': con.estado_contrato,
+                'hoy': hoy.isoformat(),
+                'ubicacion': {
+                    'no_depa': con.no_depa or '',
+                    'cama': con.cama or '',
+                    'piso': str(piso),
+                    'tipologia': con.tipologia or '',
+                },
+                'fechas': fechas,
+                'ronda': datos_ronda,
+                'fuente_fechas': fuente,        # 'ronda' | 'contrato'
+                'termino': {
+                    'fecha': _iso(fin),
+                    'dias_restantes': (fin - hoy).days if fin else None,
+                    'leyenda': self._leyenda_termino(fin, hoy) if fin else 'Sin fecha de término',
+                },
+                'arrendatario': {
+                    'nombre': getattr(res, 'nombre_arrendatario', '') or '',
+                    'correo': getattr(res, 'correo_arrendatario', '') or '',
+                    'celular': getattr(res, 'celular_arrendatario', '') or '',
+                },
+                'residente': {
+                    'nombre': getattr(res, 'nombre_residente', '') or '',
+                    'correo': getattr(res, 'correo_residente', '') or '',
+                    'celular': getattr(res, 'celular_residente', '') or '',
+                },
+                'renta': con.renta or '',
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en ficha de calendario "
+                         f"(linea {exc_tb.tb_lineno}): {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='calendario')
+    def calendario(self, request, *args, **kwargs):
+        """Eventos del ciclo de vida de los contratos para el "Calendario de
+        contratos" (pestana de propuesta.html, junto al Listado).
+
+        ADITIVO: no toca list() ni tabla(). Misma visibilidad por usuario que
+        ellos. Solo lee.
+
+        DOS eventos por contrato, ambos derivados de la MISMA fecha:
+          · `termino` -> el dia en que el contrato termina;
+          · `aviso`   -> `termino` - 45 dias (DIAS_AVISO_TERMINO), la recta final.
+        No hay consulta extra para el aviso: sale del mismo registro.
+
+        La fecha la da `FraternaContratos.vigencia_efectiva()`, la MISMA que usa
+        el job `expirar_contratos_vencidos` para mandar el contrato a 'expirado'
+        — el calendario no puede prometer un dia distinto del que el cron va a
+        ejecutar. Manda el DOCUMENTO firmado (ronda 'firmado'), no la fila.
+
+        Solo entran los VIGENTES (`estado_contrato='actual'`), decision del
+        usuario 2026-07-27: son los unicos con termino comprometido y firmado.
+        Los 'pendiente' traen fechas de borrador editable (inundarian el
+        calendario con dias que no comprometen a nadie), los 'expirado' ya
+        terminaron y los 'en_renovacion' tienen su termino en reemplazo.
+
+        Params: `mes=YYYY-MM` (default: mes actual).
+        Devuelve los eventos de ESE mes + `resumen` de TODOS los meses con
+        eventos (el mapa del ano del FE: sin el, con los vencimientos de
+        Fraterna concentrados en 2 dias del ciclo escolar, se navega a ciegas
+        por meses vacios).
+        """
+        try:
+            base = self._base_visible_calendario(request.user)
+
+            # Mes visible (YYYY-MM). Un valor invalido cae al mes actual en vez
+            # de reventar: el calendario siempre pinta algo.
+            hoy = timezone.now().date()
+            try:
+                _a, _m = (request.query_params.get('mes') or '').strip().split('-')
+                anio_v, mes_v = int(_a), int(_m)
+                if not (1 <= mes_v <= 12 and 1900 <= anio_v <= 2999):
+                    raise ValueError('mes fuera de rango')
+            except (ValueError, TypeError):
+                anio_v, mes_v = hoy.year, hoy.month
+            mes_key = f'{anio_v:04d}-{mes_v:02d}'
+
+            # Una sola pasada: prefetch de la ronda firmada (evita el N+1 que
+            # haria vigencia_efectiva() contrato por contrato) + el residente,
+            # de donde salen los nombres de la fila.
+            qs = (base.filter(estado_contrato='actual')
+                  .select_related('residente')
+                  .prefetch_related(Prefetch(
+                      'rondas_firma',
+                      queryset=FraternaRondaFirma.objects.filter(
+                          estado='firmado').order_by('-numero'),
+                      to_attr='rondas_firmadas',
+                  )))
+
+            eventos_mes = []
+            resumen = {}          # {'YYYY-MM': {'aviso': n, 'termino': n}}
+            sin_fecha = 0
+            total = 0
+            for con in qs:
+                total += 1
+                fin, fuente = con.vigencia_efectiva()
+                if not fin:
+                    # Ronda firmada sin fecha de vigencia: no es juzgable (misma
+                    # regla que el job, que tampoco la vence). Se cuenta para
+                    # poder avisarlo en la UI en vez de desaparecerlo.
+                    sin_fecha += 1
+                    continue
+                res = con.residente
+                aviso = fin - timedelta(days=self.DIAS_AVISO_TERMINO)
+                for tipo, fecha in (('aviso', aviso), ('termino', fin)):
+                    clave = f'{fecha.year:04d}-{fecha.month:02d}'
+                    resumen.setdefault(clave, {'aviso': 0, 'termino': 0})[tipo] += 1
+                    if clave != mes_key:
+                        continue
+                    eventos_mes.append({
+                        'tipo': tipo,
+                        'fecha': fecha.isoformat(),
+                        'contrato_id': con.id,
+                        'no_depa': con.no_depa or '',
+                        'cama': con.cama or '',
+                        'tipologia': con.tipologia or '',
+                        'arrendatario': getattr(res, 'nombre_arrendatario', '') or '',
+                        'residente': getattr(res, 'nombre_residente', '') or '',
+                        'fecha_fin': fin.isoformat(),
+                        'dias_restantes': (fin - hoy).days,
+                        'fuente_fecha': fuente,          # 'ronda' | 'contrato'
+                        'estado_contrato': con.estado_contrato,
+                    })
+
+            # Orden dentro del mes: por dia, luego departamento (numerico cuando
+            # se puede: "803" antes que "1013") y cama.
+            def _orden_depa(valor):
+                texto = (valor or '').strip()
+                try:
+                    return (0, int(texto), '')
+                except ValueError:
+                    return (1, 0, texto.lower())
+
+            eventos_mes.sort(key=lambda ev: (
+                ev['fecha'], _orden_depa(ev['no_depa']), ev['cama'] or ''))
+
+            return Response({
+                'mes': mes_key,
+                'hoy': hoy.isoformat(),
+                'dias_aviso': self.DIAS_AVISO_TERMINO,
+                'eventos': eventos_mes,
+                'resumen': resumen,
+                'totales': {'vigentes': total, 'sin_fecha': sin_fecha},
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en calendario de contratos "
+                         f"(linea {exc_tb.tb_lineno}): {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     # --- Bitacora de rondas: adjunto ADITIVO para la tabla (espejo de firmas) ---
 

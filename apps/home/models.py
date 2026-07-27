@@ -2163,6 +2163,41 @@ class FraternaContratos(models.Model):
                  ('en_renovacion', 'En renovación')],
     )
 
+    def vigencia_efectiva(self):
+        """Cuando termina ESTE contrato, y de donde sale esa fecha.
+
+        Definicion UNICA de "termino" del contrato Fraterna, compartida por el
+        job `expirar_contratos_vencidos` (que marca 'expirado' con ella) y por
+        el calendario de contratos (que la pinta). Vivian separadas y podian
+        divergir; ahora el calendario no puede prometer un dia distinto del que
+        el cron va a ejecutar.
+
+        Manda la VIGENCIA COMPROMETIDA: la `fecha_vigencia` congelada de la
+        ultima ronda 'firmado' (la del DOCUMENTO que las partes firmaron). La
+        fila del contrato es la copia de trabajo del siguiente intento — una
+        renovacion en curso la edita — asi que su fecha NO es confiable para
+        vencer; solo los legacy sin ronda firmada caen a ella. Hay 5 contratos
+        en prod donde ambas difieren ("renovados por EDICION": movieron la fila
+        a 2027 sin firmar nada nuevo).
+
+        Devuelve `(fecha, fuente)`:
+          · fuente 'ronda'    -> vigencia comprometida (ronda firmada N)
+          · fuente 'contrato' -> legacy sin bitacora, fecha de la fila
+          · (None, 'ronda')   -> ronda firmada SIN fecha: no es juzgable, no se
+            vence ni se pinta (misma regla que el job).
+
+        Respeta el prefetch `to_attr='rondas_firmadas'` si viene puesto (el job
+        y el calendario lo usan para no hacer N+1); sin el, consulta.
+        """
+        firmadas = getattr(self, 'rondas_firmadas', None)
+        if firmadas is None:
+            firmadas = list(
+                self.rondas_firma.filter(estado='firmado').order_by('-numero')[:1]
+            )
+        if firmadas:
+            return firmadas[0].fecha_vigencia, 'ronda'
+        return self.fecha_vigencia, 'contrato'
+
     class Meta:
             db_table = 'fraterna_contrato'
             constraints = [
@@ -2172,8 +2207,8 @@ class FraternaContratos(models.Model):
                     name='uniq_contrato_activo_por_cama',
                 ),
             ]
-    
-    
+
+
 class FraternaFirmaHistorial(models.Model):
     """Bitacora de reinicios de firma de un contrato Fraterna.
 
