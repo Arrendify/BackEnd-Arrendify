@@ -9,14 +9,14 @@ from ...accounts.models import CustomUser
 User = CustomUser
 from rest_framework.authentication import TokenAuthentication,SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.forms.models import model_to_dict
 
 #s3
 import boto3
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
-from django.db.models import Q, Func
+from django.db.models import Q, Func, Max, Count
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from core.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, API_TOKEN_ZAPSIGN, API_URL_ZAPSIGN
@@ -120,6 +120,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 from smtplib import SMTPException
 from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from decouple import config
 
 # Para combinación de PDFs
@@ -928,6 +929,22 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             records_total = base.count()
             qs = base
 
+            # Conteos por estado para los chips del FE: un solo GROUP BY sobre la
+            # misma visibilidad del usuario (NULL/'' cuentan como 'pendiente').
+            # Viaja en CADA respuesta para que los numeros se refresquen gratis,
+            # sin endpoint aparte ni requests extra. (El filtro por fechas de
+            # vencimiento se probo y se RETIRO el 2026-07-22 a peticion del usuario.)
+            conteo_estados = {'todos': 0, 'pendiente': 0, 'actual': 0,
+                              'expirado': 0, 'en_renovacion': 0}
+            try:
+                for estado_val, n_estado in qs.values_list('estado_contrato').annotate(n=Count('id')):
+                    clave = estado_val if estado_val in ('actual', 'expirado', 'en_renovacion') else 'pendiente'
+                    conteo_estados[clave] += n_estado
+                conteo_estados['todos'] = (conteo_estados['pendiente'] + conteo_estados['actual']
+                                           + conteo_estados['expirado'] + conteo_estados['en_renovacion'])
+            except Exception as e_conteo:
+                logger.error(f"{datetime.now()} tabla contratos: fallo conteo estados: {e_conteo}")
+
             # Filtro por tipologia
             tipologia = (request.query_params.get('tipologia') or '').strip()
             if tipologia:
@@ -938,6 +955,16 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     )
                 else:
                     qs = qs.filter(tipologia__iexact=tipologia)
+
+            # Filtro por estado del contrato (rail estado_contrato). El FE manda
+            # 'pendiente' | 'actual' | 'expirado'; 'pendiente' = sin determinar
+            # (NULL o vacio). Valor desconocido se ignora.
+            estado_param = (request.query_params.get('estado_contrato') or '').strip().lower()
+            if estado_param:
+                if estado_param == 'pendiente':
+                    qs = qs.filter(Q(estado_contrato__isnull=True) | Q(estado_contrato=''))
+                elif estado_param in ('actual', 'expirado', 'en_renovacion'):
+                    qs = qs.filter(estado_contrato=estado_param)
 
             # Busqueda global (DataTables search[value])
             search_value = (request.query_params.get('search[value]') or '').strip()
@@ -998,6 +1025,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 for item in data:
                     item['is_staff'] = True
 
+            # Bitacora de rondas: adjunta el espejo de firmas por fila (best-effort;
+            # si el ledger falla, la tabla sale igual y el FE cae al flujo viejo).
+            try:
+                data = self._adjuntar_ronda_firma(data)
+            except Exception as e_rondas:
+                logger.error(f"{datetime.now()} tabla contratos: fallo adjuntando rondas: {e_rondas}")
+
             try:
                 draw = int(request.query_params.get('draw', 1))
             except (TypeError, ValueError):
@@ -1008,6 +1042,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 'recordsTotal': records_total,
                 'recordsFiltered': records_filtered,
                 'data': data,
+                'conteo_estados': conteo_estados,
             }, status=status.HTTP_200_OK)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1015,6 +1050,184 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             return Response({
                 'draw': 0, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': [], 'error': str(e),
             }, status=status.HTTP_200_OK)
+
+    # --- Bitacora de rondas: adjunto ADITIVO para la tabla (espejo de firmas) ---
+
+    def _ronda_a_dict(self, ronda):
+        """Serializa una ronda + su espejo de firmantes para el FE (columna FIRMAS
+        de la tabla y modal "Historial de firmas")."""
+        def _url_pdf(key):
+            # URL del PDF firmado en NUESTRO S3 (default_storage la arma con el
+            # custom domain del bucket, mismo patron que el resto de archivos).
+            if not key:
+                return None
+            try:
+                return default_storage.url(key)
+            except Exception:
+                return None
+
+        return {
+            'id': ronda.id,
+            'uuid': str(ronda.uuid) if ronda.uuid else None,
+            'numero': ronda.numero,
+            'tipo': ronda.tipo,
+            'estado': ronda.estado,
+            'token_1': ronda.token_1,
+            'token_2': ronda.token_2,
+            'estado_firma_1': ronda.estado_firma_1,
+            'estado_firma_2': ronda.estado_firma_2,
+            # PDF firmado en NUESTRO S3: existe solo cuando el doc junto las 4
+            # firmas (doc-level 'signed' -> el webhook lo baja con reintentos).
+            'pdf_firmado_1': ronda.pdf_firmado_1,
+            'pdf_firmado_2': ronda.pdf_firmado_2,
+            'pdf_firmado_1_url': _url_pdf(ronda.pdf_firmado_1),
+            'pdf_firmado_2_url': _url_pdf(ronda.pdf_firmado_2),
+            'generado_en': ronda.generado_en.isoformat() if ronda.generado_en else None,
+            'cerrado_en': ronda.cerrado_en.isoformat() if ronda.cerrado_en else None,
+            'motivo': ronda.motivo,
+            'usuario': ronda.usuario,
+            # Fechas congeladas del intento (lo que imprimieron sus documentos).
+            'fecha_celebracion': ronda.fecha_celebracion.isoformat() if ronda.fecha_celebracion else None,
+            'fecha_vigencia': ronda.fecha_vigencia.isoformat() if ronda.fecha_vigencia else None,
+            'fecha_move_in': ronda.fecha_move_in.isoformat() if ronda.fecha_move_in else None,
+            'fecha_move_out': ronda.fecha_move_out.isoformat() if ronda.fecha_move_out else None,
+            'firmantes': [
+                {
+                    'paquete': f.paquete,
+                    'nombre': f.nombre,
+                    'rol': f.rol,
+                    'email': f.email,
+                    'sign_url': f.sign_url,
+                    'estado': f.estado,
+                    'firmado_en': f.firmado_en.isoformat() if f.firmado_en else None,
+                }
+                # Orden estable: paquete y luego orden de alta (= ROLES_FIRMANTES_P1).
+                for f in sorted(ronda.firmantes.all(), key=lambda f: (f.paquete, f.pk))
+            ],
+        }
+
+    # Ventana del disparo semi-auto de renovacion (handoff §7): mismo horizonte que
+    # el job de correos `renovar_contrato` (scheduler.py, 30 dias).
+    VENTANA_POR_RENOVAR_DIAS = 30
+
+    def _estado_por_renovar(self, item, rondas_c):
+        """Disparo semi-auto de renovacion (handoff §7), CALCULADO al leer (sin
+        columna nueva ni job que marque; no puede quedarse viejo).
+
+        Devuelve (flag, vigencia) donde flag = 'proxima' si la vigencia
+        COMPROMETIDA cae dentro de la ventana, 'vencida' si ya paso, None si no
+        aplica. Comprometida = `fecha_vigencia` de la ultima ronda 'firmado'
+        (la fila del contrato puede estar ya editada para el siguiente intento);
+        para contratos sin bitacora, la del contrato SOLO si
+        estado_contrato='actual' (unico marcador confiable de termino vivo — asi
+        los cientos de contratos historicos no inundan la lista de badges).
+        Con una ronda 'pendiente' abierta no aplica: ya hay un intento en curso.
+        """
+        if any(r.estado == 'pendiente' for r in rondas_c):
+            return None, None
+        firmada = next((r for r in rondas_c if r.estado == 'firmado'), None)
+        if firmada is not None:
+            vigencia = firmada.fecha_vigencia
+        elif item.get('estado_contrato') == 'actual':
+            vigencia = item.get('fecha_vigencia')
+            if isinstance(vigencia, str):
+                try:
+                    vigencia = date.fromisoformat(vigencia)
+                except ValueError:
+                    vigencia = None
+        else:
+            return None, None
+        if not vigencia:
+            return None, None
+        hoy = timezone.now().date()
+        if vigencia < hoy:
+            return 'vencida', vigencia
+        if vigencia <= hoy + timedelta(days=self.VENTANA_POR_RENOVAR_DIAS):
+            return 'proxima', vigencia
+        return None, None
+
+    def _adjuntar_ronda_firma(self, data):
+        """Adjunta a cada fila serializada su ronda de firma relevante, con el espejo
+        de firmantes, para que el FE pinte FIRMAS desde la BD sin pegarle a ZapSign.
+
+        Relevante = la ronda 'pendiente' y, si no hay abierta, la ultima 'firmado';
+        las 'cancelado' no pintan (enlaces desechados). Contratos sin ronda (sin
+        backfill) llevan None y el FE cae al flujo viejo por token del contrato.
+
+        Ademas calcula `por_renovar` / `vigencia_comprometida` por fila (badge y
+        boton "Renovar contrato" del FE; ver _estado_por_renovar).
+        """
+        ids = [item.get('id') for item in data if item.get('id')]
+        if not ids:
+            return data
+        rondas = (FraternaRondaFirma.objects
+                  .filter(contrato_id__in=ids)
+                  .exclude(estado='cancelado')
+                  .order_by('-generado_en')
+                  .prefetch_related('firmantes'))
+        por_contrato = {}
+        for ronda in rondas:
+            por_contrato.setdefault(ronda.contrato_id, []).append(ronda)
+        for item in data:
+            rondas_c = por_contrato.get(item.get('id'), [])
+            # La ronda RELEVANTE de la lista = el intento vivo ('pendiente') o, si no
+            # hay, el termino en pie ('firmado'). Las 'expirado' (renovaciones ya
+            # reemplazadas) NO pintan en la lista: viven en el Historial. Un contrato
+            # 'en_renovacion' sin intento generado todavia queda con ronda_firma None
+            # y el FE pinta "RENOVACION INICIADA" desde estado_contrato.
+            ronda = (next((r for r in rondas_c if r.estado == 'pendiente'), None)
+                     or next((r for r in rondas_c if r.estado == 'firmado'), None))
+            item['ronda_firma'] = self._ronda_a_dict(ronda) if ronda else None
+            try:
+                flag, vigencia = self._estado_por_renovar(item, rondas_c)
+            except Exception as e:
+                logger.warning(f"{datetime.now()} por_renovar fallo (contrato "
+                               f"{item.get('id')}): {e}")
+                flag, vigencia = None, None
+            item['por_renovar'] = flag
+            item['vigencia_comprometida'] = vigencia.isoformat() if vigencia else None
+        return data
+
+    def retrieve(self, request, *args, **kwargs):
+        """GET de un contrato. ADITIVO: adjunta `ronda_firma` (bitacora) igual que
+        /tabla/, para que la pagina de editar conozca el candado de firma sin
+        importar desde que lista se llego (el list() compartido NO la trae)."""
+        response = super().retrieve(request, *args, **kwargs)
+        try:
+            if isinstance(response.data, dict) and response.data.get('id'):
+                self._adjuntar_ronda_firma([response.data])
+        except Exception as e:
+            logger.error(f"{datetime.now()} retrieve: no se pudo adjuntar ronda_firma: {e}")
+        return response
+
+    def rondas_firma_historial(self, request, *args, **kwargs):
+        """GET /fraterna/rondas_firma/?id=N — historial COMPLETO de rondas de firma
+        del contrato (bitacora), de la mas reciente a la mas vieja, con el espejo
+        de firmantes. Alimenta el modal "Historial de firmas / renovaciones" del
+        FE: auditoria de intentos + enlaces de los finales (Fraterna/Jonathan)
+        que siguen pendientes en rondas ya comprometidas (la vigencia no los
+        espera; su firma se cobra desde aqui). A diferencia de la columna FIRMAS,
+        SI incluye las rondas canceladas: son el rastro de enlaces desechados
+        (sus docs quedaron soft-deleted en ZapSign, ya no son firmables).
+        """
+        try:
+            contrato_id = request.query_params.get('id')
+            instance = self.queryset.filter(id=contrato_id).first()
+            if instance is None:
+                return Response({'error': 'Contrato no encontrado'},
+                                status=status.HTTP_404_NOT_FOUND)
+            rondas = (instance.rondas_firma.all()
+                      .order_by('-numero')
+                      .prefetch_related('firmantes'))
+            return Response({
+                'id': instance.id,
+                'rondas': [self._ronda_a_dict(r) for r in rondas],
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en rondas_firma_historial "
+                         f"(linea {exc_tb.tb_lineno}): {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
         try:
@@ -1024,6 +1237,44 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             instance = self.get_object()
             # Cuentas demo: editar contratos ajenos quedó ABIERTO (decisión del
             # usuario 2026-07-22); firmas/renovación/borrado siguen con _guard_demo.
+
+            # Candado de edicion durante firma (bitacora de rondas): con una ronda
+            # 'pendiente', los terminos que ya se mandaron a firmar NO se editan.
+            # Va ANTES de cualquier manejo del plano: si el intento esta en firma,
+            # el update entero se rechaza.
+            campos_bloqueados = self._campos_bloqueados_en_firma(instance, request.data)
+            if campos_bloqueados:
+                return Response(
+                    {'error': 'El contrato esta en proceso de firma; estos campos ya se '
+                              'mandaron a firmar y no se pueden editar: '
+                              f'{", ".join(campos_bloqueados)}. Para cambiarlos, usa '
+                              '"Generar nuevos enlaces de firma" (cancela el intento '
+                              'actual) y vuelve a generar el paquete.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Contrato VIGENTE sin renovacion en curso = SELLADO: sus datos son los
+            # del termino firmado (rail 'actual') y ningun cambio real se acepta —
+            # el guardado fantasma del form (mismos valores) si pasa. La salida es
+            # "Renovar contrato" (iniciar_renovacion): abre la ronda de renovacion
+            # y con ella el contrato vuelve a ser editable.
+            if self._vigente_sellado(instance):
+                campos_modelo = [
+                    f.name for f in instance._meta.concrete_fields
+                    if f.name != 'id' and (not f.is_relation or f.name == 'residente')
+                ]
+                cambios = self._campos_con_cambio(instance, request.data, campos_modelo)
+                if (str(request.data.get('borrar_plano', '')).lower() == 'true'
+                        and str(instance.plano_localizacion or '')):
+                    cambios.append('plano_localizacion')
+                if cambios:
+                    return Response(
+                        {'error': 'El contrato esta sellado (su termino esta firmado): '
+                                  'sus datos no se pueden editar '
+                                  f'({", ".join(cambios)}). Para modificarlo usa '
+                                  '"Renovar contrato".'},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
             # Plano anterior: se limpia DESPUES de guardar (ver mas abajo). Antes se borraba
             # aqui, antes de validar: si el serializer fallaba, el contrato se quedaba sin el
@@ -1120,49 +1371,231 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
 
+    def _soft_delete_docs_zapsign(self, tokens):
+        """Soft-delete de documentos en ZapSign (`DELETE docs/{token}/`), best-effort.
+
+        ZapSign lo documenta como soft delete: el doc deja de ser firmable/visible
+        para los firmantes pero sigue en su BD y accesible por API (deleted=true),
+        asi que el rastro de una ronda cancelada sigue siendo consultable. Un fallo
+        aqui NO tumba el reinicio local: se loggea y se continua (el token viejo ya
+        no empareja con nada en el webhook). Devuelve {token: bool}.
+        """
+        resultados = {}
+        headers = {'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}'}
+        for doc_token in (tokens or ()):
+            if not doc_token:
+                continue
+            try:
+                r = requests.delete(f'{API_URL_ZAPSIGN}docs/{doc_token}/', headers=headers, timeout=10)
+                resultados[doc_token] = bool(r.ok)
+                if not r.ok:
+                    logger.error(f"{datetime.now()} soft-delete en ZapSign fallo para el doc {doc_token}: {r.status_code} {r.text[:200]}")
+            except Exception as e:
+                resultados[doc_token] = False
+                logger.error(f"{datetime.now()} soft-delete en ZapSign excepcion para el doc {doc_token}: {e}")
+        return resultados
+
+    def ver_documento_firma(self, request, *args, **kwargs):
+        """"Ver contrato" del Historial mientras el doc sigue en firma.
+
+        Redirige a la MEJOR version que tenga ZapSign en este momento:
+        `signed_file` existe desde la PRIMERA firma (el PDF parcialmente firmado,
+        comprobado 2026-07-17 con el doc del 839 en `pending`) y si aun no hay
+        ninguna cae a `original_file` (el PDF enviado). Se consulta EN VIVO en
+        cada click porque esas URLs de ZapSign expiran. OJO: la ruta publica
+        `app.zapsign.co/verificar/{token}` espera el token del FIRMANTE, no el
+        del documento (con doc_token da "Documento no encontrado") — por eso
+        este redirect. El PDF definitivo (4 firmas) NO pasa por aqui: se sirve
+        directo de nuestro S3 (`pdf_firmado_N`).
+        """
+        try:
+            doc_token = (request.query_params.get('token') or '').strip()
+            if not doc_token:
+                return Response({'error': 'Falta token'}, status=status.HTTP_400_BAD_REQUEST)
+            r = requests.get(f'{API_URL_ZAPSIGN}docs/{doc_token}/',
+                             headers={'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}'},
+                             timeout=20)
+            if not r.ok:
+                return Response({'error': 'ZapSign no encontro el documento.'},
+                                status=status.HTTP_404_NOT_FOUND)
+            doc = r.json()
+            url = doc.get('signed_file') or doc.get('original_file')
+            if not url:
+                return Response({'error': 'El documento aun no tiene archivo disponible.'},
+                                status=status.HTTP_404_NOT_FOUND)
+            return HttpResponseRedirect(url)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     def resetear_firmas(self, request, *args, **kwargs):
         """Reinicia los enlaces de firma de un contrato Fraterna.
 
-        Guarda los tokens/estados de firma actuales (Paquete 1 y 2) en
-        `FraternaFirmaHistorial` y luego los limpia (a NULL) en el contrato, para
-        que se puedan generar enlaces nuevos por el flujo normal (Generar Firmas
-        Paquete 1, que vuelve a aparecer cuando `token` queda vacio).
+        Con bitacora: cierra la ronda 'pendiente' como 'cancelado' (motivo/usuario/
+        cerrado_en, via `_cancelar_ronda_pendiente`). La ronda cancelada conserva
+        tokens, snapshot y estado por firmante, asi que REEMPLAZA al INSERT en
+        `FraternaFirmaHistorial` (esa tabla queda congelada como historial legacy).
+        Sin ronda 'pendiente' (contratos de antes de la bitacora, o cuya ultima
+        ronda ya quedo 'firmado'), se mantiene el snapshot viejo al historial.
+
+        `alcance` (opcional en el payload): 'todo' (default) o 'paquete_2'.
+
+        - 'todo': ademas de lo anterior, limpia los tokens/estados (a NULL) en el
+          contrato para que se puedan generar enlaces nuevos por el flujo normal
+          (Generar Firmas Paquete 1; si la ultima ronda quedo 'firmado', la
+          siguiente generacion abre una ronda tipo 'renovacion').
+        - 'paquete_2': cancela SOLO el envio del Paquete 2 del intento vivo. La
+          ronda sigue 'pendiente' (mismo numero) y el Paquete 1 y sus firmas se
+          conservan: limpia token_2/estado_firma_2 + espejo de firmantes P2 +
+          token_paquete_2/estado del contrato. Con eso la asignacion (tier P2)
+          vuelve a ser editable y el P2 se puede regenerar en el mismo intento.
 
         Se limpia `estado_firma_paquete_*` JUNTO con cada token: asi una firma del
         documento viejo no puede disparar la ocupacion de cama del webhook
         (`zapsign_webhook.py`, que la activa cuando AMBOS paquetes quedan 'signed').
         NO toca `cama_ref` ni `estado_contrato`: una cama ya ocupada se queda igual.
-        El documento viejo en ZapSign no se borra; queda huerfano (su token ya no
-        empareja con ningun contrato) y su rastro queda en esta bitacora.
+        Los documentos viejos se SOFT-DELETEAN en ZapSign (dejan de ser firmables;
+        siguen en su BD y accesibles por API, junto al rastro de la ronda cancelada
+        o el historial legacy) — EXCEPTO los que ya quedaron 'signed' a nivel
+        documento Y los de cualquier ronda 'firmado' (cierre por partes: el doc del
+        termino vigente puede seguir 'pending' porque faltan los finales; se
+        conserva como respaldo legal y para que Fraterna/Jonathan firmen despues).
         """
         try:
             bloqueo_demo = self._guard_demo(request, request.data.get("id"))
             if bloqueo_demo:
                 return bloqueo_demo
             instance = self.queryset.get(id=request.data["id"])
-            # Nada que reiniciar si el contrato no tiene ningun enlace generado.
-            if not (instance.token or instance.token_paquete_2):
+            alcance = str(request.data.get('alcance') or 'todo').strip().lower()
+            if alcance not in ('todo', 'paquete_2'):
                 return Response(
-                    {'error': 'Este contrato no tiene enlaces de firma generados.'},
+                    {'error': "Alcance invalido (usa 'todo' o 'paquete_2')."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            # Contrato VIGENTE sin renovacion en curso: sus firmas respaldan el
+            # termino actual y NO se retiran (ni 'todo' ni 'paquete_2'). Con una
+            # renovacion en curso el reset si aplica: cancela SOLO la ronda
+            # 'pendiente' (los docs de la 'firmado' ya estan protegidos abajo).
+            if self._vigente_sellado(instance):
+                return Response(
+                    {'error': 'El contrato esta sellado (su termino esta firmado): '
+                              'sus firmas no se pueden retirar. Para cambios usa '
+                              '"Renovar contrato".'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            ronda_abierta = instance.rondas_firma.filter(estado='pendiente').first()
 
             try:
                 usuario = (getattr(request.user, 'email', '') or
                            getattr(request.user, 'username', '') or '')
             except Exception:
                 usuario = ''
+            motivo = (str(request.data.get('motivo') or '').strip() or None)
+
+            # Solo se soft-deletea lo NO firmado: un doc 'signed' es respaldo legal
+            # (p.ej. reset de un contrato ya firmado para renovarlo) y borrarlo en
+            # ZapSign solo quitaria acceso al PDF firmado sin proteger nada.
+            # Igual de protegidos: los docs de cualquier ronda 'firmado' — la ronda
+            # cierra cuando firman las PARTES, asi que su doc puede seguir 'pending'
+            # a nivel documento (faltan Fraterna/Jonathan); borrarlo al renovar
+            # mataria los enlaces que los finales firman despues via el Historial.
+            tokens_protegidos = set()
+            for r in instance.rondas_firma.filter(estado__in=('firmado', 'expirado')):
+                tokens_protegidos.update(t for t in (r.token_1, r.token_2) if t)
+
+            def _borrable(token, estado_firma):
+                return (bool(token) and estado_firma != 'signed'
+                        and token not in tokens_protegidos)
+
+            if alcance == 'paquete_2':
+                token_p2_ronda = (ronda_abierta.token_2 if ronda_abierta else None)
+                if not (token_p2_ronda or instance.token_paquete_2):
+                    return Response(
+                        {'error': 'Este contrato no tiene Paquete 2 en proceso de firma.'},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                tokens_borrar = set()
+                if _borrable(token_p2_ronda, (ronda_abierta.estado_firma_2 if ronda_abierta else None)):
+                    tokens_borrar.add(token_p2_ronda)
+                if _borrable(instance.token_paquete_2, instance.estado_firma_paquete_2):
+                    tokens_borrar.add(instance.token_paquete_2)
+                with transaction.atomic():
+                    if ronda_abierta:
+                        # Revertir el congelado al estado del P1: al generar P2 el
+                        # snapshot/fechas se RE-congelan; si el P2 se cancela, la
+                        # ronda debe volver a reflejar lo que imprimio el P1 -> se
+                        # deshace `_delta_p2` (campo a campo, columnas de fecha
+                        # incluidas) y el delta desaparece del snapshot.
+                        snapshot = dict(ronda_abierta.datos_snapshot or {})
+                        delta_p2 = snapshot.pop('_delta_p2', None) or {}
+                        campos_update = ['token_2', 'estado_firma_2', 'datos_snapshot']
+                        for campo, par in delta_p2.items():
+                            antes = par[0] if isinstance(par, (list, tuple)) and par else None
+                            if campo in self.RONDA_CAMPOS_FECHA:
+                                setattr(ronda_abierta, campo,
+                                        datetime.strptime(antes, '%Y-%m-%d').date() if antes else None)
+                                campos_update.append(campo)
+                            else:
+                                snapshot[campo] = antes
+                        ronda_abierta.datos_snapshot = snapshot
+                        ronda_abierta.token_2 = None
+                        ronda_abierta.estado_firma_2 = None
+                        ronda_abierta.save(update_fields=campos_update)
+                        ronda_abierta.firmantes.filter(paquete=2).delete()
+                    instance.token_paquete_2 = None
+                    instance.estado_firma_paquete_2 = None
+                    instance.save(update_fields=['token_paquete_2', 'estado_firma_paquete_2'])
+                borrados = self._soft_delete_docs_zapsign(tokens_borrar)
+                return Response(
+                    {
+                        'Exito': 'Paquete 2 cancelado; el Paquete 1 y sus firmas se conservan.',
+                        'paquete_2_cancelado': True,
+                        'ronda': (ronda_abierta.numero if ronda_abierta else None),
+                        'docs_zapsign': borrados,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+            # alcance == 'todo'
+            # Nada que reiniciar si no hay enlaces NI ronda abierta. (En pruebas con
+            # persistir_token=False el token vive SOLO en la ronda, no en el contrato.)
+            if not (instance.token or instance.token_paquete_2 or ronda_abierta):
+                return Response(
+                    {'error': 'Este contrato no tiene enlaces de firma generados.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            tokens_borrar = set()
+            if _borrable(instance.token, instance.estado_firma_paquete_1):
+                tokens_borrar.add(instance.token)
+            if _borrable(instance.token_paquete_2, instance.estado_firma_paquete_2):
+                tokens_borrar.add(instance.token_paquete_2)
+            if ronda_abierta:
+                if _borrable(ronda_abierta.token_1, ronda_abierta.estado_firma_1):
+                    tokens_borrar.add(ronda_abierta.token_1)
+                if _borrable(ronda_abierta.token_2, ronda_abierta.estado_firma_2):
+                    tokens_borrar.add(ronda_abierta.token_2)
 
             with transaction.atomic():
-                FraternaFirmaHistorial.objects.create(
-                    contrato=instance,
-                    token_1_viejo=instance.token,
-                    estado_firma_1_viejo=instance.estado_firma_paquete_1,
-                    token_2_viejo=instance.token_paquete_2,
-                    estado_firma_2_viejo=instance.estado_firma_paquete_2,
-                    motivo=(request.data.get('motivo') or None),
-                    usuario=(usuario or None),
+                ronda = self._cancelar_ronda_pendiente(
+                    instance, motivo=motivo, usuario=(usuario or None),
                 )
+                if ronda is None and (instance.token or instance.token_paquete_2):
+                    # Flujo viejo (nada que cancelar en la bitacora): snapshot de los
+                    # tokens/estados al historial antes de limpiarlos.
+                    FraternaFirmaHistorial.objects.create(
+                        contrato=instance,
+                        token_1_viejo=instance.token,
+                        estado_firma_1_viejo=instance.estado_firma_paquete_1,
+                        token_2_viejo=instance.token_paquete_2,
+                        estado_firma_2_viejo=instance.estado_firma_paquete_2,
+                        motivo=motivo,
+                        usuario=(usuario or None),
+                    )
                 instance.token = None
                 instance.token_paquete_2 = None
                 instance.estado_firma_paquete_1 = None
@@ -1172,8 +1605,104 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     'estado_firma_paquete_1', 'estado_firma_paquete_2',
                 ])
 
+            borrados = self._soft_delete_docs_zapsign(tokens_borrar)
             return Response(
-                {'Exito': 'Enlaces de firma reiniciados; los anteriores quedaron en el historial.'},
+                {
+                    'Exito': 'Enlaces de firma reiniciados; los anteriores quedaron en la bitacora.',
+                    'ronda_cancelada': (ronda.numero if ronda else None),
+                    'docs_zapsign': borrados,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def iniciar_renovacion(self, request, *args, **kwargs):
+        """Abre la renovacion de un contrato con termino firmado (la salida del sellado).
+
+        Crea la ronda tipo 'renovacion' en 'pendiente' con las fechas/snapshot
+        actuales como punto de partida (SIN tokens: los documentos se emiten
+        despues con "Generar Firmas Paquete 1", que REUTILIZA esta misma ronda)
+        y limpia los tokens/estados espejados en el contrato para el ciclo nuevo.
+        Los docs de la ronda 'firmado' NO se tocan en ZapSign: son el respaldo
+        legal del termino vigente y ahi siguen firmando los finales. Con la
+        ronda abierta el contrato deja de estar sellado: fechas/renta se editan
+        libremente hasta generar el P1 (candados por token de siempre). Aplica a
+        contratos 'actual' (sellados), 'expirado' (vencidos por el job) y legacy
+        con termino firmado sin bitacora.
+        """
+        try:
+            instance = self.queryset.get(id=request.data["id"])
+            tuvo_termino = (getattr(instance, 'estado_contrato', None) in ('actual', 'expirado')
+                            or instance.rondas_firma.filter(estado__in=('firmado', 'expirado')).exists())
+            if not tuvo_termino:
+                return Response(
+                    {'error': 'Este contrato aun no tiene un termino firmado que '
+                              'renovar; usa el flujo normal de firma.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if instance.rondas_firma.filter(estado='pendiente').exists():
+                return Response(
+                    {'error': 'Ya hay un proceso de firma en curso para este '
+                              'contrato; termina o cancela ese intento primero.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            try:
+                usuario = (getattr(request.user, 'email', '') or
+                           getattr(request.user, 'username', '') or '') or None
+            except Exception:
+                usuario = None
+            motivo = (str(request.data.get('motivo') or '').strip() or 'renovación')
+
+            with transaction.atomic():
+                if ((instance.token or instance.token_paquete_2)
+                        and not instance.rondas_firma.exists()):
+                    # Legacy sin bitacora: snapshot de los tokens al historial viejo
+                    # antes de limpiarlos (mismo criterio que resetear_firmas).
+                    FraternaFirmaHistorial.objects.create(
+                        contrato=instance,
+                        token_1_viejo=instance.token,
+                        estado_firma_1_viejo=instance.estado_firma_paquete_1,
+                        token_2_viejo=instance.token_paquete_2,
+                        estado_firma_2_viejo=instance.estado_firma_paquete_2,
+                        motivo=motivo,
+                        usuario=usuario,
+                    )
+                # El termino en pie (ronda 'firmado') pasa a 'expirado': queda como una
+                # renovacion mas en el historial (su espejo/PDF/snapshot se conservan
+                # intactos) y libera el indice unico parcial 'una firmado por contrato'.
+                # NO se crea una ronda nueva aqui: la ronda de renovacion se materializa
+                # hasta "Generar Firmas Paquete 1" (upsert-reuse crea numero=max+1 con
+                # tipo='renovacion' porque el contrato ya tuvo un termino 'expirado').
+                # Asi el conteo de renovaciones = las rondas 'expirado' del historial,
+                # sin rondas 'pendiente' fantasma por cada click de "Renovar".
+                (instance.rondas_firma
+                 .filter(estado='firmado')
+                 .update(estado='expirado',
+                         motivo='termino reemplazado por renovacion manual',
+                         cerrado_en=timezone.now()))
+                # Contrato entra en 'en_renovacion' (pill del FE) y limpia el espejo de
+                # tokens para el ciclo nuevo. Los tokens viejos quedan en su ronda ya
+                # 'expirado' (consultables; en ZapSign NO se tocan: los finales aun
+                # pueden firmar el termino anterior desde el Historial).
+                instance.estado_contrato = 'en_renovacion'
+                instance.token = None
+                instance.token_paquete_2 = None
+                instance.estado_firma_paquete_1 = None
+                instance.estado_firma_paquete_2 = None
+                instance.save(update_fields=[
+                    'estado_contrato', 'token', 'token_paquete_2',
+                    'estado_firma_paquete_1', 'estado_firma_paquete_2',
+                ])
+            return Response(
+                {
+                    'Exito': 'Renovacion iniciada: actualiza los datos del contrato '
+                             'y genera el Paquete 1.',
+                    'estado_contrato': 'en_renovacion',
+                },
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
@@ -1407,8 +1936,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         Paquete COMPLETO = Paquete 1 + Paquete 2 concatenados.
 
         Orden final del PDF:
-            Paquete 1: Contrato → Póliza → Manual UTO → Pagarés
-            Paquete 2: Comodato → Anexos
+            Paquete 1: Contrato → Manual UTO → Pagarés
+            Paquete 2: Comodato → Anexos → Póliza
 
         `marca`: contexto de marca blanca (cuentas demo); None = Fraterna normal.
         Devuelve: (nombre_archivo, bytes del PDF combinado, total_paginas)
@@ -1528,6 +2057,10 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         brand_logo = "https://pagosprueba.s3.us-east-1.amazonaws.com/ZapSign/logo-contratodearrendamiento.webp"
 
         payload = {
+            # Documento REAL (consume créditos y vale como firma). Las cuentas demo
+            # lo pasan a sandbox por su cuenta en `aplicar_demo_a_payload_zapsign`
+            # (demo_mode.py) — no cambiar esto para probar: usar una cuenta demo.
+            "sandbox": False,
             "name": data["filename"],                                          # Nombre del documento que verá el usuario
             "base64_pdf": data["base64_pfd"],                                  # PDF codificado en base64 (sin encabezado data:...)
             "external_id": data["id"],                                         # ID opcional para enlazar con sistema externo
@@ -1799,12 +2332,15 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             data = request.data
             if isinstance(data, dict):
                 id_paq = data["id_contrato"]
-                pagare_distinto = data.get("pagare_distinto", "No")
-                cantidad_pagare = data.get("cantidad_pagare", "0")
+                # None = que el generador lea pagare_distinto/cantidad del MODELO
+                # (antes el default "No"/"0" pisaba un "Si" guardado cuando el FE
+                # no mandaba el campo).
+                pagare_distinto = data.get("pagare_distinto") or None
+                cantidad_pagare = data.get("cantidad_pagare") or None
             else:
                 id_paq = data
-                pagare_distinto = "No"
-                cantidad_pagare = "0"
+                pagare_distinto = None
+                cantidad_pagare = None
 
             
             bloqueo_demo = self._guard_demo(request, id_paq)
@@ -1972,13 +2508,15 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             raise e
 
     def _generar_paquete_1_pdf(self, id_paq, pagare_distinto=None, cantidad_pagare=None, marca=None):
-        """Paquete 1 = Contrato + Póliza + Manual UTO + Pagarés (al final, sin firmas ZapSign).
+        """Paquete 1 = Contrato + Manual UTO + Pagarés (al final, sin firmas ZapSign).
+        La Póliza se movió al Paquete 2 (imprime el nº de departamento, que se asigna
+        DESPUÉS del P1; en el P1 salía en blanco/'None'). Ver _generar_paquete_2_pdf.
         `pagare_distinto`/`cantidad_pagare` opcionales: si vienen None se leen del modelo.
         `marca`: contexto de marca blanca (cuentas demo); en demo se OMITE el
         Manual UTO (PDF estático con marca Fraterna) — total_paginas["manual"]=0
         mantiene las coordenadas de firma consistentes.
         Devuelve (nombre, bytes, total_paginas)."""
-        total_paginas = {"arrendamiento": 0, "poliza": 0, "manual": 0, "pagares": 0}
+        total_paginas = {"arrendamiento": 0, "manual": 0, "pagares": 0}
         locale.setlocale(locale.LC_ALL, "es_MX.utf8")
 
         info = self.queryset.filter(id=id_paq).first()
@@ -1994,14 +2532,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         for page in contrato_reader.pages:
             pdf_writer.add_page(page)
 
-        # 2. Póliza
-        poliza_pdf = self._generar_poliza_interno(info, marca=marca)
-        poliza_reader = PdfReader(io.BytesIO(poliza_pdf))
-        total_paginas["poliza"] = len(poliza_reader.pages)
-        for page in poliza_reader.pages:
-            pdf_writer.add_page(page)
-
-        # 3. Manual UTO desde AWS (omitido en demo: es un PDF con marca Fraterna)
+        # 2. Manual UTO desde AWS (omitido en demo: es un PDF con marca Fraterna)
         if not (marca and marca.get('es_demo')):
             manual_url = "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/ManualUtower.pdf"
             try:
@@ -2014,7 +2545,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             except Exception as e:
                 print(f"Error al descargar manual UTO: {e}")
 
-        # 4. Pagarés (al final, sin firmas ZapSign — ver armar_payload_firmas_paquete_1)
+        # 3. Pagarés (al final, sin firmas ZapSign — ver armar_payload_firmas_paquete_1)
         pagare_pdf = self._generar_pagare_interno(info, pagare_distinto, cantidad_pagare, marca=marca)
         pagare_reader = PdfReader(io.BytesIO(pagare_pdf))
         total_paginas["pagares"] = len(pagare_reader.pages)
@@ -2031,8 +2562,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         return nombre_archivo, output_pdf.getvalue(), total_paginas
 
     def _generar_paquete_2_pdf(self, id_paq, marca=None):
-        """Paquete 2 = Comodato + Anexos. Devuelve (nombre, bytes, total_paginas)."""
-        total_paginas = {"comodato": 0, "anexos": 0}
+        """Paquete 2 = Comodato + Anexos + Póliza. Devuelve (nombre, bytes, total_paginas).
+
+        La Póliza se firma aquí (antes iba en el Paquete 1): imprime el nº de
+        departamento en la dirección del arrendatario, dato que ya está asignado al
+        llegar al P2 (generar_urls_firma_paquete_2 lo exige). Así deja de salir en
+        blanco/'None' como pasaba cuando iba en el P1."""
+        total_paginas = {"comodato": 0, "anexos": 0, "poliza": 0}
         locale.setlocale(locale.LC_ALL, "es_MX.utf8")
 
         info = self.queryset.filter(id=id_paq).first()
@@ -2055,6 +2591,14 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         for page in anexos_reader.pages:
             pdf_writer.add_page(page)
 
+        # 3. Póliza (movida desde el Paquete 1: necesita el depa ya asignado).
+        # Sus anchors <<firma_*>> viajan en el HTML → ZapSign las coloca aquí.
+        poliza_pdf = self._generar_poliza_interno(info, marca=marca)
+        poliza_reader = PdfReader(io.BytesIO(poliza_pdf))
+        total_paginas["poliza"] = len(poliza_reader.pages)
+        for page in poliza_reader.pages:
+            pdf_writer.add_page(page)
+
         output_pdf = io.BytesIO()
         pdf_writer.write(output_pdf)
         output_pdf.seek(0)
@@ -2065,7 +2609,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         return nombre_archivo, output_pdf.getvalue(), total_paginas
 
     def armar_payload_firmas_paquete_1(self, signer_tokens, total_paginas, residente):
-        """Posiciones de firmas para Paquete 1: contrato + póliza + manual + pagarés.
+        """Posiciones de firmas para Paquete 1: contrato + manual + pagarés.
+        La póliza se firma ahora en el Paquete 2 (ver armar_payload_firmas_paquete_2); el
+        testigo (signer 3) igual firma el P1 vía el anchor <<firma_testigo>> del contrato.
         Los pagarés van INCLUIDOS en el PDF pero SIN firmas ZapSign (decisión legal/operativa)."""
         rubricas = []
         offsets = {}
@@ -2074,7 +2620,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             offsets[nombre] = acumulador
             acumulador += paginas
 
-        posiciones_por_seccion = {"arrendamiento": [], "poliza": [], "manual": [], "pagares": []}
+        posiciones_por_seccion = {"arrendamiento": [], "manual": [], "pagares": []}
 
         # Contrato (sin anexos): 3 firmas por página (izq-centro-der)
         for i in range(total_paginas["arrendamiento"]):
@@ -2082,14 +2628,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 (i, 5.0, 5.0, 0),
                 (i, 5.0, 40.0, 1),
                 (i, 5.0, 75.0, 2),
-            ])
-
-        # Póliza: 3 firmas por página (signer 0, 1, 3)
-        for i in range(total_paginas["poliza"]):
-            posiciones_por_seccion["poliza"].extend([
-                (i, 5.0, 5.0, 0),
-                (i, 5.0, 40.0, 1),
-                (i, 5.0, 75.0, 3),
             ])
 
         # Manual UTO: 2 firmas por página
@@ -2119,7 +2657,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         return {"rubricas": rubricas}
 
     def armar_payload_firmas_paquete_2(self, signer_tokens, total_paginas, residente):
-        """Posiciones de firmas para Paquete 2: comodato + anexos.
+        """Posiciones de firmas para Paquete 2: comodato + anexos + póliza.
 
         Las firmas se colocan por DOBLE vía:
           1. Coordenadas (este `place-signatures`): comodato en sus 6 posiciones específicas;
@@ -2146,6 +2684,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 (3, 26.5, 18.0, 1),
             ],
             "anexos": [],
+            "poliza": [],
         }
 
         # Anexos: 3 firmas por página (mismo patrón que el contrato).
@@ -2155,6 +2694,16 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 (i, 5.0, 5.0, 0),
                 (i, 5.0, 40.0, 1),
                 (i, 5.0, 75.0, 2),
+            ])
+
+        # Póliza (movida desde el Paquete 1): 3 firmas por página (signer 0, 1, 3).
+        # Mismas posiciones relativas que tenía en el P1. Sus anchors <<firma_*>> viajan
+        # en el HTML de la póliza, así que ZapSign también las coloca automáticamente.
+        for i in range(total_paginas["poliza"]):
+            posiciones_por_seccion["poliza"].extend([
+                (i, 5.0, 5.0, 0),
+                (i, 5.0, 40.0, 1),
+                (i, 5.0, 75.0, 3),
             ])
 
         for seccion, posiciones in posiciones_por_seccion.items():
@@ -2255,7 +2804,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def generar_paquete_1(self, request, *args, **kwargs):
-        """Descarga PDF del Paquete 1 (contrato + póliza + manual + pagarés).
+        """Descarga PDF del Paquete 1 (contrato + manual + pagarés).
         `pagare_distinto` y `cantidad_primer_pagare` se leen del modelo del contrato."""
         try:
             data = request.data
@@ -2272,7 +2821,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def generar_paquete_2(self, request, *args, **kwargs):
-        """Descarga PDF del Paquete 2 (comodato + anexos)."""
+        """Descarga PDF del Paquete 2 (comodato + anexos + póliza)."""
         try:
             data = request.data
             id_paq = data["id"] if isinstance(data, dict) else data
@@ -2286,6 +2835,348 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Error en generar_paquete_2 línea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    # =========================================================================
+    # Bitácora de rondas de firma (ledger encima de FraternaContratos).
+    # Cada generación de enlaces de Paquete 1 abre/refresca la ronda 'pendiente';
+    # el Paquete 2 la aumenta; el webhook la cierra; un reset la cancela. Ver
+    # handoff "Fraterna - Renovacion de contratos + bitacora de rondas de firma -
+    # 2026-07-07". Aditivo: un fallo del ledger NO debe tumbar la firma en ZapSign.
+    # =========================================================================
+
+    # Orden de firmantes del Paquete 1, alineado con build_payload_to_zapsign():
+    # 0=arrendador (Fraterna), 1=arrendatario, 2=residente, 3=prestador (testigo).
+    ROLES_FIRMANTES_P1 = ['arrendador', 'arrendatario', 'residente', 'prestador']
+    # Firmantes "finales": firman al final (via "Firmar como arrendador/prestador");
+    # NO bloquean la emision del Paquete 2.
+    ROLES_FINALES = ('arrendador', 'prestador')
+
+    # Candado de edicion durante firma: campos que los documentos del Paquete 1
+    # imprimen -> se bloquean al existir token_1 en la ronda 'pendiente' (editarlos
+    # a media firma = docs del intento inconsistentes entre si).
+    CAMPOS_BLOQUEO_P1 = ('residente', 'habitantes', 'renta', 'duracion',
+                         'fecha_celebracion', 'fecha_vigencia', 'fecha_move_in',
+                         'fecha_move_out', 'pagare_distinto', 'cantidad_primer_pagare',
+                         'estacionamiento', 'precio_estacionamiento_mxn',
+                         'kilowatts_incluidos', 'dia_pago')
+    # Campos de la asignacion (Anexo 1 / comodato del P2): editables durante la firma
+    # del P1 (el flujo los llena despues), pero se bloquean al existir token_2.
+    CAMPOS_BLOQUEO_P2 = ('no_depa', 'cama', 'piso', 'tipologia', 'medidas',
+                         'plano_localizacion')
+
+    def _campos_bloqueados_en_firma(self, info, data):
+        """Candado de edicion durante firma (el FE espeja esto en editar_proc).
+
+        Devuelve la lista de campos BLOQUEADOS que el payload intenta CAMBIAR de
+        valor, o []. Sin ronda 'pendiente' (legacy sin bitacora) no aplica.
+        La comparacion normaliza vacios (None == '' == '  ') y numeros ('1160' ==
+        '1160.00') para NO rebotar guardados que no cambian nada: el form de editar
+        manda '' donde la BD tiene NULL (blanqueo fantasma comprobado 2026-07-08).
+        """
+        ronda = info.rondas_firma.filter(estado='pendiente').first()
+        if ronda is None:
+            return []
+        bloqueados = ()
+        if ronda.token_1:
+            bloqueados += self.CAMPOS_BLOQUEO_P1
+        if ronda.token_2:
+            bloqueados += self.CAMPOS_BLOQUEO_P2
+        if not bloqueados:
+            return []
+        return self._campos_con_cambio(info, data, bloqueados)
+
+    def _campos_con_cambio(self, info, data, campos):
+        """De `campos`, los que el payload intenta CAMBIAR de valor de verdad.
+
+        Comparador compartido del candado de firma y del sellado de contrato
+        vigente: normaliza vacios (None == '' == '  '), numeros ('1160' ==
+        '1160.00') y booleanos (True == 'true') para NO rebotar guardados que
+        no cambian nada (el form de editar manda '' donde la BD tiene NULL —
+        blanqueo fantasma comprobado 2026-07-08).
+        """
+        def _norm(v):
+            return '' if v is None else str(v).strip()
+
+        def _iguales(a, b):
+            na, nb = _norm(a), _norm(b)
+            if na == nb:
+                return True
+            if na.lower() in ('true', 'false') and nb.lower() in ('true', 'false'):
+                return na.lower() == nb.lower()
+            try:
+                return float(na) == float(nb)
+            except (ValueError, TypeError):
+                return False
+
+        cambiados = []
+        for campo in campos:
+            if campo not in data:
+                continue
+            nuevo = data.get(campo)
+            if campo == 'residente':
+                if isinstance(nuevo, dict):
+                    nuevo = nuevo.get('id')
+                # vacio no se flaggea (prefill garantiza valor; evitar falso bloqueo)
+                if _norm(nuevo) and not _iguales(nuevo, info.residente_id):
+                    cambiados.append(campo)
+                continue
+            if campo == 'plano_localizacion':
+                if hasattr(nuevo, 'read'):  # archivo nuevo subido = cambio
+                    cambiados.append(campo)
+                continue
+            actual = getattr(info, campo, None)
+            if hasattr(actual, 'isoformat'):
+                actual = actual.isoformat()
+            if not _iguales(nuevo, actual):
+                cambiados.append(campo)
+        return cambiados
+
+    def _snapshot_datos_contrato(self, info):
+        """Congela los términos NO-fecha del contrato para una ronda (jsonb).
+
+        Las fechas van en columnas dedicadas de la ronda (indexables); aquí va el
+        resto. Los Decimal se pasan a str porque el JSONField default no los
+        serializa.
+        """
+        def _dec(v):
+            return str(v) if v is not None else None
+
+        residente = getattr(info, 'residente', None)
+        return {
+            'no_depa': info.no_depa,
+            'cama': info.cama,
+            'piso': info.piso,
+            'habitantes': info.habitantes,
+            'tipologia': info.tipologia,
+            'medidas': info.medidas,
+            'renta': info.renta,
+            'estacionamiento': info.estacionamiento,
+            'precio_estacionamiento_mxn': _dec(info.precio_estacionamiento_mxn),
+            'kilowatts_incluidos': _dec(info.kilowatts_incluidos),
+            'duracion': info.duracion,
+            'pagare_distinto': info.pagare_distinto,
+            'cantidad_primer_pagare': info.cantidad_primer_pagare,
+            'dia_pago': info.dia_pago,
+            'residente_nombre': getattr(residente, 'nombre_arrendatario', None),
+        }
+
+    def _registrar_ronda_p1(self, info, doc_token, signers, usuario=None):
+        """Enganche 'Generar Paquete 1': abre o refresca la ronda 'pendiente'.
+
+        - Si ya hay una ronda 'pendiente' para el contrato, la reutiliza (regenerar
+          el Paquete 1 sin cancelar = el MISMO intento): refresca fechas, snapshot,
+          token_1 y reinyecta los firmantes del Paquete 1.
+        - Si no hay ninguna abierta, crea una nueva (numero = max+1). El tipo es
+          'renovacion' si el contrato ya tuvo alguna ronda 'firmado'; si no,
+          'inicial'.
+
+        `signers` = lista de dicts de la respuesta de ZapSign (name/email/token/
+        sign_url) en el mismo orden que build_payload_to_zapsign (ver
+        ROLES_FIRMANTES_P1). Devuelve la ronda (o None si falta doc_token).
+        """
+        if not doc_token:
+            return None
+        with transaction.atomic():
+            ronda = info.rondas_firma.filter(estado='pendiente').first()
+            if ronda is None:
+                ultimo = info.rondas_firma.aggregate(m=Max('numero'))['m'] or 0
+                ya_firmo = info.rondas_firma.filter(estado__in=('firmado', 'expirado')).exists()
+                ronda = FraternaRondaFirma(
+                    contrato=info,
+                    numero=ultimo + 1,
+                    tipo='renovacion' if ya_firmo else 'inicial',
+                )
+            ronda.fecha_celebracion = info.fecha_celebracion
+            ronda.fecha_vigencia = info.fecha_vigencia
+            ronda.fecha_move_in = info.fecha_move_in
+            ronda.fecha_move_out = info.fecha_move_out
+            ronda.datos_snapshot = self._snapshot_datos_contrato(info)
+            ronda.token_1 = doc_token
+            ronda.estado_firma_1 = 'pending'
+            if usuario:
+                ronda.usuario = usuario
+            ronda.save()
+
+            # Refresca los firmantes del Paquete 1 (idempotente al regenerar).
+            ronda.firmantes.filter(paquete=1).delete()
+            firmantes = []
+            for idx, s in enumerate(signers or []):
+                firmantes.append(FraternaRondaFirmante(
+                    ronda=ronda,
+                    paquete=1,
+                    nombre=(s.get('name') or '')[:200],
+                    rol=(self.ROLES_FIRMANTES_P1[idx]
+                         if idx < len(self.ROLES_FIRMANTES_P1) else None),
+                    email=s.get('email') or None,
+                    sign_url=s.get('sign_url') or None,
+                    token_firmante=s.get('token') or None,
+                    estado='pendiente',
+                ))
+            if firmantes:
+                FraternaRondaFirmante.objects.bulk_create(firmantes)
+        return ronda
+
+    RONDA_CAMPOS_FECHA = ('fecha_celebracion', 'fecha_vigencia', 'fecha_move_in', 'fecha_move_out')
+
+    def _registrar_ronda_p2(self, info, doc_token, signers, usuario=None):
+        """Enganche 'Generar Paquete 2': completa la ronda 'pendiente' con el doc P2.
+
+        - Set token_2 + estado_firma_2='pending' + espejo de firmantes del Paquete 2
+          (idempotente al regenerar, igual que P1).
+        - RE-CONGELA snapshot y fechas (semantica: snapshot = ultima generacion del
+          intento, igual que el reuse de P1) y guarda en `_delta_p2` TODO campo que
+          cambio desde el Paquete 1: {campo: [antes, despues]}. vacio->valor =
+          completar (p.ej. depa/cama asignados despues de P1); valor->valor = drift
+          (los docs del intento quedaron inconsistentes entre si; queda el rastro).
+        - Al REGENERAR P2 el delta se COMPONE: el "antes" sigue siendo el valor que
+          habia al generar P1 (se deshace el delta previo para reconstruir la base);
+          un campo que regresa a su valor de P1 sale del delta.
+        - Contratos sin ronda 'pendiente' (legacy sin bitacora): no hace nada.
+        """
+        if not doc_token:
+            return None
+
+        def _iso(v):
+            return v.isoformat() if v else None
+
+        def _vacio(v):
+            return v is None or (isinstance(v, str) and not v.strip())
+
+        with transaction.atomic():
+            ronda = info.rondas_firma.filter(estado='pendiente').first()
+            if ronda is None:
+                return None
+
+            snapshot_viejo = dict(ronda.datos_snapshot or {})
+            delta_previo = snapshot_viejo.pop('_delta_p2', None) or {}
+            snapshot_nuevo = self._snapshot_datos_contrato(info)
+
+            # Base "al momento de P1": el snapshot vigente deshaciendo el delta de un
+            # P2 anterior (solo aplica si esto es una regeneracion del P2).
+            base_p1 = dict(snapshot_viejo)
+            base_p1.update({k: par[0] for k, par in delta_previo.items()
+                            if k not in self.RONDA_CAMPOS_FECHA})
+
+            delta = {}
+            for k in set(base_p1) | set(snapshot_nuevo):
+                antes, despues = base_p1.get(k), snapshot_nuevo.get(k)
+                # None <-> '' NO es cambio (los forms guardan '' donde habia NULL).
+                if antes != despues and not (_vacio(antes) and _vacio(despues)):
+                    delta[k] = [antes, despues]
+            for campo in self.RONDA_CAMPOS_FECHA:
+                antes = (delta_previo[campo][0] if campo in delta_previo
+                         else _iso(getattr(ronda, campo)))
+                despues = _iso(getattr(info, campo))
+                if antes != despues:
+                    delta[campo] = [antes, despues]
+
+            if delta:
+                snapshot_nuevo['_delta_p2'] = delta
+
+            ronda.fecha_celebracion = info.fecha_celebracion
+            ronda.fecha_vigencia = info.fecha_vigencia
+            ronda.fecha_move_in = info.fecha_move_in
+            ronda.fecha_move_out = info.fecha_move_out
+            ronda.datos_snapshot = snapshot_nuevo
+            ronda.token_2 = doc_token
+            ronda.estado_firma_2 = 'pending'
+            if usuario:
+                ronda.usuario = usuario
+            ronda.save()
+
+            # Espejo de firmantes del Paquete 2 (mismo builder de signers que P1 ->
+            # mismos 4 roles por orden).
+            ronda.firmantes.filter(paquete=2).delete()
+            firmantes = []
+            for idx, s in enumerate(signers or []):
+                firmantes.append(FraternaRondaFirmante(
+                    ronda=ronda,
+                    paquete=2,
+                    nombre=(s.get('name') or '')[:200],
+                    rol=(self.ROLES_FIRMANTES_P1[idx]
+                         if idx < len(self.ROLES_FIRMANTES_P1) else None),
+                    email=s.get('email') or None,
+                    sign_url=s.get('sign_url') or None,
+                    token_firmante=s.get('token') or None,
+                    estado='pendiente',
+                ))
+            if firmantes:
+                FraternaRondaFirmante.objects.bulk_create(firmantes)
+        return ronda
+
+    def _partes_p1_pendientes(self, info):
+        """Candado de firmas del Paquete 2 del lado BE (espejo de la bitacora).
+
+        Devuelve la lista de nombres de "partes" del Paquete 1 (excluye arrendador/
+        prestador, que firman al final) que aun NO estan 'firmado', o None si el
+        contrato no tiene bitacora utilizable (legacy sin ronda -> el gate queda
+        como hasta hoy: solo el FE verifica contra ZapSign).
+
+        Espejo-first: si el espejo dice que todos firmaron, no hay red. Si dice que
+        falta alguien, se revalida contra ZapSign (verdad viva, emparejando por
+        token de firmante) para no bloquear por un evento de webhook perdido; si
+        ZapSign no responde, manda el espejo (conservador: bloquea).
+        """
+        ronda = info.rondas_firma.filter(estado='pendiente').first()
+        if ronda is None or not ronda.token_1:
+            return None
+        partes = [f for f in ronda.firmantes.filter(paquete=1)
+                  if f.rol not in self.ROLES_FINALES]
+        if not partes:
+            return None
+        pendientes = [f for f in partes if f.estado != 'firmado']
+        if not pendientes:
+            return []
+        try:
+            url = f'{API_URL_ZAPSIGN}docs/{ronda.token_1}/'
+            headers = {'Authorization': f'Bearer {API_TOKEN_ZAPSIGN}'}
+            resp = requests.get(url, headers=headers, timeout=15)
+            resp.raise_for_status()
+            vivos = {s.get('token'): s.get('status')
+                     for s in (resp.json().get('signers') or []) if s.get('token')}
+            pendientes = [f for f in pendientes
+                          if vivos.get(f.token_firmante) != 'signed']
+        except Exception as e:
+            logger.warning(f"{datetime.now()} Candado P2: revalidacion ZapSign fallo "
+                           f"(contrato {info.id}), manda el espejo: {e}")
+        return [f.nombre for f in pendientes]
+
+    def _cancelar_ronda_pendiente(self, info, motivo=None, usuario=None):
+        """Enganche 'Cancelar firmas': cierra la ronda 'pendiente' como 'cancelado'.
+
+        Cierre terminal: la ronda conserva tokens, snapshot y el estado de cada
+        firmante tal como quedaron (auditoria completa del intento); el webhook ya
+        no la revive (una 'cancelado' solo refresca su espejo, sin PDF ni rail).
+        Una 'firmado' NUNCA se cancela: para cambiarla se genera otra ronda
+        (renovacion). Devuelve la ronda cancelada o None si no habia 'pendiente'.
+        """
+        ronda = info.rondas_firma.filter(estado='pendiente').first()
+        if ronda is None:
+            return None
+        ronda.estado = 'cancelado'
+        if motivo:
+            ronda.motivo = str(motivo)[:255]
+        if usuario:
+            ronda.usuario = usuario
+        ronda.cerrado_en = timezone.now()
+        ronda.save(update_fields=['estado', 'motivo', 'usuario', 'cerrado_en'])
+        return ronda
+
+    def _vigente_sellado(self, info):
+        """Contrato con termino firmado ('actual' o 'expirado') sin renovacion en
+        curso = SELLADO.
+
+        Sus datos y firmas respaldan el termino (vigente o ya vencido): no se
+        edita, no se (re)generan enlaces y no se retiran firmas. La UNICA salida
+        es `iniciar_renovacion` (menu "Renovar contrato"), que abre la ronda de
+        renovacion y pone el contrato en 'en_renovacion'; ahi vuelve a ser
+        editable (aplican los candados por token de siempre). Un 'expirado' se
+        sella igual que un 'actual': el contrato esta terminado, la unica accion
+        posible es renovarlo. NULL (pendiente/legacy) NO se sella (flujo normal).
+        """
+        if getattr(info, 'estado_contrato', None) not in ('actual', 'expirado'):
+            return False
+        return not info.rondas_firma.filter(estado='pendiente').exists()
 
     def generar_urls_firma_paquete_1(self, request, *args, **kwargs):
         """Manda Paquete 1 a ZapSign. Persiste doc_token en info.token.
@@ -2304,6 +3195,16 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             info = self.queryset.filter(id=id_paq).first()
             if not info or not info.residente:
                 return Response({'error': 'Contrato o residente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Contrato VIGENTE sin renovacion en curso: generar enlaces sueltos
+            # abriria un intento nuevo por fuera del flujo. La renovacion se inicia
+            # con "Renovar contrato" (abre la ronda y habilita esta generacion).
+            if self._vigente_sellado(info):
+                return Response(
+                    {'error': 'El contrato esta sellado. Para emitir documentos '
+                              'nuevos usa "Renovar contrato".'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             residente = ResidenteSerializers(info.residente).data
 
             nombre_archivo, pdf_bytes, total_paginas = self._generar_paquete_1_pdf(id_paq, marca=marca)
@@ -2316,7 +3217,25 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 "residente": residente,
                 "total_paginas": total_paginas,
             }
-            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_1, persistir_token=True, marca=marca)
+            # persistir_token=False PERMANENTE (decisión 2026-07-23): el doc_token vive
+            # SOLO en la bitácora de rondas (token_1) — fraterna_contrato.token queda
+            # jubilado como fuente (la UI y el webhook trabajan contra la ronda; los
+            # contratos pre-bitácora se cubren con la migración de datos al deploy).
+            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_1, persistir_token=False, marca=marca)
+
+            # Enganche bitácora de rondas: abre/refresca la ronda 'pendiente' con el
+            # snapshot + token_1 + firmantes P1. Best-effort: si el ledger falla NO
+            # tumbamos la firma (el documento ZapSign ya se creó).
+            if resultado:
+                try:
+                    usuario = (getattr(request.user, 'email', '') or
+                               getattr(request.user, 'username', '') or '') or None
+                    signers = (resultado.get('zapsign_new_doc') or {}).get('signers', [])
+                    self._registrar_ronda_p1(info, resultado.get('doc_token'), signers, usuario)
+                except Exception as e_ronda:
+                    logger.error(f"{datetime.now()} No se pudo registrar la ronda P1 "
+                                 f"(contrato {id_paq}): {e_ronda}")
+
             return Response({"respuestaZS": resultado, "paquete": "1"}, status=status.HTTP_200_OK)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -2339,6 +3258,14 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             info = self.queryset.filter(id=id_paq).first()
             if not info or not info.residente:
                 return Response({'error': 'Contrato o residente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            # Mismo sellado que el Paquete 1: un contrato VIGENTE sin renovacion en
+            # curso no emite documentos nuevos (la salida es "Renovar contrato").
+            if self._vigente_sellado(info):
+                return Response(
+                    {'error': 'El contrato esta sellado. Para emitir documentos '
+                              'nuevos usa "Renovar contrato".'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             residente = ResidenteSerializers(info.residente).data
 
             # El Anexo del Paquete 2 imprime departamento y cama; si faltan, el documento
@@ -2346,6 +3273,19 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             if not (info.no_depa and str(info.no_depa).strip()) or not (info.cama and str(info.cama).strip()):
                 return Response(
                     {'error': 'Falta asignar departamento y/o cama al contrato. Asignalos antes de generar el Paquete 2.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Candado de firmas del P1 (lado BE, espejo de la bitacora): las "partes"
+            # deben haber firmado antes de emitir el P2 (arrendador/prestador firman
+            # al final). El FE ya lo verifica; esto lo hace inviolable ante llamadas
+            # directas a la API. Contratos legacy sin ronda: sin cambio (devuelve None).
+            pendientes_p1 = self._partes_p1_pendientes(info)
+            if pendientes_p1:
+                return Response(
+                    {'error': 'Las partes del Paquete 1 aun no firman: '
+                              f'{", ".join(pendientes_p1)}. El arrendador y el prestador '
+                              'firman al final; genera el Paquete 2 cuando las partes hayan firmado.'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -2359,7 +3299,23 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 "residente": residente,
                 "total_paginas": total_paginas,
             }
-            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_2, persistir_token=True, campo_token='token_paquete_2', marca=marca)
+            # persistir_token=False PERMANENTE (decisión 2026-07-23, espejo del P1): el
+            # doc_token del P2 vive SOLO en la ronda (token_2); token_paquete_2 jubilado.
+            resultado = self._subir_paquete_a_zapsign(contrato_data, self.armar_payload_firmas_paquete_2, persistir_token=False, campo_token='token_paquete_2', marca=marca)
+
+            # Enganche bitacora de rondas: completa la ronda 'pendiente' con token_2,
+            # firmantes P2 y RE-CONGELA snapshot/fechas (+_delta_p2). Best-effort: un
+            # fallo del ledger NO tumba la firma (el documento ZapSign ya se creo).
+            if resultado:
+                try:
+                    usuario = (getattr(request.user, 'email', '') or
+                               getattr(request.user, 'username', '') or '') or None
+                    signers = (resultado.get('zapsign_new_doc') or {}).get('signers', [])
+                    self._registrar_ronda_p2(info, resultado.get('doc_token'), signers, usuario)
+                except Exception as e_ronda:
+                    logger.error(f"{datetime.now()} No se pudo registrar la ronda P2 "
+                                 f"(contrato {id_paq}): {e_ronda}")
+
             return Response({"respuestaZS": resultado, "paquete": "2"}, status=status.HTTP_200_OK)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()

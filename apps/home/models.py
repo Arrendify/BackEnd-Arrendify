@@ -10,6 +10,7 @@ import os
 import string
 import random
 import uuid
+from uuid import uuid4
 
 from unittest.util import _MAX_LENGTH
 from django.db import models
@@ -2158,7 +2159,8 @@ class FraternaContratos(models.Model):
     # esa cama, en ese orden). El UniqueConstraint de abajo garantiza máx. 1 'actual' por cama.
     estado_contrato = models.CharField(
         max_length=20, null=True, blank=True,
-        choices=[('actual', 'Actual'), ('expirado', 'Expirado')],
+        choices=[('actual', 'Actual'), ('expirado', 'Expirado'),
+                 ('en_renovacion', 'En renovación')],
     )
 
     class Meta:
@@ -2195,6 +2197,122 @@ class FraternaFirmaHistorial(models.Model):
     class Meta:
         db_table = 'fraterna_firma_historial'
         ordering = ['-creado']
+
+
+class FraternaRondaFirma(models.Model):
+    """Una ronda / intento de firma de un contrato Fraterna.
+
+    Nace al generar los enlaces de Paquete 1. Congela la data del contrato en ese
+    momento (por si ESTA ronda resulta ser la firmada), guarda los tokens ZapSign,
+    el PDF firmado (bajado a nuestro S3) y el estado del proceso. Sustituye a
+    FraternaFirmaHistorial: un reinicio de firmas cierra la ronda abierta como
+    'cancelado' (queda para auditar) y la siguiente generacion abre una nueva.
+    Una renovacion = una ronda nueva tipo 'renovacion'. Ver handoff 2026-07-07.
+    """
+    TIPO = [('inicial', 'Inicial'), ('renovacion', 'Renovación')]
+    # 'firmado'  = el termino EN PIE (max. UNO por contrato, constraint parcial);
+    # 'expirado' = termino reemplazado por una renovacion firmada (historial);
+    # 'cancelado'= intento desechado antes de completarse.
+    ESTADO = [('pendiente', 'Pendiente'), ('firmado', 'Firmado'),
+              ('expirado', 'Expirado'), ('cancelado', 'Cancelado')]
+
+    contrato = models.ForeignKey(
+        FraternaContratos, on_delete=models.CASCADE, related_name='rondas_firma',
+    )
+    # Identificador de cara al usuario ("Proceso de firma <uuid>", modal de
+    # historial del FE). `numero` sigue siendo el ordinal interno por contrato.
+    uuid = models.UUIDField(default=uuid4, editable=False, unique=True,
+                            null=True, blank=True)
+    numero = models.IntegerField()  # ordinal por contrato: 1, 2, 3... ("Intento #N")
+    tipo = models.CharField(max_length=20, choices=TIPO, default='inicial')
+
+    # Fechas congeladas de esta ronda (columnas dedicadas -> indexables).
+    fecha_celebracion = models.DateField(null=True, blank=True)
+    fecha_vigencia = models.DateField(null=True, blank=True, db_index=True)  # el job de renovacion la consulta
+    fecha_move_in = models.DateField(null=True, blank=True)
+    fecha_move_out = models.DateField(null=True, blank=True)
+
+    # Resto de terminos congelados (sin fechas): no_depa, cama, piso, habitantes,
+    # tipologia, medidas, renta, estacionamiento, precio_estacionamiento_mxn,
+    # kilowatts_incluidos, duracion, pagare_distinto, cantidad_primer_pagare, dia_pago,
+    # residente.
+    datos_snapshot = models.JSONField()
+    generado_en = models.DateTimeField(auto_now_add=True)
+
+    # Firma: tokens ZapSign + PDF firmado en NUESTRO S3 + estado por paquete.
+    token_1 = models.CharField(max_length=100, null=True, blank=True)
+    token_2 = models.CharField(max_length=100, null=True, blank=True)
+    pdf_firmado_1 = models.CharField(max_length=255, null=True, blank=True)  # S3 key P1
+    pdf_firmado_2 = models.CharField(max_length=255, null=True, blank=True)  # S3 key P2
+    estado_firma_1 = models.CharField(max_length=30, null=True, blank=True)  # pending/signed/refused
+    estado_firma_2 = models.CharField(max_length=30, null=True, blank=True)
+
+    # Proceso del esquema VIEJO: un solo documento con todo dentro
+    # (Paquete_Completo_Fraterna_*.pdf = contrato + manual + pagares + poliza +
+    # comodato + anexos), sin Paquete 2 -> `token_2` es NULL a proposito.
+    # Solo lo marcan las rondas migradas de ese esquema; el flujo actual siempre
+    # genera P1+P2. Sirve para que la UI no ofrezca "Paquete 2: sin generar" y
+    # para que un eventual cierre por partes sepa que no debe esperar un P2.
+    mono_paquete = models.BooleanField(default=False)
+
+    # Estado general de la ronda + auditoria.
+    estado = models.CharField(max_length=20, choices=ESTADO, default='pendiente')
+    motivo = models.CharField(max_length=255, null=True, blank=True)
+    usuario = models.CharField(max_length=150, null=True, blank=True)
+    cerrado_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'fraterna_ronda_firma'
+        ordering = ['-generado_en']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['contrato', 'numero'], name='uniq_numero_por_contrato',
+            ),
+            # Max. UNA ronda 'pendiente' por contrato (obliga a cancelar antes de regenerar).
+            models.UniqueConstraint(
+                fields=['contrato'], condition=models.Q(estado='pendiente'),
+                name='uniq_ronda_pendiente_por_contrato',
+            ),
+            # Max. UNA ronda 'firmado' por contrato (el termino en pie): al cerrar
+            # una renovacion, el webhook expira la anterior ANTES de marcar la
+            # nueva (el indice parcial es inmediato, mismo orden que el rail).
+            models.UniqueConstraint(
+                fields=['contrato'], condition=models.Q(estado='firmado'),
+                name='uniq_ronda_firmada_por_contrato',
+            ),
+        ]
+
+
+class FraternaRondaFirmante(models.Model):
+    """Estado de firma POR firmante dentro de una ronda (espejo local de ZapSign).
+
+    Se puebla al generar el paquete (nombre/rol/email/sign_url/token_firmante) y el
+    webhook lo mantiene fresco, para que la lista lea de la BD y no le pegue a
+    ZapSign en cada carga. `paquete` = 1 o 2 (desglose por paquete).
+    """
+    PAQUETE = [(1, 'Paquete 1'), (2, 'Paquete 2')]
+    ESTADO = [('pendiente', 'Pendiente'), ('firmado', 'Firmado'), ('rechazado', 'Rechazado')]
+
+    ronda = models.ForeignKey(
+        FraternaRondaFirma, on_delete=models.CASCADE, related_name='firmantes',
+    )
+    paquete = models.IntegerField(choices=PAQUETE)
+    nombre = models.CharField(max_length=200)
+    rol = models.CharField(max_length=50, null=True, blank=True)  # arrendador/arrendatario/residente/prestador
+    email = models.EmailField(null=True, blank=True)
+    sign_url = models.URLField(max_length=500, null=True, blank=True)
+    token_firmante = models.CharField(max_length=100, null=True, blank=True)  # signer token ZapSign
+    estado = models.CharField(max_length=20, choices=ESTADO, default='pendiente')
+    firmado_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'fraterna_ronda_firmante'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ronda', 'paquete', 'token_firmante'],
+                name='uniq_firmante_por_ronda_paquete',
+            ),
+        ]
 
 
 class ProcesoContrato(models.Model):

@@ -15,12 +15,13 @@ from django.conf import settings
 from django.utils import timezone
 from django.core.management import call_command
 from django.db import transaction
+from django.db.models import Prefetch
 
 from datetime import date, timedelta
 import logging
 
 # ----- Importa tus modelos y helpers reales -----
-from ..home.models import Cotizacion_gen, FraternaContratos
+from ..home.models import Cotizacion_gen, FraternaContratos, FraternaRondaFirma
 from ..api.variables import renovacion_fraterna
 
 import smtplib
@@ -118,43 +119,61 @@ def verificar_contratos_vencimiento():
         logger.exception("Error ejecutando verificación de contratos")
 
 
-def liberar_camas_vencidas():
-    """Job diario: libera la cama de los contratos Fraterna cuyo periodo terminó.
+def expirar_contratos_vencidos():
+    """Job diario: marca 'expirado' el contrato Fraterna cuyo periodo terminó.
 
-    Un contrato `estado_contrato='actual'` con `fecha_vigencia < hoy` (se venció y NO
-    fue reemplazado por una renovación, que lo habría dejado en 'expirado') -> se
-    libera su cama (`cama_ref.liberar()`: queda 'disponible', se borra el ocupante; el
-    status del depa se recalcula SOLO por el signal post_save de FraternaCama) y el
-    contrato pasa a 'expirado'. Solo toca contratos 'actual' con cama: los históricos
-    (estado_contrato NULL) y los ya 'expirado' se ignoran, y vigencia NULL no entra.
-    Idempotente: tras la 1a pasada el contrato ya no es 'actual' -> no se reprocesa.
+    SOLO cambia el estado del rail (`estado_contrato`); **NO toca la cama** —
+    la liberación es manual (botón "Liberar cama") o del flujo de contrato/
+    webhook (decisión 2026-06-29, reafirmada 2026-07-17: el viejo auto-vaciado
+    `liberar_camas_vencidas` quedó retirado; este job es su sucesor solo-marcado).
+
+    La fecha que manda es la VIGENCIA COMPROMETIDA (bitácora de rondas): la
+    `fecha_vigencia` congelada de la última ronda 'firmado' del contrato. La
+    fila del contrato es la copia de trabajo del siguiente intento (una
+    renovación en curso la edita), así que su fecha ya NO es confiable para
+    vencer; solo los contratos legacy sin ronda firmada usan la del contrato.
+    Ronda firmada SIN fecha de vigencia -> no se puede juzgar, no se toca.
+    Una renovación EN CURSO (ronda 'pendiente') NO pospone el vencimiento:
+    al cerrar, el webhook re-activa el contrato y re-ocupa la cama si hace
+    falta (`_activar_vigencia`). Los históricos (estado_contrato NULL) y los ya
+    'expirado' se ignoran. Idempotente: 'expirado' ya no es candidato.
     """
     try:
         hoy = timezone.now().date()
-        vencidos = list(
+        candidatos = (
             FraternaContratos.objects
-            .filter(estado_contrato='actual', fecha_vigencia__lt=hoy, cama_ref__isnull=False)
-            .select_related('cama_ref')
+            .filter(estado_contrato='actual')
+            .prefetch_related(Prefetch(
+                'rondas_firma',
+                queryset=FraternaRondaFirma.objects.filter(estado='firmado').order_by('-numero'),
+                to_attr='rondas_firmadas',
+            ))
         )
-        liberadas = 0
-        for con in vencidos:
+        expirados = 0
+        for con in candidatos:
             try:
-                with transaction.atomic():
-                    con.cama_ref.liberar(fecha_termino=hoy)   # -> signal -> recalcula depa
-                    con.estado_contrato = 'expirado'
-                    con.save(update_fields=['estado_contrato'])
-                liberadas += 1
+                firmadas = getattr(con, 'rondas_firmadas', None) or []
+                if firmadas:
+                    vigencia = firmadas[0].fecha_vigencia   # comprometida (ronda firmada)
+                else:
+                    vigencia = con.fecha_vigencia           # legacy sin bitácora
+                if not vigencia or vigencia >= hoy:
+                    continue
+                con.estado_contrato = 'expirado'
+                con.save(update_fields=['estado_contrato'])
+                expirados += 1
                 logger.info(
-                    f"[liberar_camas_vencidas] contrato {con.id} vencido ({con.fecha_vigencia}) "
-                    f"-> 'expirado'; cama {con.cama_ref_id} liberada"
+                    f"[expirar_contratos_vencidos] contrato {con.id} vencido el {vigencia} "
+                    f"({'vigencia comprometida ronda ' + str(firmadas[0].numero) if firmadas else 'fecha del contrato, legacy'}) "
+                    f"-> 'expirado' (cama intacta)"
                 )
             except Exception:
                 logger.exception(
-                    f"[liberar_camas_vencidas] error liberando contrato {getattr(con, 'id', 'N/A')}"
+                    f"[expirar_contratos_vencidos] error con contrato {getattr(con, 'id', 'N/A')}"
                 )
-        logger.warning(f"[liberar_camas_vencidas] {liberadas}/{len(vencidos)} cama(s) liberada(s) por vencimiento")
+        logger.warning(f"[expirar_contratos_vencidos] {expirados} contrato(s) marcado(s) 'expirado' por vencimiento")
     except Exception:
-        logger.exception("Error en liberar_camas_vencidas")
+        logger.exception("Error en expirar_contratos_vencidos")
 
 
 # ========================= SCHEDULER ========================= #
@@ -216,21 +235,21 @@ def ensure_scheduler_started():
         misfire_grace_time=3600,
     )
 
-    # Liberar camas de contratos Fraterna vencidos DIARIO 09:10
-    # DESACTIVADO 2026-06-29 (a pedido): la liberación de camas será SOLO manual
-    # (botón "Liberar cama" en la UI) o por el flujo de contrato (al reasignar una cama
-    # ocupada, o cuando el webhook activa un contrato y expira el 'actual' previo de esa
-    # cama). Se quita el auto-vaciado por fecha de vigencia. La función liberar_camas_vencidas()
-    # se CONSERVA intacta arriba; para reactivar a futuro, descomentar este bloque.
-    # sched.add_job(
-    #     liberar_camas_vencidas,
-    #     trigger=CronTrigger(hour=9, minute=10, timezone=tz),
-    #     id='liberar_camas_vencidas_diario',
-    #     name='Liberar camas de contratos Fraterna vencidos',
-    #     replace_existing=True,
-    #     coalesce=True,
-    #     misfire_grace_time=3600,
-    # )
+    # Expirar contratos Fraterna vencidos DIARIO 09:10 (SOLO-MARCADO).
+    # Sucesor del viejo auto-liberar `liberar_camas_vencidas` (retirado 2026-06-29
+    # a pedido: la liberación de camas es SOLO manual o del flujo de contrato/
+    # webhook). Este job marca estado_contrato='expirado' cuando la vigencia
+    # COMPROMETIDA (última ronda 'firmado' de la bitácora; legacy = fecha del
+    # contrato) ya pasó — las camas NO se tocan.
+    sched.add_job(
+        expirar_contratos_vencidos,
+        trigger=CronTrigger(hour=9, minute=10, timezone=tz),
+        id='expirar_contratos_vencidos_diario',
+        name='Expirar contratos Fraterna vencidos (solo estado; camas intactas)',
+        replace_existing=True,
+        coalesce=True,
+        misfire_grace_time=3600,
+    )
 
     # Inicia si no está corriendo
     if not getattr(sched, 'running', False):

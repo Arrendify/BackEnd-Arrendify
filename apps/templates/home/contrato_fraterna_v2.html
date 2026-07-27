@@ -728,13 +728,10 @@
 			<div class="celdas">Inmueble: {{ marca_inmueble_caratula|default:'"U TOWER", el cual se encuentra ubicado en Av. Don Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.' }}</div>
 		</td>
 	</tr>
-	{% if info.tipologia and info.tipologia|cut:"-"|cut:" " %}
-	<tr>
-		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
-			<div class="celdas">Tipología: {{ info.tipologia }}</div>
-		</td>
-	</tr>
-	{% endif %}
+	{# La tipología NO se imprime en el contrato (Paquete 1): es dato de asignación
+	   y vive en el Anexo 1 (Paquete 2), igual que departamento y cama. Antes había
+	   una fila condicional que la pintaba si ya estaba capturada; se retiró el
+	   2026-07-22 para que el P1 sea idéntico con o sin asignación. #}
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
 			<div class="celdas">Departamento número: [MENCIONADO EN ANEXO 1]</div>
