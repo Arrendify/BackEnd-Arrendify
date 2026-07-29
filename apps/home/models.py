@@ -1970,7 +1970,7 @@ class Residentes(models.Model):
     sexo_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
     celular_arrendatario=models.CharField(max_length = 100, null = True, blank = True)
     correo_arrendatario=models.EmailField(null=True, blank=True)
-    empleo=models.CharField(max_length = 100, null = True, blank = True)
+    empleo=models.CharField(max_length = 250, null = True, blank = True)
     domicilio_empleo=models.CharField(max_length = 250, null = True, blank = True)
     direccion_arrendatario=models.CharField(max_length = 250, null = True, blank = True)
     curp=models.CharField(max_length=100, null=True, blank=True)
