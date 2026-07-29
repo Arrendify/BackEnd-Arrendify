@@ -801,6 +801,23 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             status=status.HTTP_403_FORBIDDEN,
         )
 
+    def _guard_firmas_deshabilitadas(self):
+        """Candado TEMPORAL (2026-07-29): mientras se ajustan los documentos de
+        Fraterna no se emiten enlaces de firma nuevos, porque el PDF queda
+        congelado en ZapSign al momento de generarlo. Se controla con
+        settings.FIRMAS_FRATERNA_DESHABILITADAS (False = reabre). Devuelve
+        Response 503 si esta activo; None deja seguir."""
+        if not getattr(settings, 'FIRMAS_FRATERNA_DESHABILITADAS', False):
+            return None
+        mensaje = getattr(
+            settings, 'FIRMAS_FRATERNA_MENSAJE_BLOQUEO',
+            'El envío a firma está temporalmente deshabilitado.',
+        )
+        return Response(
+            {'error': mensaje, 'bloqueo': 'firmas_deshabilitadas'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
     def list(self, request, *args, **kwargs):
         try:
            user_session = request.user
@@ -3447,6 +3464,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
     def generar_urls_firma_paquete_1(self, request, *args, **kwargs):
         """Manda Paquete 1 a ZapSign. Persiste doc_token en info.token.
         Lee pagare_distinto/cantidad del modelo del contrato."""
+        bloqueo_temporal = self._guard_firmas_deshabilitadas()
+        if bloqueo_temporal:
+            return bloqueo_temporal
         try:
             data = request.data
             if not isinstance(data, dict):
@@ -3510,6 +3530,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
 
     def generar_urls_firma_paquete_2(self, request, *args, **kwargs):
         """Manda Paquete 2 a ZapSign y persiste el doc_token en `FraternaContratos.token_paquete_2`."""
+        bloqueo_temporal = self._guard_firmas_deshabilitadas()
+        if bloqueo_temporal:
+            return bloqueo_temporal
         try:
             data = request.data
             if not isinstance(data, dict):

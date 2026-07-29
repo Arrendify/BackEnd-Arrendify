@@ -139,6 +139,18 @@ CORS_ORIGIN_WHITELIST = (
 # se conservan en el repo intactos como fallback.
 USE_NEW_FRATERNA_CONTRACT = True
 
+# Candado TEMPORAL de firmas Fraterna (2026-07-29): mientras se ajustan los documentos
+# (marcas de revision de Legal, comentario filtrado, etc.) no se generan enlaces de firma
+# nuevos — un enlace emitido hoy congela el PDF viejo en ZapSign. Afecta SOLO a
+# generar_urls_firma_paquete_1 / _2 (responden 503 con FIRMAS_FRATERNA_MENSAJE_BLOQUEO).
+# Generar/descargar documentos, editar y el resto del flujo siguen funcionando.
+# Para reabrir: poner en False y redeployar.
+FIRMAS_FRATERNA_DESHABILITADAS = True
+FIRMAS_FRATERNA_MENSAJE_BLOQUEO = (
+    "El envío a firma está temporalmente deshabilitado mientras actualizamos los "
+    "documentos. Los enlaces ya generados no se ven afectados. Intenta más tarde."
+)
+
 #STRIPE
 STRIPE_SECRET_KEY = config("stripe_secreta", "tu_clave_secreta")
 STRIPE_PUBLIC_KEY = config("stripe_publica", "tu_clave_publica")
