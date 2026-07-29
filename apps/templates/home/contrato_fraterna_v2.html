@@ -179,19 +179,9 @@
 			font-weight: bold;
 		  }
 
-		  /* Resaltado gris (background) replicando los párrafos sombreados de la referencia legal */
-		  .clausulas-bloque .clausula-resaltado {
-			background-color: #d9d9d9;
-		  }
-		  /* Resaltado verde brillante (highlighter) — Anexo 6 nuevo en Vigésima Cuarta */
-		  .clausulas-bloque .clausula-resaltado-verde {
-			background-color: #00ff00;
-		  }
-		  /* Párrafos del cuerpo subrayados + sombreado (referencia Décima Segunda intro) */
-		  .clausulas-bloque .clausula-p-subrayada {
-			text-decoration: underline;
-			background-color: #d9d9d9;
-		  }
+		  {% comment %} 2026-07-29: se retiraron las reglas de resaltado (.clausula-resaltado gris #d9d9d9,
+		     .clausula-resaltado-verde #00ff00 y .clausula-p-subrayada) que replicaban las marcas de revisión
+		     del Word de Legal. Salían impresas en el PDF y en firma; Legal pidió el documento sin marcados. {% endcomment %}
 		  /* Sub-listas tipo a) b) c) d) con cierre paréntesis (referencia Quinta numerales 1-10) */
 		  .clausulas-bloque ol[type="a"] {
 			list-style: none;
@@ -728,10 +718,10 @@
 			<div class="celdas">Inmueble: {{ marca_inmueble_caratula|default:'"U TOWER", el cual se encuentra ubicado en Av. Don Luis G. Sada, número 202, Col. Regina, Monterrey, N.L.' }}</div>
 		</td>
 	</tr>
-	{# La tipología NO se imprime en el contrato (Paquete 1): es dato de asignación
+	{% comment %} La tipología NO se imprime en el contrato (Paquete 1): es dato de asignación
 	   y vive en el Anexo 1 (Paquete 2), igual que departamento y cama. Antes había
 	   una fila condicional que la pintaba si ya estaba capturada; se retiró el
-	   2026-07-22 para que el P1 sea idéntico con o sin asignación. #}
+	   2026-07-22 para que el P1 sea idéntico con o sin asignación. {% endcomment %}
 	<tr>
 		<td style="border-bottom: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #000000" height="17" colspan=6 >
 			<div class="celdas">Departamento número: [MENCIONADO EN ANEXO 1]</div>
