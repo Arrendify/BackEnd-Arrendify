@@ -82,9 +82,21 @@ def _dia_pago_fraterna(info):
     return getattr(info, 'dia_pago', None) or 5
 
 
+def _num_pagares_fraterna(info):
+    """Pagarés que entrega el arrendatario: uno por mes de `duracion` (primer
+    token: "12 Meses" -> 12); ilegible/vacío -> 1 (contratos de menos de un mes).
+    Fuente ÚNICA para el generador de pagarés y la cláusula Vigésima Primera del
+    contrato (antes esa cláusula imprimía el placeholder literal "***")."""
+    try:
+        meses = int(str(info.duracion).split()[0])
+    except (ValueError, IndexError):
+        meses = 0
+    return meses if meses > 0 else 1
+
+
 def _contraprestacion_fraterna_context(info):
-    """Variables de la cláusula Cuarta: cuota de estacionamiento en letra, renta
-    integral (contraprestación + cajón) y día de pago (N y su moratorio N+1)."""
+    """Variables de la cláusula Cuarta (cuota de estacionamiento en letra, renta
+    integral y día de pago N/N+1) y de la Vigésima Primera (número de pagarés)."""
     renta_num = int(float(info.renta))
     pe = info.precio_estacionamiento_mxn
     if pe is not None:
@@ -97,6 +109,7 @@ def _contraprestacion_fraterna_context(info):
     renta_integral_texto = num2words(renta_integral_val, lang='es').capitalize()
     dia_pago = _dia_pago_fraterna(info)
     dia_moratorio = dia_pago + 1
+    num_pagares = _num_pagares_fraterna(info)
     return {
         'precio_estacionamiento_entero': precio_int,
         'precio_estacionamiento_texto': precio_texto,
@@ -106,6 +119,8 @@ def _contraprestacion_fraterna_context(info):
         'dia_pago_texto': num2words(dia_pago, lang='es'),
         'dia_moratorio_abrev': _ordinal_abreviado(dia_moratorio),
         'dia_moratorio_texto': num2words(dia_moratorio, lang='es', to='ordinal'),
+        'num_pagares': num_pagares,
+        'num_pagares_texto': num2words(num_pagares, lang='es'),
     }
 
 
@@ -3898,11 +3913,10 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             fecha_inicial = info.fecha_move_in
             dia = fecha_inicial.day
 
-            # Duración en meses (lo que dice el contrato — fuente autoritativa para "X de N")
-            try:
-                duracion_meses = int(info.duracion.split()[0])
-            except (ValueError, AttributeError, IndexError):
-                duracion_meses = 0
+            # Un pagaré por mes de `duracion` — helper compartido con la cláusula
+            # Vigésima Primera del contrato: misma fuente, el número impreso y los
+            # documentos nunca difieren. (Fuente autoritativa para "X de N".)
+            duracion_meses = _num_pagares_fraterna(info)
 
             # Generar 1 pagaré por cada mes según `duracion_meses`.
             # Para contratos cortos (< 1 mes) generamos exactamente 1 pagaré que cubre el periodo.
@@ -3912,7 +3926,7 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             # (p.ej. 31 -> 28/29 en febrero, 30 en abril).
             dia_pago = _dia_pago_fraterna(info)
             fechas_iteradas = []
-            num_pagares = duracion_meses if duracion_meses > 0 else 1
+            num_pagares = duracion_meses
             for offset in range(num_pagares):
                 fecha_pagare = fecha_inicial + relativedelta(months=offset)
                 nombre_mes = fecha_pagare.strftime("%B")
@@ -3922,10 +3936,6 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     dia_mes = min(dia_pago, monthrange(fecha_pagare.year, fecha_pagare.month)[1])
                 fechas_iteradas.append((nombre_mes.capitalize(), fecha_pagare.year, dia_mes))
 
-            # Asegurar que `duracion_meses` (usado para mostrar "1 de N") nunca sea 0
-            if duracion_meses == 0:
-                duracion_meses = num_pagares
-            
             # Obtener la renta para pasarla a letra
             if "." not in info.renta:
                 number = int(info.renta)
