@@ -903,7 +903,13 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             fecha_actual = date.today()
             contrato_serializer = self.serializer_class(data = request.data) #Usa el serializer_class
             if contrato_serializer.is_valid():
-                nuevo_proceso = ProcesoContrato.objects.create(usuario = user_session, fecha = fecha_actual, status_proceso = "En Revisión")
+                # El contrato nace APROBADO (decisión 2026-07-30). La compuerta
+                # "En Revisión" -> "Aprobado" solo existía en el JS de la lista (escondía
+                # firmas/descargas hasta que un staff daba el clic); el BE nunca la validó
+                # en ningún guard, así que no aportaba control y sí trababa el flujo.
+                # El campo se conserva (FK de comprobantes de pago + reporte mensual, que
+                # suma renta solo de los Aprobado); simplemente ya no distingue nada.
+                nuevo_proceso = ProcesoContrato.objects.create(usuario = user_session, fecha = fecha_actual, status_proceso = "Aprobado")
                 if nuevo_proceso:
                     print("ya la armamos")
                     print(nuevo_proceso.id)
