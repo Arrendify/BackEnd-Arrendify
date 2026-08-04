@@ -14,7 +14,9 @@ class UserTokenSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__' 
+        fields = '__all__'
+        # rol_interno se administra SOLO por BD: jamás escribible vía API.
+        read_only_fields = ('rol_interno',)
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,7 +36,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
-    
+        # rol_interno se administra SOLO por BD: jamás escribible vía API.
+        read_only_fields = ('rol_interno',)
+
     def create(self,validated_data):
         user = User(**validated_data)
         user.set_password(validated_data['password'])
@@ -72,15 +76,15 @@ class UserListSerializer(serializers.ModelSerializer):
 class User2Serializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username','is_staff','rol','first_name')
+        fields = ('id', 'username','is_staff','rol','first_name','rol_interno')
         
 class User2Residente(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username','rol','first_name','name_inmobiliaria','pertenece_a')
+        fields = ('id', 'username','rol','first_name','name_inmobiliaria','pertenece_a','rol_interno')
         
 class User2Inmobiliaria(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id','username','rol','name_inmobiliaria','pertenece_a')
+        fields = ('id','username','rol','name_inmobiliaria','pertenece_a','rol_interno')
 

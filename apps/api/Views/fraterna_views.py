@@ -53,6 +53,11 @@ from ..utils.demo_mode import (
     aplicar_demo_a_payload_zapsign,
 )
 
+# Candado por equipo interno (accounts_customuser.rol_interno, solo-BD):
+# aprobar/desaprobar, editar contratos aprobados y emitir firmas sin estatus
+# Aprobado son exclusivos del equipo Arrendify. Ver utils/roles_internos.py
+from ..utils.roles_internos import es_operador_arrendify
+
 
 class Unaccent(Func):
     """Aplica unaccent() de Postgres sobre un campo, para busquedas insensibles a acentos.
@@ -1536,6 +1541,25 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             # Cuentas demo: editar contratos ajenos quedó ABIERTO (decisión del
             # usuario 2026-07-22); firmas/renovación/borrado siguen con _guard_demo.
 
+            # Candado rol_interno (2026-08-04): un contrato APROBADO solo lo edita
+            # el equipo Arrendify. Ventana operativa abierta para los demás: ronda
+            # 'pendiente' SIN Paquete 2 (asignación depa/cama tras P1 y captura de
+            # fechas/renta en renovación); dentro de ella, los guards de abajo
+            # siguen acotando campo por campo.
+            if not es_operador_arrendify(request.user):
+                aprobado = ProcesoContrato.objects.filter(
+                    contrato_id=instance.id, status_proceso='Aprobado').exists()
+                ventana_operativa = instance.rondas_firma.filter(
+                    estado='pendiente').filter(
+                    Q(token_2__isnull=True) | Q(token_2='')).exists()
+                if aprobado and not ventana_operativa:
+                    return Response(
+                        {'error': 'Contrato aprobado: solo el equipo Arrendify '
+                                  'puede editarlo. Pide desaprobarlo para hacer '
+                                  'cambios.'},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
             # Candado de edicion durante firma (bitacora de rondas): con una ronda
             # 'pendiente', los terminos que ya se mandaron a firmar NO se editan.
             # Va ANTES de cualquier manejo del plano: si el intento esta en firma,
@@ -1640,6 +1664,15 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             instance = self.queryset.get(id = request.data["id"])
             print("mi id es: ",instance.id)
             print(instance.__dict__)
+            # Candado rol_interno (2026-08-04): aprobar es exclusivo del equipo
+            # Arrendify; excepción: cuenta demo sobre sus propios contratos.
+            if not es_operador_arrendify(request.user) and not (
+                    es_usuario_demo(request.user)
+                    and contrato_es_del_usuario(request.user, instance)):
+                return Response(
+                    {'error': 'Solo el equipo Arrendify puede aprobar contratos.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             #se utiliza el "get" en lugar del filter para obtener el objeto y no un queryset
             proceso = ProcesoContrato.objects.all().get(contrato_id = instance.id)
             print("proceso",proceso.__dict__)
@@ -1656,6 +1689,15 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         try:
             print("desaprobar Contrato")
             instance = self.queryset.get(id = request.data["id"])
+            # Candado rol_interno (2026-08-04): desaprobar es exclusivo del equipo
+            # Arrendify; excepción: cuenta demo sobre sus propios contratos.
+            if not es_operador_arrendify(request.user) and not (
+                    es_usuario_demo(request.user)
+                    and contrato_es_del_usuario(request.user, instance)):
+                return Response(
+                    {'error': 'Solo el equipo Arrendify puede desaprobar contratos.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             #se utiliza el "get" en lugar del filter para obtener el objeto y no un queryset
             proceso = ProcesoContrato.objects.all().get(contrato_id = instance.id)
             print("proceso",proceso.__dict__)
@@ -1668,6 +1710,21 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
+
+    def _guard_solo_arrendify_o_aprobado(self, request, contrato_id):
+        """Candado rol_interno (2026-08-04): fuera del equipo Arrendify, emitir o
+        resetear enlaces de firma exige que el contrato esté Aprobado. Devuelve
+        la Response 403 o None (el equipo Arrendify pasa siempre)."""
+        if es_operador_arrendify(request.user):
+            return None
+        if not ProcesoContrato.objects.filter(
+                contrato_id=contrato_id, status_proceso='Aprobado').exists():
+            return Response(
+                {'error': 'El contrato debe estar Aprobado para generar o '
+                          'resetear enlaces de firma.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return None
 
     def _soft_delete_docs_zapsign(self, tokens):
         """Soft-delete de documentos en ZapSign (`DELETE docs/{token}/`), best-effort.
@@ -1766,6 +1823,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             if bloqueo_demo:
                 return bloqueo_demo
             instance = self.queryset.get(id=request.data["id"])
+            candado_rol = self._guard_solo_arrendify_o_aprobado(request, instance.id)
+            if candado_rol:
+                return candado_rol
             alcance = str(request.data.get('alcance') or 'todo').strip().lower()
             if alcance not in ('todo', 'paquete_2'):
                 return Response(
@@ -1934,6 +1994,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         """
         try:
             instance = self.queryset.get(id=request.data["id"])
+            candado_rol = self._guard_solo_arrendify_o_aprobado(request, instance.id)
+            if candado_rol:
+                return candado_rol
             tuvo_termino = (getattr(instance, 'estado_contrato', None) in ('actual', 'expirado')
                             or instance.rondas_firma.filter(estado__in=('firmado', 'expirado')).exists())
             if not tuvo_termino:
@@ -2644,6 +2707,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             bloqueo_demo = self._guard_demo(request, id_paq)
             if bloqueo_demo:
                 return bloqueo_demo
+            candado_rol = self._guard_solo_arrendify_o_aprobado(request, id_paq)
+            if candado_rol:
+                return candado_rol
             marca = marca_para(request.user)
 
             # Fix (A) consistencia: firmantes desde la BD (fuente de verdad), no del snapshot del FE.
@@ -3490,6 +3556,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             bloqueo_demo = self._guard_demo(request, id_paq)
             if bloqueo_demo:
                 return bloqueo_demo
+            candado_rol = self._guard_solo_arrendify_o_aprobado(request, id_paq)
+            if candado_rol:
+                return candado_rol
             marca = marca_para(request.user)
             # Fix (A) consistencia: los firmantes se re-derivan de la BD (fuente de verdad),
             # NO del snapshot del FE (`residente_contrato`), que podia venir viejo/duplicado.
@@ -3556,6 +3625,9 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             bloqueo_demo = self._guard_demo(request, id_paq)
             if bloqueo_demo:
                 return bloqueo_demo
+            candado_rol = self._guard_solo_arrendify_o_aprobado(request, id_paq)
+            if candado_rol:
+                return candado_rol
             marca = marca_para(request.user)
             # Fix (A) consistencia: los firmantes se re-derivan de la BD (fuente de verdad),
             # NO del snapshot del FE (`residente_contrato`), que podia venir viejo/duplicado.

@@ -16,6 +16,11 @@ class CustomUser(AbstractUser):
     name_inmobiliaria = models.CharField(max_length=100, unique=True, null=True, blank=True)
     code_inmobiliaria =  models.CharField(max_length=9, editable = False, unique=True,null=True, blank=True)
     pertenece_a = models.CharField(max_length=100, null=True, blank=True)
+    # Equipo interno dueño de la cuenta: 'arrendify' | 'fraterna' | NULL (resto).
+    # Fuente de verdad de permisos internos (aprobar/desaprobar, editar aprobados,
+    # emitir firmas). Se administra SOLO por SQL directo a la BD: ningún
+    # serializer lo expone en escritura (read_only en los que usan __all__).
+    rol_interno = models.CharField(max_length=20, null=True, blank=True)
     # Campos para recuperación de contraseña
     reset_password_token = models.CharField(max_length=100, null=True, blank=True)
     reset_password_token_created_at = models.DateTimeField(null=True, blank=True)
