@@ -117,11 +117,37 @@ def _rondas_con_fecha_de_firma():
             .annotate(firmado_el=Coalesce(ultima_firma, F('cerrado_en'))))
 
 
+def _parsear_anio(valor):
+    """'2026' -> 2026 validado. None si no es un año plausible."""
+    try:
+        anio_i = int(str(valor or '').strip())
+    except (ValueError, TypeError):
+        return None
+    return anio_i if 2000 <= anio_i <= 2100 else None
+
+
+def _parsear_mes(valor):
+    """'8' / '08' -> 8 validado (1-12). None si no es un mes real.
+
+    Acepta tambien 'YYYY-MM' y se queda con el mes, porque el FE que ya esta en
+    produccion manda `firmado_mes=2026-08` (formato de un solo select). Ver
+    `_parsear_mes_anio` para el par completo.
+    """
+    texto = str(valor or '').strip()
+    if '-' in texto:
+        texto = texto.split('-')[-1]
+    try:
+        mes_i = int(texto)
+    except (ValueError, TypeError):
+        return None
+    return mes_i if 1 <= mes_i <= 12 else None
+
+
 def _parsear_mes_anio(valor):
     """'YYYY-MM' -> (anio, mes) validado. None si no es un mes real.
 
-    Lo manda el filtro de polizas firmadas del FE, que lo escoge de una lista
-    cerrada; la validacion es para que un query param a mano no reviente el ORM.
+    Formato del FE VIEJO (un solo select), que se sigue aceptando para que un
+    deploy a medias — FE viejo contra BE nuevo — no rompa el filtro.
     """
     try:
         partes = (valor or '').split('-')
@@ -134,8 +160,41 @@ def _parsear_mes_anio(valor):
 
 
 def _etiqueta_mes(fecha):
-    """date/datetime -> 'Agosto 2026' (etiqueta del selector de polizas firmadas)."""
+    """date/datetime -> 'Agosto 2026' (etiqueta larga, selector de un solo campo)."""
     return f"{MESES_ES[fecha.month]} {fecha.year}"
+
+
+def _agrupar_meses(rondas_qs, campo):
+    """Agrupa un queryset de rondas por mes de `campo` -> opciones del select de
+    periodo del FE: [{'mes': 'YYYY-MM', 'etiqueta': 'Agosto 2026', 'n': contratos}].
+
+    `n` cuenta CONTRATOS distintos (no rondas) para que el numero del selector
+    cuadre con las filas que el filtro va a listar. Rondas con el campo NULL se
+    quedan fuera (sin fecha no hay mes que ofrecer)."""
+    filas = (rondas_qs
+             .filter(**{f'{campo}__isnull': False})
+             .annotate(_mes=TruncMonth(campo))
+             .values('_mes')
+             .annotate(n=Count('contrato_id', distinct=True))
+             .order_by('-_mes'))
+    return [{'mes': fila['_mes'].strftime('%Y-%m'),
+             'etiqueta': _etiqueta_mes(fila['_mes']),
+             'n': fila['n']}
+            for fila in filas if fila['_mes']]
+
+
+# Criterios del filtro especial de fechas que operan sobre la ronda VIGENTE
+# (estado='firmado', el termino en pie) cruzada con el rail del contrato:
+#   clave -> (estado_contrato requerido, campo de fecha de la ronda)
+# 'inicia'    = vigentes cuyo termino en pie ARRANCA en el periodo
+# 'termina'   = vigentes cuyo termino en pie VENCE en el periodo (mirada a futuro)
+# 'terminado' = expirados cuyo termino en pie vencio en el periodo
+# ('firmado' no esta aqui: usa la fecha REAL de firma, ver _rondas_con_fecha_de_firma)
+CRITERIOS_RONDA_VIGENTE = {
+    'inicia':    ('actual',   'fecha_celebracion'),
+    'termina':   ('actual',   'fecha_vigencia'),
+    'terminado': ('expirado', 'fecha_vigencia'),
+}
 
 
 def _ordinal_abreviado(n):
@@ -1006,10 +1065,14 @@ class Contratos_fraterna(viewsets.ModelViewSet):
         ADITIVO: NO altera list() (que otras 4 paginas — departamentos, incidencias,
         cama_historial, arrendamientos — consumen completo). Misma visibilidad que list().
         Params DataTables: draw, start, length, search[value], order[0][column], order[0][dir]
-        + filtros custom: tipologia, estado_contrato y `firmado_mes` (YYYY-MM, el
-        filtro de contratos firmados, que anula a los otros tres mientras este puesto).
-        La respuesta lleva ademas `conteo_estados` (numeros de los chips) y
-        `meses_firmados` (opciones del selector de mes) para no pedirlos aparte."""
+        + filtros custom: tipologia, estado_contrato y el filtro especial de fechas
+        `criterio_fecha` ('firmado'|'inicia'|'termina'|'terminado') + `periodo_fecha`
+        (YYYY-MM), que anula a tipologia y estado mientras este puesto (la busqueda
+        SI se combina: busca dentro del subconjunto). Retrocompat con el
+        FE anterior: `firmado_mes` ('YYYY-MM') o `firmado_anio` (+ mes 1-12) siguen
+        actuando como criterio 'firmado'. La respuesta lleva ademas `conteo_estados`
+        (numeros de los chips) y `periodos_filtro` (opciones del select de periodo,
+        por criterio; `meses_firmados` = alias de su clave 'firmado')."""
         try:
             user_session = request.user
 
@@ -1049,54 +1112,92 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             except Exception as e_conteo:
                 logger.error(f"{datetime.now()} tabla contratos: fallo conteo estados: {e_conteo}")
 
-            # Meses que TIENEN contratos firmados, para poblar el selector del filtro
-            # especial del FE ("Contrato firmado en: <mes>"). Solo salen meses con
-            # algo que mostrar, asi el usuario no puede escoger un mes vacio.
-            # Un contrato cuenta UNA vez por mes aunque tenga dos rondas ahi
-            # (p.ej. inicial expirada + renovacion firmada el mismo mes), para que
-            # el numero del selector cuadre con las filas que va a listar.
+            # Opciones del filtro especial de fechas, POR CRITERIO: para cada uno,
+            # los meses que TIENEN contratos con su conteo. El FE puebla su 2do
+            # select con la lista del criterio elegido; solo salen periodos con
+            # algo que mostrar, asi no se puede escoger uno vacio.
+            # Un contrato cuenta UNA vez por periodo aunque tenga dos rondas ahi
+            # (solo pasa en 'firmado': inicial expirada + renovacion firmada el
+            # mismo mes; los demas criterios miran la UNICA ronda en pie).
             # Viaja en cada respuesta igual que conteo_estados: cero requests extra.
-            meses_firmados = []
+            periodos_filtro = {}
+            meses_firmados = []   # alias de periodos_filtro['firmado'] para el FE viejo en prod
             try:
-                filas_mes = (
-                    _rondas_con_fecha_de_firma()
-                    .filter(contrato_id__in=base.values('id'))
-                    .annotate(mes=TruncMonth('firmado_el'))
-                    .values('mes')
-                    .annotate(n=Count('contrato_id', distinct=True))
-                    .order_by('-mes')
-                )
-                meses_firmados = [
-                    {'mes': fila['mes'].strftime('%Y-%m'),
-                     'etiqueta': _etiqueta_mes(fila['mes']),
-                     'n': fila['n']}
-                    for fila in filas_mes if fila['mes']
-                ]
+                ids_visibles = base.values('id')
+                rondas_firmadas = (_rondas_con_fecha_de_firma()
+                                   .filter(contrato_id__in=ids_visibles))
+                periodos_filtro['firmado'] = _agrupar_meses(rondas_firmadas, 'firmado_el')
+                for criterio, (rail, campo) in CRITERIOS_RONDA_VIGENTE.items():
+                    rondas_rail = FraternaRondaFirma.objects.filter(
+                        estado='firmado',
+                        contrato__estado_contrato=rail,
+                        contrato_id__in=ids_visibles,
+                    )
+                    periodos_filtro[criterio] = _agrupar_meses(rondas_rail, campo)
+                meses_firmados = periodos_filtro['firmado']
             except Exception as e_meses:
-                logger.error(f"{datetime.now()} tabla contratos: fallo meses firmados: {e_meses}")
+                logger.error(f"{datetime.now()} tabla contratos: fallo periodos del filtro: {e_meses}")
 
-            # ===== Filtro ESPECIAL: contratos firmados en un mes (YYYY-MM) =====
-            # MANDA SOLO: mientras viene `firmado_mes`, los otros filtros (tipologia,
-            # estado y busqueda) se ignoran a proposito — es la regla de producto
-            # ("este filtro borra los demas para ser el unico"). El FE ademas los
-            # limpia y los esconde, para que la UI no prometa algo distinto de lo
-            # que el servidor hace.
-            # Casan los contratos con AL MENOS UNA ronda ya firmada (ver
-            # ESTADOS_RONDA_FIRMADA) que se haya FIRMADO en ese mes — la fecha real
-            # de ZapSign, no la vigencia del contrato (ver _rondas_con_fecha_de_firma).
-            # Entran tanto rondas 'inicial' como 'renovacion'.
-            mes_firmado = _parsear_mes_anio(request.query_params.get('firmado_mes'))
-            if mes_firmado:
-                anio_f, mes_f = mes_firmado
-                # Se resuelve PRIMERO que rondas son del mes y luego se cruzan por id:
-                # asi la fecha y el estado los cumple la MISMA ronda. Filtrar el
-                # contrato por las dos cosas por separado casaria "una ronda firmada
-                # + OTRA ronda del mes", que no es lo pedido.
-                rondas_del_mes = (_rondas_con_fecha_de_firma()
-                                  .filter(firmado_el__year=anio_f,
-                                          firmado_el__month=mes_f)
-                                  .values('id'))
-                qs = qs.filter(rondas_firma__id__in=Subquery(rondas_del_mes)).distinct()
+            # ===== Filtro ESPECIAL de fechas: [criterio] + [periodo YYYY-MM] =====
+            # MANDA sobre tipologia y estado: mientras viene el periodo esos dos se
+            # ignoran a proposito — regla de producto ("este filtro borra los demas")
+            # — y el FE esconde los chips para que la UI no prometa algo distinto de
+            # lo que el servidor hace. La BUSQUEDA es la excepcion: si convive con
+            # el filtro especial (se aplica abajo, fuera de este if/else).
+            #
+            # Criterios (`criterio_fecha` + `periodo_fecha`):
+            #  'firmado'   -> contratos con una ronda concretada FIRMADA en el
+            #                 periodo (fecha real de ZapSign, inicial o renovacion;
+            #                 ver _rondas_con_fecha_de_firma).
+            #  'inicia'    -> VIGENTES cuyo termino en pie arranca en el periodo
+            #                 (fecha_celebracion de su ronda 'firmado').
+            #  'termina'   -> VIGENTES cuyo termino en pie vence en el periodo
+            #                 (fecha_vigencia de su ronda 'firmado').
+            #  'terminado' -> EXPIRADOS cuyo termino vencio en el periodo (misma
+            #                 fecha_vigencia; el rail del contrato ya dice expirado).
+            # Los 'en_renovacion' no salen en los criterios de rail: al renovar su
+            # ronda en pie pasa a 'expirado' y la nueva aun es 'pendiente'.
+            #
+            # Retrocompat con el FE anterior en prod (solo criterio 'firmado'):
+            # `firmado_mes=YYYY-MM`, o `firmado_anio` (+ `firmado_mes` 1-12
+            # opcional = AÑO COMPLETO). Se mantiene para que un deploy a medias
+            # no deje el filtro muerto.
+            criterio_f, anio_f, mes_f = None, None, None
+            criterio_param = (request.query_params.get('criterio_fecha') or '').strip().lower()
+            periodo_param = _parsear_mes_anio(request.query_params.get('periodo_fecha'))
+            if periodo_param and (criterio_param == 'firmado' or criterio_param in CRITERIOS_RONDA_VIGENTE):
+                criterio_f = criterio_param
+                anio_f, mes_f = periodo_param
+            else:
+                anio_f = _parsear_anio(request.query_params.get('firmado_anio'))
+                mes_f = _parsear_mes(request.query_params.get('firmado_mes'))
+                if anio_f is None:
+                    compat = _parsear_mes_anio(request.query_params.get('firmado_mes'))
+                    if compat:
+                        anio_f, mes_f = compat
+                if anio_f:
+                    criterio_f = 'firmado'
+            if criterio_f == 'firmado':
+                # Se resuelve PRIMERO que rondas son del periodo y luego se cruzan
+                # por id: asi la fecha y el estado los cumple la MISMA ronda.
+                # Filtrar el contrato por las dos cosas por separado casaria "una
+                # ronda firmada + OTRA ronda del periodo", que no es lo pedido.
+                rondas_del_periodo = _rondas_con_fecha_de_firma().filter(firmado_el__year=anio_f)
+                if mes_f:
+                    rondas_del_periodo = rondas_del_periodo.filter(firmado_el__month=mes_f)
+                qs = qs.filter(
+                    rondas_firma__id__in=Subquery(rondas_del_periodo.values('id'))
+                ).distinct()
+            elif criterio_f in CRITERIOS_RONDA_VIGENTE:
+                rail, campo = CRITERIOS_RONDA_VIGENTE[criterio_f]
+                # Un solo filter(): el estado 'firmado' y la fecha deben cumplirlos
+                # la MISMA ronda (aqui ademas hay maximo una 'firmado' por contrato,
+                # por constraint, pero el patron se mantiene consistente).
+                cond = {'rondas_firma__estado': 'firmado',
+                        f'rondas_firma__{campo}__year': anio_f}
+                if mes_f:
+                    cond[f'rondas_firma__{campo}__month'] = mes_f
+                qs = qs.filter(estado_contrato=rail, **cond).distinct()
             else:
                 # Filtro por tipologia
                 tipologia = (request.query_params.get('tipologia') or '').strip()
@@ -1119,27 +1220,31 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     elif estado_param in ('actual', 'expirado', 'en_renovacion'):
                         qs = qs.filter(estado_contrato=estado_param)
 
-                # Busqueda global (DataTables search[value])
-                search_value = (request.query_params.get('search[value]') or '').strip()
-                if search_value:
-                    # Busqueda insensible a acentos en nombres y tipologia: unaccent() sobre la
-                    # columna + termino sin acentos. "jesus" -> "Jesús", "recamara" -> "Recámara".
-                    term_sa = _sin_acentos(search_value)
-                    qs = qs.annotate(
-                        _na_ua=Unaccent('residente__nombre_arrendatario'),
-                        _nr_ua=Unaccent('residente__nombre_residente'),
-                        _tip_ua=Unaccent('tipologia'),
-                    )
-                    cond = (
-                        Q(no_depa__icontains=search_value) |
-                        Q(cama__icontains=search_value) |
-                        Q(_tip_ua__icontains=term_sa) |
-                        Q(_na_ua__icontains=term_sa) |
-                        Q(_nr_ua__icontains=term_sa)
-                    )
-                    if search_value.isdigit():
-                        cond = cond | Q(id=int(search_value))
-                    qs = qs.filter(cond)
+            # Busqueda global (DataTables search[value]): aplica SIEMPRE — sin
+            # filtro especial busca en todo el universo; con el, busca DENTRO del
+            # subconjunto del criterio ("los firmados en julio que se llamen X").
+            # Es el UNICO filtro normal que convive con el especial (pedido
+            # 2026-08-11); tipologia y estado siguen anulados mientras haya periodo.
+            search_value = (request.query_params.get('search[value]') or '').strip()
+            if search_value:
+                # Busqueda insensible a acentos en nombres y tipologia: unaccent() sobre la
+                # columna + termino sin acentos. "jesus" -> "Jesús", "recamara" -> "Recámara".
+                term_sa = _sin_acentos(search_value)
+                qs = qs.annotate(
+                    _na_ua=Unaccent('residente__nombre_arrendatario'),
+                    _nr_ua=Unaccent('residente__nombre_residente'),
+                    _tip_ua=Unaccent('tipologia'),
+                )
+                cond_busqueda = (
+                    Q(no_depa__icontains=search_value) |
+                    Q(cama__icontains=search_value) |
+                    Q(_tip_ua__icontains=term_sa) |
+                    Q(_na_ua__icontains=term_sa) |
+                    Q(_nr_ua__icontains=term_sa)
+                )
+                if search_value.isdigit():
+                    cond_busqueda = cond_busqueda | Q(id=int(search_value))
+                qs = qs.filter(cond_busqueda)
 
             records_filtered = qs.count()
 
@@ -1196,7 +1301,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 'recordsFiltered': records_filtered,
                 'data': data,
                 'conteo_estados': conteo_estados,
-                'meses_firmados': meses_firmados,
+                'periodos_filtro': periodos_filtro,
+                'meses_firmados': meses_firmados,   # alias 'firmado' p/el FE viejo en prod
             }, status=status.HTTP_200_OK)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
