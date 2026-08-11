@@ -1318,6 +1318,44 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                 'draw': 0, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': [], 'error': str(e),
             }, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'], url_path='conteo_renovaciones')
+    def conteo_renovaciones(self, request, *args, **kwargs):
+        """GET /contratos_fraterna/conteo_renovaciones/ — mapa {contrato_id: n},
+        n = rondas de firma CONCRETADAS del contrato: estado 'firmado' (el termino
+        en pie) + 'expirado' (terminos reemplazados por renovacion). 'pendiente' y
+        'cancelado' no cuentan. Lectura: 0/ausente = nunca ha firmado, 1 = termino
+        inicial, 2+ = ha renovado. Alimenta la columna Renovaciones del export a
+        Excel (ADITIVO: el export ya consume list(), esto viaja aparte para no
+        tocar su shape compartido). Misma visibilidad que list()/tabla."""
+        try:
+            user_session = request.user
+            rol = getattr(user_session, 'rol', None)  # anonimo no tiene .rol -> mapa vacio
+            if user_session.is_staff or es_usuario_demo(user_session):
+                base = FraternaContratos.objects.all()
+            elif rol == "Inmobiliaria":
+                agentes = User.objects.filter(pertenece_a=user_session.name_inmobiliaria)
+                base = FraternaContratos.objects.filter(
+                    Q(user_id=user_session.id) | Q(user_id__in=agentes.values('id'))
+                )
+            elif rol == "Agente":
+                base = FraternaContratos.objects.filter(user_id=user_session)
+            else:
+                base = FraternaContratos.objects.none()
+            # .order_by() final: el Meta.ordering de la ronda ('-generado_en') se
+            # colaria al GROUP BY y partiria los conteos en una fila por ronda.
+            conteos = (FraternaRondaFirma.objects
+                       .filter(contrato_id__in=base.values('id'),
+                               estado__in=('firmado', 'expirado'))
+                       .values('contrato_id')
+                       .annotate(n=Count('id'))
+                       .order_by())
+            return Response({str(c['contrato_id']): c['n'] for c in conteos},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en conteo_renovaciones (linea {exc_tb.tb_lineno}): {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     # Ventana del AVISO anticipado del calendario de contratos. Es MAS ancha a
     # proposito que VENTANA_POR_RENOVAR_DIAS (30, ver abajo): a 45 dias el equipo
     # VE VENIR el vencimiento en el calendario y puede planear; a 30 el sistema
