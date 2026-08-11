@@ -1240,7 +1240,14 @@ class Contratos_fraterna(viewsets.ModelViewSet):
                     Q(cama__icontains=search_value) |
                     Q(_tip_ua__icontains=term_sa) |
                     Q(_na_ua__icontains=term_sa) |
-                    Q(_nr_ua__icontains=term_sa)
+                    Q(_nr_ua__icontains=term_sa) |
+                    # Contacto del registro vinculado (tabla residentes), de AMBAS
+                    # personas. Sin unaccent: en BD los celulares son puros digitos
+                    # (846/846 verificados 2026-08-11) y los correos ASCII.
+                    Q(residente__celular_arrendatario__icontains=search_value) |
+                    Q(residente__celular_residente__icontains=search_value) |
+                    Q(residente__correo_arrendatario__icontains=search_value) |
+                    Q(residente__correo_residente__icontains=search_value)
                 )
                 if search_value.isdigit():
                     cond_busqueda = cond_busqueda | Q(id=int(search_value))
