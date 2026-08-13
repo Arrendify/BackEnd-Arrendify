@@ -235,10 +235,14 @@ class DRSerializer(serializers.ModelSerializer): #Documentos Residentes
 class ResidenteSerializers(serializers.ModelSerializer): #Residentes
     archivos = DRSerializer(many=True, read_only=True)
     user =  User2Serializer(read_only=True)
-    
+
     class Meta:
         model = Residentes
         fields = '__all__'
+        # Portal del residente: la liga con la cuenta de login la asigna SOLO el
+        # backend (utils/acceso_residente). Si quedaran escribibles, un PUT desde
+        # el navegador podria apuntar un registro a la cuenta de cualquiera.
+        read_only_fields = ('arrendatario_cuenta', 'residente_cuenta')
 
 class ProcesoFraternaSerializers(serializers.ModelSerializer): #ProcesoContrato
     

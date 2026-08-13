@@ -25,3 +25,16 @@ def es_operador_arrendify(user):
         bool(getattr(user, 'is_authenticated', False))
         and getattr(user, 'rol_interno', None) == ROL_INTERNO_ARRENDIFY
     )
+
+
+def puede_ver_credenciales_residente(user):
+    """True para quien puede LEER la contrasena generada de un residente Fraterna.
+
+    Portal del residente (2026-08-13): la clave se guarda en claro para que el
+    operador se la pueda dictar, asi que leerla queda limitado a los dos equipos
+    que operan Fraterna. Todo lo demas (incluido el propio residente) ve 403.
+    """
+    return (
+        bool(getattr(user, 'is_authenticated', False))
+        and getattr(user, 'rol_interno', None) in (ROL_INTERNO_ARRENDIFY, ROL_INTERNO_FRATERNA)
+    )

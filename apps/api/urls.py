@@ -12,6 +12,7 @@ from .Views.investigaciones_views import *
 from .Views.stripe_view import CreateStripeCheckoutSession
 from .Views.notificaciones_views import NotificacionViewSet
 from .Views.zapsign_webhook import zapsign_webhook
+from .Views.portal_residente_views import PortalRecibos, PortalResidente
 
 
 urlpatterns = [
@@ -121,6 +122,20 @@ urlpatterns = [
     #ZAPSIGN
     path('zapsign-webhook/', zapsign_webhook, name='zapsign-webhook'),
     path('check-payment-status/', CheckPaymentStatus.as_view(), name='check-payment-status'),
+
+    # PORTAL DEL RESIDENTE (solo lectura; el universo sale de request.user, nunca
+    # de un id del request). Solo GET a proposito: aqui nadie modifica nada.
+    path('portal/mi_informacion/', PortalResidente.as_view({'get': 'mi_informacion'}), name='portal_mi_informacion'),
+    path('portal/mis_documentos/', PortalResidente.as_view({'get': 'mis_documentos'}), name='portal_mis_documentos'),
+    path('portal/mis_contratos/', PortalResidente.as_view({'get': 'mis_contratos'}), name='portal_mis_contratos'),
+    # El documento del contrato para verlo en pantalla: el PDF firmado si ya lo
+    # hay, o la plantilla rendida en vivo (lo mismo que se manda a firmar).
+    path('portal/mi_contrato_pdf/', PortalResidente.as_view({'get': 'contrato_pdf'}), name='portal_contrato_pdf'),
+    # Recibos de pago: lo unico que el residente puede escribir. Sube y gestiona
+    # los SUYOS; la aprobacion sigue siendo de Fraterna.
+    path('portal/mis_recibos/', PortalRecibos.as_view({'get': 'list', 'post': 'create'}), name='portal_mis_recibos'),
+    path('portal/mis_recibos/<int:pk>/', PortalRecibos.as_view({'patch': 'partial_update', 'delete': 'destroy'}), name='portal_recibo_detalle'),
+
     #manejamos el index con la pag404
     path('health/', health_check, name='health_check'),
   

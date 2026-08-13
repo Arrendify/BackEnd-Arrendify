@@ -2019,10 +2019,70 @@ class Residentes(models.Model):
     # telefono_emergencia=models.CharField(max_length=100, null=True, blank=True)
     # celular_emergencia=models.CharField(max_length=100, null=True, blank=True)
     # correo_emergencia=models.EmailField(null=True, blank=True)
-    
+
+    # Portal del residente (2026-08-13): liga DURA registro <-> cuenta de login.
+    # Hasta 2 cuentas por registro (arrendatario y residente son personas distintas
+    # en 727 de 846 casos). Cuando son la MISMA persona (mismo nombre y correo, 66
+    # casos) los dos campos apuntan a la MISMA cuenta: no se duplica el humano.
+    # OJO: `user` (arriba) NO es esto — ese es el operador que capturo el registro.
+    arrendatario_cuenta = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='residentes_como_arrendatario',
+    )
+    residente_cuenta = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='residentes_como_residente',
+    )
+
     class Meta:
         db_table = 'residentes'
-    
+
+
+class FraternaCredencialAcceso(models.Model):
+    """Credencial de acceso generada para una cuenta de residente Fraterna.
+
+    Django solo guarda el hash de la contrasena, asi que para que Fraterna pueda
+    dictarle la clave al residente hay que escribirla aparte. Aqui vive la ULTIMA
+    generada (se sobrescribe al regenerar), no necesariamente la vigente: si el
+    residente la cambio por su cuenta, `fue_cambiada()` lo detecta comparando
+    contra el hash real y la UI avisa en vez de dictar una clave muerta.
+
+    Solo la leen cuentas con rol_interno 'fraterna' o 'arrendify' (guard en la view).
+    """
+    TIPO_ARRENDATARIO = 'arrendatario'
+    TIPO_RESIDENTE = 'residente'
+    TIPOS = [(TIPO_ARRENDATARIO, 'Arrendatario'), (TIPO_RESIDENTE, 'Residente')]
+
+    id = models.AutoField(primary_key=True)
+    cuenta = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='credencial_fraterna',
+    )
+    residente = models.ForeignKey(
+        Residentes, on_delete=models.CASCADE, related_name='credenciales_acceso',
+    )
+    tipo = models.CharField(max_length=20, choices=TIPOS)
+    password_generada = models.CharField(max_length=128)
+    # Quien apreto el boton (operador), para auditar de donde salio la clave.
+    generada_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='credenciales_fraterna_generadas',
+    )
+    generada_en = models.DateTimeField(auto_now=True)
+    # False cuando el correo ya estaba ocupado por otra cuenta: la clave NO se manda
+    # (llegaria a otra persona) y el operador la entrega a mano desde el modal.
+    enviada_por_correo = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'fraterna_credencial_acceso'
+
+    def fue_cambiada(self):
+        """True si el usuario ya cambio la clave: la guardada aqui ya no sirve."""
+        from django.contrib.auth.hashers import check_password
+        if not self.password_generada or not self.cuenta_id:
+            return False
+        return not check_password(self.password_generada, self.cuenta.password)
+
+
 class DocumentosResidentes(models.Model):
     # Uploads en carpeta por ID de residente (el id no cambia ni se repite; el nombre
     # si: hay homonimos y nombres con acentos) y con nombre de archivo FIJO por campo:

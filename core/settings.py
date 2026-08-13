@@ -99,8 +99,18 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    # Portal del residente: las cuentas rol 'Residente' solo pueden usar /portal/.
+    # Va al final para que corra con la sesion ya resuelta (los tokens los
+    # resuelve el propio middleware). Ver apps/api/middleware_portal.py.
+    'apps.api.middleware_portal.CandadoPortalResidente',
 
 ]
+
+# Cabeceras propias que el navegador SI puede leer desde otro origen. El portal
+# del residente pide el PDF del contrato con fetch (un <iframe> no manda el token)
+# y necesita saber si lo que llego es el documento firmado o una vista previa.
+# Sin esto, el front las recibe pero el navegador se las oculta al JS.
+CORS_EXPOSE_HEADERS = ['X-Contrato-Id', 'X-Contrato-Parte', 'X-Contrato-Origen']
 
 CORS_ORIGIN_WHITELIST = (
     # 'https://arrendify.app',

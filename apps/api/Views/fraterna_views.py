@@ -57,7 +57,11 @@ from ..utils.demo_mode import (
 # Candado por equipo interno (accounts_customuser.rol_interno, solo-BD):
 # aprobar/desaprobar, editar contratos aprobados y emitir firmas sin estatus
 # Aprobado son exclusivos del equipo Arrendify. Ver utils/roles_internos.py
-from ..utils.roles_internos import es_operador_arrendify
+from ..utils.roles_internos import es_operador_arrendify, puede_ver_credenciales_residente
+
+# Portal del residente (2026-08-13): alta de cuentas de login ligadas al registro
+# de residentes (hasta 2: arrendatario y residente). Ver utils/acceso_residente.py
+from ..utils import acceso_residente
 
 
 class Unaccent(Func):
@@ -293,6 +297,65 @@ def eliminar_archivo_s3(file_name):
         print("El archivo se eliminó correctamente de S3.")
     except NoCredentialsError:
         print("No se encontraron las credenciales de AWS.",{NoCredentialsError})
+
+# Planos e inventario por tipologia, en S3. Fuera de la vista porque el portal
+# del residente rinde el MISMO contrato para su vista previa: si el armado del
+# contexto viviera dentro de generar_contrato, habria dos copias que podrian
+# divergir y el residente acabaria viendo un documento distinto del que firma.
+PLANOS_POR_TIPOLOGIA = {
+    'Loft':   "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/loft.png",
+    'Twin':   "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/twin.png",
+    'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/double.png",
+    'Squad':  "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/squad.png",
+    'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/master.png",
+    'Crew':   "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/crew.png",
+    'Party':  "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png",
+}
+
+INVENTARIO_POR_TIPOLOGIA = {
+    tipologia: url.replace('/Fraterna/', '/Fraterna/inventario/inventario_')
+    for tipologia, url in PLANOS_POR_TIPOLOGIA.items()
+}
+
+
+def plantilla_contrato_fraterna():
+    return ('home/contrato_fraterna_v2.html' if settings.USE_NEW_FRATERNA_CONTRACT
+            else 'home/contrato_fraterna.html')
+
+
+def contexto_contrato_fraterna(info, user):
+    """Contexto de la plantilla del contrato Fraterna.
+
+    Lo comparten `generar_contrato` (lo que se manda a firmar) y la vista previa
+    del portal del residente, para que sean el mismo documento y no dos que se
+    parecen.
+
+    Ojo con `habitantes` y `renta`: son CharField y en prod hay filas con esos
+    campos vacios (el alta no los exige). Un int('') revienta la generacion — el
+    fallback deja el hueco en el documento en vez de tumbar la peticion, que es
+    justo lo que necesita una vista previa.
+    """
+    try:
+        habitantes_texto = num2words(int(info.habitantes), lang='es')
+    except (TypeError, ValueError):
+        habitantes_texto = ''
+    try:
+        renta_texto = num2words(int(float(info.renta)), lang='es').capitalize()
+    except (TypeError, ValueError):
+        renta_texto = ''
+
+    tipologia = info.tipologia
+    return {
+        'info': info,
+        'habitantes_texto': habitantes_texto,
+        'renta_texto': renta_texto,
+        'plano': PLANOS_POR_TIPOLOGIA.get(tipologia, ''),
+        'tabla_inventario': INVENTARIO_POR_TIPOLOGIA.get(tipologia, ''),
+        'plan_loc': f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}",
+        **_contraprestacion_fraterna_context(info),
+        **(marca_para(user) or {}),
+    }
+
 
 def plano_es_exclusivo(path, contrato_id=None):
     """True si ese plano es de UN solo contrato, o sea: si se puede borrar sin danar a nadie.
@@ -612,9 +675,30 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             residente_serializer = self.serializer_class(data=request.data) #Usa el serializer_class
             print(residente_serializer)
             if residente_serializer.is_valid(raise_exception=True):
-                residente_serializer.save( user = user_session)
+                residente = residente_serializer.save( user = user_session)
                 print("Guardado residente")
-                return Response({'Residentes': residente_serializer.data}, status=status.HTTP_201_CREATED)
+
+                # Portal del residente: se le generan sus cuentas de login en el
+                # acto. Va en try aparte a proposito — si el alta de cuentas o el
+                # SMTP fallan, el residente YA quedo guardado y las cuentas se
+                # pueden generar despues con el boton del modal.
+                acceso = {'creadas': 0, 'pendientes_envio': [], 'error': None}
+                try:
+                    resumen = acceso_residente.asegurar_accesos(residente, user_session)
+                    acceso['creadas'] = resumen['creadas']
+                    # El front avisa con un modal cuando quedan credenciales sin
+                    # enviar, para que el operador las entregue el mismo.
+                    acceso['pendientes_envio'] = resumen['pendientes_envio']
+                    print(f"Accesos del residente {residente.id}: {resumen['creadas']} cuenta(s) creada(s)")
+                except Exception as e_acc:
+                    acceso['error'] = str(e_acc)
+                    logger.error(f"{datetime.now()} No se pudieron generar accesos del residente {residente.id}: {e_acc}")
+
+                return Response({
+                    'Residentes': residente_serializer.data,
+                    'residente_id': residente.id,
+                    'acceso': acceso,
+                }, status=status.HTTP_201_CREATED)
             else:
                 print("Error en validacion")
                 return Response({'errors': residente_serializer.errors})
@@ -687,6 +771,142 @@ class ResidenteViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
   
+    # ------------------------------------------------------------------
+    # Portal del residente: cuentas de login ligadas al registro
+    # ------------------------------------------------------------------
+    def _payload_credencial(self, cuenta, tipo, celular=''):
+        """Fila del modal 'Usuario vinculado' para una de las dos cuentas."""
+        if cuenta is None:
+            return None
+        credencial = FraternaCredencialAcceso.objects.filter(cuenta=cuenta).first()
+        datos = {
+            'tipo': tipo,
+            'cuenta_id': cuenta.id,
+            'username': cuenta.username,
+            'email': cuenta.email or '',
+            # Para el botón de compartir por WhatsApp del modal.
+            'celular': (celular or '').strip(),
+            'activa': cuenta.is_active,
+            'password_generada': None,
+            'fue_cambiada': False,
+            'enviada_por_correo': False,
+            'generada_en': None,
+        }
+        if credencial:
+            datos.update({
+                'password_generada': credencial.password_generada,
+                # Si el residente ya la cambio, la guardada no sirve: la UI avisa
+                # en vez de dictar una clave muerta.
+                'fue_cambiada': credencial.fue_cambiada(),
+                'enviada_por_correo': credencial.enviada_por_correo,
+                'generada_en': credencial.generada_en,
+            })
+        return datos
+
+    @action(detail=True, methods=['get'], url_path='credenciales')
+    def credenciales(self, request, pk=None):
+        """Usuario y clave generada de las cuentas del residente.
+
+        Devuelve la contrasena EN CLARO, asi que queda cerrado a los equipos que
+        operan Fraterna (rol_interno 'fraterna' o 'arrendify'). Cualquier otro
+        —incluido el propio residente— recibe 403.
+        """
+        try:
+            if not puede_ver_credenciales_residente(request.user):
+                return Response(
+                    {'error': 'No tienes permiso para ver las credenciales de acceso.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            residente = self.get_object()
+            cel_arr = residente.celular_arrendatario or ''
+            # El residente suele no traer celular propio: se cae al del arrendatario.
+            cel_res = residente.celular_residente or cel_arr
+            arrendatario = self._payload_credencial(residente.arrendatario_cuenta, 'arrendatario', cel_arr)
+            # Cuando es el mismo humano los dos FK apuntan a la misma cuenta: se
+            # reporta una sola vez, marcada, para no dictar dos veces lo mismo.
+            misma = (
+                residente.arrendatario_cuenta_id
+                and residente.arrendatario_cuenta_id == residente.residente_cuenta_id
+            )
+            residente_pl = None if misma else self._payload_credencial(residente.residente_cuenta, 'residente', cel_res)
+            return Response({
+                'residente_id': residente.id,
+                'nombre_arrendatario': residente.nombre_arrendatario,
+                'nombre_residente': residente.nombre_residente,
+                'misma_persona': bool(misma),
+                'arrendatario': arrendatario,
+                'residente': residente_pl,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='generar_acceso')
+    def generar_acceso(self, request, pk=None):
+        """Crea las cuentas que le falten al registro (idempotente).
+
+        Sirve para los registros dados de alta antes de esta funcion y para
+        cuando el alta automatica fallo (p. ej. SMTP caido).
+        """
+        try:
+            if not puede_ver_credenciales_residente(request.user):
+                return Response(
+                    {'error': 'No tienes permiso para generar accesos.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            residente = self.get_object()
+            resumen = acceso_residente.asegurar_accesos(residente, request.user)
+            return Response({
+                'mensaje': f"{resumen['creadas']} cuenta(s) creada(s)",
+                'creadas': resumen['creadas'],
+                'misma_persona': resumen['misma_persona'],
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='regenerar_acceso')
+    def regenerar_acceso(self, request, pk=None):
+        """Nueva contrasena para una de las dos cuentas. Body: {"tipo": ...}.
+
+        Es el unico salvavidas de las cuentas sin correo: no pueden usar
+        'recuperar contrasena' porque no tienen email donde recibir el enlace.
+        """
+        try:
+            if not puede_ver_credenciales_residente(request.user):
+                return Response(
+                    {'error': 'No tienes permiso para regenerar contraseñas.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            residente = self.get_object()
+            tipo = (request.data.get('tipo') or 'arrendatario').strip()
+            cuenta = residente.residente_cuenta if tipo == 'residente' else residente.arrendatario_cuenta
+            if cuenta is None:
+                return Response(
+                    {'error': f'Este residente no tiene cuenta de {tipo}.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            password, enviada = acceso_residente.regenerar_credencial(cuenta, request.user)
+            if password is None:
+                return Response(
+                    {'error': 'La cuenta no tiene credencial registrada; genera el acceso primero.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return Response({
+                'username': cuenta.username,
+                'password_generada': password,
+                'enviada_por_correo': enviada,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"el error es: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     def mandar_aprobado(self, request, *args, **kwargs):
         try:
             print("Aprobar al residente")
@@ -2417,62 +2637,8 @@ class Contratos_fraterna(viewsets.ModelViewSet):
             print("el id que llega", id_paq)
             info = self.queryset.filter(id = id_paq).first()
             print(info.__dict__)
-            #obtenermos la renta para pasarla a letra
-            habitantes = int(info.habitantes)
-            habitantes_texto = num2words(habitantes, lang='es')  # 'es' para español, puedes cambiarlo según el idioma deseado
-            #obtenemos renta y costo poliza para letra
-            # Convertir primero a float para manejar valores decimales como '8400.00'
-            renta = int(float(info.renta))
-            renta_texto = num2words(renta, lang='es').capitalize()
-            
-            #obtener la tipologia
-            # Definir las opciones y sus correspondientes valores para la variable "plano"
-            opciones = {
-                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/loft.png",
-                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/twin.png",
-                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/double.png",
-                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/squad.png",
-                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/master.png",
-                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/crew.png",
-                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/party.png"
-            }
-            
-            inventario = {
-                'Loft': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_loft.png",
-                'Twin': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_twin.png",
-                'Double': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_double.png",
-                'Squad': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_squad.png",
-                'Master': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_master.png",
-                'Crew': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_crew.png",
-                'Party': "https://arrendifystorage.s3.us-east-2.amazonaws.com/Recursos/Fraterna/inventario/inventario_party.png"
-            }
-            
-            tipologia = info.tipologia
-            plano = ""
-            tabla_inventario = ""
-            if tipologia in opciones and tipologia in inventario:
-                plano = opciones[tipologia]
-                tabla_inventario = inventario[tipologia]
-                print(f"Tu Tipologia es: {tipologia}, URL: {plano}")
-                print(f"Tu Tipologia es: {tipologia}, Inventario: {tabla_inventario}")
-            
-            #obtener la url de el plano que sube fraterna
-            plan_loc = f"https://arrendifystorage.s3.us-east-2.amazonaws.com/static/{info.plano_localizacion}"
-           
-            context = {
-                **{
-                    'info': info,
-                    'habitantes_texto': habitantes_texto,
-                    'renta_texto': renta_texto,
-                    'plano': plano,
-                    'plan_loc': plan_loc,
-                    'tabla_inventario': tabla_inventario,
-                },
-                **_contraprestacion_fraterna_context(info),
-                **(marca_para(request.user) or {}),
-            }
-            template = 'home/contrato_fraterna_v2.html' if settings.USE_NEW_FRATERNA_CONTRACT else 'home/contrato_fraterna.html'
-            html_string = render_to_string(template,context)
+            context = contexto_contrato_fraterna(info, request.user)
+            html_string = render_to_string(plantilla_contrato_fraterna(), context)
 
             # Genera el PDF utilizando weasyprint
             pdf_file = HTML(string=html_string).write_pdf()
