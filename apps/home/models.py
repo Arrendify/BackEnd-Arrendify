@@ -2472,7 +2472,11 @@ class IncidenciasFraterna(models.Model):
     tipo_incidencia = models.CharField(max_length=100, null=True, blank=True, help_text="Tipo de incidencia reportada")
     prioridad = models.CharField(max_length=20, null=True, blank=True, default="Media", help_text="Prioridad de la incidencia")
     dateTimeOfUpload = models.DateTimeField(auto_now = True)
-    
+    # Portal del residente (2026-08-13): dateTimeOfUpload es auto_now, o sea que
+    # se pisa en CADA save — no sirve como fecha de creacion en cuanto existe el
+    # boton de editar. Esta si es solo-al-crear (null en las filas anteriores).
+    creada_en = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
     class Meta:
         db_table = 'fraterna_incidencias'
         

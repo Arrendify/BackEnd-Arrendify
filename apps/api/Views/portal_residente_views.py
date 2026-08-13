@@ -49,7 +49,7 @@ from pypdf import PdfReader, PdfWriter
 
 from ...home.models import (
     DocumentosResidentes, FraternaContratos, FraternaRondaFirma,
-    RecibosPolizaResidente, Residentes,
+    IncidenciasFraterna, RecibosPolizaResidente, Residentes,
 )
 from ..middleware_portal import ROL_PORTAL
 from ..utils.demo_mode import marca_para
@@ -1268,3 +1268,215 @@ class PortalRecibos(viewsets.ViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             return self._fallo(e, 'destroy')
+
+
+# --------------------------------------------------------------------------- #
+# Incidencias                                                                 #
+# --------------------------------------------------------------------------- #
+
+def _cuentas_de_mis_fichas(user):
+    """Ids de las cuentas de TODAS sus fichas: la propia y la de la otra parte.
+
+    Es el universo de visibilidad de incidencias (regla del usuario,
+    2026-08-13): arrendatario y residente de la misma ficha VEN las incidencias
+    del otro, pero cada quien solo puede modificar las que creo el mismo.
+    """
+    cuentas = set()
+    for f in fichas_de(user):
+        if f.arrendatario_cuenta_id:
+            cuentas.add(f.arrendatario_cuenta_id)
+        if f.residente_cuenta_id:
+            cuentas.add(f.residente_cuenta_id)
+    return cuentas
+
+
+def _incidencia_publica(i, cuenta_id):
+    """Una incidencia vista desde el portal. `mia` decide si puede editarla."""
+    mia = i.user_id == cuenta_id
+    return {
+        'id': i.id,
+        'ficha_id': i.arrendatario_id,
+        'contrato_id': i.contrato_id,
+        'tipo_incidencia': i.tipo_incidencia or '',
+        'incidencia': i.incidencia or '',
+        'status': i.status or '',
+        'solucion': i.solucion or '',
+        # Fecha real de creacion; las incidencias de antes de `creada_en` caen a
+        # dateTimeOfUpload, que es lo mas cercano que tienen.
+        'creada_en': _fecha(i.creada_en or i.dateTimeOfUpload),
+        'actualizada_en': _fecha(i.dateTimeOfUpload),
+        'quien': (i.user.first_name or i.user.username) if i.user_id else '',
+        'la_cree_yo': mia,
+        # Una incidencia ya dictaminada (Aceptado / No Procedente) se congela:
+        # editar el reporte despues del dictamen dejaria la solucion respondiendo
+        # a un texto que ya no existe.
+        'puedo_editarla': mia and (i.status or '') == PortalIncidencias.ESTATUS_INICIAL,
+    }
+
+
+class PortalIncidencias(viewsets.ViewSet):
+    """Incidencias del portal del residente.
+
+    Reglas (acordadas con el usuario, 2026-08-13):
+      · CREA con tipo + descripcion; queda ligada a SU cuenta (`user`) y a su
+        ficha. El contrato es OPCIONAL y solo puede ser uno de sus fichas: un
+        contrato ajeno se descarta en silencio (misma politica que el resto del
+        portal: los ids del cliente solo eligen entre lo suyo).
+      · VE las suyas y las de la otra parte de su ficha (arrendatario <->
+        residente se ven entre si).
+      · EDITA solo las que creo el mismo, y solo mientras Fraterna no la
+        dictamine (status distinto de 'Pendiente de Revisión' la congela).
+      · `status`, `solucion` y `prioridad` son de Fraterna: no estan en la lista
+        de campos escribibles.
+    """
+
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    ESTATUS_INICIAL = 'Pendiente de Revisión'
+
+    def _fallo(self, e, donde):
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logger.error(
+            f"{datetime.now()} Portal incidencias ({donde}) fallo en la linea "
+            f"{exc_tb.tb_lineno}: {e}"
+        )
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def _visibles(self, user):
+        cuentas = _cuentas_de_mis_fichas(user)
+        if not cuentas:
+            return IncidenciasFraterna.objects.none()
+        return (
+            IncidenciasFraterna.objects
+            .filter(user_id__in=cuentas)
+            .select_related('user')
+            .order_by('-id')
+        )
+
+    def _contrato_propio(self, user, contrato_id):
+        """El contrato pedido SOLO si es de una de sus fichas; si no, None."""
+        try:
+            cid = int(contrato_id)
+        except (TypeError, ValueError):
+            return None
+        return (
+            FraternaContratos.objects
+            .filter(id=cid, residente_id__in=fichas_ids_de(user))
+            .first()
+        )
+
+    def _contratos_para_el_select(self, user):
+        """Sus contratos, para que el form ofrezca a cual ligar la incidencia."""
+        contratos = (
+            FraternaContratos.objects
+            .filter(residente_id__in=fichas_ids_de(user))
+            .order_by('-id')
+        )
+        return [
+            {
+                'contrato_id': c.id,
+                'ficha_id': c.residente_id,
+                'departamento': c.no_depa or '',
+                'cama': c.cama or '',
+                'vigente': (c.estado_contrato or '') == 'actual',
+            }
+            for c in contratos
+        ]
+
+    def list(self, request):
+        """GET /portal/mis_incidencias/"""
+        try:
+            incidencias = [
+                _incidencia_publica(i, request.user.id)
+                for i in self._visibles(request.user)
+            ]
+            return Response({
+                'incidencias': incidencias,
+                'contratos': self._contratos_para_el_select(request.user),
+                'total': len(incidencias),
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return self._fallo(e, 'list')
+
+    def create(self, request):
+        """POST /portal/mis_incidencias/ — reportar una incidencia."""
+        try:
+            fichas = fichas_ids_de(request.user)
+            if not fichas:
+                return Response(
+                    {'error': 'Tu cuenta no está ligada a ningún registro.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            descripcion = (request.data.get('incidencia') or '').strip()
+            tipo = (request.data.get('tipo_incidencia') or '').strip()[:100]
+            if not tipo:
+                return Response({'error': 'Falta el tipo de incidencia.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            if not descripcion:
+                return Response({'error': 'Describe la incidencia.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Contrato opcional; si viene, la ficha de la incidencia es la del
+            # contrato (una cuenta puede tener varias fichas).
+            contrato = self._contrato_propio(request.user, request.data.get('contrato_id'))
+            ficha_id = contrato.residente_id if contrato else fichas[0]
+
+            incidencia = IncidenciasFraterna.objects.create(
+                user=request.user,
+                arrendatario_id=ficha_id,
+                contrato=contrato,
+                incidencia=descripcion,
+                tipo_incidencia=tipo,
+                status=self.ESTATUS_INICIAL,
+                prioridad='Media',
+            )
+            return Response(_incidencia_publica(incidencia, request.user.id),
+                            status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return self._fallo(e, 'create')
+
+    def partial_update(self, request, pk=None):
+        """PATCH /portal/mis_incidencias/<id>/ — corregir tipo/descripcion/contrato."""
+        try:
+            incidencia = self._visibles(request.user).filter(pk=pk).first()
+            if not incidencia:
+                return Response({'error': 'Esa incidencia no existe o no es tuya.'},
+                                status=status.HTTP_403_FORBIDDEN)
+            if incidencia.user_id != request.user.id:
+                return Response(
+                    {'error': 'Solo puedes modificar las incidencias que tú creaste.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            if (incidencia.status or '') != self.ESTATUS_INICIAL:
+                return Response(
+                    {'error': 'Esta incidencia ya fue revisada por la administración '
+                              'y no se puede modificar.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            if 'tipo_incidencia' in request.data:
+                tipo = (request.data.get('tipo_incidencia') or '').strip()[:100]
+                if not tipo:
+                    return Response({'error': 'Falta el tipo de incidencia.'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                incidencia.tipo_incidencia = tipo
+            if 'incidencia' in request.data:
+                descripcion = (request.data.get('incidencia') or '').strip()
+                if not descripcion:
+                    return Response({'error': 'Describe la incidencia.'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                incidencia.incidencia = descripcion
+            if 'contrato_id' in request.data:
+                # Mandarlo vacio la desliga; un contrato ajeno tambien cae a None.
+                contrato = self._contrato_propio(request.user, request.data.get('contrato_id'))
+                incidencia.contrato = contrato
+                if contrato:
+                    incidencia.arrendatario_id = contrato.residente_id
+
+            incidencia.save()
+            return Response(_incidencia_publica(incidencia, request.user.id),
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            return self._fallo(e, 'partial_update')

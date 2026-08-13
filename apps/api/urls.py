@@ -12,7 +12,7 @@ from .Views.investigaciones_views import *
 from .Views.stripe_view import CreateStripeCheckoutSession
 from .Views.notificaciones_views import NotificacionViewSet
 from .Views.zapsign_webhook import zapsign_webhook
-from .Views.portal_residente_views import PortalRecibos, PortalResidente
+from .Views.portal_residente_views import PortalIncidencias, PortalRecibos, PortalResidente
 
 
 urlpatterns = [
@@ -135,6 +135,10 @@ urlpatterns = [
     # los SUYOS; la aprobacion sigue siendo de Fraterna.
     path('portal/mis_recibos/', PortalRecibos.as_view({'get': 'list', 'post': 'create'}), name='portal_mis_recibos'),
     path('portal/mis_recibos/<int:pk>/', PortalRecibos.as_view({'patch': 'partial_update', 'delete': 'destroy'}), name='portal_recibo_detalle'),
+    # Incidencias: crea/edita las propias; arrendatario y residente de la misma
+    # ficha se ven las incidencias entre si (solo modifica cada quien las suyas).
+    path('portal/mis_incidencias/', PortalIncidencias.as_view({'get': 'list', 'post': 'create'}), name='portal_mis_incidencias'),
+    path('portal/mis_incidencias/<int:pk>/', PortalIncidencias.as_view({'patch': 'partial_update'}), name='portal_incidencia_detalle'),
 
     #manejamos el index con la pag404
     path('health/', health_check, name='health_check'),
