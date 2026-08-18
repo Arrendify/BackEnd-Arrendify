@@ -57,7 +57,7 @@ from ...home.models import (
     IncidenciasFraterna, RecibosPolizaResidente, Residentes,
 )
 from ..utils.calendario_pagos import (
-    estado_de_cuenta, nombre_mes, periodo_a_imputar, renta_mensual, tramos,
+    estado_de_cuenta, nombre_mes, renta_mensual, tramos,
 )
 from ..utils.demo_mode import marca_para
 from .fraterna_views import eliminar_archivo_s3
@@ -1805,23 +1805,23 @@ class PortalRecibos(viewsets.ViewSet):
                 if candidata and contrato.rondas_firma.filter(id=candidata).exists():
                     ronda_id = candidata
 
-            # Que mes cubre: lo decide el servidor con el calendario del
-            # periodo, contra los comprobantes que ya existen. El formulario
-            # no lo pregunta y mandarlo en el body no sirve de nada.
-            previos = (
-                list(RecibosPolizaResidente.objects.filter(contrato=contrato))
-                if contrato else []
-            )
-            ronda_calculada, periodo = periodo_a_imputar(
-                contrato, previos, ronda_id=ronda_id)
-
+            # EL COMPROBANTE YA NO GUARDA A QUE MES PERTENECE (2026-08-18).
+            # Se intento y sale mal con los abonos: un pago de $1,000 contra una
+            # renta de $16,000 marcaba el mes como cubierto y el siguiente
+            # comprobante se iba al mes siguiente, dejando el viejo debiendo
+            # $15,000 sin que nadie lo reclamara. Ahora el dinero se aplica en
+            # cascada, del mes mas viejo al mas nuevo, al calcular el estado de
+            # cuenta (utils/calendario_pagos._repartir), asi que un abono parcial
+            # deja su mes A MEDIAS y se sigue cobrando.
+            #
+            # `ronda` si se guarda: es el periodo contractual bajo el que se
+            # pago, y de ahi salen la renta y la vigencia.
             recibo = RecibosPolizaResidente.objects.create(
                 user=request.user,
                 residente_id=ficha_id,
                 contrato=contrato,
-                ronda_id=ronda_id or ronda_calculada,
+                ronda_id=ronda_id,
                 archivo=archivo,
-                periodo=periodo,
                 **valores,
             )
             return Response(_recibo_publico(recibo, request.user.id),

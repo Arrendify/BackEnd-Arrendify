@@ -32,6 +32,7 @@ from datetime import date
 from datetime import datetime
 from calendar import monthrange
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 
 #Libreria para obtener el lenguaje en español
 import locale
@@ -62,6 +63,19 @@ from ..utils.roles_internos import es_operador_arrendify, puede_ver_credenciales
 # Portal del residente (2026-08-13): alta de cuentas de login ligadas al registro
 # de residentes (hasta 2: arrendatario y residente). Ver utils/acceso_residente.py
 from ..utils import acceso_residente
+
+# Bandeja de recibos (2026-08-18): el calendario de mensualidades se calcula al
+# vuelo desde la ronda FIRMADA, con la misma regla que imprime los pagares. El
+# revisor lo necesita para saber cuanto se esperaba de ese mes. El import al
+# reves (calendario_pagos -> fraterna_views) va DIFERIDO dentro de la funcion,
+# asi que esto no hace ciclo.
+from ..utils.calendario_pagos import estado_de_cuenta, tramos
+
+# Tope de filas que devuelve la bandeja de recibos en una pasada. Hoy sobra
+# (255 vigentes x 12 meses es el techo de un ano entero y la cola real es de
+# decenas), pero se declara en la respuesta ("truncado") en vez de cortar en
+# silencio: una lista cortada se lee como "ya no hay mas".
+TOPE_BANDEJA_RECIBOS = 400
 
 
 class Unaccent(Func):
@@ -279,7 +293,7 @@ from collections import defaultdict
 from pypdf import PdfReader, PdfWriter
 from datetime import datetime as dt
 from datetime import datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from dateutil.relativedelta import relativedelta
 
 # ----------------------------------Metodos Extras----------------------------------------------- #
@@ -5080,6 +5094,32 @@ class IncidenciasFraterna(viewsets.ModelViewSet):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error(f"{datetime.now()} Ocurrió un error en el archivo {exc_tb.tb_frame.f_code.co_filename}, en el método {exc_tb.tb_frame.f_code.co_name}, en la línea {exc_tb.tb_lineno}:  {e}")
             return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST) 
+
+
+    @action(detail=False, methods=['get'], url_path='pendientes')
+    def pendientes(self, request):
+        """GET -- cuantas incidencias siguen sin dictaminar. Nada mas.
+
+        Existe aparte de list() porque lo pide el SIDEBAR en cada carga de
+        pagina, y list() serializa el contrato y la ficha COMPLETOS de cada
+        incidencia (con PII del residente). Aqui es un COUNT y ya.
+
+        Sin estatus tambien cuenta: nadie la ha dictaminado, asi que sigue
+        siendo trabajo pendiente — es el mismo criterio que usa la bandeja.
+
+        Devuelve 0 en vez de 403 a quien no opera Fraterna: es una insignia del
+        menu, no un dato; que reviente el sidebar entero por esto seria peor.
+        """
+        try:
+            if not _puede_revisar_recibos(request.user):
+                return Response({'pendientes': 0}, status=status.HTTP_200_OK)
+            n = IncidenciasFraternaModel.objects.filter(
+                Q(status='Pendiente de Revisión') | Q(status__isnull=True) | Q(status='')
+            ).count()
+            return Response({'pendientes': n}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"error en pendientes de incidencias: {e}")
+            return Response({'pendientes': 0}, status=status.HTTP_200_OK)
 
 
 ########################## F R A T E R N A ######################################        
@@ -10209,6 +10249,119 @@ class DepartamentosFraterna(viewsets.ViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# --------------------------------------------------------------------------- #
+# Bandeja de revision de recibos (lado Fraterna)                               #
+# --------------------------------------------------------------------------- #
+#
+# El portal del residente ya deja subir el comprobante (2026-08-18); lo que
+# faltaba era la otra mitad del ciclo: que Fraterna lo REVISE, capture el monto
+# y lo apruebe. Aprobar existia desde antes, pero enterrado dentro de la ficha
+# de cada residente (fraterna/detalles_documentos/<id>), o sea que habia que
+# saber de antemano a quien buscar. Esto lo pone del derecho: una sola cola con
+# lo que falta por dictaminar, lo mas viejo arriba.
+
+
+def _puede_revisar_recibos(user):
+    """Quien entra a la bandeja.
+
+    Es el MISMO conjunto al que el sidebar le enciende la seccion Fraterna
+    (`sidebar.js`: username "Fraterna", pertenece_a "Fraterna" o is_staff), mas
+    los dos equipos internos por `rol_interno`.
+
+    No se aprieta a `rol_interno` a secas aunque sea dinero: hay 17 cuentas
+    activas que operan Fraterna todos los dias (leasingteam, utower2,
+    FernandaSantiago, RentasU...) sin ese campo, y quedarian fuera. Tampoco se
+    afloja a `IsAuthenticated`, que es lo unico que protege hoy al CRUD de
+    recibos: la bandeja junta los pagos de TODOS los residentes en una pantalla
+    y eso no tiene por que verlo cualquier cuenta con token.
+    """
+    if not getattr(user, 'is_authenticated', False):
+        return False
+    # El middleware del portal ya corta al residente antes de llegar aqui; esto
+    # es el cinturon por si algun dia se mueve el orden de los middlewares.
+    if getattr(user, 'rol', None) == 'Residente':
+        return False
+    return bool(
+        getattr(user, 'is_staff', False)
+        or getattr(user, 'pertenece_a', None) == 'Fraterna'
+        or getattr(user, 'username', None) == 'Fraterna'
+        or puede_ver_credenciales_residente(user)
+    )
+
+
+def _hora_local(valor):
+    """ISO de un datetime en la zona del proyecto, no en UTC.
+
+    Con USE_TZ=True la BD devuelve UTC y el front corta el ISO a pelo: sin esto,
+    un recibo subido a las 9 de la manana se lee con la hora de Londres. Mismo
+    gotcha que en el portal (_fecha_hora de portal_residente_views).
+    """
+    return timezone.localtime(valor).isoformat() if valor else ''
+
+
+def _partes_de_la_ronda(ronda_id, ficha, firmantes):
+    """Nombre y correo de arrendatario y residente, como quedaron CONGELADOS.
+
+    Salen de `fraterna_ronda_firmante`, no de `datos_snapshot`: el snapshot solo
+    guarda inmueble y dinero (y su unica clave de nombre, `residente_nombre`,
+    contiene en realidad al ARRENDATARIO). Los firmantes en cambio son las
+    personas tal como se mandaron a firmar. Medido en proddev: las 319 rondas
+    firmadas tienen firmante arrendatario con nombre y correo, y 312 tienen
+    residente — los 7 que faltan son fichas donde arrendatario y residente son
+    la misma persona, y ahi entra el respaldo de la ficha.
+
+    El CELULAR no viaja nunca por aqui: `fraterna_ronda_firmante` no tiene esa
+    columna, asi que ese sale de la ficha por fuerza.
+    """
+    del_rol = firmantes.get(ronda_id) or {}
+    if ronda_id and ronda_id not in firmantes:
+        del_rol = {}
+        for f in (FraternaRondaFirmante.objects
+                  .filter(ronda_id=ronda_id, rol__in=('arrendatario', 'residente'))
+                  .order_by('paquete', 'id')):
+            del_rol.setdefault(f.rol, f)
+        firmantes[ronda_id] = del_rol
+
+    def parte(rol, nombre_ficha, correo_ficha, celular_ficha):
+        f = del_rol.get(rol)
+        return {
+            'nombre': ((f.nombre if f else '') or nombre_ficha or '').strip(),
+            'correo': ((f.email if f else '') or correo_ficha or '').strip(),
+            # Unico dato que la ronda no congela: no existe la columna.
+            'celular': str(celular_ficha or '').strip(),
+            'fuente': 'ronda' if f else 'ficha',
+        }
+
+    return {
+        'arrendatario': parte('arrendatario',
+                              getattr(ficha, 'nombre_arrendatario', ''),
+                              getattr(ficha, 'correo_arrendatario', ''),
+                              getattr(ficha, 'celular_arrendatario', '')),
+        'residente': parte('residente',
+                           getattr(ficha, 'nombre_residente', ''),
+                           getattr(ficha, 'correo_residente', ''),
+                           getattr(ficha, 'celular_residente', '')),
+    }
+
+
+def _quien_subio_recibo(r):
+    """(clave, nombre) de quien subio el comprobante, en terminos de la ficha.
+
+    Desde el portal, `user` ya no es siempre un operador: puede ser la cuenta
+    del arrendatario o la del residente (las dos FK que se agregaron a
+    `residentes` el 2026-08-13). Al revisor le importa distinguirlos.
+    """
+    if not r.user_id:
+        return 'administracion', 'La administración'
+    ficha = r.residente
+    if ficha:
+        if r.user_id == ficha.arrendatario_cuenta_id:
+            return 'arrendatario', (ficha.nombre_arrendatario or '').strip() or 'El arrendatario'
+        if r.user_id == ficha.residente_cuenta_id:
+            return 'residente', (ficha.nombre_residente or '').strip() or 'El residente'
+    return 'operador', getattr(r.user, 'username', '') or 'La administración'
+
+
 class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
     """CRUD de recibos de pago de póliza por residente Fraterna.
 
@@ -10296,6 +10449,355 @@ class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
             return Response(ser.data, status=status.HTTP_200_OK)
         except Exception as e:
             print(f"error en desaprobar recibo: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    # ------------------------------------------------------------------- #
+    # Bandeja de revision                                                  #
+    # ------------------------------------------------------------------- #
+
+    def _fila_bandeja(self, r, calendarios, del_contrato, firmantes=None):
+        """Un recibo con TODO lo que el revisor necesita para dictaminarlo."""
+        contrato = r.contrato
+        cuenta = None
+        if contrato is not None:
+            if contrato.id not in calendarios:
+                # El estado de cuenta se calcula con TODOS los recibos del
+                # contrato, no solo con este: el dinero se aplica en cascada y
+                # un abono viejo cambia a que mes le toca al de hoy.
+                calendarios[contrato.id] = estado_de_cuenta(
+                    contrato, del_contrato.get(contrato.id, []))
+            cuenta = calendarios[contrato.id]
+
+        bloques = (cuenta or {}).get('periodos') or []
+        # El tramo (periodo contractual firmado) del que cuelga este pago: el de
+        # su ronda si la tiene, si no el que contiene el mes que se esta
+        # cubriendo, y como ultimo recurso el mas reciente.
+        tramo = None
+        if bloques:
+            if r.ronda_id:
+                tramo = next((b for b in bloques if b['ronda_id'] == r.ronda_id), None)
+            if tramo is None and (cuenta or {}).get('ronda_en_curso'):
+                tramo = next((b for b in bloques
+                              if b['ronda_id'] == cuenta['ronda_en_curso']), None)
+            if tramo is None:
+                tramo = bloques[-1]
+
+        # EL MES QUE ANDA CUBRIENDO y lo que le falta. Ya no sale de una columna
+        # del recibo (se dejo de guardar el 2026-08-18): se calcula al vuelo,
+        # asi que un abono parcial sigue apuntando al mismo mes hasta saldarlo.
+        en_curso = None
+        vencidos = []
+        if cuenta and cuenta.get('hay_calendario'):
+            for m in cuenta['meses']:
+                if en_curso is None and m['estado'] != 'pagado':
+                    en_curso = m
+                if m['vencido'] and m['estado'] != 'pagado':
+                    vencidos.append({
+                        'periodo_texto': m['periodo_texto'],
+                        'monto': m['monto'],
+                        'pagado': m['pagado'],
+                        'falta': m['falta'],
+                        'vence': m['vence'],
+                    })
+
+        # Lo que se espera que cubra este comprobante: lo que le falta al mes en
+        # curso, no la renta completa (si ya hubo un abono, falta menos).
+        esperado = en_curso['falta'] if en_curso else None
+
+        depa = ((tramo['no_depa'] if tramo else '')
+                or (getattr(contrato, 'no_depa', '') or ''))
+        cama = ((tramo['cama'] if tramo else '')
+                or (getattr(contrato, 'cama', '') or ''))
+
+        # Quienes son las partes: de los FIRMANTES de la ronda a la que pertenece
+        # el tramo (lo que se firmo), con respaldo en la ficha. Ver
+        # `_partes_de_la_ronda`.
+        ficha = r.residente
+        partes = _partes_de_la_ronda(
+            (tramo['ronda_id'] if tramo else None) or r.ronda_id,
+            ficha, firmantes if firmantes is not None else {})
+        subido_por, subido_por_nombre = _quien_subio_recibo(r)
+        nombre_archivo = str(r.archivo).rsplit('/', 1)[-1] if r.archivo else ''
+        ext = nombre_archivo.rsplit('.', 1)[-1].lower() if '.' in nombre_archivo else ''
+        try:
+            url = r.archivo.url if r.archivo else ''
+        except Exception:
+            url = ''
+
+        return {
+            'id': r.id,
+            'residente_id': r.residente_id,
+            'nombre_arrendatario': (getattr(ficha, 'nombre_arrendatario', '') or '').strip(),
+            'nombre_residente': (getattr(ficha, 'nombre_residente', '') or '').strip(),
+            'contrato_id': r.contrato_id,
+            'depa': depa,
+            'cama': cama,
+            'ronda_id': r.ronda_id,
+            'tramo_periodo': (tramo['periodo_texto'] if tramo else ''),
+            'tramo_tipo': (tramo['tipo'] or '') if tramo else '',
+            'vigencia_desde': (tramo['vigencia_desde'] if tramo else ''),
+            'vigencia_hasta': (tramo['vigencia_hasta'] if tramo else ''),
+            'partes': partes,
+            'archivo_url': url,
+            'nombre_archivo': nombre_archivo,
+            'extension': ext,
+            'es_imagen': ext in ('jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic'),
+            'monto': str(r.monto) if r.monto is not None else '',
+            # Lo que le falta al mes que se esta cubriendo. Es la sugerencia para
+            # el campo del monto; el revisor la confirma o la corrige contra el
+            # comprobante que tiene enfrente.
+            'monto_esperado': esperado,
+            # Estado de cuenta VIVO del contrato: de que mes va, cuanto debe y
+            # que otros meses ya se le vencieron. Puramente informativo — nada
+            # de esto se guarda en el recibo.
+            'cuenta': {
+                'hay_calendario': bool(cuenta and cuenta.get('hay_calendario')),
+                'motivo': (cuenta or {}).get('motivo') or '',
+                'saldo': (cuenta or {}).get('saldo') or '0',
+                'saldo_en_revision': (cuenta or {}).get('saldo_en_revision') or '0',
+                'meses_vencidos': (cuenta or {}).get('meses_vencidos') or 0,
+                'total': (cuenta or {}).get('total') or '0',
+                'en_curso': en_curso,
+                'vencidos': vencidos,
+            },
+            'referencia': r.referencia or '',
+            'comentarios': r.comentarios or '',
+            'fecha_subida': _hora_local(r.fecha_subida),
+            'subido_por': subido_por,
+            'subido_por_nombre': subido_por_nombre,
+            'aprobado': r.aprobado,
+            'fecha_aprobacion': _hora_local(r.fecha_aprobacion),
+            'aprobado_por': getattr(r.aprobado_por, 'username', '') or '',
+        }
+
+    @action(detail=False, methods=['get'], url_path='bandeja')
+    def bandeja(self, request):
+        """GET /recibos_poliza_residente/bandeja/ -- la cola de revision.
+
+        `?estado=pendientes|aprobados|todos` (por defecto pendientes) y `?q=`
+        (nombre, depa, cama o referencia; insensible a acentos).
+
+        Los PENDIENTES salen del mas viejo al mas nuevo a proposito: es una cola
+        de trabajo y quien lleva mas tiempo esperando su dictamen va primero.
+        Los aprobados, al reves -- lo ultimo dictaminado arriba, que es lo que se
+        consulta cuando alguien reclama.
+        """
+        try:
+            if not _puede_revisar_recibos(request.user):
+                return Response({'error': 'No tienes permiso para revisar recibos de pago.'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+            estado = (request.query_params.get('estado') or 'pendientes').lower()
+            q = (request.query_params.get('q') or '').strip()
+
+            qs = (RecibosPolizaResidente.objects
+                  .select_related('residente', 'contrato', 'user', 'aprobado_por'))
+            if q:
+                # Insensible a acentos en los nombres (misma receta que la tabla
+                # de contratos): unaccent() sobre la columna + termino sin
+                # acentos. Depa, cama y referencia son ASCII, van tal cual.
+                term = _sin_acentos(q)
+                qs = qs.annotate(
+                    _na_ua=Unaccent('residente__nombre_arrendatario'),
+                    _nr_ua=Unaccent('residente__nombre_residente'),
+                ).filter(
+                    Q(_na_ua__icontains=term)
+                    | Q(_nr_ua__icontains=term)
+                    | Q(contrato__no_depa__icontains=q)
+                    | Q(contrato__cama__icontains=q)
+                    | Q(referencia__icontains=q)
+                )
+
+            # Los contadores se cuentan sobre el universo YA filtrado por la
+            # busqueda: si no, las pestanas prometerian filas que el buscador de
+            # arriba acaba de quitar.
+            pendientes = qs.filter(aprobado=False).count()
+            aprobados = qs.filter(aprobado=True).count()
+
+            if estado == 'pendientes':
+                filas = qs.filter(aprobado=False).order_by('fecha_subida', 'id')
+            elif estado == 'aprobados':
+                filas = qs.filter(aprobado=True).order_by('-fecha_aprobacion', '-id')
+            else:
+                filas = qs.order_by('aprobado', 'fecha_subida', 'id')
+
+            total = (pendientes + aprobados if estado == 'todos'
+                     else pendientes if estado == 'pendientes' else aprobados)
+            filas = list(filas[:TOPE_BANDEJA_RECIBOS])
+
+            # El estado de cuenta necesita TODOS los recibos del contrato, no
+            # solo los de esta pagina: el dinero se aplica en cascada y un abono
+            # que quedo fuera del filtro cambia de que mes va el de hoy.
+            ids = {r.contrato_id for r in filas if r.contrato_id}
+            del_contrato = {}
+            if ids:
+                for x in RecibosPolizaResidente.objects.filter(contrato_id__in=ids):
+                    del_contrato.setdefault(x.contrato_id, []).append(x)
+
+            # Firmantes de TODAS las rondas de esos contratos, en una sola
+            # consulta: resolverlos recibo por recibo seria un N+1.
+            firmantes = {}
+            if ids:
+                for f in (FraternaRondaFirmante.objects
+                          .filter(ronda__contrato_id__in=ids,
+                                  rol__in=('arrendatario', 'residente'))
+                          .order_by('paquete', 'id')):
+                    firmantes.setdefault(f.ronda_id, {}).setdefault(f.rol, f)
+
+            # `tramos()` recorre las rondas de un contrato: se cachea por
+            # contrato para no recalcular el mismo calendario en cada recibo.
+            calendarios = {}
+            datos = [self._fila_bandeja(r, calendarios, del_contrato, firmantes)
+                     for r in filas]
+
+            return Response({
+                'recibos': datos,
+                'pendientes': pendientes,
+                'aprobados': aprobados,
+                'total': total,
+                # Se declara el corte en vez de truncar en silencio: una lista
+                # cortada se lee como "ya no hay mas".
+                'mostrados': len(datos),
+                'truncado': total > len(datos),
+                'tope': TOPE_BANDEJA_RECIBOS,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"error en bandeja de recibos: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en bandeja de recibos linea {exc_tb.tb_lineno}: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='pendientes')
+    def pendientes(self, request):
+        """GET -- cuantos recibos esperan dictamen. Nada mas.
+
+        Existe aparte de `bandeja/` porque lo pide el SIDEBAR en cada carga de
+        pagina: `bandeja/` arma el calendario de cada contrato para poder decir
+        el monto esperado, y eso no se puede pagar en cada navegacion. Aqui es
+        un COUNT y ya.
+
+        Devuelve 0 en vez de 403 a quien no puede revisar: es una insignia del
+        menu, no un dato; que reviente el sidebar entero por esto seria peor.
+        """
+        try:
+            if not _puede_revisar_recibos(request.user):
+                return Response({'pendientes': 0}, status=status.HTTP_200_OK)
+            n = RecibosPolizaResidente.objects.filter(aprobado=False).count()
+            return Response({'pendientes': n}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"error en pendientes de recibos: {e}")
+            return Response({'pendientes': 0}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='revisar')
+    def revisar(self, request, pk=None):
+        """POST -- dictamina un recibo: captura lo que leyo el revisor y aprueba.
+
+        Body: `{monto, periodo, fecha_pago, contrato, comentarios, aprobar}`.
+        Todo opcional salvo `aprobar`, que decide si ademas se da por bueno.
+
+        Va en UNA sola llamada a proposito: para quien revisa, capturar el monto
+        y aprobar son el mismo acto, y partirlo en PATCH + POST deja un hueco
+        donde el recibo queda aprobado con el monto viejo si la segunda falla.
+
+        Aprobar EXIGE monto: sin cifra el mes queda en verde sin que nadie haya
+        dicho cuanto se pago (el calendario presume que un comprobante aprobado
+        sin monto cubre la mensualidad completa). El endpoint viejo `aprobar/` no
+        cambia -- lo sigue usando el modal de la ficha del residente.
+        """
+        try:
+            if not _puede_revisar_recibos(request.user):
+                return Response({'error': 'No tienes permiso para revisar recibos de pago.'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+            recibo = self.get_object()
+            datos = request.data
+            quiere_aprobar = str(datos.get('aprobar', '')).lower() in ('true', '1', 'si')
+            campos = []
+
+            # --- contrato: solo entre los de SU ficha ----------------------- #
+            if 'contrato' in datos:
+                crudo = datos.get('contrato')
+                if crudo in (None, '', 'null'):
+                    recibo.contrato = None
+                    recibo.ronda = None
+                    campos += ['contrato', 'ronda']
+                else:
+                    contrato = FraternaContratos.objects.filter(
+                        id=crudo, residente_id=recibo.residente_id).first()
+                    if not contrato:
+                        return Response({'error': 'Ese contrato no es de este residente.'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                    recibo.contrato = contrato
+                    campos.append('contrato')
+
+            # --- monto ------------------------------------------------------ #
+            if 'monto' in datos:
+                crudo = str(datos.get('monto') or '').replace(',', '').replace('$', '').strip()
+                if crudo == '':
+                    recibo.monto = None
+                else:
+                    try:
+                        monto = Decimal(crudo)
+                    except (InvalidOperation, ValueError):
+                        return Response({'error': 'El monto no es un numero valido.'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                    if monto < 0:
+                        return Response({'error': 'El monto no puede ser negativo.'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                    recibo.monto = monto
+                campos.append('monto')
+
+            # EL MES YA NO SE GUARDA (2026-08-18): mandarlo se ignora. Se
+            # intento y sale mal con los abonos — un pago de $1,000 contra una
+            # renta de $16,000 daba el mes por cubierto y el siguiente
+            # comprobante se iba al mes siguiente. Ahora el dinero se aplica en
+            # cascada al calcular el estado de cuenta
+            # (utils/calendario_pagos._repartir), asi que un abono parcial deja
+            # su mes a medias y se sigue cobrando.
+
+            # --- fecha de pago y comentarios -------------------------------- #
+            if 'fecha_pago' in datos:
+                crudo = str(datos.get('fecha_pago') or '').strip()
+                if crudo == '':
+                    recibo.fecha_pago = None
+                else:
+                    fecha = parse_date(crudo[:10])
+                    if not fecha:
+                        return Response({'error': 'La fecha de pago no tiene formato AAAA-MM-DD.'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                    recibo.fecha_pago = fecha
+                campos.append('fecha_pago')
+
+            if 'comentarios' in datos:
+                recibo.comentarios = str(datos.get('comentarios') or '').strip() or None
+                campos.append('comentarios')
+
+            # --- aprobar ---------------------------------------------------- #
+            if quiere_aprobar:
+                if recibo.monto is None:
+                    return Response(
+                        {'error': 'Captura el monto del pago antes de aprobar el recibo.'},
+                        status=status.HTTP_400_BAD_REQUEST)
+                recibo.aprobado = True
+                recibo.aprobado_por = request.user
+                recibo.fecha_aprobacion = timezone.now()
+                campos += ['aprobado', 'aprobado_por', 'fecha_aprobacion']
+
+            if campos:
+                # dedup conservando el orden: `ronda` puede entrar dos veces
+                recibo.save(update_fields=list(dict.fromkeys(campos)))
+
+            recibo = (RecibosPolizaResidente.objects
+                      .select_related('residente', 'contrato', 'user', 'aprobado_por')
+                      .get(pk=recibo.pk))
+            todos = (list(RecibosPolizaResidente.objects.filter(contrato_id=recibo.contrato_id))
+                     if recibo.contrato_id else [])
+            return Response(self._fila_bandeja(recibo, {}, {recibo.contrato_id: todos}),
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"error en revisar recibo: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error(f"{datetime.now()} Error en revisar recibo linea {exc_tb.tb_lineno}: {e}")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 ########################## G A R Z A  S A D A ######################################
