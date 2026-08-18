@@ -21,6 +21,11 @@ class CustomUser(AbstractUser):
     # emitir firmas). Se administra SOLO por SQL directo a la BD: ningún
     # serializer lo expone en escritura (read_only en los que usan __all__).
     rol_interno = models.CharField(max_length=20, null=True, blank=True)
+    # Lista blanca de pantallas cuando la cuenta no debe entrar a todo el
+    # sistema: 'incidencias', 'incidencias,recibos'... NULL/'' = sin restricción,
+    # que es como funcionan todas las cuentas de siempre. Igual que rol_interno,
+    # se administra SOLO por SQL directo. Ver apps/api/utils/accesos.py.
+    accesos = models.CharField(max_length=120, null=True, blank=True)
     # Campos para recuperación de contraseña
     reset_password_token = models.CharField(max_length=100, null=True, blank=True)
     reset_password_token_created_at = models.DateTimeField(null=True, blank=True)

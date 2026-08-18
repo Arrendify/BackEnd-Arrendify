@@ -103,6 +103,11 @@ MIDDLEWARE = [
     # Va al final para que corra con la sesion ya resuelta (los tokens los
     # resuelve el propio middleware). Ver apps/api/middleware_portal.py.
     'apps.api.middleware_portal.CandadoPortalResidente',
+    # Cuentas de acceso limitado: las que tienen `accesos` solo pueden usar los
+    # endpoints de sus modulos (incidencias / recibos). Inerte para el resto.
+    # Va despues del candado del portal: reutiliza el usuario que aquel ya
+    # resolvio. Ver apps/api/middleware_accesos.py.
+    'apps.api.middleware_accesos.CandadoAccesoLimitado',
 
 ]
 

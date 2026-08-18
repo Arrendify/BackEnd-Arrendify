@@ -26,7 +26,8 @@ UX, la seguridad de verdad es esta, porque aqui vive el dato.
 import logging
 
 from django.http import JsonResponse
-from rest_framework.authentication import TokenAuthentication
+
+from .utils.auth_request import usuario_de_la_peticion
 
 logger = logging.getLogger(__name__)
 
@@ -77,12 +78,9 @@ class CandadoPortalResidente:
         con el mismo TokenAuthentication que usaran las vistas (una consulta por
         PK indexada). Un token invalido no es asunto de este candado — deja
         pasar y que la vista responda su 401.
+
+        La resolucion vive en utils/auth_request.py y se memoriza en el
+        `request`: el candado de accesos limitados que corre despues necesita lo
+        mismo y no tiene por que pagar una segunda consulta.
         """
-        usuario = getattr(request, 'user', None)
-        if usuario is not None and usuario.is_authenticated:
-            return usuario
-        try:
-            resultado = TokenAuthentication().authenticate(request)
-        except Exception:
-            return None
-        return resultado[0] if resultado else None
+        return usuario_de_la_peticion(request)
