@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Portal del residente Fraterna — SOLO LECTURA.
+"""Portal del residente Fraterna.
 
 Lo que ve el humano que entra con la cuenta generada por
 `utils/acceso_residente.py`: su ficha, sus documentos y sus contratos (con el
-proceso de firma, su enlace y sus renovaciones). Nada mas, y nada escribible:
-en este archivo no hay POST/PUT/DELETE a proposito.
+proceso de firma, su enlace y sus renovaciones). Casi todo es lectura; lo poco
+escribible esta acotado a proposito: recibos de pago, incidencias y subir un
+documento de su expediente. BORRAR no existe en ninguno de los tres.
 
 REGLA DE ORO: el residente NUNCA manda un id. Todas las vistas resuelven el
 universo visible desde `request.user` via las dos FK de la fase 1
@@ -21,9 +22,10 @@ fichas y cada una declara `soy`: 'arrendatario', 'residente' o 'ambos'.
 Que ve cada quien dentro de una ficha compartida:
   · Datos personales -> el bloque de TU rol completo; del otro, solo el nombre
     (saber con quien estas ligado sin heredarle CURP/RFC/telefono).
-  · Documentos -> tu INE es tuya; el resto del expediente (comprobante de
-    domicilio, RFC, ingresos, recomendacion, extras) es del expediente y lo ven
-    ambos. OJO con la convencion real de prod: el campo `Ine` es la del
+  · Documentos -> desde 2026-08-18 el expediente ENTERO lo comparten las dos
+    cuentas de la ficha: lo ven completo (INE de la otra parte incluida) y
+    cualquiera de las dos puede subir o reemplazar cualquier documento. No
+    pueden borrar. OJO con la convencion real de prod: el campo `Ine` es la del
     ARRENDATARIO y `Ine_arr` la del RESIDENTE (el sufijo del campo miente).
   · Enlaces de firma -> solo el que te toca. El espejo `FraternaRondaFirmante`
     guarda `rol` por firmante, asi que se filtra por el rol que tienes EN ESA
@@ -36,9 +38,12 @@ import sys
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
+from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
-from django.db.models import Q
+from django.core.validators import validate_email
+from django.db.models import EmailField, Q
 from django.http import HttpResponse
+from django.utils import timezone
 from django.utils.dateparse import parse_date
 from rest_framework import status, viewsets
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
@@ -51,7 +56,6 @@ from ...home.models import (
     DocumentosResidentes, FraternaContratos, FraternaRondaFirma,
     IncidenciasFraterna, RecibosPolizaResidente, Residentes,
 )
-from ..middleware_portal import ROL_PORTAL
 from ..utils.demo_mode import marca_para
 from .fraterna_views import eliminar_archivo_s3
 
@@ -106,6 +110,16 @@ def _fecha(valor):
     return valor.isoformat() if valor else None
 
 
+def _fecha_hora(valor):
+    """Datetime en hora LOCAL.
+
+    Con USE_TZ la BD devuelve UTC y el front corta el ISO a pelo (`iso.slice`),
+    asi que sin localizar un recibo subido a las 9 de la manana se leeria con la
+    hora de Londres.
+    """
+    return timezone.localtime(valor).isoformat() if valor else None
+
+
 def _url_archivo(campo, version=None):
     """URL publica de un FileField + cache-buster.
 
@@ -142,6 +156,11 @@ EXTENSIONES_IMAGEN = ('jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif')
 # o de la camara del telefono. Nada ejecutable ni ofimatico.
 EXTENSIONES_RECIBO = ('pdf',) + EXTENSIONES_IMAGEN
 TAMANO_MAX_RECIBO = 10 * 1024 * 1024  # 10 MB
+# Lo que puede subir a su expediente: la foto de la INE o el PDF del banco. Se
+# declaran aparte de los recibos aunque hoy coincidan: son dos tramites y uno
+# puede endurecerse sin arrastrar al otro.
+EXTENSIONES_DOCUMENTO = ('pdf',) + EXTENSIONES_IMAGEN
+TAMANO_MAX_DOCUMENTO = 10 * 1024 * 1024  # 10 MB
 
 
 def _extension(nombre):
@@ -186,40 +205,133 @@ def _bloque_residente(f):
 
 
 def _referencias(f):
-    """Las 3 referencias personales, sin las vacias."""
+    """Las 3 referencias personales, incluidas las vacias.
+
+    Van SIEMPRE las tres (con su `indice`) porque la pantalla ahora edita: sin
+    el hueco no habria donde capturar una referencia que falta. Las vacias las
+    esconde el front en modo lectura.
+    """
     crudas = [
-        (f.n_ref1, f.p_ref1, f.tel_ref1),
-        (f.n_ref2, f.p_ref2, f.tel_ref2),
-        (f.n_ref3, f.p_ref3, f.tel_ref3),
+        (1, f.n_ref1, f.p_ref1, f.tel_ref1),
+        (2, f.n_ref2, f.p_ref2, f.tel_ref2),
+        (3, f.n_ref3, f.p_ref3, f.tel_ref3),
     ]
     return [
-        {'nombre': n or '', 'parentesco': p or '', 'telefono': str(t) if t else ''}
-        for n, p, t in crudas
-        if n or p or t
+        {'indice': i, 'nombre': n or '', 'parentesco': p or '',
+         'telefono': str(t) if t else ''}
+        for i, n, p, t in crudas
     ]
 
 
 def _ficha_publica(f, soy):
-    """Ficha vista por su dueno: su bloque completo, del otro solo el nombre."""
-    datos = {
+    """La ficha COMPLETA: los dos bloques y las referencias.
+
+    Hasta 2026-08-18 cada cuenta veia solo su mitad (del otro, el nombre). Ahora
+    las dos cuentas ligadas al mismo registro ven —y editan— la ficha entera:
+    son las dos partes del mismo contrato y comparten el tramite, igual que ya
+    comparten expediente, recibos e incidencias. `soy` se queda para la etiqueta
+    y para saber cual bloque es el propio.
+    """
+    return {
         'ficha_id': f.id,
         'soy': soy,
+        'arrendatario': _bloque_arrendatario(f),
+        'residente': _bloque_residente(f),
         'referencias': _referencias(f),
     }
-    if soy in (SOY_ARRENDATARIO, SOY_AMBOS):
-        datos['arrendatario'] = _bloque_arrendatario(f)
-    else:
-        datos['arrendatario'] = {'nombre': f.nombre_arrendatario or ''}
-    if soy in (SOY_RESIDENTE, SOY_AMBOS):
-        datos['residente'] = _bloque_residente(f)
-    else:
-        datos['residente'] = {'nombre': f.nombre_residente or ''}
-    return datos
 
 
-# Documentos del expediente. `propio_de` = a quien pertenece el archivo:
-#   'arrendatario' / 'residente' -> solo lo ve esa persona
-#   None                         -> del expediente, lo ven los dos
+# --------------------------------------------------------------------------- #
+# Candado de edicion de la ficha                                              #
+# --------------------------------------------------------------------------- #
+#
+# Regla del usuario (2026-08-18): la ficha se edita SOLO mientras no haya nada
+# emitido — contrato "Pendiente" o "En renovacion", y sin proceso de firma
+# abierto. En cuanto el documento sale a firmar o queda sellado, los datos se
+# congelan: lo que se cambie aqui NO cambia el PDF que ya se genero, asi que
+# editar solo abriria un desfase entre lo que dice el portal y lo que dice el
+# documento que la gente firmo.
+#
+# Basta con que UNO de sus contratos este en firma o sellado: la ficha es una
+# sola y alimenta a todos.
+
+def _texto_para(columna, valor, etiqueta):
+    """(texto limpio, error) para una columna de texto de `residentes`.
+
+    El tope de caracteres se lee del propio modelo en vez de repetirlo aqui: si
+    manana crece una columna, esto se entera solo. Truncar en silencio seria
+    peor que rechazar — la persona creeria que guardo su direccion completa.
+    """
+    v = ('' if valor is None else str(valor)).strip()
+    campo = Residentes._meta.get_field(columna)
+    tope = getattr(campo, 'max_length', None)
+    if tope and len(v) > tope:
+        return None, f'{etiqueta}: máximo {tope} caracteres.'
+    if v and isinstance(campo, EmailField):
+        try:
+            validate_email(v)
+        except ValidationError:
+            return None, f'{etiqueta}: el correo no tiene un formato válido.'
+    return v, None
+
+
+def _bloqueo_de_edicion(contratos):
+    """(clave, mensaje) del motivo que congela la ficha, o (None, None)."""
+    en_firma = vigente = firmado = terminado = None
+
+    for c in contratos:
+        rondas = list(c.rondas_firma.all())
+        pendiente = next((r for r in rondas if r.estado == 'pendiente'), None)
+        if pendiente is not None:
+            paquete = _paquete_en_proceso(pendiente)
+            que = 'la renovación' if pendiente.tipo == 'renovacion' else 'tu contrato'
+            en_firma = en_firma or ('en_firma', (
+                f'El Paquete {paquete} de {que} está en proceso de firma. '
+                f'Ese documento ya se envió a firmar y no cambia con lo que se '
+                f'edite aquí; si algo está mal, avísale a la administración de '
+                f'Fraterna antes de firmar.'))
+            continue
+
+        # 'en_renovacion' es justo el hueco donde SI se puede corregir: la
+        # renovacion se esta preparando y todavia no hay documento emitido.
+        if c.estado_contrato == 'en_renovacion':
+            continue
+
+        if c.estado_contrato == 'actual':
+            vigente = vigente or ('vigente', (
+                'Tu contrato está vigente. Tus datos son los que quedaron en el '
+                'documento firmado, así que ya no se pueden cambiar desde aquí: '
+                'para corregir algo, escríbele a la administración de Fraterna.'))
+            continue
+
+        if c.estado_contrato == 'expirado':
+            terminado = terminado or ('terminado', (
+                'Tu contrato ya terminó. Los datos quedan como se firmaron, de '
+                'registro; para cualquier corrección, escríbele a la '
+                'administración de Fraterna.'))
+            continue
+
+        # `estado_contrato` esta en NULL en 579 de 900 contratos (nunca se
+        # backfilleo), asi que el campo por si solo no distingue un borrador de
+        # un contrato ya firmado. La bitacora de rondas si: una ronda 'firmado'
+        # es un termino EN PIE, con su PDF, y esos datos tampoco se tocan.
+        if any(r.estado == 'firmado' for r in rondas):
+            firmado = firmado or ('firmado', (
+                'Ya hay un contrato firmado con estos datos, así que quedaron '
+                'sellados. Para corregir algo, escríbele a la administración de '
+                'Fraterna.'))
+
+    return en_firma or vigente or firmado or terminado or (None, None)
+
+
+# Documentos del expediente. `propio_de` = de quien es el archivo
+# ('arrendatario' / 'residente' / None = del expediente).
+#
+# Desde 2026-08-18 `propio_de` YA NO FILTRA: las dos cuentas de una ficha ven el
+# expediente entero y cualquiera de las dos puede subir o reemplazar cualquier
+# documento (regla del usuario, la misma que en recibos e incidencias). Se
+# conserva para etiquetar de quien es cada cosa en la pantalla.
+#
 # Convencion real de prod: `Ine` es la INE del ARRENDATARIO y `Ine_arr` la del
 # RESIDENTE. El nombre del campo miente; no invertir estas etiquetas.
 DOCUMENTOS = [
@@ -232,34 +344,69 @@ DOCUMENTOS = [
     ('Extras', 'Documentos extra', None, 'comentarios_extra'),
 ]
 
+# El mismo catalogo por campo, para validar lo que llega del formulario: subir a
+# un campo que no este aqui no es una operacion que exista.
+CAMPOS_DOCUMENTO = {
+    campo: (etiqueta, propio_de, comentario)
+    for campo, etiqueta, propio_de, comentario in DOCUMENTOS
+}
 
-def _documentos_publicos(expediente, soy):
-    """Documentos que esta persona puede ver de este expediente."""
+
+def _documento_publico(expediente, campo):
+    """Un documento del expediente, o None si ese campo esta vacio."""
+    etiqueta, propio_de, campo_comentario = CAMPOS_DOCUMENTO[campo]
     version = None
     if expediente.dateTimeOfUpload:
         version = int(expediente.dateTimeOfUpload.timestamp())
+    archivo = getattr(expediente, campo, None)
+    url = _url_archivo(archivo, version)
+    if not url:
+        return None
+    nombre = str(archivo).rsplit('/', 1)[-1]
+    return {
+        'campo': campo,
+        'etiqueta': etiqueta,
+        'propio_de': propio_de,
+        'tiene_archivo': True,
+        'nombre_archivo': nombre,
+        'url': url,
+        # El front decide con esto si pinta un <img> o un <iframe>: adivinar
+        # por la URL es fragil cuando lleva cache-buster.
+        'extension': _extension(nombre),
+        'es_imagen': _extension(nombre) in EXTENSIONES_IMAGEN,
+        'comentario': getattr(expediente, campo_comentario, None) or '',
+    }
 
+
+def _documentos_publicos(expediente):
+    """Los documentos que este expediente TIENE cargados (los vacios, no).
+
+    Los huecos se rellenan mas arriba, despues de juntar todas las filas: si un
+    campo vacio saliera de aqui, en el dedup de `mis_documentos` le ganaria a la
+    fila vieja que si tiene el archivo y el documento desapareceria.
+    """
     salida = []
-    for campo, etiqueta, propio_de, campo_comentario in DOCUMENTOS:
-        if propio_de and soy != SOY_AMBOS and propio_de != soy:
-            continue
-        archivo = getattr(expediente, campo, None)
-        url = _url_archivo(archivo, version)
-        if not url:
-            continue
-        nombre = str(archivo).rsplit('/', 1)[-1]
-        salida.append({
-            'campo': campo,
-            'etiqueta': etiqueta,
-            'nombre_archivo': nombre,
-            'url': url,
-            # El front decide con esto si pinta un <img> o un <iframe>: adivinar
-            # por la URL es fragil cuando lleva cache-buster.
-            'extension': _extension(nombre),
-            'es_imagen': _extension(nombre) in EXTENSIONES_IMAGEN,
-            'comentario': getattr(expediente, campo_comentario, None) or '',
-        })
+    for campo, _etiqueta, _propio_de, _comentario in DOCUMENTOS:
+        doc = _documento_publico(expediente, campo)
+        if doc:
+            salida.append(doc)
     return salida
+
+
+def _documento_vacio(campo):
+    """Hueco de un documento que todavia no se sube: la tarjeta con el boton."""
+    etiqueta, propio_de, _comentario = CAMPOS_DOCUMENTO[campo]
+    return {
+        'campo': campo,
+        'etiqueta': etiqueta,
+        'propio_de': propio_de,
+        'tiene_archivo': False,
+        'nombre_archivo': '',
+        'url': None,
+        'extension': '',
+        'es_imagen': False,
+        'comentario': '',
+    }
 
 
 # Las partes que se le muestran al residente. Fraterna (arrendador) y el
@@ -815,7 +962,12 @@ def _contrato_publico(c, soy):
 # --------------------------------------------------------------------------- #
 
 class PortalResidente(viewsets.ViewSet):
-    """Endpoints de lectura del portal. Solo GET, siempre acotados a request.user."""
+    """Pantallas del portal, siempre acotadas a request.user.
+
+    Todo es GET salvo `subir_documento`: la unica escritura de aqui es dejar un
+    archivo en un campo del expediente. Ni borrar documentos ni tocar los
+    comentarios de la administracion son operaciones que existan.
+    """
 
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -828,13 +980,72 @@ class PortalResidente(viewsets.ViewSet):
         )
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Lo unico editable de la ficha, y a que columna va cada cosa. Lo que no
+    # este en estos dos mapas NO es escribible desde el portal: las cuentas
+    # ligadas, el capturista, los ids y el estado del contrato quedan fuera por
+    # construccion, no por una lista de prohibidos que haya que mantener.
+    CAMPOS_ARRENDATARIO = {
+        'nombre': 'nombre_arrendatario',
+        'nacionalidad': 'nacionalidad_arrendatario',
+        'rfc': 'rfc_arrendatario',
+        'curp': 'curp',
+        'identificacion': 'identificacion_arrendatario',
+        'no_identificacion': 'no_ide_arrendatario',
+        'sexo': 'sexo_arrendatario',
+        'estado_civil': 'estado_civil',
+        'celular': 'celular_arrendatario',
+        'correo': 'correo_arrendatario',
+        'direccion': 'direccion_arrendatario',
+        'empleo': 'empleo',
+        'domicilio_empleo': 'domicilio_empleo',
+    }
+    CAMPOS_RESIDENTE = {
+        'nombre': 'nombre_residente',
+        'nacionalidad': 'nacionalidad_residente',
+        'identificacion': 'identificacion_residente',
+        'no_identificacion': 'no_ide_residente',
+        'sexo': 'sexo',
+        'fecha_nacimiento': 'fecha_nacimiento',
+        'edad': 'edad',
+        'celular': 'celular_residente',
+        'correo': 'correo_residente',
+        'direccion': 'direccion_residente',
+    }
+    # Van a columnas NOT NULL y son la identidad de las partes en el contrato:
+    # se pueden corregir, no vaciar.
+    NOMBRES_OBLIGATORIOS = ('nombre_arrendatario', 'nombre_residente')
+
+    def _bloqueos_por_ficha(self, fichas):
+        """{ficha_id: (clave, mensaje)} — el candado de cada ficha.
+
+        Una sola consulta para todas: `_paquete_en_proceso` mira los firmantes y
+        sin el prefetch serian tres viajes a la BD por contrato.
+        """
+        ids = [f.id for f in fichas]
+        por_ficha = {fid: [] for fid in ids}
+        for c in (FraternaContratos.objects
+                  .filter(residente_id__in=ids)
+                  .prefetch_related('rondas_firma__firmantes')):
+            por_ficha[c.residente_id].append(c)
+        return {fid: _bloqueo_de_edicion(cs) for fid, cs in por_ficha.items()}
+
     def mi_informacion(self, request):
-        """GET /portal/mi_informacion/ -> fichas ligadas a esta cuenta."""
+        """GET /portal/mi_informacion/ -> fichas ligadas a esta cuenta.
+
+        Cada ficha viaja completa (las dos partes) y declara si se puede editar
+        y, si no, por que: el front pinta con eso el boton o el aviso.
+        """
         try:
-            fichas = [
-                _ficha_publica(f, soy_en(f, request.user))
-                for f in fichas_de(request.user)
-            ]
+            registros = list(fichas_de(request.user))
+            bloqueos = self._bloqueos_por_ficha(registros)
+            fichas = []
+            for f in registros:
+                clave, mensaje = bloqueos.get(f.id, (None, None))
+                datos = _ficha_publica(f, soy_en(f, request.user))
+                datos['puede_editar'] = clave is None
+                datos['bloqueo'] = (None if clave is None
+                                    else {'motivo': clave, 'mensaje': mensaje})
+                fichas.append(datos)
             return Response({
                 'cuenta': {
                     'username': request.user.username,
@@ -847,8 +1058,150 @@ class PortalResidente(viewsets.ViewSet):
         except Exception as e:
             return self._fallo(e, 'mi_informacion')
 
+    def _cambios_de_ficha(self, datos):
+        """({columna: valor}, None) listo para escribir, o (None, error).
+
+        Lo que no este en los mapas se IGNORA en vez de reventar: el front manda
+        de vuelta el payload que recibio, y un campo de solo lectura colandose no
+        deberia tumbar el guardado. Lo que si se rechaza es un valor invalido.
+        """
+        cambios = {}
+
+        for bloque, mapa, quien in (
+            ('arrendatario', self.CAMPOS_ARRENDATARIO, 'Arrendatario'),
+            ('residente', self.CAMPOS_RESIDENTE, 'Residente'),
+        ):
+            enviado = datos.get(bloque)
+            if enviado is None:
+                continue
+            if not isinstance(enviado, dict):
+                return None, 'Los datos del %s tienen que venir en un objeto.' % bloque
+
+            for clave, valor in enviado.items():
+                columna = mapa.get(clave)
+                if not columna:
+                    continue
+
+                if columna == 'fecha_nacimiento':
+                    texto = ('' if valor is None else str(valor)).strip()
+                    if not texto:
+                        cambios[columna] = None
+                        continue
+                    fecha = parse_date(texto)
+                    if not fecha:
+                        return None, 'La fecha de nacimiento no es válida (formato AAAA-MM-DD).'
+                    cambios[columna] = fecha
+                    continue
+
+                etiqueta = '%s: %s' % (quien, clave.replace('_', ' '))
+                limpio, problema = _texto_para(columna, valor, etiqueta)
+                if problema:
+                    return None, problema
+                if columna in self.NOMBRES_OBLIGATORIOS and not limpio:
+                    return None, 'El nombre del %s no puede quedar vacío.' % bloque
+                cambios[columna] = limpio
+
+        # Referencias personales: siempre son tres y cada una dice cual es
+        # (`indice`), asi que corregir la 2 no arrastra a la 1 ni a la 3.
+        referencias = datos.get('referencias')
+        if referencias is not None:
+            if not isinstance(referencias, list):
+                return None, 'Las referencias tienen que venir en una lista.'
+            for posicion, ref in enumerate(referencias, start=1):
+                if not isinstance(ref, dict):
+                    return None, 'Cada referencia tiene que venir en un objeto.'
+                try:
+                    indice = int(ref.get('indice') or posicion)
+                except (TypeError, ValueError):
+                    return None, 'La referencia trae un índice que no es un número.'
+                if indice not in (1, 2, 3):
+                    return None, 'Solo hay tres referencias personales.'
+
+                for clave, columna in (('nombre', 'n_ref%d' % indice),
+                                       ('parentesco', 'p_ref%d' % indice)):
+                    if clave in ref:
+                        limpio, problema = _texto_para(
+                            columna, ref.get(clave),
+                            'Referencia %d: %s' % (indice, clave))
+                        if problema:
+                            return None, problema
+                        cambios[columna] = limpio
+
+                if 'telefono' in ref:
+                    crudo = '' if ref.get('telefono') is None else str(ref['telefono'])
+                    digitos = ''.join(c for c in crudo if c.isdigit())
+                    if crudo.strip() and not digitos:
+                        return None, ('El teléfono de la referencia %d no trae números.'
+                                      % indice)
+                    if len(digitos) > 15:
+                        return None, ('El teléfono de la referencia %d tiene demasiados '
+                                      'dígitos.' % indice)
+                    # La columna es BigInteger: se guarda solo el numero, sin
+                    # espacios ni guiones, y vacio es NULL (no cero).
+                    cambios['tel_ref%d' % indice] = int(digitos) if digitos else None
+
+        return cambios, None
+
+    def actualizar_informacion(self, request):
+        """PATCH /portal/mi_informacion/ -> corrige los datos de la ficha.
+
+        Las dos cuentas ligadas al registro editan LO MISMO: el bloque del
+        arrendatario, el del residente y las tres referencias. Quien puede
+        escribir no lo decide el rol sino el estado del contrato
+        (`_bloqueo_de_edicion`): con firma en curso o con documento sellado se
+        responde 403 con el motivo, para que la pantalla lo pueda explicar.
+
+        El correo que se edita aqui es el DEL CONTRATO. No es el de la cuenta
+        del portal: cambiarlo no cambia por donde entra ni a donde le llegan sus
+        credenciales.
+        """
+        try:
+            fichas = list(fichas_de(request.user))
+            if not fichas:
+                return Response({'error': 'Tu cuenta no está ligada a ningún registro.'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+            # Misma regla anti-IDOR de siempre: la ficha que manda el front solo
+            # sirve para elegir ENTRE LAS SUYAS.
+            pedida = request.data.get('ficha_id')
+            try:
+                ficha_id = int(pedida) if pedida else fichas[0].id
+            except (TypeError, ValueError):
+                ficha_id = fichas[0].id
+            ficha = next((f for f in fichas if f.id == ficha_id), fichas[0])
+
+            # El candado se comprueba AQUI. Que el front esconda el boton es
+            # comodidad; esto es lo que de verdad cierra la puerta.
+            clave, mensaje = self._bloqueos_por_ficha([ficha]).get(ficha.id, (None, None))
+            if clave:
+                return Response({'error': mensaje, 'motivo': clave},
+                                status=status.HTTP_403_FORBIDDEN)
+
+            cambios, problema = self._cambios_de_ficha(request.data)
+            if problema:
+                return Response({'error': problema}, status=status.HTTP_400_BAD_REQUEST)
+            if not cambios:
+                return Response({'error': 'No llegó ningún dato que cambiar.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            for columna, valor in cambios.items():
+                setattr(ficha, columna, valor)
+            ficha.save(update_fields=list(cambios.keys()))
+
+            datos = _ficha_publica(ficha, soy_en(ficha, request.user))
+            datos['puede_editar'] = True
+            datos['bloqueo'] = None
+            return Response(datos, status=status.HTTP_200_OK)
+        except Exception as e:
+            return self._fallo(e, 'actualizar_informacion')
+
     def mis_documentos(self, request):
-        """GET /portal/mis_documentos/ -> expediente visible por ficha."""
+        """GET /portal/mis_documentos/ -> expediente COMPLETO por ficha.
+
+        Las dos cuentas de una ficha ven lo mismo. Los documentos que faltan
+        viajan vacios (`tiene_archivo: False`) para que la pantalla ofrezca
+        subirlos: sin el hueco no habria donde colgar el boton.
+        """
         try:
             fichas = list(fichas_de(request.user))
             por_ficha = {f.id: soy_en(f, request.user) for f in fichas}
@@ -862,22 +1215,95 @@ class PortalResidente(viewsets.ViewSet):
             # con la mas reciente (el order_by de arriba la pone primero).
             acumulado = {fid: {} for fid in por_ficha}
             for exp in expedientes:
-                soy = por_ficha[exp.residente_id]
-                for doc in _documentos_publicos(exp, soy):
+                for doc in _documentos_publicos(exp):
                     acumulado[exp.residente_id].setdefault(doc['campo'], doc)
 
             salida = []
             for f in fichas:
+                cargados = acumulado[f.id]
                 salida.append({
                     'ficha_id': f.id,
+                    # `soy` ya no decide QUE se ve (el expediente se comparte
+                    # entero): sirve para la etiqueta de la pantalla.
                     'soy': por_ficha[f.id],
                     'nombre_arrendatario': f.nombre_arrendatario or '',
                     'nombre_residente': f.nombre_residente or '',
-                    'documentos': list(acumulado[f.id].values()),
+                    'documentos': [cargados.get(campo) or _documento_vacio(campo)
+                                   for campo, _e, _p, _c in DOCUMENTOS],
                 })
             return Response({'fichas': salida}, status=status.HTTP_200_OK)
         except Exception as e:
             return self._fallo(e, 'mis_documentos')
+
+    def subir_documento(self, request):
+        """POST /portal/mis_documentos/ -> sube o reemplaza UN documento.
+
+        Subir y reemplazar son la misma operacion: dejar el archivo en su campo.
+        BORRAR no existe a proposito (regla del usuario, 2026-08-18): el
+        expediente es la prueba de lo que se entrego y el portal no puede
+        vaciarlo — eso sigue siendo de la administracion.
+
+        Cualquiera de las dos cuentas de la ficha puede subir cualquier
+        documento, la INE de la otra parte incluida: son las dos caras del mismo
+        tramite y ya comparten el resto del expediente.
+
+        Misma regla anti-IDOR que en recibos: `ficha_id` solo sirve para elegir
+        ENTRE LAS SUYAS; una ajena cae en la primera propia, no en un 404 que
+        confirme que existe.
+        """
+        try:
+            campo = (request.data.get('campo') or '').strip()
+            if campo not in CAMPOS_DOCUMENTO:
+                return Response({'error': 'Ese documento no existe en el expediente.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            fichas = fichas_ids_de(request.user)
+            if not fichas:
+                return Response({'error': 'Tu cuenta no está ligada a ningún registro.'},
+                                status=status.HTTP_403_FORBIDDEN)
+            pedida = request.data.get('ficha_id')
+            try:
+                ficha_id = int(pedida) if pedida else fichas[0]
+            except (TypeError, ValueError):
+                ficha_id = fichas[0]
+            if ficha_id not in fichas:
+                ficha_id = fichas[0]
+
+            archivo = request.FILES.get('archivo')
+            if not archivo:
+                return Response({'error': 'Falta el archivo.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            if archivo.size > TAMANO_MAX_DOCUMENTO:
+                return Response(
+                    {'error': f'El archivo pesa más de {TAMANO_MAX_DOCUMENTO // (1024 * 1024)} MB.'},
+                    status=status.HTTP_400_BAD_REQUEST)
+            if _extension(archivo.name) not in EXTENSIONES_DOCUMENTO:
+                return Response({'error': 'Formato no permitido. Sube un PDF o una foto (JPG, PNG).'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Se escribe SIEMPRE en la fila mas reciente de la ficha, que es la
+            # que gana el dedup de `mis_documentos`: asi lo que se acaba de subir
+            # es lo que se ve. Si la ficha no tiene expediente todavia, se crea.
+            expediente = (DocumentosResidentes.objects
+                          .filter(residente_id=ficha_id).order_by('-id').first())
+            if expediente is None:
+                expediente = DocumentosResidentes(residente_id=ficha_id, user=request.user)
+
+            # El archivo anterior NO se borra de S3 aunque cambie de extension:
+            # las keys viejas (esquema por nombre de residente) pueden estar
+            # COMPARTIDAS entre registros, y borrar una dejaria sin documento a
+            # un expediente ajeno. Con el esquema nuevo la key es fija por campo,
+            # asi que reemplazar sobrescribe y no queda residuo. El save() ademas
+            # mueve `dateTimeOfUpload`, que es el cache-buster de las URLs.
+            setattr(expediente, campo, archivo)
+            expediente.save()
+
+            return Response({
+                'ficha_id': ficha_id,
+                'documento': _documento_publico(expediente, campo),
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return self._fallo(e, 'subir_documento')
 
     def mis_contratos(self, request):
         """GET /portal/mis_contratos/ -> contratos, firma en curso y renovaciones."""
@@ -1019,9 +1445,28 @@ class PortalResidente(viewsets.ViewSet):
 # Recibos de pago — LO UNICO que el residente puede escribir                  #
 # --------------------------------------------------------------------------- #
 
+def _quien_subio(r, cuenta_id):
+    """(clave, nombre) de quien subio el recibo, en terminos del portal.
+
+    Desde que las dos cuentas de una ficha comparten la lista (ver `_visibles`),
+    "no es mio" ya no significa "lo cargo la administracion": puede ser de la otra
+    parte del contrato, y la tarjeta tiene que poder decir de quien es.
+    """
+    if r.user_id and r.user_id == cuenta_id:
+        return 'yo', 'Tú'
+    ficha = r.residente
+    if r.user_id and ficha:
+        if r.user_id == ficha.arrendatario_cuenta_id:
+            return SOY_ARRENDATARIO, (ficha.nombre_arrendatario or '').strip() or 'El arrendatario'
+        if r.user_id == ficha.residente_cuenta_id:
+            return SOY_RESIDENTE, (ficha.nombre_residente or '').strip() or 'El residente'
+    return 'administracion', 'La administración'
+
+
 def _recibo_publico(r, cuenta_id):
     """Un recibo visto por el residente. `mio` decide si puede editarlo/borrarlo."""
     mio = r.user_id == cuenta_id
+    subido_por, subido_por_nombre = _quien_subio(r, cuenta_id)
     nombre = str(r.archivo).rsplit('/', 1)[-1] if r.archivo else ''
     ext = _extension(nombre)
     return {
@@ -1036,11 +1481,15 @@ def _recibo_publico(r, cuenta_id):
         'fecha_pago': _fecha(r.fecha_pago),
         'referencia': r.referencia or '',
         'comentarios': r.comentarios or '',
-        'fecha_subida': r.fecha_subida.isoformat() if r.fecha_subida else None,
+        # Sello automatico: cuando entro el comprobante al sistema. Lo pone la
+        # BD (auto_now_add), no el formulario, asi que no se puede maquillar.
+        'fecha_subida': _fecha_hora(r.fecha_subida),
         'aprobado': r.aprobado,
-        'fecha_aprobacion': r.fecha_aprobacion.isoformat() if r.fecha_aprobacion else None,
-        # Quien lo subio, en terminos del portal: 'yo' o 'la administracion'.
+        'fecha_aprobacion': _fecha_hora(r.fecha_aprobacion),
+        # Quien lo subio: 'yo' | 'arrendatario' | 'residente' | 'administracion'.
         'lo_subi_yo': mio,
+        'subido_por': subido_por,
+        'subido_por_nombre': subido_por_nombre,
         # Un recibo aprobado queda congelado: cambiarle el archivo despues de que
         # Fraterna lo dio por bueno seria cambiar la evidencia de un pago ya
         # validado. El backend lo vuelve a comprobar en cada PATCH/DELETE.
@@ -1052,10 +1501,9 @@ class PortalRecibos(viewsets.ViewSet):
     """Recibos de pago del portal: el UNICO punto de escritura que tiene el residente.
 
     Que puede hacer y que no:
-      · VE los recibos de sus fichas que subio EL, mas los que cargo la
-        administracion a esa ficha. Los que subio la OTRA parte del contrato
-        (arrendatario vs residente) no los ve — es la misma separacion que en
-        documentos.
+      · VE todos los recibos de sus fichas: los suyos, los de la OTRA parte del
+        contrato y los de la administracion (regla del usuario, 2026-08-18, la
+        misma que en incidencias). Quien lo subio viaja en `subido_por`.
       · SUBE recibos nuevos. `residente`, `contrato` y `user` los pone el
         servidor desde el token; mandar otra ficha en el body no sirve de nada.
       · EDITA / BORRA solo los suyos y solo mientras no esten aprobados.
@@ -1079,24 +1527,21 @@ class PortalRecibos(viewsets.ViewSet):
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def _visibles(self, user):
-        """Recibos que esta cuenta puede ver.
+        """Recibos que esta cuenta puede ver: TODOS los de sus fichas.
 
-        Los suyos, mas los que subio la administracion a sus fichas (`user` es
-        una cuenta que NO es del portal, o quedo en NULL). Sin esta segunda
-        mitad, un recibo que Fraterna cargue por el residente le seria invisible
-        y acabaria subiendo un duplicado.
+        Arrendatario y residente de una misma ficha ven los mismos recibos, los
+        haya subido cualquiera de los dos o la administracion: es el pago del
+        mismo contrato, y esconderle a uno el comprobante del otro solo provoca
+        duplicados. Verlo no es poder tocarlo — editar y borrar siguen siendo
+        solo lo propio (`_mio_editable`, sin cambios).
         """
         fichas = fichas_ids_de(user)
         if not fichas:
             return RecibosPolizaResidente.objects.none()
-        de_la_administracion = (
-            Q(user__isnull=True) | ~Q(user__rol=ROL_PORTAL)
-        )
         return (
             RecibosPolizaResidente.objects
             .filter(residente_id__in=fichas)
-            .filter(Q(user=user) | de_la_administracion)
-            .select_related('user')
+            .select_related('user', 'residente')
             .order_by('-fecha_pago', '-fecha_subida')
         )
 
@@ -1116,8 +1561,12 @@ class PortalRecibos(viewsets.ViewSet):
         return recibo, None
 
     @staticmethod
-    def _limpiar_campos(datos):
-        """Normaliza lo que llega del formulario. Devuelve (valores, error)."""
+    def _limpiar_campos(datos, exigir_fecha=False):
+        """Normaliza lo que llega del formulario. Devuelve (valores, error).
+
+        `exigir_fecha` la vuelve obligatoria: un comprobante sin fecha de pago no
+        se puede casar con ningun mes, que es justo para lo que se sube.
+        """
         valores = {}
         monto = (datos.get('monto') or '').strip()
         if monto:
@@ -1126,6 +1575,8 @@ class PortalRecibos(viewsets.ViewSet):
             except (InvalidOperation, AttributeError):
                 return None, 'El monto no es un número válido.'
         fecha_pago = (datos.get('fecha_pago') or '').strip()
+        if not fecha_pago and exigir_fecha:
+            return None, 'La fecha de pago es obligatoria.'
         if fecha_pago:
             # Parsear aqui, no dejarselo al save(): Django acepta el string y lo
             # convierte al escribir, pero el objeto en memoria se queda con el
@@ -1198,7 +1649,7 @@ class PortalRecibos(viewsets.ViewSet):
             if problema:
                 return Response({'error': problema}, status=status.HTTP_400_BAD_REQUEST)
 
-            valores, problema = self._limpiar_campos(request.data)
+            valores, problema = self._limpiar_campos(request.data, exigir_fecha=True)
             if problema:
                 return Response({'error': problema}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1229,7 +1680,10 @@ class PortalRecibos(viewsets.ViewSet):
             if problema:
                 return Response({'error': problema}, status=status.HTTP_403_FORBIDDEN)
 
-            valores, problema = self._limpiar_campos(request.data)
+            # En un PATCH la fecha solo es obligatoria si viene en el body: no
+            # mandarla es "no la toques", pero mandarla vacia seria borrarla.
+            valores, problema = self._limpiar_campos(
+                request.data, exigir_fecha='fecha_pago' in request.data)
             if problema:
                 return Response({'error': problema}, status=status.HTTP_400_BAD_REQUEST)
             for campo, valor in valores.items():

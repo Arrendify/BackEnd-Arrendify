@@ -125,8 +125,16 @@ urlpatterns = [
 
     # PORTAL DEL RESIDENTE (solo lectura; el universo sale de request.user, nunca
     # de un id del request). Solo GET a proposito: aqui nadie modifica nada.
-    path('portal/mi_informacion/', PortalResidente.as_view({'get': 'mi_informacion'}), name='portal_mi_informacion'),
-    path('portal/mis_documentos/', PortalResidente.as_view({'get': 'mis_documentos'}), name='portal_mis_documentos'),
+    # PATCH = corregir los datos de la ficha, y solo si el contrato lo
+    # permite (ver _bloqueo_de_edicion). Sin POST ni DELETE: la ficha no se
+    # crea ni se borra desde el portal.
+    path('portal/mi_informacion/', PortalResidente.as_view(
+        {'get': 'mi_informacion', 'patch': 'actualizar_informacion'}),
+        name='portal_mi_informacion'),
+    # POST = subir/reemplazar UN documento del expediente. No hay DELETE: el
+    # portal no puede vaciar un expediente (ver subir_documento).
+    path('portal/mis_documentos/', PortalResidente.as_view(
+        {'get': 'mis_documentos', 'post': 'subir_documento'}), name='portal_mis_documentos'),
     path('portal/mis_contratos/', PortalResidente.as_view({'get': 'mis_contratos'}), name='portal_mis_contratos'),
     # El documento del contrato para verlo en pantalla: el PDF firmado si ya lo
     # hay, o la plantilla rendida en vivo (lo mismo que se manda a firmar).
