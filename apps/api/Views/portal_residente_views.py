@@ -41,7 +41,7 @@ from decimal import Decimal, InvalidOperation
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.core.validators import validate_email
-from django.db.models import EmailField, Q
+from django.db.models import EmailField, F, Q
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -55,6 +55,9 @@ from pypdf import PdfReader, PdfWriter
 from ...home.models import (
     DocumentosResidentes, FraternaContratos, FraternaRondaFirma,
     IncidenciasFraterna, RecibosPolizaResidente, Residentes,
+)
+from ..utils.calendario_pagos import (
+    estado_de_cuenta, nombre_mes, periodo_a_imputar, renta_mensual, tramos,
 )
 from ..utils.demo_mode import marca_para
 from .fraterna_views import eliminar_archivo_s3
@@ -1441,6 +1444,87 @@ class PortalResidente(viewsets.ViewSet):
         return (contrato or max(contratos, key=_orden_de_vigencia)), None
 
 
+def _mis_contratos(user):
+    return (
+        FraternaContratos.objects
+        .filter(residente_id__in=fichas_ids_de(user))
+        .prefetch_related('rondas_firma')
+        .order_by('-id')
+    )
+
+
+def contratos_para_select(user):
+    """Sus contratos, para que un formulario del portal ofrezca a cual ligarse.
+
+    Sale de sus fichas, nunca de un id del cliente: elegir uno ajeno no es
+    una operacion que exista. Lo usan incidencias (a que contrato se refiere
+    el reporte) y recibos, que ademas necesita el detalle de `periodos`.
+    """
+    salida = []
+    for c in _mis_contratos(user):
+        mensual = renta_mensual(c)
+        salida.append({
+            'contrato_id': c.id,
+            'ficha_id': c.residente_id,
+            'departamento': c.no_depa or '',
+            'cama': c.cama or '',
+            'vigente': (c.estado_contrato or '') == 'actual',
+            'renta_mensual': str(mensual) if mensual is not None else '',
+            'desde': _fecha(c.fecha_move_in),
+            'hasta': _fecha(c.fecha_vigencia),
+        })
+    return salida
+
+
+def periodos_para_select(user):
+    """Las opciones del selector al subir un recibo: un PERIODO CONTRACTUAL.
+
+    No es la fila del contrato sino cada tramo firmado —"Depto 612 · Cama A ·
+    sep 2025 – ago 2026"— porque es lo que el residente reconoce y lo que
+    define con que renta se cobra. Cada opcion carga las DOS ligas
+    (`contrato_id` y `ronda_id`), asi el recibo queda pegado a su periodo sin
+    que el residente tenga que saber que existe una ronda de firma.
+    """
+    opciones = []
+    for c in _mis_contratos(user):
+        vigente = (c.estado_contrato or '') == 'actual'
+        # Solo lo COBRABLE: un contrato sin ronda firmada no tiene meses a los
+        # cuales aplicar el pago, y el POST lo rechaza (regla del usuario,
+        # 2026-08-18). Ofrecerlo en el selector seria ofrecer un error.
+        for t in tramos(c):
+            opciones.append({
+                'contrato_id': c.id,
+                'ronda_id': t['ronda_id'],
+                'ficha_id': c.residente_id,
+                'etiqueta': t['etiqueta'],
+                'periodo_texto': t['periodo_texto'],
+                'tipo': t['tipo'] or 'inicial',
+                'fuente': t['fuente'],
+                'vigente': vigente,
+                'renta_mensual': (str(t['renta_mensual'])
+                                  if t['renta_mensual'] is not None else ''),
+                'desde': t['desde'].isoformat(),
+                'hasta': t['hasta'].isoformat(),
+                'meses': len(t['meses']),
+            })
+    # El periodo mas reciente primero: es el que casi siempre va a pagar.
+    opciones.sort(key=lambda o: (o['vigente'], o['desde']), reverse=True)
+    return opciones
+
+
+def contrato_de_los_suyos(user, contrato_id):
+    """El contrato `contrato_id` solo si es de una de sus fichas. Si no, None."""
+    try:
+        cid = int(contrato_id)
+    except (TypeError, ValueError):
+        return None
+    return (
+        FraternaContratos.objects
+        .filter(id=cid, residente_id__in=fichas_ids_de(user))
+        .first()
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Recibos de pago — LO UNICO que el residente puede escribir                  #
 # --------------------------------------------------------------------------- #
@@ -1481,6 +1565,13 @@ def _recibo_publico(r, cuenta_id):
         'fecha_pago': _fecha(r.fecha_pago),
         'referencia': r.referencia or '',
         'comentarios': r.comentarios or '',
+        # Mes que cubre el comprobante. Lo pone el servidor al subir; el
+        # residente no lo elige (ver `periodo_a_imputar`).
+        'periodo': _fecha(r.periodo),
+        'periodo_texto': nombre_mes(r.periodo),
+        # Periodo contractual (ronda firmada) al que pertenece el pago: de ahi
+        # salen la renta y la vigencia con las que se cobra ese mes.
+        'ronda_id': r.ronda_id,
         # Sello automatico: cuando entro el comprobante al sistema. Lo pone la
         # BD (auto_now_add), no el formulario, asi que no se puede maquillar.
         'fecha_subida': _fecha_hora(r.fecha_subida),
@@ -1490,10 +1581,13 @@ def _recibo_publico(r, cuenta_id):
         'lo_subi_yo': mio,
         'subido_por': subido_por,
         'subido_por_nombre': subido_por_nombre,
+        # 'aprobado' | 'en_revision': lo que pinta el badge de la tarjeta. Solo
+        # lo aprobado por Fraterna baja el adeudo del estado de cuenta.
+        'estado': 'aprobado' if r.aprobado else 'en_revision',
         # Un recibo aprobado queda congelado: cambiarle el archivo despues de que
         # Fraterna lo dio por bueno seria cambiar la evidencia de un pago ya
         # validado. El backend lo vuelve a comprobar en cada PATCH/DELETE.
-        'puedo_editarlo': mio and not r.aprobado,
+        'puedo_editarlo': not r.aprobado,
     }
 
 
@@ -1504,9 +1598,15 @@ class PortalRecibos(viewsets.ViewSet):
       · VE todos los recibos de sus fichas: los suyos, los de la OTRA parte del
         contrato y los de la administracion (regla del usuario, 2026-08-18, la
         misma que en incidencias). Quien lo subio viaja en `subido_por`.
-      · SUBE recibos nuevos. `residente`, `contrato` y `user` los pone el
-        servidor desde el token; mandar otra ficha en el body no sirve de nada.
-      · EDITA / BORRA solo los suyos y solo mientras no esten aprobados.
+      · SUBE recibos nuevos. Lo unico que aporta es el ARCHIVO y a que
+        contrato pertenece (y solo entre los suyos; uno ajeno cae al que le
+        toca en silencio). `residente`, `user`, `ronda` y `periodo` los
+        resuelve el servidor, y el `monto` lo captura Fraterna al revisar.
+      · NO puede subir nada si no tiene un contrato FIRMADO (409): sin
+        mensualidades a las cuales aplicarlo, el comprobante quedaria colgado.
+      · EDITA / BORRA cualquiera de su ficha mientras Fraterna no lo apruebe
+        (regla del usuario, 2026-08-18): las dos cuentas comparten el tramite,
+        igual que en documentos e incidencias. Aprobado = congelado.
       · NUNCA toca `aprobado`, `fecha_aprobacion` ni `aprobado_por`: la revision
         es de Fraterna. No estan en la lista de campos escribibles.
     """
@@ -1515,8 +1615,14 @@ class PortalRecibos(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
-    # Lo unico que el residente puede escribir de un recibo.
-    CAMPOS_EDITABLES = ('monto', 'fecha_pago', 'referencia', 'comentarios')
+    # El residente NO escribe NINGUN dato del recibo (decision del usuario,
+    # 2026-08-18): entrega el comprobante y dice a que contrato pertenece, y
+    # ya. El `monto` lo captura Fraterna al revisarlo — es su lectura del
+    # documento, no lo que el residente diga que pago; la fecha la sustituye
+    # el sello `fecha_subida` (que no se puede maquillar); el mes que cubre lo
+    # calcula el servidor; y referencia/comentarios se quitaron por no usarse.
+    # Las columnas siguen existiendo para el modulo del operador.
+    CAMPOS_EDITABLES = ()
 
     def _fallo(self, e, donde):
         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1542,52 +1648,44 @@ class PortalRecibos(viewsets.ViewSet):
             RecibosPolizaResidente.objects
             .filter(residente_id__in=fichas)
             .select_related('user', 'residente')
-            .order_by('-fecha_pago', '-fecha_subida')
+            # Por mes cubierto, del mas reciente al mas viejo. `nulls_last`
+            # porque los recibos que cargo la administracion no traen periodo
+            # y en un DESC de Postgres los NULL se irian hasta arriba.
+            .order_by(F('periodo').desc(nulls_last=True), '-fecha_subida')
         )
 
     def _mio_editable(self, user, pk):
-        """El recibo `pk` si es suyo Y todavia se puede tocar. Si no, (None, motivo)."""
+        """El recibo `pk` si se puede tocar. Si no, (None, motivo).
+
+        El candado es la FICHA y la APROBACION, no quien lo subio: arrendatario
+        y residente son las dos caras del mismo tramite y ya comparten
+        documentos e incidencias. Lo que protege la evidencia es `aprobado`:
+        una vez que Fraterna lo dio por bueno, queda congelado para todos.
+        """
         recibo = (
             RecibosPolizaResidente.objects
             .filter(pk=pk, residente_id__in=fichas_ids_de(user))
             .first()
         )
         if not recibo:
-            return None, 'Ese recibo no existe o no es tuyo.'
-        if recibo.user_id != user.id:
-            return None, 'Solo puedes modificar los recibos que tú subiste.'
+            return None, 'Ese recibo no existe o no es de tu registro.'
         if recibo.aprobado:
             return None, 'Este recibo ya fue aprobado por la administración y no se puede modificar.'
         return recibo, None
 
     @staticmethod
-    def _limpiar_campos(datos, exigir_fecha=False):
-        """Normaliza lo que llega del formulario. Devuelve (valores, error).
+    def _limpiar_campos(datos):
+        """Lo que el formulario puede escribir: NADA (ver CAMPOS_EDITABLES).
 
-        `exigir_fecha` la vuelve obligatoria: un comprobante sin fecha de pago no
-        se puede casar con ningun mes, que es justo para lo que se sube.
+        Se conserva como un solo lugar por el que pasa todo el body, para que
+        agregar un campo escribible manana sea una linea aqui y no un
+        `setattr` suelto. Lo que llegue y no este declarado se ignora en vez
+        de reventar: el front reenvia el payload completo que recibio.
         """
         valores = {}
-        monto = (datos.get('monto') or '').strip()
-        if monto:
-            try:
-                valores['monto'] = Decimal(monto.replace(',', '').replace('$', ''))
-            except (InvalidOperation, AttributeError):
-                return None, 'El monto no es un número válido.'
-        fecha_pago = (datos.get('fecha_pago') or '').strip()
-        if not fecha_pago and exigir_fecha:
-            return None, 'La fecha de pago es obligatoria.'
-        if fecha_pago:
-            # Parsear aqui, no dejarselo al save(): Django acepta el string y lo
-            # convierte al escribir, pero el objeto en memoria se queda con el
-            # str y revienta al serializarlo de vuelta (.isoformat sobre un str).
-            fecha = parse_date(fecha_pago)
-            if not fecha:
-                return None, 'La fecha de pago no es válida (formato AAAA-MM-DD).'
-            valores['fecha_pago'] = fecha
-        for campo in ('referencia', 'comentarios'):
+        for campo in PortalRecibos.CAMPOS_EDITABLES:
             if campo in datos:
-                valores[campo] = (datos.get(campo) or '').strip()
+                valores[campo] = datos.get(campo)
         return valores, None
 
     @staticmethod
@@ -1615,7 +1713,14 @@ class PortalRecibos(viewsets.ViewSet):
                 for f in fichas_de(request.user)
             ]
             return Response(
-                {'recibos': recibos, 'fichas': fichas, 'total': len(recibos)},
+                {
+                    'recibos': recibos,
+                    'fichas': fichas,
+                    # A que PERIODO ligar el pago (contrato + ronda). Sustituyo
+                    # al campo libre de 'referencia', que nadie llenaba.
+                    'periodos': periodos_para_select(request.user),
+                    'total': len(recibos),
+                },
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
@@ -1631,15 +1736,21 @@ class PortalRecibos(viewsets.ViewSet):
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-            # La ficha llega del formulario solo para elegir ENTRE LAS SUYAS; si
-            # manda una ajena (o ninguna) cae en la primera propia.
-            pedida = request.data.get('ficha_id')
-            try:
-                ficha_id = int(pedida) if pedida else fichas[0]
-            except (TypeError, ValueError):
-                ficha_id = fichas[0]
-            if ficha_id not in fichas:
-                ficha_id = fichas[0]
+            # El periodo lo elige el residente en el formulario, pero SOLO
+            # entre los suyos: uno ajeno se descarta y cae al que le toca.
+            # Del contrato sale tambien la ficha (un contrato pertenece a una),
+            # asi que ya no hay dos selects que puedan contradecirse.
+            contrato = contrato_de_los_suyos(request.user, request.data.get('contrato_id'))
+            if contrato:
+                ficha_id = contrato.residente_id
+            else:
+                pedida = request.data.get('ficha_id')
+                try:
+                    ficha_id = int(pedida) if pedida else fichas[0]
+                except (TypeError, ValueError):
+                    ficha_id = fichas[0]
+                if ficha_id not in fichas:
+                    ficha_id = fichas[0]
 
             archivo = request.FILES.get('archivo')
             if not archivo:
@@ -1649,23 +1760,68 @@ class PortalRecibos(viewsets.ViewSet):
             if problema:
                 return Response({'error': problema}, status=status.HTTP_400_BAD_REQUEST)
 
-            valores, problema = self._limpiar_campos(request.data, exigir_fecha=True)
+            valores, problema = self._limpiar_campos(request.data)
             if problema:
                 return Response({'error': problema}, status=status.HTTP_400_BAD_REQUEST)
 
-            # El contrato tampoco se acepta del cliente: se toma el vigente de esa
-            # ficha (o el mas reciente), para que el recibo quede en su contexto.
-            de_la_ficha = FraternaContratos.objects.filter(residente_id=ficha_id)
-            contrato = (
-                de_la_ficha.filter(estado_contrato='actual').order_by('-id').first()
-                or de_la_ficha.order_by('-id').first()
+            # Sin contrato elegido (o con uno ajeno, que se descarta): el primero
+            # COBRABLE de TODAS sus fichas — el que el selector habria puesto
+            # hasta arriba. Buscarlo solo en `ficha_id` dejaba fuera al residente
+            # cuyo unico contrato firmado cuelga de su otra ficha.
+            if contrato is None:
+                cobrables = [
+                    c for c in FraternaContratos.objects
+                    .filter(residente_id__in=fichas).prefetch_related('rondas_firma')
+                    if tramos(c)
+                ]
+                contrato = (max(cobrables, key=_orden_de_vigencia)
+                            if cobrables else None)
+                if contrato is not None:
+                    ficha_id = contrato.residente_id
+
+            # SIN CONTRATO FIRMADO NO SE SUBEN RECIBOS (regla del usuario,
+            # 2026-08-18). Antes se aceptaba y el comprobante quedaba colgado:
+            # sin mensualidades a las cuales aplicarse, nadie lo revisaba y el
+            # residente creia haber pagado. El boton del portal tambien se
+            # apaga, pero eso es comodidad — el candado es este.
+            if contrato is None or not tramos(contrato):
+                return Response(
+                    {'error': 'No tienes contratos vigentes donde subir recibos '
+                              'de pago. En cuanto tu contrato quede firmado podrás '
+                              'subir tus comprobantes.',
+                     'motivo': 'sin_contrato_firmado'},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            # La ronda que eligio (el periodo del select), validada contra ESE
+            # contrato: una ronda de otro no se acepta ni aunque exista.
+            ronda_id = None
+            pedida = request.data.get('ronda_id')
+            if contrato and pedida:
+                try:
+                    candidata = int(pedida)
+                except (TypeError, ValueError):
+                    candidata = None
+                if candidata and contrato.rondas_firma.filter(id=candidata).exists():
+                    ronda_id = candidata
+
+            # Que mes cubre: lo decide el servidor con el calendario del
+            # periodo, contra los comprobantes que ya existen. El formulario
+            # no lo pregunta y mandarlo en el body no sirve de nada.
+            previos = (
+                list(RecibosPolizaResidente.objects.filter(contrato=contrato))
+                if contrato else []
             )
+            ronda_calculada, periodo = periodo_a_imputar(
+                contrato, previos, ronda_id=ronda_id)
 
             recibo = RecibosPolizaResidente.objects.create(
                 user=request.user,
                 residente_id=ficha_id,
                 contrato=contrato,
+                ronda_id=ronda_id or ronda_calculada,
                 archivo=archivo,
+                periodo=periodo,
                 **valores,
             )
             return Response(_recibo_publico(recibo, request.user.id),
@@ -1680,10 +1836,7 @@ class PortalRecibos(viewsets.ViewSet):
             if problema:
                 return Response({'error': problema}, status=status.HTTP_403_FORBIDDEN)
 
-            # En un PATCH la fecha solo es obligatoria si viene en el body: no
-            # mandarla es "no la toques", pero mandarla vacia seria borrarla.
-            valores, problema = self._limpiar_campos(
-                request.data, exigir_fecha='fecha_pago' in request.data)
+            valores, problema = self._limpiar_campos(request.data)
             if problema:
                 return Response({'error': problema}, status=status.HTTP_400_BAD_REQUEST)
             for campo, valor in valores.items():
@@ -1708,6 +1861,95 @@ class PortalRecibos(viewsets.ViewSet):
                             status=status.HTTP_200_OK)
         except Exception as e:
             return self._fallo(e, 'partial_update')
+
+    def estado_cuenta(self, request):
+        """GET /portal/mi_estado_cuenta/ — cuanto debe, de que meses y que sigue.
+
+        Un bloque por contrato: una ficha puede tener varios (53 tienen dos,
+        y hasta cinco en un caso), y cada uno corre su propio calendario.
+        Nada de esto vive en una tabla: se calcula al vuelo con la misma
+        regla que imprime sus pagares (ver utils/calendario_pagos.py).
+        """
+        try:
+            fichas = fichas_ids_de(request.user)
+            if not fichas:
+                return Response(
+                    {'error': 'Tu cuenta no está ligada a ningún registro.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            recibos = list(self._visibles(request.user))
+            por_contrato = {}
+            for r in recibos:
+                por_contrato.setdefault(r.contrato_id, []).append(r)
+
+            contratos = sorted(_mis_contratos(request.user),
+                               key=_orden_de_vigencia, reverse=True)
+
+            bloques = []
+            saldo_total = en_revision_total = total_general = Decimal('0')
+            for c in contratos:
+                bloque = estado_de_cuenta(c, por_contrato.get(c.id, []))
+                bloque.update({
+                    'ficha_id': c.residente_id,
+                    'departamento': c.no_depa or '',
+                    'cama': c.cama or '',
+                    'vigente': (c.estado_contrato or '') == 'actual',
+                    'desde': _fecha(c.fecha_move_in),
+                    'hasta': _fecha(c.fecha_vigencia),
+                })
+                saldo_total += Decimal(bloque['saldo'])
+                en_revision_total += Decimal(bloque['saldo_en_revision'])
+                total_general += Decimal(bloque.get('total') or '0')
+                bloques.append(bloque)
+
+            # Los comprobantes que cargo la administracion sin contrato no caen
+            # en ningun calendario. Se declaran para que la pantalla pueda
+            # decirlo en vez de dejarlos desaparecer de la cuenta.
+            sueltos = len(por_contrato.get(None, []))
+
+            return Response({
+                'contratos': bloques,
+                'saldo_total': str(saldo_total),
+                'saldo_en_revision_total': str(en_revision_total),
+                # Lo que costaran sus contratos completos, sumadas todas las
+                # mensualidades (no solo las vencidas).
+                'total_a_pagar': str(total_general),
+                'recibos_sin_contrato': sueltos,
+                'aviso': self._aviso(bloques, saldo_total, en_revision_total),
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return self._fallo(e, 'estado_cuenta')
+
+    @staticmethod
+    def _aviso(bloques, saldo, en_revision):
+        """El mensaje de arriba de la pantalla, en un solo criterio.
+
+        Se arma en el backend a proposito: el front pinta lo que reciba, y asi
+        el dia que cambie la regla no hay dos versiones del mismo texto.
+        """
+        cobrables = [b for b in bloques if b['hay_calendario']]
+        if not cobrables:
+            # Ningun contrato firmado: no hay nada que cobrar y decir "estas al
+            # corriente" seria afirmar algo que no sabemos.
+            return {'tipo': 'sin_calendario',
+                    'texto': (bloques[0]['motivo'] if bloques else
+                              'Todavía no hay un contrato firmado del que calcular '
+                              'tus mensualidades.')}
+        pendientes = [b for b in bloques if b['mes_a_pagar']]
+        if pendientes:
+            b = pendientes[0]
+            meses = sum(x['meses_vencidos'] for x in pendientes)
+            if meses == 1:
+                texto = f"Te falta el recibo de {b['mes_a_pagar_texto'].lower()}."
+            else:
+                texto = (f"Tienes {meses} mensualidades sin comprobante "
+                         f"aprobado, la más antigua es {b['mes_a_pagar_texto'].lower()}.")
+            return {'tipo': 'debe', 'texto': texto}
+        if en_revision > 0:
+            return {'tipo': 'en_revision',
+                    'texto': 'Ya subiste tus comprobantes; Fraterna los está revisando.'}
+        return {'tipo': 'al_corriente', 'texto': 'Estás al corriente con tus pagos.'}
 
     def destroy(self, request, pk=None):
         """DELETE /portal/mis_recibos/<id>/"""
@@ -1821,22 +2063,12 @@ class PortalIncidencias(viewsets.ViewSet):
         )
 
     def _contratos_para_el_select(self, user):
-        """Sus contratos, para que el form ofrezca a cual ligar la incidencia."""
-        contratos = (
-            FraternaContratos.objects
-            .filter(residente_id__in=fichas_ids_de(user))
-            .order_by('-id')
-        )
-        return [
-            {
-                'contrato_id': c.id,
-                'ficha_id': c.residente_id,
-                'departamento': c.no_depa or '',
-                'cama': c.cama or '',
-                'vigente': (c.estado_contrato or '') == 'actual',
-            }
-            for c in contratos
-        ]
+        """Sus contratos, para que el form ofrezca a cual ligar la incidencia.
+
+        Mismo helper que usan los recibos: una sola definicion de "cuales son
+        sus contratos" para los dos formularios del portal.
+        """
+        return contratos_para_select(user)
 
     def list(self, request):
         """GET /portal/mis_incidencias/"""

@@ -2440,9 +2440,28 @@ class RecibosPolizaResidente(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     residente = models.ForeignKey(Residentes, on_delete=models.CASCADE, related_name='recibos_poliza')
     contrato = models.ForeignKey(FraternaContratos, null=True, blank=True, on_delete=models.SET_NULL, related_name='recibos_poliza')
+    # Ronda de firma = el PERIODO CONTRACTUAL al que pertenece el pago, con sus
+    # terminos congelados (renta y vigencia salen de ahi, no de la fila del
+    # contrato: una renovacion en curso EDITA la fila y cobrariamos meses viejos
+    # con la renta nueva). Se llena sola desde el contrato elegido; en los 255
+    # contratos vigentes siempre hay ronda firmada. Queda NULL en los 582
+    # historicos sin firma, que por eso conservan `contrato` como respaldo: si la
+    # ronda se cancela o se regenera, el pago no se queda huerfano.
+    ronda = models.ForeignKey('FraternaRondaFirma', null=True, blank=True,
+                              on_delete=models.SET_NULL, related_name='recibos_poliza')
     archivo = models.FileField(upload_to=get_recibo_upload_path, max_length=255)
     monto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     fecha_pago = models.DateField(null=True, blank=True, help_text='Fecha del pago de la póliza')
+    # Mes que CUBRE el pago (siempre día 1). Lo calcula el servidor al subir
+    # (`utils/calendario_pagos.periodo_a_imputar`), no lo elige el residente: el
+    # comprobante se aplica al mes vencido más viejo que siga sin cubrir y, si no
+    # hay ninguno, al mes en que se subió. Es columna y no un derivado de
+    # `fecha_subida` porque el staff necesita poder corregirlo al aprobar (pago
+    # adelantado, dos meses en un solo comprobante); un `auto_now_add` no se
+    # puede tocar nunca. NULL = recibo viejo o cargado por la administración sin
+    # contrato, que no entra en el estado de cuenta.
+    periodo = models.DateField(null=True, blank=True,
+                               help_text='Mes que cubre el pago (día 1 del mes)')
     referencia = models.CharField(max_length=100, null=True, blank=True, help_text='Folio, transferencia, etc.')
     comentarios = models.TextField(null=True, blank=True)
     fecha_subida = models.DateTimeField(auto_now_add=True)

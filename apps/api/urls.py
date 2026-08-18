@@ -143,6 +143,9 @@ urlpatterns = [
     # los SUYOS; la aprobacion sigue siendo de Fraterna.
     path('portal/mis_recibos/', PortalRecibos.as_view({'get': 'list', 'post': 'create'}), name='portal_mis_recibos'),
     path('portal/mis_recibos/<int:pk>/', PortalRecibos.as_view({'patch': 'partial_update', 'delete': 'destroy'}), name='portal_recibo_detalle'),
+    # Cuanto debe y de que meses. Calculado al vuelo del contrato (mismo
+    # calendario que sus pagares); no hay tabla de mensualidades.
+    path('portal/mi_estado_cuenta/', PortalRecibos.as_view({'get': 'estado_cuenta'}), name='portal_mi_estado_cuenta'),
     # Incidencias: crea/edita las propias; arrendatario y residente de la misma
     # ficha se ven las incidencias entre si (solo modifica cada quien las suyas).
     path('portal/mis_incidencias/', PortalIncidencias.as_view({'get': 'list', 'post': 'create'}), name='portal_mis_incidencias'),
