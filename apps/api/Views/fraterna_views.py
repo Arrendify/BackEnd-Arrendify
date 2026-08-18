@@ -10543,6 +10543,13 @@ class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
             'extension': ext,
             'es_imagen': ext in ('jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic'),
             'monto': str(r.monto) if r.monto is not None else '',
+            # Lo que el residente declaro al subirlo: QUE pago y POR DONDE. El
+            # revisor lo necesita para saber si el comprobante que tiene enfrente
+            # es una mensualidad o una multa antes de teclear el monto.
+            'concepto': r.concepto or '',
+            'concepto_texto': r.get_concepto_display() if r.concepto else '',
+            'metodo_pago': r.metodo_pago or '',
+            'metodo_pago_texto': r.get_metodo_pago_display() if r.metodo_pago else '',
             # Lo que le falta al mes que se esta cubriendo. Es la sugerencia para
             # el campo del monto; el revisor la confirma o la corrige contra el
             # comprobante que tiene enfrente.

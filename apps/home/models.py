@@ -2452,6 +2452,30 @@ class RecibosPolizaResidente(models.Model):
     archivo = models.FileField(upload_to=get_recibo_upload_path, max_length=255)
     monto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     fecha_pago = models.DateField(null=True, blank=True, help_text='Fecha del pago de la póliza')
+    # QUE se esta pagando y POR DONDE entro el dinero (2026-08-18). Un comprobante
+    # de renta y uno de una multa se veian igual: sin esto no hay forma de saber
+    # que parte de lo entregado es mensualidad y que parte es otra cosa.
+    # El formulario del portal los exige, pero la columna es NULLABLE a proposito:
+    # los recibos que ya existian no los traen y los que carga la administracion
+    # por el CRUD viejo (detalles_archivos) tampoco. NULL = "no se capturo".
+    CONCEPTOS_PAGO = [
+        ('renta', 'Renta'),
+        ('servicios', 'Servicios (luz) (asador)'),
+        ('estacionamiento', 'Estacionamiento'),
+        ('multa', 'Multa'),
+        ('intereses', 'Intereses'),
+        ('renta_adelantada', 'Renta adelantada'),
+        ('otro', 'Otro'),
+    ]
+    METODOS_PAGO = [
+        ('transferencia', 'Transferencia bancaria'),
+        ('deposito', 'Depósito en ventanilla'),
+        ('clip', 'Terminal CLIP'),
+    ]
+    concepto = models.CharField(max_length=30, choices=CONCEPTOS_PAGO, null=True, blank=True,
+                                help_text='Qué se está pagando')
+    metodo_pago = models.CharField(max_length=30, choices=METODOS_PAGO, null=True, blank=True,
+                                   help_text='Por dónde entró el dinero')
     # Mes que CUBRE el pago (siempre día 1). Lo calcula el servidor al subir
     # (`utils/calendario_pagos.periodo_a_imputar`), no lo elige el residente: el
     # comprobante se aplica al mes vencido más viejo que siga sin cubrir y, si no

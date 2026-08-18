@@ -1562,6 +1562,13 @@ def _recibo_publico(r, cuenta_id):
         'extension': ext,
         'es_imagen': ext in EXTENSIONES_IMAGEN,
         'monto': str(r.monto) if r.monto is not None else '',
+        # Que se pago y por que medio: lo dice el residente al subirlo. Viajan
+        # la clave (para el <select> al editar) y el texto ya resuelto (para
+        # pintarlo), asi el front no repite el catalogo.
+        'concepto': r.concepto or '',
+        'concepto_texto': r.get_concepto_display() if r.concepto else '',
+        'metodo_pago': r.metodo_pago or '',
+        'metodo_pago_texto': r.get_metodo_pago_display() if r.metodo_pago else '',
         'fecha_pago': _fecha(r.fecha_pago),
         'referencia': r.referencia or '',
         'comentarios': r.comentarios or '',
@@ -1598,10 +1605,11 @@ class PortalRecibos(viewsets.ViewSet):
       · VE todos los recibos de sus fichas: los suyos, los de la OTRA parte del
         contrato y los de la administracion (regla del usuario, 2026-08-18, la
         misma que en incidencias). Quien lo subio viaja en `subido_por`.
-      · SUBE recibos nuevos. Lo unico que aporta es el ARCHIVO y a que
-        contrato pertenece (y solo entre los suyos; uno ajeno cae al que le
-        toca en silencio). `residente`, `user`, `ronda` y `periodo` los
-        resuelve el servidor, y el `monto` lo captura Fraterna al revisar.
+      · SUBE recibos nuevos. Aporta el ARCHIVO, a que contrato pertenece (y
+        solo entre los suyos; uno ajeno cae al que le toca en silencio) y
+        QUE pago + POR DONDE (concepto y metodo, obligatorios desde el
+        2026-08-18). `residente`, `user`, `ronda` y `periodo` los resuelve el
+        servidor, y el `monto` lo captura Fraterna al revisar.
       · NO puede subir nada si no tiene un contrato FIRMADO (409): sin
         mensualidades a las cuales aplicarlo, el comprobante quedaria colgado.
       · EDITA / BORRA cualquiera de su ficha mientras Fraterna no lo apruebe
@@ -1615,14 +1623,22 @@ class PortalRecibos(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
-    # El residente NO escribe NINGUN dato del recibo (decision del usuario,
-    # 2026-08-18): entrega el comprobante y dice a que contrato pertenece, y
-    # ya. El `monto` lo captura Fraterna al revisarlo — es su lectura del
-    # documento, no lo que el residente diga que pago; la fecha la sustituye
-    # el sello `fecha_subida` (que no se puede maquillar); el mes que cubre lo
-    # calcula el servidor; y referencia/comentarios se quitaron por no usarse.
-    # Las columnas siguen existiendo para el modulo del operador.
-    CAMPOS_EDITABLES = ()
+    # Lo UNICO que el residente escribe: que concepto paga y por que medio
+    # (2026-08-18). Son dos catalogos cerrados, no texto libre — se validan
+    # contra los choices del modelo en `_limpiar_campos`, asi que aunque el
+    # front mande otra cosa no entra.
+    #
+    # Lo que sigue SIN poder escribir y por que: el `monto` lo captura Fraterna
+    # al revisar (es su lectura del documento, no lo que el residente diga que
+    # pago); la fecha la sustituye el sello `fecha_subida`, que no se puede
+    # maquillar; el mes que cubre lo calcula el servidor en cascada; y
+    # referencia/comentarios se quitaron por no usarse. Esas columnas siguen
+    # existiendo para el modulo del operador.
+    CAMPOS_EDITABLES = ('concepto', 'metodo_pago')
+
+    # Catalogos permitidos, tomados del modelo para que no se puedan separar.
+    CONCEPTOS_VALIDOS = {c for c, _ in RecibosPolizaResidente.CONCEPTOS_PAGO}
+    METODOS_VALIDOS = {m for m, _ in RecibosPolizaResidente.METODOS_PAGO}
 
     def _fallo(self, e, donde):
         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1675,17 +1691,34 @@ class PortalRecibos(viewsets.ViewSet):
 
     @staticmethod
     def _limpiar_campos(datos):
-        """Lo que el formulario puede escribir: NADA (ver CAMPOS_EDITABLES).
+        """Lo que el formulario puede escribir: concepto y metodo de pago.
 
-        Se conserva como un solo lugar por el que pasa todo el body, para que
-        agregar un campo escribible manana sea una linea aqui y no un
-        `setattr` suelto. Lo que llegue y no este declarado se ignora en vez
-        de reventar: el front reenvia el payload completo que recibio.
+        Unico lugar por el que pasa todo el body, para que agregar un campo
+        escribible manana sea una linea aqui y no un `setattr` suelto. Lo que
+        llegue y no este declarado se ignora en vez de reventar: el front
+        reenvia el payload completo que recibio.
+
+        Los dos son CATALOGOS: un valor fuera de la lista se rechaza (400) en
+        vez de guardarse. Guardar basura ahi seria peor que no tener el campo —
+        el dia que el concepto decida si el pago baja el adeudo, un valor
+        inventado rompe la cuenta en silencio.
         """
+        # Un campo que llega VACIO se ignora, no se guarda como vacio: asi un
+        # PATCH que reenvia el payload completo no puede borrar un concepto ya
+        # capturado. Que sean obligatorios AL DAR DE ALTA se comprueba en
+        # `create`, que es donde se sabe que es un recibo nuevo.
         valores = {}
         for campo in PortalRecibos.CAMPOS_EDITABLES:
-            if campo in datos:
-                valores[campo] = datos.get(campo)
+            limpio = (datos.get(campo) or '').strip()
+            if limpio:
+                valores[campo] = limpio
+
+        concepto = valores.get('concepto')
+        if concepto and concepto not in PortalRecibos.CONCEPTOS_VALIDOS:
+            return {}, 'El concepto de pago no es válido.'
+        metodo = valores.get('metodo_pago')
+        if metodo and metodo not in PortalRecibos.METODOS_VALIDOS:
+            return {}, 'El método de pago no es válido.'
         return valores, None
 
     @staticmethod
@@ -1719,6 +1752,15 @@ class PortalRecibos(viewsets.ViewSet):
                     # A que PERIODO ligar el pago (contrato + ronda). Sustituyo
                     # al campo libre de 'referencia', que nadie llenaba.
                     'periodos': periodos_para_select(request.user),
+                    # Los dos catalogos del formulario, servidos desde el modelo:
+                    # agregar un concepto manana es una linea en models.py y no
+                    # hay que acordarse de tocar tambien el HTML.
+                    'catalogos': {
+                        'conceptos': [{'valor': v, 'etiqueta': t}
+                                      for v, t in RecibosPolizaResidente.CONCEPTOS_PAGO],
+                        'metodos': [{'valor': v, 'etiqueta': t}
+                                    for v, t in RecibosPolizaResidente.METODOS_PAGO],
+                    },
                     'total': len(recibos),
                 },
                 status=status.HTTP_200_OK,
@@ -1763,6 +1805,16 @@ class PortalRecibos(viewsets.ViewSet):
             valores, problema = self._limpiar_campos(request.data)
             if problema:
                 return Response({'error': problema}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Concepto y metodo son OBLIGATORIOS al dar de alta (no al editar:
+            # un recibo viejo puede no traerlos). Se exigen aqui y no en el
+            # modelo porque la columna tiene que seguir aceptando NULL para los
+            # recibos que ya existian y para los que carga la administracion.
+            for campo, etiqueta in (('concepto', 'concepto de pago'),
+                                    ('metodo_pago', 'método de pago')):
+                if not valores.get(campo):
+                    return Response({'error': f'Elige el {etiqueta}.'},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
             # Sin contrato elegido (o con uno ajeno, que se descarta): el primero
             # COBRABLE de TODAS sus fichas — el que el selector habria puesto
