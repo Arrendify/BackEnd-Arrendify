@@ -2465,8 +2465,17 @@ class RecibosPolizaResidente(models.Model):
         ('multa', 'Multa'),
         ('intereses', 'Intereses'),
         ('renta_adelantada', 'Renta adelantada'),
+        ('renta_proporcional', 'Renta proporcional (primer mes)'),
+        ('deposito_garantia', 'Depósito en garantía'),
+        ('poliza_juridica', 'Póliza jurídica'),
         ('otro', 'Otro'),
     ]
+    # Solo estos conceptos son mensualidad y entran a la cascada del estado de
+    # cuenta; el resto (depósito, póliza, multa...) queda registrado y visible
+    # para el revisor pero no baja el adeudo de renta. NULL también cuenta como
+    # renta: los recibos viejos y los del CRUD de la administración no traen
+    # concepto y siempre han contado — excluirlos destaparía meses ya cubiertos.
+    CONCEPTOS_RENTA = ('renta', 'renta_adelantada', 'renta_proporcional')
     METODOS_PAGO = [
         ('transferencia', 'Transferencia bancaria'),
         ('deposito', 'Depósito en ventanilla'),
@@ -2498,6 +2507,10 @@ class RecibosPolizaResidente(models.Model):
         on_delete=models.SET_NULL,
         related_name='recibos_poliza_aprobados',
     )
+
+    def cuenta_para_renta(self):
+        """True si este comprobante se aplica a las mensualidades (cascada)."""
+        return not self.concepto or self.concepto in self.CONCEPTOS_RENTA
 
     class Meta:
         db_table = 'fraterna_recibos_poliza_residente'

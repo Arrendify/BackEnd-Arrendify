@@ -10463,9 +10463,13 @@ class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
             if contrato.id not in calendarios:
                 # El estado de cuenta se calcula con TODOS los recibos del
                 # contrato, no solo con este: el dinero se aplica en cascada y
-                # un abono viejo cambia a que mes le toca al de hoy.
+                # un abono viejo cambia a que mes le toca al de hoy. Pero SOLO
+                # entran los de renta (cuenta_para_renta, el mismo filtro que
+                # usa el portal): un depósito o una multa no pagan mensualidades.
                 calendarios[contrato.id] = estado_de_cuenta(
-                    contrato, del_contrato.get(contrato.id, []))
+                    contrato,
+                    [x for x in del_contrato.get(contrato.id, [])
+                     if x.cuenta_para_renta()])
             cuenta = calendarios[contrato.id]
 
         bloques = (cuenta or {}).get('periodos') or []

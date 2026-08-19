@@ -1941,7 +1941,11 @@ class PortalRecibos(viewsets.ViewSet):
             bloques = []
             saldo_total = en_revision_total = total_general = Decimal('0')
             for c in contratos:
-                bloque = estado_de_cuenta(c, por_contrato.get(c.id, []))
+                # A la cascada solo entran los recibos de renta: un depósito en
+                # garantía o una multa no deben "pagar" una mensualidad.
+                bloque = estado_de_cuenta(c, [
+                    r for r in por_contrato.get(c.id, []) if r.cuenta_para_renta()
+                ])
                 bloque.update({
                     'ficha_id': c.residente_id,
                     'departamento': c.no_depa or '',
