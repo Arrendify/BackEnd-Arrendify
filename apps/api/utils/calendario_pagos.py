@@ -195,6 +195,24 @@ def _rondas_cobrables(contrato):
     return sorted(rondas, key=lambda r: (r.fecha_move_in, r.numero or 0))
 
 
+def ronda_cobrable(contrato):
+    """La ronda bajo la que se esta pagando hoy, o None si no hay calendario.
+
+    Es el ancla de los recibos y de los cargos: la fila `fraterna_contrato` es
+    la copia de trabajo del siguiente intento y una renovacion le REESCRIBE
+    renta y fechas encima, asi que ligarse solo al contrato pierde con que
+    terminos nacio el adeudo. El `datos_snapshot` de la ronda, en cambio, esta
+    congelado — es el unico registro de eso.
+
+    Se DEDUCE, nunca la manda el cliente, y sale de `_rondas_cobrables` para que
+    no pueda separarse del criterio del calendario: si un dia entran mas estados
+    al cobro, esto los sigue solo. Se toma la ultima (la mas reciente), que es
+    la que cobra el mes en curso.
+    """
+    rondas = _rondas_cobrables(contrato)
+    return rondas[-1] if rondas else None
+
+
 def tramos(contrato):
     """Los periodos contractuales que hay que pagar, del mas viejo al mas nuevo.
 
@@ -499,4 +517,146 @@ def estado_de_cuenta(contrato, recibos, hoy=None):
         'total': str(total_contrato),
         'total_meses': len(todos),
         'fuente': ultimo['fuente'],
+    }
+
+
+def bolsa_cargos(contrato, recibos):
+    """La SEGUNDA bolsa del estado de cuenta: los cargos explicitos.
+
+    Moras, penas, multas, servicios, deposito y poliza NO son mensualidades:
+    viven como filas de `FraternaCargo` y se cobran aparte — meterlos al mes
+    rompe la cascada de renta (un pago de $16,000 contra un mes engordado a
+    $17,500 dejaria la renta a deber). Aqui se les aplica lo pagado en cascada
+    POR CLASE: que recibo paga que cargo lo dice `salda_cargos_de` en el modelo
+    ('intereses' salda moras y penas; 'multa', multas...), un solo criterio
+    para el portal y la bandeja.
+
+    `recibos` son TODOS los del contrato: aqui se filtran los que pagan cargos,
+    igual que el llamador filtra los de renta con `cuenta_para_renta`.
+
+    Reglas (decisiones del usuario, 2026-08-25):
+      · Un cargo se debe DESDE QUE SE CREA: no tiene vencimiento propio, lo
+        teclea una persona porque el hecho ya ocurrio.
+      · Las mismas dos varas de la renta: solo lo APROBADO pinta un cargo como
+        pagado, pero el saldo cuenta lo entregado (un comprobante en revision
+        deja de reclamar). Un comprobante sin monto capturado se presume que
+        cubre el cargo mas viejo pendiente de su clase.
+      · Solo cargos de rondas 'firmado' (la regla de "Renovar = cierre
+        contable"): los de una ronda expirada se conservan pero no cobran.
+        Los condonados/cancelados no se muestran: dejaron de deberse.
+    """
+    from ...home.models import FraternaCargo
+
+    vacio = {'cargos': [], 'num_pendientes': 0, 'saldo': '0',
+             'saldo_en_revision': '0', 'total_activo': '0'}
+    rondas = _rondas_cobrables(contrato)
+    if not rondas:
+        return vacio
+
+    cargos = list(FraternaCargo.objects
+                  .filter(ronda_id__in=[r.id for r in rondas],
+                          estado__in=('activo', 'pagado'))
+                  .order_by('creado_en', 'id'))
+    if not cargos:
+        return vacio
+
+    reparto = [{'aprobado': Decimal('0'), 'revision': Decimal('0'),
+                'ids': [], 'sin_monto': False} for _ in cargos]
+
+    def falta_en(i, hasta_revision):
+        if cargos[i].estado == 'pagado':      # cerrado a mano por el staff
+            return Decimal('0')
+        usado = reparto[i]['aprobado']
+        if hasta_revision:
+            usado += reparto[i]['revision']
+        return max(cargos[i].monto - usado, Decimal('0'))
+
+    def pasada(lista, clave):
+        hasta_revision = (clave == 'revision')
+        for r in lista:
+            clases = r.salda_cargos_de()
+            objetivo = [i for i, c in enumerate(cargos) if c.concepto in clases]
+            if r.monto is None:
+                # Sin cifra capturada: se presume que cubre el cargo mas viejo
+                # que siga pendiente de su clase (espejo de la regla de renta).
+                for i in objetivo:
+                    falta = falta_en(i, hasta_revision)
+                    if falta > Decimal('0'):
+                        reparto[i][clave] += falta
+                        reparto[i]['ids'].append(r.id)
+                        reparto[i]['sin_monto'] = True
+                        break
+                continue
+            resto = r.monto
+            for i in objetivo:
+                if resto <= Decimal('0'):
+                    break
+                falta = falta_en(i, hasta_revision)
+                if falta == Decimal('0'):
+                    continue
+                toma = min(resto, falta)
+                reparto[i][clave] += toma
+                if r.id not in reparto[i]['ids']:
+                    reparto[i]['ids'].append(r.id)
+                resto -= toma
+
+    orden = sorted([r for r in recibos if r.salda_cargos_de()],
+                   key=lambda r: (r.fecha_subida or _EPOCA, r.id))
+    pasada([r for r in orden if r.aprobado], 'aprobado')
+    pasada([r for r in orden if not r.aprobado], 'revision')
+
+    filas = []
+    saldo = en_revision_total = total_activo = Decimal('0')
+    pendientes = 0
+    for c, ap in zip(cargos, reparto):
+        cerrado = c.estado == 'pagado'
+        aprobado = c.monto if cerrado else ap['aprobado']
+        en_revision = Decimal('0') if cerrado else ap['revision']
+        falta = max(c.monto - aprobado, Decimal('0'))
+        cubierto = aprobado >= c.monto
+
+        if cubierto:
+            estado = PAGADO
+        elif aprobado > 0:
+            estado = PARCIAL
+        elif ap['ids']:
+            estado = EN_REVISION
+        else:
+            estado = 'pendiente'
+
+        if not cerrado:
+            total_activo += c.monto
+            resta = max(c.monto - aprobado - en_revision, Decimal('0'))
+            saldo += resta
+            if resta > Decimal('0'):
+                pendientes += 1
+            en_revision_total += en_revision
+
+        filas.append({
+            'id': c.id,
+            'ronda_id': c.ronda_id,
+            'concepto': c.concepto,
+            'concepto_texto': c.get_concepto_display(),
+            'periodo': c.periodo.isoformat() if c.periodo else '',
+            'periodo_texto': nombre_mes(c.periodo),
+            'monto': str(c.monto),
+            'iva_incluido': c.iva_incluido,
+            'notas': c.notas or '',
+            'creado_en': c.creado_en.date().isoformat() if c.creado_en else '',
+            'pagado': str(aprobado),
+            'en_revision': str(en_revision),
+            'falta': str(falta),
+            'estado': estado,
+            'recibos': ap['ids'],
+        })
+
+    return {
+        'cargos': filas,
+        # Cargos a los que todavia les falta dinero, contando lo entregado: es
+        # el numero de la linea "tienes N cargos extra" del portal.
+        'num_pendientes': pendientes,
+        # Lo que se debe HOY de cargos, descontando lo aprobado y lo entregado.
+        'saldo': str(saldo),
+        'saldo_en_revision': str(en_revision_total),
+        'total_activo': str(total_activo),
     }

@@ -57,7 +57,8 @@ from ...home.models import (
     IncidenciasFraterna, RecibosPolizaResidente, Residentes,
 )
 from ..utils.calendario_pagos import (
-    estado_de_cuenta, nombre_mes, renta_mensual, tramos,
+    bolsa_cargos, estado_de_cuenta, nombre_mes, renta_mensual, ronda_cobrable,
+    tramos,
 )
 from ..utils.demo_mode import marca_para
 from .fraterna_views import eliminar_archivo_s3
@@ -1569,6 +1570,12 @@ def _recibo_publico(r, cuenta_id):
         'concepto_texto': r.get_concepto_display() if r.concepto else '',
         'metodo_pago': r.metodo_pago or '',
         'metodo_pago_texto': r.get_metodo_pago_display() if r.metodo_pago else '',
+        # El periodo contractual bajo el que se pago. La fila del contrato la
+        # reescribe una renovacion; el snapshot de la ronda no, asi que esta es
+        # la unica pista de con que terminos (renta, vigencia) nacio el adeudo
+        # que cubre este comprobante. Se expone aunque el front todavia no la
+        # pinte: una FK que se escribe y nadie puede leer no sirve de registro.
+        'ronda': r.ronda_id,
         'fecha_pago': _fecha(r.fecha_pago),
         'referencia': r.referencia or '',
         'comentarios': r.comentarios or '',
@@ -1856,6 +1863,15 @@ class PortalRecibos(viewsets.ViewSet):
                     candidata = None
                 if candidata and contrato.rondas_firma.filter(id=candidata).exists():
                     ronda_id = candidata
+            # Sin ronda utilizable en el body, se DEDUCE del contrato en vez de
+            # dejarla en NULL: un formulario viejo, un periodo sin `ronda_id` o
+            # una ronda ajena descartada arriba dejaban el comprobante sin el
+            # unico dato que congela con que terminos se pago. Aqui ya se sabe
+            # que el contrato tiene calendario (el 409 de arriba), asi que esto
+            # solo devuelve None en un contrato sin rondas cobrables.
+            if contrato and not ronda_id:
+                deducida = ronda_cobrable(contrato)
+                ronda_id = deducida.id if deducida else None
 
             # EL COMPROBANTE YA NO GUARDA A QUE MES PERTENECE (2026-08-18).
             # Se intento y sale mal con los abonos: un pago de $1,000 contra una
@@ -1940,12 +1956,17 @@ class PortalRecibos(viewsets.ViewSet):
 
             bloques = []
             saldo_total = en_revision_total = total_general = Decimal('0')
+            cargos_saldo = Decimal('0')
+            cargos_pendientes = 0
             for c in contratos:
                 # A la cascada solo entran los recibos de renta: un depósito en
                 # garantía o una multa no deben "pagar" una mensualidad.
                 bloque = estado_de_cuenta(c, [
                     r for r in por_contrato.get(c.id, []) if r.cuenta_para_renta()
                 ])
+                # La SEGUNDA bolsa: moras, penas, multas... Los recibos que no
+                # son renta se aplican aqui, por clase (salda_cargos_de).
+                cargos = bolsa_cargos(c, por_contrato.get(c.id, []))
                 bloque.update({
                     'ficha_id': c.residente_id,
                     'departamento': c.no_depa or '',
@@ -1953,10 +1974,17 @@ class PortalRecibos(viewsets.ViewSet):
                     'vigente': (c.estado_contrato or '') == 'actual',
                     'desde': _fecha(c.fecha_move_in),
                     'hasta': _fecha(c.fecha_vigencia),
+                    'cargos': cargos,
                 })
-                saldo_total += Decimal(bloque['saldo'])
-                en_revision_total += Decimal(bloque['saldo_en_revision'])
+                # DEBES HOY y EN REVISION suman las dos bolsas (decision del
+                # usuario, 2026-08-24/25); TOTAL A PAGAR no se toca — es el
+                # total del CONTRATO y trae su propia leyenda de mensualidades.
+                saldo_total += Decimal(bloque['saldo']) + Decimal(cargos['saldo'])
+                en_revision_total += (Decimal(bloque['saldo_en_revision'])
+                                      + Decimal(cargos['saldo_en_revision']))
                 total_general += Decimal(bloque.get('total') or '0')
+                cargos_saldo += Decimal(cargos['saldo'])
+                cargos_pendientes += cargos['num_pendientes']
                 bloques.append(bloque)
 
             # Los comprobantes que cargo la administracion sin contrato no caen
@@ -1971,14 +1999,19 @@ class PortalRecibos(viewsets.ViewSet):
                 # Lo que costaran sus contratos completos, sumadas todas las
                 # mensualidades (no solo las vencidas).
                 'total_a_pagar': str(total_general),
+                # La linea "tienes N cargos extra" del portal: cargos a los que
+                # aun les falta dinero (contando lo entregado) y cuanto suman.
+                'cargos_pendientes': cargos_pendientes,
+                'cargos_saldo': str(cargos_saldo),
                 'recibos_sin_contrato': sueltos,
-                'aviso': self._aviso(bloques, saldo_total, en_revision_total),
+                'aviso': self._aviso(bloques, saldo_total, en_revision_total,
+                                     cargos_pendientes),
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return self._fallo(e, 'estado_cuenta')
 
     @staticmethod
-    def _aviso(bloques, saldo, en_revision):
+    def _aviso(bloques, saldo, en_revision, cargos_pendientes=0):
         """El mensaje de arriba de la pantalla, en un solo criterio.
 
         Se arma en el backend a proposito: el front pinta lo que reciba, y asi
@@ -2002,6 +2035,14 @@ class PortalRecibos(viewsets.ViewSet):
                 texto = (f"Tienes {meses} mensualidades sin comprobante "
                          f"aprobado, la más antigua es {b['mes_a_pagar_texto'].lower()}.")
             return {'tipo': 'debe', 'texto': texto}
+        if cargos_pendientes:
+            # Renta al corriente pero con cargos extra vivos: el "estas al
+            # corriente" en verde contradeciria el DEBES HOY, que ya los suma.
+            plural = 's' if cargos_pendientes != 1 else ''
+            return {'tipo': 'debe',
+                    'texto': (f'Tu renta está al corriente, pero tienes '
+                              f'{cargos_pendientes} cargo{plural} extra '
+                              f'pendiente{plural} de pago.')}
         if en_revision > 0:
             return {'tipo': 'en_revision',
                     'texto': 'Ya subiste tus comprobantes; Fraterna los está revisando.'}

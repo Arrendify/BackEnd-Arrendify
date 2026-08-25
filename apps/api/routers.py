@@ -10,6 +10,7 @@ from .Views.investigaciones_views import InvestigacionLaboralViewSet,Investigaci
 from .Views.stripe_view import *
 from .Views.notificaciones_views import NotificacionViewSet
 from .Views.reservas_views import ReservaAsadorViewSet, ReservaAsadorFraternaViewSet
+from .Views.cargos_views import FraternaCargoViewSet
 
 # Inicializar router
 router = DefaultRouter()
@@ -66,6 +67,7 @@ router.register(r'incidencias_fraterna', fraterna_views.IncidenciasFraterna, bas
 router.register(r'reservas_asador_fraterna', ReservaAsadorFraternaViewSet, basename='reservas_asador_fraterna')
 router.register(r'departamentos_fraterna', fraterna_views.DepartamentosFraterna, basename='departamentos_fraterna')
 router.register(r'recibos_poliza_residente', fraterna_views.RecibosPolizaResidenteViewSet, basename='recibos_poliza_residente')
+router.register(r'fraterna_cargos', FraternaCargoViewSet, basename='fraterna_cargos')
 
 #SEMILLERO PURISIMA
 router.register(r'arrendatarios_semillero', fraterna_views.Arrendatarios_semilleroViewSet, basename='arrendatarios_semillero')

@@ -2475,7 +2475,16 @@ class RecibosPolizaResidente(models.Model):
     # para el revisor pero no baja el adeudo de renta. NULL también cuenta como
     # renta: los recibos viejos y los del CRUD de la administración no traen
     # concepto y siempre han contado — excluirlos destaparía meses ya cubiertos.
-    CONCEPTOS_RENTA = ('renta', 'renta_adelantada', 'renta_proporcional')
+    #
+    # `estacionamiento` ENTRA (2026-08-24): la mensualidad que cobra el
+    # calendario es la "renta integral" de la cláusula Cuarta, o sea
+    # renta + estacionamiento en UN solo monto (`calendario_pagos.renta_mensual`).
+    # No existe una deuda de cajón por separado contra la cual aplicarlo, así
+    # que dejarlo fuera hacía que ese dinero no bajara nada y el mes siguiera
+    # cobrándose completo. Etiquetarlo sirve para saber qué parte del pago es
+    # cajón, no para mandarlo a otra bolsa.
+    CONCEPTOS_RENTA = ('renta', 'renta_adelantada', 'renta_proporcional',
+                       'estacionamiento')
     METODOS_PAGO = [
         ('transferencia', 'Transferencia bancaria'),
         ('deposito', 'Depósito en ventanilla'),
@@ -2512,11 +2521,152 @@ class RecibosPolizaResidente(models.Model):
         """True si este comprobante se aplica a las mensualidades (cascada)."""
         return not self.concepto or self.concepto in self.CONCEPTOS_RENTA
 
+    # Cascada POR CLASE: un recibo que NO es renta salda cargos de SU clase
+    # (`FraternaCargo`), nunca mensualidades. 'intereses' cubre tanto la mora
+    # del 10% como la pena de dias de renta (decision del usuario, 2026-08-25:
+    # la pena no tiene concepto propio en el catalogo del residente). Vive en
+    # el modelo por lo mismo que `cuenta_para_renta`: un solo criterio para el
+    # portal y la bandeja.
+    CARGOS_QUE_SALDA = {
+        'intereses': ('mora_interes', 'pena_dias_renta'),
+        'multa': ('multa',),
+        'servicios': ('servicio',),
+        'deposito_garantia': ('deposito_garantia',),
+        'poliza_juridica': ('poliza_juridica',),
+        'otro': ('otro',),
+    }
+
+    def salda_cargos_de(self):
+        """Conceptos de cargo que este comprobante paga (vacio si es de renta)."""
+        if self.cuenta_para_renta():
+            return ()
+        return self.CARGOS_QUE_SALDA.get(self.concepto, ())
+
     class Meta:
         db_table = 'fraterna_recibos_poliza_residente'
         ordering = ['-fecha_pago', '-fecha_subida']
             
             
+class FraternaCargo(models.Model):
+    """Todo lo que el residente debe y NO es mensualidad: moras, penas, multas,
+    servicios, deposito en garantia y poliza juridica.
+
+    La regla madre (handoff 2026-08-19, seccion 37): **el motor de renta
+    (`utils/calendario_pagos`) JAMAS calcula moras**. La mensualidad se deriva
+    al vuelo del calendario congelado de la ronda; todo lo demas es una FILA
+    EXPLICITA aqui, y el estado de cuenta suma DOS bolsas. Asi, quitar una mora
+    injusta es mover un `estado`, no recalcular nada.
+
+    EL ANCLA ES LA RONDA, Y ES OBLIGATORIA (2026-08-24). La fila
+    `fraterna_contrato` es la copia de trabajo del SIGUIENTE intento y una
+    renovacion le reescribe renta y fechas encima; el `datos_snapshot` de la
+    ronda esta congelado, asi que es el unico registro de con que terminos
+    nacio el adeudo. `contrato` NO se duplica como columna a proposito: se
+    llega por `cargo.ronda.contrato` (o `filter(ronda__contrato=...)`) y asi
+    los dos no pueden divergir -- el bug que se acababa de corregir en
+    `revisar/` era exactamente ese, un comprobante colgado de la ronda de otro
+    contrato.
+
+    Ciclo de vida del cobro (seccion 42.1): un cargo cuya ronda pasa a
+    'expirado' -- el staff apreto "Renovar", que es CIERRE CONTABLE del periodo
+    anterior -- deja de mostrarse y de cobrarse, pero SE CONSERVA. El estado de
+    la ronda hace de filtro; no hay que cancelarlo ni borrarlo. Ver
+    `es_cobrable()`.
+    """
+    CONCEPTOS = [
+        ('mora_interes', 'Mora (10% de la mensualidad)'),
+        ('pena_dias_renta', 'Pena por incumplimiento (días de renta)'),
+        ('multa', 'Multa'),
+        ('servicio', 'Servicio (luz, asador)'),
+        ('deposito_garantia', 'Depósito en garantía'),
+        ('poliza_juridica', 'Póliza jurídica'),
+        ('otro', 'Otro'),
+    ]
+    # 'activo'    = se debe y se cobra;
+    # 'pagado'    = cubierto por un recibo del concepto que le corresponde;
+    # 'condonado' = perdonado por Fraterna -- se CONDONA, nunca se borra, para
+    #               que quede quien y cuando (`cerrado_por` / `cerrado_en`);
+    # 'cancelado' = no debio existir (auto-cancelacion del cron, ver `origen`).
+    ESTADOS = [('activo', 'Activo'), ('pagado', 'Pagado'),
+               ('condonado', 'Condonado'), ('cancelado', 'Cancelado')]
+    # 'sistema' = lo detecto el cron; 'staff' = lo tecleo un humano.
+    # El cron solo puede auto-cancelar LO SUYO: si despues llega un comprobante
+    # con fecha a tiempo, cancela la mora que el mismo genero, pero un cargo
+    # puesto por una persona no se toca jamas.
+    ORIGENES = [('sistema', 'Detectado por el sistema'),
+                ('staff', 'Capturado por el staff')]
+
+    id = models.AutoField(primary_key=True)
+    ronda = models.ForeignKey(
+        FraternaRondaFirma, on_delete=models.PROTECT, related_name='cargos',
+        help_text='Periodo contractual firmado al que pertenece el cargo',
+    )
+    concepto = models.CharField(max_length=30, choices=CONCEPTOS)
+    # A que MES refiere el cargo (dia 1), cuando aplica: la mora y la pena son
+    # siempre de una mensualidad concreta. NULL = no refiere a ningun mes (una
+    # multa por ruido, un servicio suelto). Ojo con el UNIQUE de abajo: en
+    # Postgres los NULL son distintos entre si, asi que NO impide dos multas sin
+    # periodo -- que es justo lo que se quiere. El deposito y la poliza, que son
+    # una sola vez por ronda, conviene sellarlos con el mes 1 del tramo para que
+    # el UNIQUE tambien los cubra.
+    periodo = models.DateField(null=True, blank=True,
+                               help_text='Mes al que refiere el cargo (día 1 del mes)')
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    iva_incluido = models.BooleanField(
+        default=False, help_text='True si `monto` ya trae el IVA dentro')
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='activo')
+    origen = models.CharField(max_length=20, choices=ORIGENES, default='staff')
+
+    # Auditoria de alta.
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='cargos_fraterna_creados',
+    )
+    notas = models.TextField(
+        null=True, blank=True,
+        help_text='Por qué existe el cargo (lo escribe quien lo da de alta)')
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    # Auditoria de salida: por que dejo de estar 'activo' y quien lo movio.
+    # Mismo vocabulario que la ronda (`motivo` / `cerrado_en`).
+    motivo = models.CharField(max_length=255, null=True, blank=True,
+                              help_text='Por qué se condonó / canceló')
+    cerrado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='cargos_fraterna_cerrados',
+    )
+    cerrado_en = models.DateTimeField(null=True, blank=True)
+
+    def es_cobrable(self):
+        """True si este cargo debe sumar al adeudo de hoy.
+
+        Dos condiciones, y la segunda es la de la seccion 42.1: el periodo tiene
+        que seguir EN PIE. Una ronda 'expirado' es un termino ya cerrado -- el
+        staff apreto "Renovar" -- y su deuda no vuelve al calculo.
+        """
+        return self.estado == 'activo' and self.ronda.estado == 'firmado'
+
+    class Meta:
+        db_table = 'fraterna_cargo'
+        ordering = ['periodo', 'creado_en']
+        indexes = [
+            # LA consulta del estado de cuenta: los cargos vivos de un periodo.
+            models.Index(fields=['ronda', 'estado'],
+                         name='fraterna_cargo_ronda_edo'),
+        ]
+        constraints = [
+            # Idempotencia del cron: correrlo dos veces el mismo dia no puede
+            # duplicar la mora de agosto.
+            models.UniqueConstraint(
+                fields=['ronda', 'periodo', 'concepto'],
+                name='uniq_cargo_por_ronda_periodo_concepto',
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_concepto_display()} ${self.monto} ({self.estado})"
+
+
 class IncidenciasFraterna(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)

@@ -65,6 +65,9 @@ MODULOS = {
     # desaprobar y borrar.
     MODULO_RECIBOS: (
         ('/recibos_poliza_residente/', TODOS),
+        # El boton "Crear cargo" de la cabecera: buscar a la persona, ver su
+        # periodo firmado y darle de alta una multa o un servicio.
+        ('/fraterna_cargos/', TODOS),
     ),
 }
 

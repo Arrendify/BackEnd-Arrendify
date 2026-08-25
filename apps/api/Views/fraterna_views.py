@@ -69,7 +69,8 @@ from ..utils import acceso_residente
 # revisor lo necesita para saber cuanto se esperaba de ese mes. El import al
 # reves (calendario_pagos -> fraterna_views) va DIFERIDO dentro de la funcion,
 # asi que esto no hace ciclo.
-from ..utils.calendario_pagos import estado_de_cuenta, tramos
+from ..utils.calendario_pagos import (bolsa_cargos, estado_de_cuenta,
+                                      ronda_cobrable, tramos)
 
 # Tope de filas que devuelve la bandeja de recibos en una pasada. Hoy sobra
 # (255 vigentes x 12 meses es el techo de un ano entero y la cola real es de
@@ -10385,7 +10386,16 @@ class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # Auditoría: registra quién subió el recibo.
-        serializer.save(user=self.request.user)
+        extra = {'user': self.request.user}
+        # La ronda se DEDUCE del contrato, igual que en el portal. Por aquí
+        # entra la administración (el modal de la ficha del residente) y nunca
+        # la manda: sin esto el comprobante queda sin el único dato que congela
+        # con qué términos se pagó. Los 3 recibos que hay hoy en producción
+        # salieron justamente de aquí, y los tres tienen `ronda` en NULL.
+        contrato = serializer.validated_data.get('contrato')
+        if contrato is not None and not serializer.validated_data.get('ronda'):
+            extra['ronda'] = ronda_cobrable(contrato)
+        serializer.save(**extra)
 
     def destroy(self, request, *args, **kwargs):
         try:
@@ -10508,6 +10518,37 @@ class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
         # curso, no la renta completa (si ya hubo un abono, falta menos).
         esperado = en_curso['falta'] if en_curso else None
 
+        # Si el comprobante paga CARGOS (multa, intereses...), lo esperado no es
+        # la renta del mes: es lo que falte de los cargos de SU clase, con la
+        # misma bolsa que ve el residente. Se cachea una bolsa por contrato como
+        # los calendarios; la llave es tupla para no chocar con los ids.
+        cargos_clase = None
+        clases = r.salda_cargos_de()
+        if contrato is not None and clases:
+            etiquetas = {
+                'intereses': 'moras y penas',
+                'multa': 'multas',
+                'servicios': 'servicios',
+                'deposito_garantia': 'depósito en garantía',
+                'poliza_juridica': 'póliza jurídica',
+                'otro': 'otros cargos',
+            }
+            llave = ('bolsa', contrato.id)
+            if llave not in calendarios:
+                calendarios[llave] = bolsa_cargos(
+                    contrato, del_contrato.get(contrato.id, []))
+            mios = [c for c in calendarios[llave]['cargos']
+                    if c['concepto'] in clases]
+            # `falta` = monto - aprobado, la misma vara que la sugerencia de
+            # renta: lo en revision (este recibo incluido) no la descuenta.
+            falta_total = sum((Decimal(c['falta']) for c in mios), Decimal('0'))
+            cargos_clase = {
+                'etiqueta': etiquetas.get(r.concepto, 'cargos'),
+                'hay_cargos': bool(mios),
+                'pendientes': sum(1 for c in mios if Decimal(c['falta']) > 0),
+                'saldo': str(falta_total),
+            }
+
         depa = ((tramo['no_depa'] if tramo else '')
                 or (getattr(contrato, 'no_depa', '') or ''))
         cama = ((tramo['cama'] if tramo else '')
@@ -10554,10 +10595,19 @@ class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
             'concepto_texto': r.get_concepto_display() if r.concepto else '',
             'metodo_pago': r.metodo_pago or '',
             'metodo_pago_texto': r.get_metodo_pago_display() if r.metodo_pago else '',
+            # Si este comprobante entra o no a la cascada de renta. Viaja como
+            # bandera y no como lista de conceptos para que el front NO tenga
+            # que reimplementar el criterio: la fuente unica es
+            # `RecibosPolizaResidente.cuenta_para_renta()`, la misma que usan el
+            # portal y el calculo de esta misma pantalla.
+            'cuenta_para_renta': r.cuenta_para_renta(),
             # Lo que le falta al mes que se esta cubriendo. Es la sugerencia para
             # el campo del monto; el revisor la confirma o la corrige contra el
             # comprobante que tiene enfrente.
             'monto_esperado': esperado,
+            # Y su gemela para los comprobantes de cargos: cuanto falta de los
+            # cargos de la clase que este recibo paga (None si es de renta).
+            'cargos_clase': cargos_clase,
             # Estado de cuenta VIVO del contrato: de que mes va, cuanto debe y
             # que otros meses ya se le vencieron. Puramente informativo — nada
             # de esto se guarda en el recibo.
@@ -10570,6 +10620,14 @@ class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
                 'total': (cuenta or {}).get('total') or '0',
                 'en_curso': en_curso,
                 'vencidos': vencidos,
+                # Las mensualidades del contrato, para el desplegable "Mas
+                # detalles". Va DENTRO de la fila (y no en un mapa aparte de la
+                # respuesta) a proposito: `revisar/` devuelve una sola fila con
+                # este mismo metodo, asi que el modal se repinta con el
+                # calendario ya actualizado despues de aprobar, sin pedir nada
+                # mas. El costo es repetirlo entre recibos del mismo contrato;
+                # la cola real es de decenas y el tope son 400 filas.
+                'meses': (cuenta or {}).get('meses') or [],
             },
             'referencia': r.referencia or '',
             'comentarios': r.comentarios or '',
@@ -10665,6 +10723,11 @@ class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
                 'recibos': datos,
                 'pendientes': pendientes,
                 'aprobados': aprobados,
+                # Para el contador del chip "Cargos generados" (todos los que
+                # se han creado, retirados incluidos: es lo que lista esa
+                # pestana). No respeta `q` a proposito: es un total, como la
+                # insignia del menu.
+                'cargos_generados': FraternaCargo.objects.count(),
                 'total': total,
                 # Se declara el corte en vez de truncar en silencio: una lista
                 # cortada se lee como "ya no hay mas".
@@ -10740,6 +10803,18 @@ class RecibosPolizaResidenteViewSet(viewsets.ModelViewSet):
                                         status=status.HTTP_400_BAD_REQUEST)
                     recibo.contrato = contrato
                     campos.append('contrato')
+                    # La ronda tiene que seguir al contrato: si la que trae el
+                    # recibo es de OTRO contrato (o no trae), se re-deduce. Sin
+                    # esto, mover un comprobante de contrato dejaba la ronda
+                    # vieja colgada — el recibo apuntando a los terminos de un
+                    # periodo que no es el suyo, que es justo lo que la FK
+                    # existe para evitar. Si la ronda ya es de este contrato se
+                    # respeta: pudo elegirla el residente al subirlo.
+                    if not (recibo.ronda_id and contrato.rondas_firma
+                            .filter(id=recibo.ronda_id).exists()):
+                        deducida = ronda_cobrable(contrato)
+                        recibo.ronda = deducida
+                        campos.append('ronda')
 
             # --- monto ------------------------------------------------------ #
             if 'monto' in datos:
