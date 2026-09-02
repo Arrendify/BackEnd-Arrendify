@@ -1033,6 +1033,58 @@ class PortalResidente(viewsets.ViewSet):
             por_ficha[c.residente_id].append(c)
         return {fid: _bloqueo_de_edicion(cs) for fid, cs in por_ficha.items()}
 
+    # ---------------------------------------------------------- Aviso de Privacidad
+
+    def _fichas_sin_consentimiento_titular(self, user):
+        """Fichas de esta cuenta donde falta el consentimiento DEL TITULAR.
+
+        Entran las que no tienen nada y tambien las que solo traen la
+        declaracion del operador (origen 'tercero'): esa es una promesa de un
+        tercero de que cuenta con la autorizacion, no el consentimiento de la
+        persona. La del titular la sustituye porque vale mas.
+        """
+        return fichas_de(user).filter(
+            Q(aviso_aceptado_en__isnull=True) | Q(aviso_aceptado_origen='tercero')
+        )
+
+    def aviso_estado(self, request):
+        """GET /portal/aviso/ -> si hay que pedirle que acepte el Aviso."""
+        try:
+            pendientes = self._fichas_sin_consentimiento_titular(request.user)
+            return Response({
+                'pendiente': pendientes.exists(),
+                'fichas_pendientes': pendientes.count(),
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return self._fallo(e, 'aviso_estado')
+
+    def aceptar_aviso(self, request):
+        """POST /portal/aviso/ -> deja constancia de que el titular acepto.
+
+        Sube 'tercero' a 'titular', pero NO pisa un 'titular' que ya exista: para
+        probar consentimiento sirve la fecha mas TEMPRANA, no la mas reciente.
+        Guarda tambien QUE cuenta acepto, porque la ficha la comparten dos
+        personas y 'titular' a secas no dice de quien es el consentimiento.
+        """
+        try:
+            ahora = timezone.now()
+            actualizadas = self._fichas_sin_consentimiento_titular(request.user).update(
+                aviso_aceptado_en=ahora,
+                aviso_aceptado_origen='titular',
+                aviso_aceptado_user=request.user,
+            )
+            logger.info(
+                f"{datetime.now()} Portal residente: {request.user.username} acepto el "
+                f"Aviso de Privacidad ({actualizadas} ficha(s))"
+            )
+            return Response({
+                'pendiente': False,
+                'fichas_actualizadas': actualizadas,
+                'aceptado_en': ahora,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return self._fallo(e, 'aceptar_aviso')
+
     def mi_informacion(self, request):
         """GET /portal/mi_informacion/ -> fichas ligadas a esta cuenta.
 

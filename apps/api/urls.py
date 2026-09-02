@@ -128,6 +128,13 @@ urlpatterns = [
     # PATCH = corregir los datos de la ficha, y solo si el contrato lo
     # permite (ver _bloqueo_de_edicion). Sin POST ni DELETE: la ficha no se
     # crea ni se borra desde el portal.
+    # Consentimiento del Aviso de Privacidad por el TITULAR. GET dice si hay
+    # que pedirselo (no ha aceptado, o lo que hay es la declaracion del
+    # operador); POST deja la constancia. Lo consultan las 5 pantallas del
+    # portal desde portal_residente.js, por eso vive aparte de mi_informacion.
+    path('portal/aviso/', PortalResidente.as_view(
+        {'get': 'aviso_estado', 'post': 'aceptar_aviso'}),
+        name='portal_aviso'),
     path('portal/mi_informacion/', PortalResidente.as_view(
         {'get': 'mi_informacion', 'patch': 'actualizar_informacion'}),
         name='portal_mi_informacion'),

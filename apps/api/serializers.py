@@ -242,7 +242,13 @@ class ResidenteSerializers(serializers.ModelSerializer): #Residentes
         # Portal del residente: la liga con la cuenta de login la asigna SOLO el
         # backend (utils/acceso_residente). Si quedaran escribibles, un PUT desde
         # el navegador podria apuntar un registro a la cuenta de cualquiera.
-        read_only_fields = ('arrendatario_cuenta', 'residente_cuenta')
+        # El consentimiento del Aviso lo estampa el SERVIDOR en create().
+        # Si quedaran escribibles, el navegador podria mandar la fecha que
+        # quisiera y la evidencia no valdria nada.
+        read_only_fields = (
+            'arrendatario_cuenta', 'residente_cuenta',
+            'aviso_aceptado_en', 'aviso_aceptado_origen',
+        )
 
 class ProcesoFraternaSerializers(serializers.ModelSerializer): #ProcesoContrato
     

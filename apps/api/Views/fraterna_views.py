@@ -690,7 +690,21 @@ class ResidenteViewSet(viewsets.ModelViewSet):
             residente_serializer = self.serializer_class(data=request.data) #Usa el serializer_class
             print(residente_serializer)
             if residente_serializer.is_valid(raise_exception=True):
-                residente = residente_serializer.save( user = user_session)
+                # Consentimiento del Aviso de Privacidad (LFPDPPP art. 7). La fecha
+                # la pone el SERVIDOR: un timestamp que manda el navegador no sirve
+                # como evidencia. El front solo dice si la casilla venia marcada y
+                # con que variante.
+                #   'tercero' -> quien captura declara tener la autorizacion del titular
+                #   'titular' -> la persona acepto por si misma
+                consentimiento = {}
+                if str(request.data.get('acepta_aviso', '')).lower() in ('true', '1', 'on', 'si'):
+                    origen = request.data.get('aviso_aceptado_origen') or 'tercero'
+                    consentimiento = {
+                        'aviso_aceptado_en': timezone.now(),
+                        'aviso_aceptado_origen': origen if origen in ('titular', 'tercero') else 'tercero',
+                    }
+
+                residente = residente_serializer.save(user=user_session, **consentimiento)
                 print("Guardado residente")
 
                 # Portal del residente: se le generan sus cuentas de login en el

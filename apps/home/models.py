@@ -2034,6 +2034,23 @@ class Residentes(models.Model):
         related_name='residentes_como_residente',
     )
 
+    # Consentimiento del Aviso de Privacidad (LFPDPPP art. 7: los datos
+    # financieros y patrimoniales exigen consentimiento EXPRESO, el tacito no
+    # alcanza). Se llena desde la casilla del alta.
+    #   origen 'titular' -> la persona acepto por si misma (portal del residente)
+    #   origen 'tercero' -> quien capturo declara contar con la autorizacion del
+    #                       titular (modal interno de Fraterna)
+    # Son dos hechos juridicos distintos y pesan distinto en una reclamacion,
+    # por eso se guarda cual de los dos es.
+    aviso_aceptado_en = models.DateTimeField(null=True, blank=True)
+    aviso_aceptado_origen = models.CharField(max_length=20, null=True, blank=True)
+    # Que CUENTA acepto. La ficha la comparten dos personas (arrendatario y
+    # residente), asi que 'titular' solo no dice de quien es el consentimiento.
+    aviso_aceptado_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='avisos_aceptados',
+    )
+
     class Meta:
         db_table = 'residentes'
 
